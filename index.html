@@ -90,7 +90,7 @@
     <script type="module">
         // Importation des fonctions nécessaires de Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         // Ta configuration Firebase que tu as fournie
@@ -119,38 +119,6 @@
             }, 3000);
         }
 
-        // Initialisation de Firebase
-        const initializeFirebase = async () => {
-            try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                // Tenter de se connecter avec le token personnalisé
-                try {
-                    if (typeof __initial_auth_token !== 'undefined') {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        console.warn("Jeton d'authentification manquant, connexion anonyme.");
-                        await signInAnonymously(auth);
-                    }
-                } catch (error) {
-                    // Si le token personnalisé échoue, essayer une connexion anonyme en repli
-                    if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
-                        console.warn("Jeton personnalisé invalide, connexion anonyme.");
-                        await signInAnonymously(auth);
-                    } else {
-                        // Renvoyer l'erreur si elle n'est pas liée au jeton
-                        throw error;
-                    }
-                }
-
-            } catch (error) {
-                console.error("Erreur lors de l'initialisation de Firebase:", error);
-                showMessage("Erreur de connexion au service. Veuillez réessayer.");
-            }
-        };
-
         const fetchUserProfile = async (userId) => {
             const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', userId, 'profile', 'data');
             const docSnap = await getDoc(userRef);
@@ -160,7 +128,6 @@
                 document.getElementById('user-name-header').textContent = `${profileData.firstName}`;
                 document.getElementById('welcome-user-name').textContent = `${profileData.firstName}`;
             } else {
-                // Gérer le cas où le profil n'existe pas (par exemple pour un utilisateur anonyme)
                 console.warn("Profil introuvable pour l'utilisateur. Affichage d'un message générique.");
                 document.getElementById('user-name-header').textContent = `Invité`;
                 document.getElementById('welcome-user-name').textContent = `Invité`;
@@ -173,8 +140,7 @@
         const handleLogout = async () => {
             try {
                 await signOut(auth);
-                showMessage("Déconnexion réussie.");
-                // Pas de redirection ici pour éviter les erreurs d'URL
+                showMessage("Déconnexion réussie. La page ne peut pas être redirigée dans cet environnement.");
             } catch (error) {
                 console.error("Erreur lors de la déconnexion:", error);
                 showMessage("Erreur lors de la déconnexion. Veuillez réessayer.");
@@ -182,24 +148,32 @@
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
-            await initializeFirebase();
-            
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUserId = user.uid;
-                    fetchUserProfile(currentUserId);
-                } else {
-                    // Ne pas rediriger, juste afficher un message
-                    console.log("Utilisateur non authentifié. La redirection est désactivée dans cet environnement.");
-                    // On peut choisir d'afficher le contenu principal avec un profil générique si l'utilisateur est déconnecté
-                    document.getElementById('user-name-header').textContent = `Invité`;
-                    document.getElementById('welcome-user-name').textContent = `Invité`;
-                    document.getElementById('loading-container').classList.add('hidden');
-                    document.getElementById('main-content').classList.remove('hidden');
-                }
-            });
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
 
-            document.getElementById('logout-button').addEventListener('click', handleLogout);
+                // Écoute l'état d'authentification sans tenter de connexion forcée
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        fetchUserProfile(currentUserId);
+                    } else {
+                        // Afficher un message générique si l'utilisateur n'est pas connecté pour éviter les erreurs
+                        console.log("Utilisateur non authentifié. Affichage d'un profil 'Invité' par défaut.");
+                        document.getElementById('user-name-header').textContent = `Invité`;
+                        document.getElementById('welcome-user-name').textContent = `Invité`;
+                        document.getElementById('loading-container').classList.add('hidden');
+                        document.getElementById('main-content').classList.remove('hidden');
+                    }
+                });
+
+                document.getElementById('logout-button').addEventListener('click', handleLogout);
+
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation de l'application:", error);
+                showMessage("Erreur de connexion au service. Veuillez réessayer.");
+            }
         });
     </script>
 </body>
