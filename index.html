@@ -8,10 +8,47 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Intégration des bibliothèques Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // Initialisation de Firebase avec la configuration fournie par l'environnement
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        // Écouteur pour les changements d'état d'authentification
+        onAuthStateChanged(auth, (user) => {
+            const authLinks = document.getElementById('auth-links');
+            const logoutButton = document.getElementById('logout-button');
+
+            if (user) {
+                // L'utilisateur est connecté
+                authLinks.classList.add('hidden');
+                logoutButton.classList.remove('hidden');
+            } else {
+                // L'utilisateur est déconnecté
+                authLinks.classList.remove('hidden');
+                logoutButton.classList.add('hidden');
+            }
+        });
+
+        // Fonction pour gérer la déconnexion
+        window.handleLogout = function() {
+            signOut(auth).then(() => {
+                console.log("Déconnexion réussie.");
+                window.location.href = 'index.html'; // Redirection vers la page d'accueil
+            }).catch((error) => {
+                console.error("Erreur de déconnexion:", error);
+            });
+        };
+    </script>
+
     <style>
         body { font-family: 'Inter', sans-serif; }
         .hero-bg {
-            /* Remplacez l'URL par l'image de fond dans votre dossier 'images' */
             background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('images/hero_background.jpg') center/cover no-repeat;
         }
     </style>
@@ -21,15 +58,23 @@
     <!-- Header -->
     <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
         <a href="#" class="flex items-center space-x-2">
-            <!-- Mise à jour pour utiliser l'image depuis le dossier 'images' -->
             <img src="images/logo.png" alt="Logo Projet Blocus" class="h-10">
         </a>
         <nav>
             <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
             <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
             <a href="#cta" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Contact</a>
-            <a href="login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
-            <a href="register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
+            
+            <!-- Boutons d'authentification, affichés par défaut -->
+            <div id="auth-links" class="inline-block">
+                <a href="login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
+                <a href="register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
+            </div>
+            
+            <!-- Bouton de déconnexion, masqué par défaut -->
+            <button id="logout-button" onclick="handleLogout()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">
+                Se déconnecter
+            </button>
         </nav>
     </header>
 
@@ -94,39 +139,6 @@
                     <div class="text-indigo-500 text-5xl font-extrabold mb-4">3</div>
                     <h3 class="text-2xl font-bold mb-2">Réussis tes examens</h3>
                     <p class="text-gray-400">Révise avec des outils sur mesure et maximise tes chances de réussite.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="py-20 bg-gray-800">
-        <div class="container mx-auto px-4">
-            <h2 class="text-4xl font-bold text-center mb-12">Nos fonctionnalités</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Feature 1: Quiz -->
-                <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
-                    <div class="text-indigo-500 mb-4">
-                        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-center mb-2">Quiz IA</h3>
-                    <p class="text-gray-400 text-center">Génère des quiz interactifs à partir de tes notes de cours en un instant.</p>
-                </div>
-                <!-- Feature 2: Flashcards -->
-                <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
-                    <div class="text-indigo-500 mb-4">
-                        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.467 9.5 5 8 5c-1.474 0-2.842.64-3.868 1.67C3.132 7.69 2.5 9.058 2.5 10.5c0 1.5 1.5 3 3.5 3 2 0 3.5-1.5 3.5-3.5s-1.5-3.5-3.5-3.5c-.75 0-1.5.3-2 .8"></path></svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-center mb-2">Fiches de révision</h3>
-                    <p class="text-gray-400 text-center">Transforme tes longs textes en fiches synthétiques pour une révision rapide.</p>
-                </div>
-                <!-- Feature 3: Progress Tracker -->
-                <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
-                    <div class="text-indigo-500 mb-4">
-                        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    </div>
-                    <h3 class="text-2xl font-bold text-center mb-2">Suivi de progression</h3>
-                    <p class="text-gray-400 text-center">Garde une trace de tes sessions d'étude et de tes résultats aux quiz.</p>
                 </div>
             </div>
         </div>
