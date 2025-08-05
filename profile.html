@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - Projet Blocus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <!-- Conteneur principal du profil -->
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-lg border border-gray-700 text-center">
+        <h2 class="text-3xl font-bold mb-6">Mon Profil</h2>
+
+        <!-- Photo de profil -->
+        <img id="profile-picture-large" src="" alt="Photo de profil de l'utilisateur" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-indigo-500">
+        
+        <!-- Informations de l'utilisateur -->
+        <p class="text-xl font-bold text-white mb-2" id="user-email"></p>
+        <p class="text-gray-400 text-sm mb-6" id="user-uid"></p>
+
+        <!-- Bouton de déconnexion -->
+        <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105">
+            Se déconnecter
+        </button>
+    </div>
+
+    <!-- Message box pour les notifications -->
+    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
+        <p id="message-text"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+        // Initialisation de Firebase avec ta configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
+          authDomain: "projetblocus1.firebaseapp.com",
+          projectId: "projetblocus1",
+          storageBucket: "projetblocus1.firebasestorage.app",
+          messagingSenderId: "536093956243",
+          appId: "1:536093956243:web:80eea85a24b7078f1f5566",
+          measurementId: "G-R84RE96KKM"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            function showMessage(message) {
+                const messageBox = document.getElementById('message-box');
+                const messageText = document.getElementById('message-text');
+                messageText.textContent = message;
+                messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 3000);
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // L'utilisateur est connecté, on affiche ses informations
+                    document.getElementById('user-email').textContent = user.email || 'Aucun email';
+                    document.getElementById('user-uid').textContent = 'ID utilisateur: ' + user.uid;
+
+                    if (user.photoURL) {
+                        document.getElementById('profile-picture-large').src = user.photoURL;
+                    } else {
+                        document.getElementById('profile-picture-large').src = "https://placehold.co/96x96/f3f4f6/000?text=😊";
+                    }
+                } else {
+                    // L'utilisateur est déconnecté, on le redirige vers la page d'accueil
+                    window.location.href = '/index.html';
+                }
+            });
+
+            document.getElementById('logout-button').addEventListener('click', () => {
+                signOut(auth).then(() => {
+                    console.log("Déconnexion réussie.");
+                    showMessage("Déconnexion réussie ! Redirection vers l'accueil...");
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 2000);
+                }).catch((error) => {
+                    console.error("Erreur de déconnexion:", error);
+                    showMessage("Erreur lors de la déconnexion.");
+                });
+            });
+        });
+    </script>
+</body>
+</html>

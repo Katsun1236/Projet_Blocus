@@ -31,28 +31,27 @@
         // Écouteur pour les changements d'état d'authentification
         onAuthStateChanged(auth, (user) => {
             const authLinks = document.getElementById('auth-links');
-            const logoutButton = document.getElementById('logout-button');
+            const profileLink = document.getElementById('profile-link');
+            const profilePicture = document.getElementById('profile-picture');
 
             if (user) {
-                // L'utilisateur est connecté, on masque les boutons de connexion et on affiche celui de déconnexion
+                // L'utilisateur est connecté, on masque les boutons de connexion et on affiche le lien de profil
                 authLinks.classList.add('hidden');
-                logoutButton.classList.remove('hidden');
+                profileLink.classList.remove('hidden');
+
+                // Si l'utilisateur a une photo de profil (ex: via Google), on l'utilise. Sinon, on met un smiley.
+                if (user.photoURL) {
+                    profilePicture.src = user.photoURL;
+                } else {
+                    profilePicture.src = "https://placehold.co/40x40/f3f4f6/000?text=😊";
+                }
+
             } else {
                 // L'utilisateur est déconnecté, on fait l'inverse
                 authLinks.classList.remove('hidden');
-                logoutButton.classList.add('hidden');
+                profileLink.classList.add('hidden');
             }
         });
-
-        // Fonction pour gérer la déconnexion
-        window.handleLogout = function() {
-            signOut(auth).then(() => {
-                console.log("Déconnexion réussie.");
-                window.location.href = 'index.html'; // Redirection vers la page d'accueil après déconnexion
-            }).catch((error) => {
-                console.error("Erreur de déconnexion:", error);
-            });
-        };
     </script>
 
     <style>
@@ -84,10 +83,10 @@
                 <a href="register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 ml-2">Créer un compte</a>
             </div>
             
-            <!-- Bouton de déconnexion, affiché si l'utilisateur est connecté -->
-            <button id="logout-button" onclick="handleLogout()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 ml-4">
-                Se déconnecter
-            </button>
+            <!-- Lien vers le profil avec l'image, affiché si l'utilisateur est connecté -->
+            <a href="profile.html" id="profile-link" class="hidden ml-4">
+                <img id="profile-picture" src="" alt="Photo de profil de l'utilisateur" class="w-10 h-10 rounded-full border-2 border-indigo-500 shadow-md transition-transform transform hover:scale-110">
+            </a>
         </nav>
     </header>
 
