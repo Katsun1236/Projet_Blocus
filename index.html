@@ -3,27 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projet Blocus</title>
+    <title>Accueil - Projet Blocus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
     <style>
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-900 text-white min-h-screen p-4 flex flex-col items-center">
 
-    <!-- Conteneur principal de la page d'accueil -->
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl text-center border border-gray-700">
-        <h1 class="text-4xl font-bold mb-4">Bienvenue sur Projet Blocus !</h1>
-        <p id="welcome-message" class="text-xl text-gray-300">Chargement...</p>
-        <div id="loader" class="mt-8">
-            <i class="fas fa-spinner fa-spin text-indigo-500 text-3xl"></i>
+    <!-- En-tête de la page -->
+    <header class="w-full max-w-4xl flex justify-between items-center py-4 px-6 bg-gray-800 rounded-xl shadow-2xl mt-4">
+        <h1 class="text-3xl font-bold text-indigo-400">Projet Blocus</h1>
+        <div class="flex items-center space-x-4">
+            <a href="/profile.html" class="flex items-center space-x-2 text-white hover:text-indigo-400 transition-colors duration-300">
+                <i class="fas fa-user-circle text-2xl"></i>
+                <span id="user-name-header" class="hidden md:inline-block">Chargement...</span>
+            </a>
+            <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
         </div>
-    </div>
+    </header>
+
+    <!-- Conteneur principal avec les options -->
+    <main class="w-full max-w-4xl mt-8">
+        <h2 class="text-2xl font-bold mb-6 text-center">Bienvenue, <span id="welcome-user-name"></span> !</h2>
+        <div id="loading-container" class="text-center p-8">
+            <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
+            <p class="mt-4 text-gray-400">Chargement des informations...</p>
+        </div>
+
+        <div id="main-content" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Section "Créer un quiz" -->
+            <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
+                <i class="fas fa-clipboard-question text-6xl text-indigo-400 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Créer un quiz</h3>
+                <p class="text-gray-400 mb-4">Générer un quiz interactif pour tester tes connaissances.</p>
+                <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
+                    Commencer
+                </button>
+            </div>
+
+            <!-- Section "Synthétiser un cours" -->
+            <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
+                <i class="fas fa-file-alt text-6xl text-indigo-400 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Synthétiser un cours</h3>
+                <p class="text-gray-400 mb-4">Condenser un document pour en retenir l'essentiel.</p>
+                <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
+                    Commencer
+                </button>
+            </div>
+
+            <!-- Section "Mes statistiques" -->
+            <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
+                <i class="fas fa-chart-line text-6xl text-indigo-400 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Mes statistiques</h3>
+                <p class="text-gray-400 mb-4">Suivre ta progression et tes performances.</p>
+                <a href="/profile.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
+                    Voir
+                </a>
+            </div>
+
+            <!-- Section "Mes cours" -->
+            <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
+                <i class="fas fa-book-open text-6xl text-indigo-400 mb-4"></i>
+                <h3 class="text-xl font-bold mb-2">Mes cours</h3>
+                <p class="text-gray-400 mb-4">Accéder et gérer tous tes cours enregistrés.</p>
+                <a href="/profile.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300">
+                    Voir
+                </a>
+            </div>
+
+        </div>
+    </main>
 
     <!-- Message box pour les notifications -->
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
@@ -31,17 +88,17 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Déclaration des variables globales
         let app;
         let auth;
         let db;
-        let userAuthenticated = false;
         let currentUserId = null;
 
+        // Fonction pour afficher des messages de notification
         function showMessage(message) {
             const messageBox = document.getElementById('message-box');
             const messageText = document.getElementById('message-text');
@@ -55,74 +112,76 @@
         // Fonction pour initialiser Firebase et l'authentification
         const initializeFirebase = async () => {
             try {
+                // Vérifier que les variables globales de l'environnement existent
+                if (typeof __firebase_config === 'undefined' || typeof __initial_auth_token === 'undefined') {
+                    console.error("Firebase configuration or auth token is missing.");
+                    showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
+                    return;
+                }
+                
                 const firebaseConfig = JSON.parse(__firebase_config);
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Gère l'authentification
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                // Tenter de se connecter avec le token personnalisé
+                await signInWithCustomToken(auth, __initial_auth_token);
+
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de Firebase:", error);
                 showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
             }
         };
 
-        // Fonction pour vérifier si le profil de l'utilisateur existe
-        const checkUserProfile = async (userId) => {
-            if (!db) {
-                console.error("Firestore n'est pas initialisé.");
-                return;
-            }
+        // Fonction pour récupérer le profil de l'utilisateur
+        const fetchUserProfile = async (userId) => {
             const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', userId, 'profile', 'data');
             const docSnap = await getDoc(userRef);
-            return docSnap.exists();
+
+            if (docSnap.exists()) {
+                const profileData = docSnap.data();
+                document.getElementById('user-name-header').textContent = `${profileData.firstName}`;
+                document.getElementById('welcome-user-name').textContent = `${profileData.firstName}`;
+                document.getElementById('loading-container').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+            } else {
+                showMessage("Profil introuvable. Redirection vers l'onboarding...");
+                setTimeout(() => {
+                    window.location.href = '/onboarding.html';
+                }, 2000);
+            }
+        };
+
+        // Fonction de déconnexion
+        const handleLogout = async () => {
+            try {
+                await signOut(auth);
+                showMessage("Déconnexion réussie. Redirection...");
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+            } catch (error) {
+                console.error("Erreur lors de la déconnexion:", error);
+                showMessage("Erreur lors de la déconnexion. Veuillez réessayer.");
+            }
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
             await initializeFirebase();
-
-            onAuthStateChanged(auth, async (user) => {
-                const loader = document.getElementById('loader');
-                const welcomeMessage = document.getElementById('welcome-message');
-
+            
+            // Gérer les changements d'état de l'authentification
+            onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUserId = user.uid;
-                    userAuthenticated = true;
-                    
-                    try {
-                        const hasProfile = await checkUserProfile(currentUserId);
-                        if (hasProfile) {
-                            // Le profil existe, l'utilisateur est bon pour le tableau de bord
-                            loader.classList.add('hidden');
-                            welcomeMessage.textContent = "Ton profil est complet ! Redirection vers le tableau de bord...";
-                            // Redirection vers la page du tableau de bord (à créer)
-                            // window.location.href = '/dashboard.html';
-                        } else {
-                            // Le profil n'existe pas, l'utilisateur doit passer par l'onboarding
-                            welcomeMessage.textContent = "Ton profil n'est pas encore complet. Redirection vers la page d'onboarding...";
-                            setTimeout(() => {
-                                window.location.href = '/onboarding.html';
-                            }, 2000);
-                        }
-                    } catch (error) {
-                        console.error("Erreur lors de la vérification du profil:", error);
-                        showMessage("Erreur lors de la vérification de ton profil.");
-                        loader.classList.add('hidden');
-                        welcomeMessage.textContent = "Une erreur est survenue.";
-                    }
+                    fetchUserProfile(currentUserId);
                 } else {
-                    // L'utilisateur n'est pas authentifié
-                    welcomeMessage.textContent = "Tu n'es pas connecté. Redirection vers la page de connexion...";
-                    setTimeout(() => {
-                        window.location.href = '/login.html';
-                    }, 2000);
+                    // Si l'utilisateur n'est pas connecté, le rediriger
+                    window.location.href = '/login.html';
                 }
             });
+
+            // Événement pour le bouton de déconnexion
+            document.getElementById('logout-button').addEventListener('click', handleLogout);
         });
     </script>
 </body>
