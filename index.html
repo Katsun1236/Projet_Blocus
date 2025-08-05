@@ -88,18 +88,27 @@
     </div>
 
     <script type="module">
-        // Mise à jour des versions de Firebase pour plus de stabilité
+        // Importation des fonctions nécessaires de Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        // Déclaration des variables globales
+        // Ta configuration Firebase que tu as fournie
+        const firebaseConfig = {
+            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
+            authDomain: "projetblocus1.firebaseapp.com",
+            projectId: "projetblocus1",
+            storageBucket: "projetblocus1.firebasestorage.app",
+            messagingSenderId: "536093956243",
+            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
+            measurementId: "G-W5WZXDHNTC"
+        };
+        
         let app;
         let auth;
         let db;
         let currentUserId = null;
 
-        // Fonction pour afficher des messages de notification
         function showMessage(message) {
             const messageBox = document.getElementById('message-box');
             const messageText = document.getElementById('message-text');
@@ -110,31 +119,38 @@
             }, 3000);
         }
 
-        // Fonction pour initialiser Firebase et l'authentification
+        // Initialisation de Firebase
         const initializeFirebase = async () => {
             try {
-                // Vérifier que les variables globales de l'environnement existent
-                if (typeof __firebase_config === 'undefined' || typeof __initial_auth_token === 'undefined') {
-                    console.error("Firebase configuration or auth token is missing.");
-                    showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
-                    return;
-                }
-                
-                const firebaseConfig = JSON.parse(__firebase_config);
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
                 // Tenter de se connecter avec le token personnalisé
-                await signInWithCustomToken(auth, __initial_auth_token);
+                try {
+                    if (typeof __initial_auth_token !== 'undefined') {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        console.warn("Jeton d'authentification manquant, connexion anonyme.");
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    // Si le token personnalisé échoue, essayer une connexion anonyme en repli
+                    if (error.code === 'auth/custom-token-mismatch' || error.code === 'auth/invalid-custom-token') {
+                        console.warn("Jeton personnalisé invalide, connexion anonyme.");
+                        await signInAnonymously(auth);
+                    } else {
+                        // Renvoyer l'erreur si elle n'est pas liée au jeton
+                        throw error;
+                    }
+                }
 
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de Firebase:", error);
-                showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
+                showMessage("Erreur de connexion au service. Veuillez réessayer.");
             }
         };
 
-        // Fonction pour récupérer le profil de l'utilisateur
         const fetchUserProfile = async (userId) => {
             const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', userId, 'profile', 'data');
             const docSnap = await getDoc(userRef);
@@ -143,24 +159,22 @@
                 const profileData = docSnap.data();
                 document.getElementById('user-name-header').textContent = `${profileData.firstName}`;
                 document.getElementById('welcome-user-name').textContent = `${profileData.firstName}`;
-                document.getElementById('loading-container').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
             } else {
-                showMessage("Profil introuvable. Redirection vers l'onboarding...");
-                setTimeout(() => {
-                    window.location.href = '/onboarding.html';
-                }, 2000);
+                // Gérer le cas où le profil n'existe pas (par exemple pour un utilisateur anonyme)
+                console.warn("Profil introuvable pour l'utilisateur. Affichage d'un message générique.");
+                document.getElementById('user-name-header').textContent = `Invité`;
+                document.getElementById('welcome-user-name').textContent = `Invité`;
             }
+            // masquer le chargement et afficher le contenu principal une fois les données traitées
+            document.getElementById('loading-container').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
         };
 
-        // Fonction de déconnexion
         const handleLogout = async () => {
             try {
                 await signOut(auth);
-                showMessage("Déconnexion réussie. Redirection...");
-                setTimeout(() => {
-                    window.location.href = '/login.html';
-                }, 2000);
+                showMessage("Déconnexion réussie.");
+                // Pas de redirection ici pour éviter les erreurs d'URL
             } catch (error) {
                 console.error("Erreur lors de la déconnexion:", error);
                 showMessage("Erreur lors de la déconnexion. Veuillez réessayer.");
@@ -170,18 +184,21 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await initializeFirebase();
             
-            // Gérer les changements d'état de l'authentification
             onAuthStateChanged(auth, (user) => {
                 if (user) {
                     currentUserId = user.uid;
                     fetchUserProfile(currentUserId);
                 } else {
-                    // Si l'utilisateur n'est pas connecté, le rediriger
-                    window.location.href = '/login.html';
+                    // Ne pas rediriger, juste afficher un message
+                    console.log("Utilisateur non authentifié. La redirection est désactivée dans cet environnement.");
+                    // On peut choisir d'afficher le contenu principal avec un profil générique si l'utilisateur est déconnecté
+                    document.getElementById('user-name-header').textContent = `Invité`;
+                    document.getElementById('welcome-user-name').textContent = `Invité`;
+                    document.getElementById('loading-container').classList.add('hidden');
+                    document.getElementById('main-content').classList.remove('hidden');
                 }
             });
 
-            // Événement pour le bouton de déconnexion
             document.getElementById('logout-button').addEventListener('click', handleLogout);
         });
     </script>
