@@ -8,14 +8,23 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- Intégration des bibliothèques Firebase -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         
-        // Initialisation de Firebase avec la configuration fournie par l'environnement
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        // Initialisation de Firebase avec ta configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
+          authDomain: "projetblocus1.firebaseapp.com",
+          projectId: "projetblocus1",
+          storageBucket: "projetblocus1.firebasestorage.app",
+          messagingSenderId: "536093956243",
+          appId: "1:536093956243:web:80eea85a24b7078f1f5566",
+          measurementId: "G-R84RE96KKM"
+        };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
 
@@ -25,11 +34,11 @@
             const logoutButton = document.getElementById('logout-button');
 
             if (user) {
-                // L'utilisateur est connecté
+                // L'utilisateur est connecté, on masque les boutons de connexion et on affiche celui de déconnexion
                 authLinks.classList.add('hidden');
                 logoutButton.classList.remove('hidden');
             } else {
-                // L'utilisateur est déconnecté
+                // L'utilisateur est déconnecté, on fait l'inverse
                 authLinks.classList.remove('hidden');
                 logoutButton.classList.add('hidden');
             }
@@ -39,7 +48,7 @@
         window.handleLogout = function() {
             signOut(auth).then(() => {
                 console.log("Déconnexion réussie.");
-                window.location.href = 'index.html'; // Redirection vers la page d'accueil
+                window.location.href = 'index.html'; // Redirection vers la page d'accueil après déconnexion
             }).catch((error) => {
                 console.error("Erreur de déconnexion:", error);
             });
@@ -49,6 +58,7 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .hero-bg {
+            /* Utilise une image locale pour le fond, en ajoutant un dégradé pour la lisibilité */
             background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('images/hero_background.jpg') center/cover no-repeat;
         }
     </style>
@@ -58,21 +68,24 @@
     <!-- Header -->
     <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
         <a href="#" class="flex items-center space-x-2">
-            <img src="images/logo.png" alt="Logo Projet Blocus" class="h-10">
+            <!-- Ajout d'une icône pour le logo -->
+            <i class="fas fa-brain text-4xl text-indigo-500"></i>
+            <span class="text-2xl font-extrabold text-white">Projet Blocus</span>
         </a>
         <nav>
+            <!-- Liens de navigation masqués sur mobile, mais visibles sur desktop -->
             <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
             <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
             <a href="#cta" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Contact</a>
             
-            <!-- Boutons d'authentification, affichés par défaut -->
+            <!-- Boutons d'authentification, affichés si l'utilisateur est déconnecté -->
             <div id="auth-links" class="inline-block">
-                <a href="login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
-                <a href="register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
+                <a href="login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 ml-4">Se connecter</a>
+                <a href="register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 ml-2">Créer un compte</a>
             </div>
             
-            <!-- Bouton de déconnexion, masqué par défaut -->
-            <button id="logout-button" onclick="handleLogout()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">
+            <!-- Bouton de déconnexion, affiché si l'utilisateur est connecté -->
+            <button id="logout-button" onclick="handleLogout()" class="hidden bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 ml-4">
                 Se déconnecter
             </button>
         </nav>
@@ -111,7 +124,6 @@
                 </p>
             </div>
             <div class="md:w-1/2">
-                <!-- Mise à jour pour utiliser l'image depuis le dossier 'images' -->
                 <img src="images/student_success.jpg" alt="Un étudiant souriant qui vient de finir ses révisions grâce à Projet Blocus" class="rounded-xl shadow-2xl w-full">
             </div>
         </div>
