@@ -6,7 +6,7 @@
     <title>Mon Profil - Projet Blocus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
@@ -14,23 +14,104 @@
         body { font-family: 'Inter', sans-serif; }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-900 text-white min-h-screen p-4 flex flex-col items-center">
 
-    <!-- Conteneur principal du profil -->
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-lg border border-gray-700 text-center">
-        <h2 class="text-3xl font-bold mb-6">Mon Profil</h2>
+    <!-- Conteneur principal de la page de profil -->
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-4xl border border-gray-700 mt-8">
+        <!-- En-tête du profil -->
+        <div class="flex flex-col md:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-700">
+            <div class="flex items-center mb-4 md:mb-0">
+                <div class="relative w-24 h-24 rounded-full border-4 border-indigo-500 overflow-hidden cursor-pointer group hover:border-indigo-400 transition-colors duration-300">
+                    <img id="profile-picture-display" src="https://placehold.co/96x96/f3f4f6/000?text=😊" alt="Photo de profil" class="w-full h-full object-cover">
+                    <!-- Bouton pour modifier la photo -->
+                    <div id="edit-photo-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 hidden">
+                        <i class="fas fa-camera text-white text-2xl"></i>
+                    </div>
+                </div>
+                <input type="file" id="profile-picture-input" accept="image/*" class="hidden">
+                <div class="ml-4 text-left">
+                    <div id="view-mode-name">
+                        <h1 id="user-name" class="text-3xl font-bold">Nom Prénom</h1>
+                        <p id="user-school" class="text-gray-400">Université/École</p>
+                    </div>
+                    <div id="edit-mode-name" class="hidden space-y-2">
+                        <div class="flex space-x-2">
+                            <input type="text" id="edit-firstName" class="w-1/2 px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Prénom">
+                            <input type="text" id="edit-lastName" class="w-1/2 px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Nom">
+                        </div>
+                        <input type="text" id="edit-school" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Université/École">
+                    </div>
+                    <p id="user-email" class="text-gray-500 text-sm italic"></p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="edit-profile-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+                    <i class="fas fa-pen mr-2"></i>Modifier
+                </button>
+                <button id="save-profile-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 hidden">
+                    <i class="fas fa-save mr-2"></i>Sauvegarder
+                </button>
+                <button id="cancel-edit-button" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 hidden">
+                    <i class="fas fa-times mr-2"></i>Annuler
+                </button>
+                <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Se déconnecter
+                </button>
+            </div>
+        </div>
 
-        <!-- Photo de profil -->
-        <img id="profile-picture-large" src="" alt="Photo de profil de l'utilisateur" class="w-24 h-24 rounded-full mx-auto mb-4 border-4 border-indigo-500">
+        <!-- Corps de la page avec les informations détaillées -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Section des cours -->
+            <div class="bg-gray-700 p-6 rounded-lg">
+                <h3 class="text-2xl font-bold mb-4 flex items-center"><i class="fas fa-book-open mr-2 text-indigo-400"></i>Mes cours</h3>
+                <ul id="courses-list-view" class="space-y-2">
+                    <li class="text-gray-400">Chargement des cours...</li>
+                </ul>
+                <!-- Mode édition des cours -->
+                <div id="courses-edit-mode" class="hidden">
+                    <div id="courses-container" class="space-y-2">
+                        <!-- Les champs de cours seront ajoutés ici dynamiquement -->
+                    </div>
+                    <button type="button" id="add-course-button" class="mt-2 text-indigo-400 hover:text-indigo-500 font-bold">
+                        <i class="fas fa-plus-circle mr-1"></i> Ajouter un autre cours
+                    </button>
+                    <datalist id="course-suggestions"></datalist>
+                </div>
+            </div>
+            
+            <!-- Section des statistiques -->
+            <div class="bg-gray-700 p-6 rounded-lg">
+                <h3 class="text-2xl font-bold mb-4 flex items-center"><i class="fas fa-chart-line mr-2 text-indigo-400"></i>Mes statistiques</h3>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-gray-400">Temps passé à étudier ce mois-ci :</p>
+                        <p class="text-indigo-400 text-3xl font-bold mt-1">12h 30min</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Quiz complétés :</p>
+                        <p class="text-indigo-400 text-3xl font-bold mt-1">42</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-400">Type d'exercice préféré :</p>
+                        <p id="favorite-exercise" class="text-indigo-400 text-3xl font-bold mt-1">Synthèse</p>
+                        <select id="edit-exerciseType" class="hidden mt-1 w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500">
+                            <option value="qcm">QCM</option>
+                            <option value="resume">Synthèse</option>
+                            <option value="fillInTheBlanks">Texte à trous</option>
+                            <option value="all">Tous</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
         
-        <!-- Informations de l'utilisateur -->
-        <p class="text-xl font-bold text-white mb-2" id="user-email"></p>
-        <p class="text-gray-400 text-sm mb-6" id="user-uid"></p>
-
-        <!-- Bouton de déconnexion -->
-        <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg shadow-lg transition-transform transform hover:scale-105">
-            Se déconnecter
-        </button>
+        <!-- Retour à l'accueil -->
+        <div class="mt-8 text-center" id="back-to-home-button">
+            <a href="/index.html" class="inline-block bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg transition-colors duration-300 transform hover:scale-105">
+                <i class="fas fa-arrow-left mr-2"></i>Retour à l'accueil
+            </a>
+        </div>
     </div>
 
     <!-- Message box pour les notifications -->
@@ -40,61 +121,306 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, updateDoc, collection, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-        // Initialisation de Firebase avec ta configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-          authDomain: "projetblocus1.firebaseapp.com",
-          projectId: "projetblocus1",
-          storageBucket: "projetblocus1.firebasestorage.app",
-          messagingSenderId: "536093956243",
-          appId: "1:536093956243:web:80eea85a24b7078f1f5566",
-          measurementId: "G-R84RE96KKM"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+        // Déclaration des variables globales
+        let app;
+        let auth;
+        let db;
+        let storage;
+        let currentUserId = null;
+        let originalProfileData = {};
 
-        document.addEventListener('DOMContentLoaded', () => {
-            function showMessage(message) {
-                const messageBox = document.getElementById('message-box');
-                const messageText = document.getElementById('message-text');
-                messageText.textContent = message;
-                messageBox.classList.remove('hidden');
-                setTimeout(() => {
-                    messageBox.classList.add('hidden');
-                }, 3000);
+        const emojiList = ['😊', '📚', '🚀', '💻', '💡', '🎓', '🤓', '🧠', '✍️'];
+
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Fonction pour initialiser Firebase et l'authentification
+        const initializeFirebase = async () => {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                storage = getStorage(app);
+
+                // Gère l'authentification
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation de Firebase:", error);
+                showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
             }
+        };
 
+        // Fonction pour basculer entre le mode lecture et le mode édition
+        const toggleEditMode = (isEditing) => {
+            const viewElements = document.querySelectorAll('#view-mode-name, #courses-list-view, #favorite-exercise, #back-to-home-button');
+            const editElements = document.querySelectorAll('#edit-mode-name, #courses-edit-mode, #edit-exerciseType, #save-profile-button, #cancel-edit-button, #edit-photo-overlay');
+
+            viewElements.forEach(el => el.classList.toggle('hidden', isEditing));
+            editElements.forEach(el => el.classList.toggle('hidden', !isEditing));
+            document.getElementById('edit-profile-button').classList.toggle('hidden', isEditing);
+            document.getElementById('logout-button').classList.toggle('hidden', isEditing);
+            
+            // Masque le bouton de retour à l'accueil en mode édition
+            document.getElementById('back-to-home-button').classList.toggle('hidden', isEditing);
+        };
+        
+        // Fonction pour charger les suggestions d'écoles et de cours depuis Firestore
+        async function fetchSuggestions() {
+            try {
+                const schoolsCollectionRef = collection(db, 'artifacts', 'projet_blocus', 'public', 'data', 'schools');
+                const schoolSnapshot = await getDocs(schoolsCollectionRef);
+                const schoolSuggestions = document.getElementById('school-suggestions');
+                schoolSuggestions.innerHTML = '';
+                schoolSnapshot.docs.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    schoolSuggestions.appendChild(option);
+                });
+
+                const coursesCollectionRef = collection(db, 'artifacts', 'projet_blocus', 'public', 'data', 'courses');
+                const courseSnapshot = await getDocs(coursesCollectionRef);
+                const courseSuggestions = document.getElementById('course-suggestions');
+                courseSuggestions.innerHTML = '';
+                courseSnapshot.docs.forEach(doc => {
+                    const option = document.createElement('option');
+                    option.value = doc.id;
+                    courseSuggestions.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Erreur lors de la récupération des suggestions:", error);
+            }
+        }
+
+        // Fonction pour récupérer et afficher les données du profil
+        const fetchUserProfile = async (userId) => {
+            try {
+                const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', userId, 'profile', 'data');
+                const docSnap = await getDoc(userRef);
+
+                if (docSnap.exists()) {
+                    originalProfileData = docSnap.data();
+                    
+                    // Affichage des données en mode lecture
+                    document.getElementById('user-name').textContent = `${originalProfileData.firstName} ${originalProfileData.lastName}`;
+                    document.getElementById('user-school').textContent = originalProfileData.school;
+                    document.getElementById('user-email').textContent = auth.currentUser.email || 'N/A';
+                    document.getElementById('profile-picture-display').src = originalProfileData.photoURL;
+                    document.getElementById('favorite-exercise').textContent = originalProfileData.favoriteExerciseType || 'Non spécifié';
+                    
+                    // Pré-remplissage des champs en mode édition
+                    document.getElementById('edit-firstName').value = originalProfileData.firstName;
+                    document.getElementById('edit-lastName').value = originalProfileData.lastName;
+                    document.getElementById('edit-school').value = originalProfileData.school;
+                    document.getElementById('edit-exerciseType').value = originalProfileData.favoriteExerciseType || 'all';
+
+                    // Affichage des cours en mode lecture
+                    const coursesListView = document.getElementById('courses-list-view');
+                    coursesListView.innerHTML = '';
+                    if (originalProfileData.courses && originalProfileData.courses.length > 0) {
+                        originalProfileData.courses.forEach(course => {
+                            const li = document.createElement('li');
+                            li.textContent = course;
+                            li.className = 'text-gray-300 px-4 py-2 bg-gray-600 rounded-md';
+                            coursesListView.appendChild(li);
+                        });
+                    } else {
+                        coursesListView.innerHTML = '<li class="text-gray-400">Aucun cours ajouté.</li>';
+                    }
+
+                    // Création des champs de cours en mode édition
+                    const coursesEditContainer = document.getElementById('courses-container');
+                    coursesEditContainer.innerHTML = '';
+                    if (originalProfileData.courses && originalProfileData.courses.length > 0) {
+                        originalProfileData.courses.forEach(course => {
+                            addCourseInput(course);
+                        });
+                    } else {
+                        addCourseInput('');
+                    }
+                    addRemoveButtonVisibility();
+
+                } else {
+                    showMessage("Profil introuvable. Redirection vers l'onboarding...");
+                    setTimeout(() => {
+                        window.location.href = '/onboarding.html';
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error("Erreur lors de la récupération du profil:", error);
+                showMessage("Erreur lors du chargement des données du profil.");
+            }
+        };
+
+        // Ajoute un champ d'entrée pour un cours
+        const addCourseInput = (value = '') => {
+            const coursesContainer = document.getElementById('courses-container');
+            const newCourseInput = document.createElement('div');
+            newCourseInput.className = 'relative flex items-center';
+            newCourseInput.innerHTML = `
+                <input type="text" name="course" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Nom du cours" value="${value}" required>
+                <button type="button" class="remove-course-button absolute right-2 text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+            `;
+            coursesContainer.appendChild(newCourseInput);
+        };
+
+        // Gère la visibilité des boutons de suppression de cours
+        const addRemoveButtonVisibility = () => {
+            const coursesContainer = document.getElementById('courses-container');
+            const courseInputs = coursesContainer.querySelectorAll('input[name="course"]');
+            if (courseInputs.length > 1) {
+                coursesContainer.querySelectorAll('.remove-course-button').forEach(btn => btn.classList.remove('hidden'));
+            } else {
+                coursesContainer.querySelector('.remove-course-button').classList.add('hidden');
+            }
+        };
+
+        // Fonction de déconnexion
+        const handleLogout = async () => {
+            try {
+                await signOut(auth);
+                showMessage("Déconnexion réussie. Redirection...");
+                setTimeout(() => {
+                    window.location.href = '/login.html';
+                }, 2000);
+            } catch (error) {
+                console.error("Erreur lors de la déconnexion:", error);
+                showMessage("Erreur lors de la déconnexion. Veuillez réessayer.");
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebase();
+            await fetchSuggestions();
+            
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    // L'utilisateur est connecté, on affiche ses informations
-                    document.getElementById('user-email').textContent = user.email || 'Aucun email';
-                    document.getElementById('user-uid').textContent = 'ID utilisateur: ' + user.uid;
-
-                    if (user.photoURL) {
-                        document.getElementById('profile-picture-large').src = user.photoURL;
-                    } else {
-                        document.getElementById('profile-picture-large').src = "https://placehold.co/96x96/f3f4f6/000?text=😊";
-                    }
+                    currentUserId = user.uid;
+                    fetchUserProfile(currentUserId);
                 } else {
-                    // L'utilisateur est déconnecté, on le redirige vers la page d'accueil
-                    window.location.href = '/index.html';
+                    // L'utilisateur n'est pas connecté, redirection
+                    window.location.href = '/login.html';
                 }
             });
 
-            document.getElementById('logout-button').addEventListener('click', () => {
-                signOut(auth).then(() => {
-                    console.log("Déconnexion réussie.");
-                    showMessage("Déconnexion réussie ! Redirection vers l'accueil...");
-                    setTimeout(() => {
-                        window.location.href = '/index.html';
-                    }, 2000);
-                }).catch((error) => {
-                    console.error("Erreur de déconnexion:", error);
-                    showMessage("Erreur lors de la déconnexion.");
-                });
+            // Gère le passage en mode édition
+            document.getElementById('edit-profile-button').addEventListener('click', () => {
+                toggleEditMode(true);
             });
+
+            // Gère l'annulation de l'édition
+            document.getElementById('cancel-edit-button').addEventListener('click', () => {
+                // Recharger les données originales en cas d'annulation
+                fetchUserProfile(currentUserId);
+                toggleEditMode(false);
+            });
+
+            // Gère la photo de profil
+            const profilePictureLabel = document.querySelector('.relative.w-24.h-24');
+            const profilePictureInput = document.getElementById('profile-picture-input');
+            const profilePicturePreview = document.getElementById('profile-picture-display');
+
+            profilePictureLabel.addEventListener('click', (event) => {
+                if (document.getElementById('edit-profile-button').classList.contains('hidden')) {
+                     profilePictureInput.click();
+                }
+            });
+
+            profilePictureInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePicturePreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    profilePicturePreview.src = originalProfileData.photoURL || `https://placehold.co/96x96/f3f4f6/000?text=😊`;
+                }
+            });
+
+            // Gère la soumission des modifications
+            document.getElementById('save-profile-button').addEventListener('click', async () => {
+                const firstName = document.getElementById('edit-firstName').value;
+                const lastName = document.getElementById('edit-lastName').value;
+                const school = document.getElementById('edit-school').value;
+                const exerciseType = document.getElementById('edit-exerciseType').value;
+                const profilePictureFile = profilePictureInput.files[0];
+
+                const courseInputs = document.querySelectorAll('#courses-container input[name="course"]');
+                const courses = Array.from(courseInputs).map(input => input.value.trim()).filter(value => value !== '');
+
+                try {
+                    const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', currentUserId, 'profile', 'data');
+                    const updates = {
+                        firstName: firstName,
+                        lastName: lastName,
+                        school: school,
+                        courses: courses,
+                        favoriteExerciseType: exerciseType
+                    };
+
+                    if (profilePictureFile) {
+                        const storageRef = ref(storage, `users/${currentUserId}/profilePicture/${profilePictureFile.name}`);
+                        await uploadBytes(storageRef, profilePictureFile);
+                        updates.photoURL = await getDownloadURL(storageRef);
+                    }
+                    
+                    await updateDoc(userRef, updates);
+                    
+                    // Mettre à jour les listes publiques
+                    const schoolsCollectionRef = collection(db, 'artifacts', 'projet_blocus', 'public', 'data', 'schools');
+                    await setDoc(doc(schoolsCollectionRef, school), { name: school }, { merge: true });
+
+                    const coursesCollectionRef = collection(db, 'artifacts', 'projet_blocus', 'public', 'data', 'courses');
+                    for (const course of courses) {
+                        await setDoc(doc(coursesCollectionRef, course), { name: course }, { merge: true });
+                    }
+
+                    showMessage("Profil mis à jour avec succès !");
+                    fetchUserProfile(currentUserId); // Recharger les données mises à jour
+                    toggleEditMode(false);
+
+                } catch (error) {
+                    console.error("Erreur lors de la mise à jour du profil:", error);
+                    showMessage("Erreur lors de la sauvegarde. Veuillez réessayer.");
+                }
+            });
+
+            // Gère l'ajout et la suppression des champs de cours
+            const coursesContainer = document.getElementById('courses-container');
+            document.getElementById('add-course-button').addEventListener('click', () => {
+                addCourseInput();
+                addRemoveButtonVisibility();
+            });
+
+            coursesContainer.addEventListener('click', (event) => {
+                if (event.target.closest('.remove-course-button')) {
+                    const courseInputWrapper = event.target.closest('.relative.flex.items-center');
+                    if (courseInputWrapper) {
+                        courseInputWrapper.remove();
+                        addRemoveButtonVisibility();
+                    }
+                }
+            });
+
+            document.getElementById('logout-button').addEventListener('click', handleLogout);
         });
     </script>
 </body>

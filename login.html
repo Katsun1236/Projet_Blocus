@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Se connecter - Projet Blocus</title>
+    <title>Connexion - Projet Blocus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
@@ -16,41 +16,28 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <!-- Formulaire de connexion -->
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md border border-gray-700">
-        <h2 class="text-3xl font-bold text-center mb-6">Se connecter</h2>
-
-        <!-- Bouton Google Sign-in -->
-        <button id="google-signin-button" class="w-full flex items-center justify-center bg-white text-gray-800 font-bold py-3 px-4 rounded-lg shadow-md transition-colors duration-300 transform hover:bg-gray-200 mb-4">
-            <i class="fab fa-google text-2xl mr-3"></i> Continuer avec Google
-        </button>
-
-        <div class="relative flex items-center mb-6">
-            <div class="flex-grow border-t border-gray-600"></div>
-            <span class="flex-shrink mx-4 text-gray-400">ou</span>
-            <div class="flex-grow border-t border-gray-600"></div>
-        </div>
-
+    <!-- Conteneur du formulaire de connexion -->
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700">
+        <h2 class="text-3xl font-bold text-center mb-6">Connexion</h2>
+        
         <form id="login-form">
             <div class="mb-4">
-                <label for="email" class="block text-gray-300 font-bold mb-2">Adresse email</label>
+                <label for="email" class="block text-gray-300 font-bold mb-2">Adresse e-mail</label>
                 <input type="email" id="email" name="email" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="ton.email@exemple.com" required>
             </div>
+            
             <div class="mb-6">
                 <label for="password" class="block text-gray-300 font-bold mb-2">Mot de passe</label>
-                <div class="relative">
-                    <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500 pr-12" placeholder="••••••••" required>
-                    <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-white transition-colors duration-200">
-                        <i class="fas fa-eye-slash"></i>
-                    </button>
-                </div>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="**********" required>
             </div>
+            
             <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105">
                 Se connecter
             </button>
         </form>
-        <p class="text-center text-gray-400 mt-4">
-            Pas encore de compte ? <a href="register.html" class="text-indigo-500 hover:underline">Créer un compte</a>
+        
+        <p class="text-center text-gray-400 mt-6">
+            Pas encore de compte ? <a href="/register.html" class="text-indigo-400 hover:underline">Créer un compte</a>
         </p>
     </div>
 
@@ -61,95 +48,75 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         
-        // Initialisation de Firebase avec ta configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-          authDomain: "projetblocus1.firebaseapp.com",
-          projectId: "projetblocus1",
-          storageBucket: "projetblocus1.firebasestorage.app",
-          messagingSenderId: "536093956243",
-          appId: "1:536093956243:web:80eea85a24b7078f1f5566",
-          measurementId: "G-R84RE96KKM"
+        // Déclaration des variables globales
+        let app;
+        let auth;
+
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Fonction pour initialiser Firebase et l'authentification
+        const initializeFirebase = async () => {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+
+                // Gère l'authentification
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation de Firebase:", error);
+                showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
+            }
         };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            // Fonction pour afficher des messages de notification
-            function showMessage(message) {
-                const messageBox = document.getElementById('message-box');
-                const messageText = document.getElementById('message-text');
-                messageText.textContent = message;
-                messageBox.classList.remove('hidden');
-                setTimeout(() => {
-                    messageBox.classList.add('hidden');
-                }, 3000);
-            }
 
-            // Fonction pour basculer la visibilité du mot de passe
-            function setupPasswordToggle(inputElementId, buttonElementId) {
-                const passwordInput = document.getElementById(inputElementId);
-                const toggleButton = document.getElementById(buttonElementId);
-                const icon = toggleButton.querySelector('i');
-
-                toggleButton.addEventListener('click', function() {
-                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                    passwordInput.setAttribute('type', type);
-                    icon.classList.toggle('fa-eye');
-                    icon.classList.toggle('fa-eye-slash');
-                });
-            }
-
-            setupPasswordToggle('password', 'togglePassword');
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebase();
             
-            // Gestion de la connexion par email/mot de passe
-            document.getElementById('login-form').addEventListener('submit', function(event) {
-                event.preventDefault();
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    // L'utilisateur est déjà connecté, redirection vers la page d'accueil
+                    window.location.href = '/index.html';
+                }
+            });
 
+            document.getElementById('login-form').addEventListener('submit', async function(event) {
+                event.preventDefault();
+                
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
 
-                signInWithEmailAndPassword(auth, email, password)
-                    .then((userCredential) => {
-                        console.log("Connexion réussie:", userCredential.user.uid);
-                        showMessage("Connexion réussie ! Redirection vers l'accueil...");
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 2000);
-                    })
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        console.error("Erreur de connexion:", errorCode);
-                        if (errorCode === 'auth/wrong-password' || errorCode === 'auth/user-not-found') {
-                            showMessage("Email ou mot de passe incorrect.");
-                        } else {
-                            showMessage("Erreur de connexion. Veuillez réessayer.");
-                        }
-                    });
-            });
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    showMessage("Connexion réussie ! Redirection...");
+                    setTimeout(() => {
+                        window.location.href = '/index.html';
+                    }, 2000);
+                } catch (error) {
+                    let errorMessage = "Erreur lors de la connexion. Veuillez vérifier vos identifiants.";
+                    console.error("Erreur de connexion:", error.code);
+                    
+                    if (error.code === 'auth/invalid-email') {
+                        errorMessage = "L'adresse e-mail n'est pas valide.";
+                    } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        errorMessage = "Identifiants incorrects.";
+                    }
 
-            // Gestion de la connexion via Google
-            document.getElementById('google-signin-button').addEventListener('click', function() {
-                const provider = new GoogleAuthProvider();
-                signInWithPopup(auth, provider)
-                    .then((result) => {
-                        console.log("Connexion Google réussie:", result.user.uid);
-                        showMessage("Connexion réussie avec Google ! Redirection vers l'accueil...");
-                        setTimeout(() => {
-                            window.location.href = 'index.html';
-                        }, 2000);
-                    })
-                    .catch((error) => {
-                        const errorCode = error.code;
-                        console.error("Erreur de connexion Google:", errorCode);
-                        if (errorCode === 'auth/popup-closed-by-user') {
-                            showMessage("La fenêtre de connexion a été fermée.");
-                        } else {
-                            showMessage("Erreur de connexion avec Google. Veuillez réessayer.");
-                        }
-                    });
+                    showMessage(errorMessage);
+                }
             });
         });
     </script>

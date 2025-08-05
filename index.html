@@ -6,172 +6,124 @@
     <title>Projet Blocus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- Intégration des bibliothèques Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        
-        // Initialisation de Firebase avec ta configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-          authDomain: "projetblocus1.firebaseapp.com",
-          projectId: "projetblocus1",
-          storageBucket: "projetblocus1.firebasestorage.app",
-          messagingSenderId: "536093956243",
-          appId: "1:536093956243:web:80eea85a24b7078f1f5566",
-          measurementId: "G-R84RE96KKM"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // Écouteur pour les changements d'état d'authentification
-        onAuthStateChanged(auth, (user) => {
-            const authLinks = document.getElementById('auth-links');
-            const profileLink = document.getElementById('profile-link');
-            const profilePicture = document.getElementById('profile-picture');
-
-            if (user) {
-                // L'utilisateur est connecté, on masque les boutons de connexion et on affiche le lien de profil
-                authLinks.classList.add('hidden');
-                profileLink.classList.remove('hidden');
-
-                // Si l'utilisateur a une photo de profil (ex: via Google), on l'utilise. Sinon, on met un smiley.
-                if (user.photoURL) {
-                    profilePicture.src = user.photoURL;
-                } else {
-                    profilePicture.src = "https://placehold.co/40x40/f3f4f6/000?text=😊";
-                }
-
-            } else {
-                // L'utilisateur est déconnecté, on fait l'inverse
-                authLinks.classList.remove('hidden');
-                profileLink.classList.add('hidden');
-            }
-        });
-    </script>
-
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .hero-bg {
-            /* Utilise une image locale pour le fond, en ajoutant un dégradé pour la lisibilité */
-            background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('images/hero_background.jpg') center/cover no-repeat;
-        }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <!-- Header -->
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
-        <a href="#" class="flex items-center space-x-2">
-            <!-- Ajout d'une icône pour le logo -->
-            <i class="fas fa-brain text-4xl text-indigo-500"></i>
-            <span class="text-2xl font-extrabold text-white">Projet Blocus</span>
-        </a>
-        <nav>
-            <!-- Liens de navigation masqués sur mobile, mais visibles sur desktop -->
-            <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
-            <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
-            <a href="#cta" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Contact</a>
-            
-            <!-- Boutons d'authentification, affichés si l'utilisateur est déconnecté -->
-            <div id="auth-links" class="inline-block">
-                <a href="login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 ml-4">Se connecter</a>
-                <a href="register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full shadow-lg transition-colors duration-300 ml-2">Créer un compte</a>
-            </div>
-            
-            <!-- Lien vers le profil avec l'image, affiché si l'utilisateur est connecté -->
-            <a href="profile.html" id="profile-link" class="hidden ml-4">
-                <img id="profile-picture" src="" alt="Photo de profil de l'utilisateur" class="w-10 h-10 rounded-full border-2 border-indigo-500 shadow-md transition-transform transform hover:scale-110">
-            </a>
-        </nav>
-    </header>
-
-    <!-- Hero Section -->
-    <main class="hero-bg text-center py-40 px-4">
-        <div class="max-w-5xl mx-auto">
-            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight leading-tight text-white drop-shadow-2xl">
-                Le blocus, <br class="md:hidden">facile et gratuit.
-            </h1>
-            <p class="mt-8 text-xl text-gray-200 max-w-3xl mx-auto drop-shadow-lg">
-                Tes examens approchent ? Nos outils IA transforment tes cours en fiches, quiz et synthèses en un clin d'œil.
-            </p>
-            <div class="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
-                    Découvrir les fonctionnalités
-                </a>
-                <a href="register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
-                    Créer un compte
-                </a>
-            </div>
+    <!-- Conteneur principal de la page d'accueil -->
+    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl text-center border border-gray-700">
+        <h1 class="text-4xl font-bold mb-4">Bienvenue sur Projet Blocus !</h1>
+        <p id="welcome-message" class="text-xl text-gray-300">Chargement...</p>
+        <div id="loader" class="mt-8">
+            <i class="fas fa-spinner fa-spin text-indigo-500 text-3xl"></i>
         </div>
-    </main>
+    </div>
 
-    <!-- About Us Section -->
-    <section id="about" class="py-20 bg-gray-800">
-        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
-            <div class="md:w-1/2">
-                <h2 class="text-4xl font-bold mb-4">À propos de nous</h2>
-                <p class="text-gray-300 text-lg">
-                    Le Projet Blocus est né d'un constat simple : la plupart des outils de révision sont chers et inaccessibles. Nous croyons que chaque étudiant mérite d'avoir les meilleures ressources pour réussir, sans se ruiner.
-                </p>
-                <p class="text-gray-300 mt-4 text-lg">
-                    Notre plateforme utilise une IA de pointe pour transformer vos notes de cours en matériel d'étude sur mesure. Fini le stress des révisions, place à la productivité et à la réussite !
-                </p>
-            </div>
-            <div class="md:w-1/2">
-                <img src="images/student_success.jpg" alt="Un étudiant souriant qui vient de finir ses révisions grâce à Projet Blocus" class="rounded-xl shadow-2xl w-full">
-            </div>
-        </div>
-    </section>
+    <!-- Message box pour les notifications -->
+    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
+        <p id="message-text"></p>
+    </div>
 
-    <!-- How It Works Section -->
-    <section class="py-20 bg-gray-900">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-4xl font-bold mb-12">Comment ça marche ?</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Step 1 -->
-                <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
-                    <div class="text-indigo-500 text-5xl font-extrabold mb-4">1</div>
-                    <h3 class="text-2xl font-bold mb-2">Uploade tes cours</h3>
-                    <p class="text-gray-400">Glisse et dépose tes fichiers PDF en quelques clics.</p>
-                </div>
-                <!-- Step 2 -->
-                <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
-                    <div class="text-indigo-500 text-5xl font-extrabold mb-4">2</div>
-                    <h3 class="text-2xl font-bold mb-2">L'IA fait le travail</h3>
-                    <p class="text-gray-400">Notre IA génère quiz, fiches et synthèses à partir de tes documents.</p>
-                </div>
-                <!-- Step 3 -->
-                <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
-                    <div class="text-indigo-500 text-5xl font-extrabold mb-4">3</div>
-                    <h3 class="text-2xl font-bold mb-2">Réussis tes examens</h3>
-                    <p class="text-gray-400">Révise avec des outils sur mesure et maximise tes chances de réussite.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-    <!-- Final Call to Action -->
-    <section id="cta" class="py-20 bg-indigo-600 text-center">
-        <div class="container mx-auto px-4">
-            <h2 class="text-4xl font-extrabold text-white mb-4">Prêt à réussir ton blocus ?</h2>
-            <p class="text-indigo-100 text-lg max-w-2xl mx-auto mb-8">
-                Rejoins la communauté du Projet Blocus et transforme ta façon de réviser dès aujourd'hui. C'est gratuit et ça le restera !
-            </p>
-            <a href="register.html" class="bg-white text-indigo-600 font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-gray-200">
-                Créer mon compte gratuit
-            </a>
-        </div>
-    </section>
+        // Déclaration des variables globales
+        let app;
+        let auth;
+        let db;
+        let userAuthenticated = false;
+        let currentUserId = null;
 
-    <!-- Footer -->
-    <footer class="bg-gray-900 text-center text-gray-500 py-6">
-        <p>&copy; 2025 Projet Blocus. Tous droits réservés.</p>
-    </footer>
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
 
+        // Fonction pour initialiser Firebase et l'authentification
+        const initializeFirebase = async () => {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                // Gère l'authentification
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation de Firebase:", error);
+                showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
+            }
+        };
+
+        // Fonction pour vérifier si le profil de l'utilisateur existe
+        const checkUserProfile = async (userId) => {
+            if (!db) {
+                console.error("Firestore n'est pas initialisé.");
+                return;
+            }
+            const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', userId, 'profile', 'data');
+            const docSnap = await getDoc(userRef);
+            return docSnap.exists();
+        };
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebase();
+
+            onAuthStateChanged(auth, async (user) => {
+                const loader = document.getElementById('loader');
+                const welcomeMessage = document.getElementById('welcome-message');
+
+                if (user) {
+                    currentUserId = user.uid;
+                    userAuthenticated = true;
+                    
+                    try {
+                        const hasProfile = await checkUserProfile(currentUserId);
+                        if (hasProfile) {
+                            // Le profil existe, l'utilisateur est bon pour le tableau de bord
+                            loader.classList.add('hidden');
+                            welcomeMessage.textContent = "Ton profil est complet ! Redirection vers le tableau de bord...";
+                            // Redirection vers la page du tableau de bord (à créer)
+                            // window.location.href = '/dashboard.html';
+                        } else {
+                            // Le profil n'existe pas, l'utilisateur doit passer par l'onboarding
+                            welcomeMessage.textContent = "Ton profil n'est pas encore complet. Redirection vers la page d'onboarding...";
+                            setTimeout(() => {
+                                window.location.href = '/onboarding.html';
+                            }, 2000);
+                        }
+                    } catch (error) {
+                        console.error("Erreur lors de la vérification du profil:", error);
+                        showMessage("Erreur lors de la vérification de ton profil.");
+                        loader.classList.add('hidden');
+                        welcomeMessage.textContent = "Une erreur est survenue.";
+                    }
+                } else {
+                    // L'utilisateur n'est pas authentifié
+                    welcomeMessage.textContent = "Tu n'es pas connecté. Redirection vers la page de connexion...";
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 2000);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
