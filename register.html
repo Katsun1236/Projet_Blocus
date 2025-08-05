@@ -10,84 +10,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
-    <!-- Intégration des bibliothèques Firebase -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
-        // Initialisation de Firebase avec la configuration fournie par l'environnement
-        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        
-        // Fonction pour afficher une notification temporaire
-        function showMessage(message) {
-            const messageBox = document.getElementById('message-box');
-            const messageText = document.getElementById('message-text');
-            messageText.textContent = message;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 3000);
-        }
-
-        // Fonction pour gérer l'affichage/masquage du mot de passe
-        function setupPasswordToggle(inputElementId, buttonElementId) {
-            const passwordInput = document.getElementById(inputElementId);
-            const toggleButton = document.getElementById(buttonElementId);
-            const icon = toggleButton.querySelector('i');
-
-            toggleButton.addEventListener('click', function() {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                icon.classList.toggle('fa-eye');
-                icon.classList.toggle('fa-eye-slash');
-            });
-        }
-
-        setupPasswordToggle('password', 'togglePassword');
-        setupPasswordToggle('confirm-password', 'toggleConfirmPassword');
-
-        // Gestion de la soumission du formulaire
-        document.getElementById('register-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            
-            if (password !== confirmPassword) {
-                showMessage("Erreur : Les mots de passe ne correspondent pas.");
-                return;
-            }
-
-            // Utilisation de Firebase pour créer un nouvel utilisateur
-            createUserWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    // Inscription réussie
-                    const user = userCredential.user;
-                    console.log("Inscription réussie pour l'utilisateur:", user.uid);
-                    showMessage("Inscription réussie ! Redirection vers l'accueil...");
-                    // Redirection après un court délai
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 2000);
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                    console.error("Erreur d'inscription:", errorCode, errorMessage);
-                    // Afficher un message d'erreur approprié à l'utilisateur
-                    if (errorCode === 'auth/email-already-in-use') {
-                        showMessage("L'adresse email est déjà utilisée.");
-                    } else if (errorCode === 'auth/weak-password') {
-                        showMessage("Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.");
-                    } else {
-                        showMessage("Erreur d'inscription. Veuillez réessayer.");
-                    }
-                });
-        });
-    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
@@ -130,5 +55,81 @@
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
         <p id="message-text"></p>
     </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        
+        // Initialisation de Firebase avec la configuration fournie par l'environnement
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fonction pour afficher une notification temporaire
+            function showMessage(message) {
+                const messageBox = document.getElementById('message-box');
+                const messageText = document.getElementById('message-text');
+                messageText.textContent = message;
+                messageBox.classList.remove('hidden');
+                setTimeout(() => {
+                    messageBox.classList.add('hidden');
+                }, 3000);
+            }
+
+            // Fonction pour gérer l'affichage/masquage du mot de passe
+            function setupPasswordToggle(inputElementId, buttonElementId) {
+                const passwordInput = document.getElementById(inputElementId);
+                const toggleButton = document.getElementById(buttonElementId);
+                const icon = toggleButton.querySelector('i');
+
+                toggleButton.addEventListener('click', function() {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    icon.classList.toggle('fa-eye');
+                    icon.classList.toggle('fa-eye-slash');
+                });
+            }
+
+            setupPasswordToggle('password', 'togglePassword');
+            setupPasswordToggle('confirm-password', 'toggleConfirmPassword');
+
+            // Gestion de la soumission du formulaire
+            document.getElementById('register-form').addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm-password').value;
+                
+                if (password !== confirmPassword) {
+                    showMessage("Erreur : Les mots de passe ne correspondent pas.");
+                    return;
+                }
+
+                createUserWithEmailAndPassword(auth, email, password)
+                    .then((userCredential) => {
+                        const user = userCredential.user;
+                        console.log("Inscription réussie pour l'utilisateur:", user.uid);
+                        showMessage("Inscription réussie ! Redirection vers l'accueil...");
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 2000);
+                    })
+                    .catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        console.error("Erreur d'inscription:", errorCode, errorMessage);
+                        if (errorCode === 'auth/email-already-in-use') {
+                            showMessage("L'adresse email est déjà utilisée.");
+                        } else if (errorCode === 'auth/weak-password') {
+                            showMessage("Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.");
+                        } else {
+                            showMessage("Erreur d'inscription. Veuillez réessayer.");
+                        }
+                    });
+            });
+        });
+    </script>
 </body>
 </html>
