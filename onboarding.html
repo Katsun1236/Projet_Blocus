@@ -114,7 +114,7 @@
         const db = getFirestore(app);
         const storage = getStorage(app);
         
-        const emojiList = ['😊', '📚', '🚀', '💻', '💡', '🎓', '🤓', '�', '✍️'];
+        const emojiList = ['😊', '📚', '🚀', '💻', '💡', '🎓', '🤓', '🧠', '✍️'];
 
         document.addEventListener('DOMContentLoaded', () => {
             let userAuthenticated = false;
@@ -286,9 +286,9 @@
                         }
                     }
 
-                    showMessage("Profil mis à jour ! Redirection vers ton tableau de bord...");
+                    showMessage("Profil mis à jour ! Redirection vers l'accueil...");
                     setTimeout(() => {
-                        window.location.href = '/dashboard.html';
+                        window.location.href = '/index.html';
                     }, 2000);
 
                 } catch (error) {
