@@ -94,43 +94,55 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-storage.js";
 
-        // Initialisation de Firebase avec ta configuration
-        const firebaseConfig = {
-          apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-          authDomain: "projetblocus1.firebaseapp.com",
-          projectId: "projetblocus1",
-          storageBucket: "projetblocus1.firebasestorage.app",
-          messagingSenderId: "536093956243",
-          appId: "1:536093956243:web:80eea85a24b7078f1f5566",
-          measurementId: "G-R84RE96KKM"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
-        
+        // Déclaration des variables globales
+        let app;
+        let auth;
+        let db;
+        let storage;
+        let userAuthenticated = false;
+        let currentUserId = null;
+
         const emojiList = ['😊', '📚', '🚀', '💻', '💡', '🎓', '🤓', '🧠', '✍️'];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            let userAuthenticated = false;
-            let currentUserId = null;
+        function showMessage(message) {
+            const messageBox = document.getElementById('message-box');
+            const messageText = document.getElementById('message-text');
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            setTimeout(() => {
+                messageBox.classList.add('hidden');
+            }, 3000);
+        }
 
-            function showMessage(message) {
-                const messageBox = document.getElementById('message-box');
-                const messageText = document.getElementById('message-text');
-                messageText.textContent = message;
-                messageBox.classList.remove('hidden');
-                setTimeout(() => {
-                    messageBox.classList.add('hidden');
-                }, 3000);
+        // Fonction pour initialiser Firebase et l'authentification
+        const initializeFirebase = async () => {
+            try {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                storage = getStorage(app);
+
+                // Gère l'authentification
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation de Firebase:", error);
+                showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
             }
+        };
 
-            // Vérifie l'état d'authentification et charge les suggestions
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebase();
+            
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     userAuthenticated = true;
