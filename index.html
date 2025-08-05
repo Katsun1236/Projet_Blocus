@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Ajout de la bibliothèque Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -23,13 +24,15 @@
         <a href="#" class="flex items-center space-x-2">
             <img src="https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c" alt="Logo Projet Blocus" class="h-10">
         </a>
+        <!-- Navigation pour les utilisateurs déconnectés -->
         <nav id="nav-logged-out">
             <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
             <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
             <a href="#cta" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Contact</a>
-            <button id="login-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</button>
-            <button id="signup-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</button>
+            <a href="#" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
+            <a href="#" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
         </nav>
+        <!-- Navigation pour les utilisateurs connectés (masquée par défaut) -->
         <nav id="nav-logged-in" class="hidden">
             <a href="/profile.html" class="flex items-center space-x-2 text-white hover:text-indigo-400 transition-colors duration-300">
                 <i class="fas fa-user-circle text-2xl"></i>
@@ -61,9 +64,9 @@
                     <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
                         Découvrir les fonctionnalités
                     </a>
-                    <button id="cta-signup-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                    <a href="#" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
                         Créer un compte
-                    </button>
+                    </a>
                 </div>
             </div>
         </main>
@@ -121,7 +124,7 @@
                     <!-- Feature 1: Quiz -->
                     <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
                         <div class="text-indigo-500 mb-4 flex justify-center">
-                            <i class="fas fa-question-circle text-5xl"></i>
+                            <i class="fas fa-clipboard-question text-5xl"></i>
                         </div>
                         <h3 class="text-2xl font-bold text-center mb-2">Quiz IA</h3>
                         <p class="text-gray-400 text-center">Génère des quiz interactifs à partir de tes notes de cours en un instant.</p>
@@ -153,9 +156,9 @@
                 <p class="text-indigo-100 text-lg max-w-2xl mx-auto mb-8">
                     Rejoins la communauté du Projet Blocus et transforme ta façon de réviser dès aujourd'hui. C'est gratuit et ça le restera !
                 </p>
-                <button id="final-cta-signup-button" class="bg-white text-indigo-600 font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-gray-200">
+                <a href="#" class="bg-white text-indigo-600 font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-gray-200">
                     Créer mon compte gratuit
-                </button>
+                </a>
             </div>
         </section>
 
@@ -243,20 +246,27 @@
 
         const fetchUserProfile = async (userId) => {
             const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', userId, 'profile', 'data');
-            const docSnap = await getDoc(userRef);
+            try {
+                const docSnap = await getDoc(userRef);
 
-            if (docSnap.exists()) {
-                const profileData = docSnap.data();
-                document.getElementById('user-name-header').textContent = `${profileData.firstName}`;
-                document.getElementById('welcome-user-name').textContent = `${profileData.firstName}`;
-            } else {
-                console.warn("Profil introuvable pour l'utilisateur. Affichage d'un message générique.");
+                if (docSnap.exists()) {
+                    const profileData = docSnap.data();
+                    document.getElementById('user-name-header').textContent = `${profileData.firstName}`;
+                    document.getElementById('welcome-user-name').textContent = `${profileData.firstName}`;
+                } else {
+                    console.warn("Profil introuvable pour l'utilisateur. Affichage d'un message générique.");
+                    document.getElementById('user-name-header').textContent = `Invité`;
+                    document.getElementById('welcome-user-name').textContent = `Invité`;
+                }
+            } catch (error) {
+                console.error("Erreur lors de la récupération du profil:", error);
                 document.getElementById('user-name-header').textContent = `Invité`;
                 document.getElementById('welcome-user-name').textContent = `Invité`;
+            } finally {
+                // Masquer le chargement et afficher le contenu principal une fois les données traitées
+                document.getElementById('loading-container').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
             }
-            // masquer le chargement et afficher le contenu principal une fois les données traitées
-            document.getElementById('loading-container').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
         };
 
         const handleLogout = async () => {
@@ -288,7 +298,8 @@
                         navLoggedOut.classList.add('hidden');
                         navLoggedIn.classList.remove('hidden');
                         loggedOutContent.classList.add('hidden');
-                        loggedInContent.classList.remove('hidden');
+                        loggedInContent.classList.remove('flex'); // Assurez-vous que cette ligne est présente
+                        loggedInContent.classList.add('flex');
                         fetchUserProfile(currentUserId);
                     } else {
                         // Afficher un message générique si l'utilisateur n'est pas connecté pour éviter les erreurs
@@ -296,23 +307,17 @@
                         navLoggedIn.classList.add('hidden');
                         navLoggedOut.classList.remove('hidden');
                         loggedOutContent.classList.remove('hidden');
+                        loggedInContent.classList.remove('flex');
                         loggedInContent.classList.add('hidden');
                     }
                 });
 
-                document.getElementById('logout-button').addEventListener('click', handleLogout);
-
-                // Ajout de listeners pour les boutons de connexion/création de compte
-                const loginButton = document.getElementById('login-button');
-                const signupButton = document.getElementById('signup-button');
-                const ctaSignupButton = document.getElementById('cta-signup-button');
-                const finalCtaSignupButton = document.getElementById('final-cta-signup-button');
-
-                if (loginButton) loginButton.addEventListener('click', () => showMessage("La page de connexion n'est pas encore disponible."));
-                if (signupButton) signupButton.addEventListener('click', () => showMessage("La page de création de compte n'est pas encore disponible."));
-                if (ctaSignupButton) ctaSignupButton.addEventListener('click', () => showMessage("La page de création de compte n'est pas encore disponible."));
-                if (finalCtaSignupButton) finalCtaSignupButton.addEventListener('click', () => showMessage("La page de création de compte n'est pas encore disponible."));
-
+                // Écoute les clics sur le bouton de déconnexion
+                const logoutButton = document.getElementById('logout-button');
+                if (logoutButton) {
+                    logoutButton.addEventListener('click', handleLogout);
+                }
+                
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de l'application:", error);
                 showMessage("Erreur de connexion au service. Veuillez réessayer.");
