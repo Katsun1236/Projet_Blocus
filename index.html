@@ -3,43 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accueil - Projet Blocus</title>
+    <title>Projet Blocus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
+        .hero-bg {
+            background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('https://placehold.co/1920x1080/1f2937/d1d5db?text=Étudiant+qui+révise') center/cover no-repeat;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen p-4 flex flex-col items-center">
+<body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- En-tête de la page -->
-    <header class="w-full max-w-4xl flex justify-between items-center py-4 px-6 bg-gray-800 rounded-xl shadow-2xl mt-4">
-        <h1 class="text-3xl font-bold text-indigo-400">Projet Blocus</h1>
-        <div class="flex items-center space-x-4">
+    <!-- Header -->
+    <header id="main-header" class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
+        <a href="#" class="flex items-center space-x-2">
+            <img src="https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c" alt="Logo Projet Blocus" class="h-10">
+        </a>
+        <nav id="nav-logged-out">
+            <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
+            <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
+            <a href="#cta" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Contact</a>
+            <button id="login-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</button>
+            <button id="signup-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</button>
+        </nav>
+        <nav id="nav-logged-in" class="hidden">
             <a href="/profile.html" class="flex items-center space-x-2 text-white hover:text-indigo-400 transition-colors duration-300">
                 <i class="fas fa-user-circle text-2xl"></i>
                 <span id="user-name-header" class="hidden md:inline-block">Chargement...</span>
             </a>
-            <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300">
+            <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ml-4">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
-        </div>
+        </nav>
     </header>
 
-    <!-- Conteneur principal avec les options -->
-    <main class="w-full max-w-4xl mt-8">
+    <!-- Message box pour les notifications -->
+    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
+        <p id="message-text"></p>
+    </div>
+
+    <!-- Contenu de la page pour les utilisateurs non connectés -->
+    <div id="logged-out-content">
+        <!-- Hero Section -->
+        <main class="hero-bg text-center py-40 px-4">
+            <div class="max-w-5xl mx-auto">
+                <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight leading-tight text-white drop-shadow-2xl">
+                    Le blocus, <br class="md:hidden">facile et gratuit.
+                </h1>
+                <p class="mt-8 text-xl text-gray-200 max-w-3xl mx-auto drop-shadow-lg">
+                    Tes examens approchent ? Nos outils IA transforment tes cours en fiches, quiz et synthèses en un clin d'œil.
+                </p>
+                <div class="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                        Découvrir les fonctionnalités
+                    </a>
+                    <button id="cta-signup-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                        Créer un compte
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- About Us Section -->
+        <section id="about" class="py-20 bg-gray-800">
+            <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
+                <div class="md:w-1/2">
+                    <h2 class="text-4xl font-bold mb-4">À propos de nous</h2>
+                    <p class="text-gray-300 text-lg">
+                        Le Projet Blocus est né d'un constat simple : la plupart des outils de révision sont chers et inaccessibles. Nous croyons que chaque étudiant mérite d'avoir les meilleures ressources pour réussir, sans se ruiner.
+                    </p>
+                    <p class="text-gray-300 mt-4 text-lg">
+                        Notre plateforme utilise une IA de pointe pour transformer vos notes de cours en matériel d'étude sur mesure. Fini le stress des révisions, place à la productivité et à la réussite !
+                    </p>
+                </div>
+                <div class="md:w-1/2">
+                    <img src="https://placehold.co/600x400/4b5563/e5e7eb?text=Un+étudiant+souriant+qui+réussit" alt="Un étudiant souriant qui vient de finir ses révisions grâce à Projet Blocus" class="rounded-xl shadow-2xl w-full">
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="py-20 bg-gray-900">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-4xl font-bold mb-12">Comment ça marche ?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Step 1 -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
+                        <div class="text-indigo-500 text-5xl font-extrabold mb-4">1</div>
+                        <h3 class="text-2xl font-bold mb-2">Uploade tes cours</h3>
+                        <p class="text-gray-400">Glisse et dépose tes fichiers PDF en quelques clics.</p>
+                    </div>
+                    <!-- Step 2 -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
+                        <div class="text-indigo-500 text-5xl font-extrabold mb-4">2</div>
+                        <h3 class="text-2xl font-bold mb-2">L'IA fait le travail</h3>
+                        <p class="text-gray-400">Notre IA génère quiz, fiches et synthèses à partir de tes documents.</p>
+                    </div>
+                    <!-- Step 3 -->
+                    <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
+                        <div class="text-indigo-500 text-5xl font-extrabold mb-4">3</div>
+                        <h3 class="text-2xl font-bold mb-2">Réussis tes examens</h3>
+                        <p class="text-gray-400">Révise avec des outils sur mesure et maximise tes chances de réussite.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section id="features" class="py-20 bg-gray-800">
+            <div class="container mx-auto px-4">
+                <h2 class="text-4xl font-bold text-center mb-12">Nos fonctionnalités</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Feature 1: Quiz -->
+                    <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
+                        <div class="text-indigo-500 mb-4 flex justify-center">
+                            <i class="fas fa-question-circle text-5xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-center mb-2">Quiz IA</h3>
+                        <p class="text-gray-400 text-center">Génère des quiz interactifs à partir de tes notes de cours en un instant.</p>
+                    </div>
+                    <!-- Feature 2: Flashcards -->
+                    <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
+                        <div class="text-indigo-500 mb-4 flex justify-center">
+                            <i class="fas fa-file-alt text-5xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-center mb-2">Fiches de révision</h3>
+                        <p class="text-gray-400 text-center">Transforme tes longs textes en fiches synthétiques pour une révision rapide.</p>
+                    </div>
+                    <!-- Feature 3: Progress Tracker -->
+                    <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
+                        <div class="text-indigo-500 mb-4 flex justify-center">
+                            <i class="fas fa-chart-line text-5xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-center mb-2">Suivi de progression</h3>
+                        <p class="text-gray-400 text-center">Garde une trace de tes sessions d'étude et de tes résultats aux quiz.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final Call to Action -->
+        <section id="cta" class="py-20 bg-indigo-600 text-center">
+            <div class="container mx-auto px-4">
+                <h2 class="text-4xl font-extrabold text-white mb-4">Prêt à réussir ton blocus ?</h2>
+                <p class="text-indigo-100 text-lg max-w-2xl mx-auto mb-8">
+                    Rejoins la communauté du Projet Blocus et transforme ta façon de réviser dès aujourd'hui. C'est gratuit et ça le restera !
+                </p>
+                <button id="final-cta-signup-button" class="bg-white text-indigo-600 font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-gray-200">
+                    Créer mon compte gratuit
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 text-center text-gray-500 py-6">
+            <p>&copy; 2025 Projet Blocus. Tous droits réservés.</p>
+        </footer>
+    </div>
+
+    <!-- Contenu de la page pour les utilisateurs connectés -->
+    <div id="logged-in-content" class="hidden w-full max-w-4xl mt-8">
         <h2 class="text-2xl font-bold mb-6 text-center">Bienvenue, <span id="welcome-user-name"></span> !</h2>
         <div id="loading-container" class="text-center p-8">
             <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
             <p class="mt-4 text-gray-400">Chargement des informations...</p>
         </div>
-
         <div id="main-content" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            <!-- Section "Créer un quiz" -->
             <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
                 <i class="fas fa-clipboard-question text-6xl text-indigo-400 mb-4"></i>
                 <h3 class="text-xl font-bold mb-2">Créer un quiz</h3>
@@ -48,8 +181,6 @@
                     Commencer
                 </button>
             </div>
-
-            <!-- Section "Synthétiser un cours" -->
             <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
                 <i class="fas fa-file-alt text-6xl text-indigo-400 mb-4"></i>
                 <h3 class="text-xl font-bold mb-2">Synthétiser un cours</h3>
@@ -58,8 +189,6 @@
                     Commencer
                 </button>
             </div>
-
-            <!-- Section "Mes statistiques" -->
             <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
                 <i class="fas fa-chart-line text-6xl text-indigo-400 mb-4"></i>
                 <h3 class="text-xl font-bold mb-2">Mes statistiques</h3>
@@ -68,8 +197,6 @@
                     Voir
                 </a>
             </div>
-
-            <!-- Section "Mes cours" -->
             <div class="bg-gray-800 p-6 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:scale-105 duration-300">
                 <i class="fas fa-book-open text-6xl text-indigo-400 mb-4"></i>
                 <h3 class="text-xl font-bold mb-2">Mes cours</h3>
@@ -78,14 +205,9 @@
                     Voir
                 </a>
             </div>
-
         </div>
-    </main>
-
-    <!-- Message box pour les notifications -->
-    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
-        <p id="message-text"></p>
     </div>
+
 
     <script type="module">
         // Importation des fonctions nécessaires de Firebase SDK
@@ -140,7 +262,8 @@
         const handleLogout = async () => {
             try {
                 await signOut(auth);
-                showMessage("Déconnexion réussie. La page ne peut pas être redirigée dans cet environnement.");
+                showMessage("Déconnexion réussie. Rechargement de la page pour afficher le contenu public.");
+                window.location.reload();
             } catch (error) {
                 console.error("Erreur lors de la déconnexion:", error);
                 showMessage("Erreur lors de la déconnexion. Veuillez réessayer.");
@@ -153,22 +276,42 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Écoute l'état d'authentification sans tenter de connexion forcée
+                // Écoute l'état d'authentification pour afficher le bon contenu
                 onAuthStateChanged(auth, (user) => {
+                    const loggedOutContent = document.getElementById('logged-out-content');
+                    const loggedInContent = document.getElementById('logged-in-content');
+                    const navLoggedIn = document.getElementById('nav-logged-in');
+                    const navLoggedOut = document.getElementById('nav-logged-out');
+                    
                     if (user) {
                         currentUserId = user.uid;
+                        navLoggedOut.classList.add('hidden');
+                        navLoggedIn.classList.remove('hidden');
+                        loggedOutContent.classList.add('hidden');
+                        loggedInContent.classList.remove('hidden');
                         fetchUserProfile(currentUserId);
                     } else {
                         // Afficher un message générique si l'utilisateur n'est pas connecté pour éviter les erreurs
-                        console.log("Utilisateur non authentifié. Affichage d'un profil 'Invité' par défaut.");
-                        document.getElementById('user-name-header').textContent = `Invité`;
-                        document.getElementById('welcome-user-name').textContent = `Invité`;
-                        document.getElementById('loading-container').classList.add('hidden');
-                        document.getElementById('main-content').classList.remove('hidden');
+                        console.log("Utilisateur non authentifié. Affichage de la page de destination.");
+                        navLoggedIn.classList.add('hidden');
+                        navLoggedOut.classList.remove('hidden');
+                        loggedOutContent.classList.remove('hidden');
+                        loggedInContent.classList.add('hidden');
                     }
                 });
 
                 document.getElementById('logout-button').addEventListener('click', handleLogout);
+
+                // Ajout de listeners pour les boutons de connexion/création de compte
+                const loginButton = document.getElementById('login-button');
+                const signupButton = document.getElementById('signup-button');
+                const ctaSignupButton = document.getElementById('cta-signup-button');
+                const finalCtaSignupButton = document.getElementById('final-cta-signup-button');
+
+                if (loginButton) loginButton.addEventListener('click', () => showMessage("La page de connexion n'est pas encore disponible."));
+                if (signupButton) signupButton.addEventListener('click', () => showMessage("La page de création de compte n'est pas encore disponible."));
+                if (ctaSignupButton) ctaSignupButton.addEventListener('click', () => showMessage("La page de création de compte n'est pas encore disponible."));
+                if (finalCtaSignupButton) finalCtaSignupButton.addEventListener('click', () => showMessage("La page de création de compte n'est pas encore disponible."));
 
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de l'application:", error);
@@ -178,5 +321,3 @@
     </script>
 </body>
 </html>
-
-//mmmh 
