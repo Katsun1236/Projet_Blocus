@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projet Blocus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .hero-bg {
+            background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('https://placehold.co/1920x1080/1f2937/d1d5db?text=Étudiant+qui+révise') center/cover no-repeat;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
+        <a href="#" class="text-3xl font-extrabold text-indigo-500">
+            <span class="text-white">Projet</span> Blocus
+        </a>
+        <nav>
+            <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
+            <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
+            <a href="#cta" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Contact</a>
+            <a href="#" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
+            <a href="#" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="hero-bg text-center py-40 px-4">
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight leading-tight text-white drop-shadow-2xl">
+                Le blocus, <br class="md:hidden">facile et gratuit.
+            </h1>
+            <p class="mt-8 text-xl text-gray-200 max-w-3xl mx-auto drop-shadow-lg">
+                Tes examens approchent ? Nos outils IA transforment tes cours en fiches, quiz et synthèses en un clin d'œil.
+            </p>
+            <div class="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                    Découvrir les fonctionnalités
+                </a>
+                <a href="#" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                    Créer un compte
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- About Us Section -->
+    <section id="about" class="py-20 bg-gray-800">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
+            <div class="md:w-1/2">
+                <h2 class="text-4xl font-bold mb-4">À propos de nous</h2>
+                <p class="text-gray-300 text-lg">
+                    Le Projet Blocus est né d'un constat simple : la plupart des outils de révision sont chers et inaccessibles. Nous croyons que chaque étudiant mérite d'avoir les meilleures ressources pour réussir, sans se ruiner.
+                </p>
+                <p class="text-gray-300 mt-4 text-lg">
+                    Notre plateforme utilise une IA de pointe pour transformer vos notes de cours en matériel d'étude sur mesure. Fini le stress des révisions, place à la productivité et à la réussite !
+                </p>
+            </div>
+            <div class="md:w-1/2">
+                <img src="https://placehold.co/600x400/4b5563/e5e7eb?text=Un+étudiant+souriant+qui+réussit" alt="Un étudiant souriant qui vient de finir ses révisions grâce à Projet Blocus" class="rounded-xl shadow-2xl w-full">
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4 text-center">
+            <h2 class="text-4xl font-bold mb-12">Comment ça marche ?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Step 1 -->
+                <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
+                    <div class="text-indigo-500 text-5xl font-extrabold mb-4">1</div>
+                    <h3 class="text-2xl font-bold mb-2">Uploade tes cours</h3>
+                    <p class="text-gray-400">Glisse et dépose tes fichiers PDF en quelques clics.</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
+                    <div class="text-indigo-500 text-5xl font-extrabold mb-4">2</div>
+                    <h3 class="text-2xl font-bold mb-2">L'IA fait le travail</h3>
+                    <p class="text-gray-400">Notre IA génère quiz, fiches et synthèses à partir de tes documents.</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:scale-105 duration-300">
+                    <div class="text-indigo-500 text-5xl font-extrabold mb-4">3</div>
+                    <h3 class="text-2xl font-bold mb-2">Réussis tes examens</h3>
+                    <p class="text-gray-400">Révise avec des outils sur mesure et maximise tes chances de réussite.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-gray-800">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-12">Nos fonctionnalités</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1: Quiz -->
+                <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
+                    <div class="text-indigo-500 mb-4">
+                        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-center mb-2">Quiz IA</h3>
+                    <p class="text-gray-400 text-center">Génère des quiz interactifs à partir de tes notes de cours en un instant.</p>
+                </div>
+                <!-- Feature 2: Flashcards -->
+                <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
+                    <div class="text-indigo-500 mb-4">
+                        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.467 9.5 5 8 5c-1.474 0-2.842.64-3.868 1.67C3.132 7.69 2.5 9.058 2.5 10.5c0 1.5 1.5 3 3.5 3 2 0 3.5-1.5 3.5-3.5s-1.5-3.5-3.5-3.5c-.75 0-1.5.3-2 .8"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-center mb-2">Fiches de révision</h3>
+                    <p class="text-gray-400 text-center">Transforme tes longs textes en fiches synthétiques pour une révision rapide.</p>
+                </div>
+                <!-- Feature 3: Progress Tracker -->
+                <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:scale-105 transition-transform duration-300">
+                    <div class="text-indigo-500 mb-4">
+                        <svg class="h-12 w-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-center mb-2">Suivi de progression</h3>
+                    <p class="text-gray-400 text-center">Garde une trace de tes sessions d'étude et de tes résultats aux quiz.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final Call to Action -->
+    <section id="cta" class="py-20 bg-indigo-600 text-center">
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl font-extrabold text-white mb-4">Prêt à réussir ton blocus ?</h2>
+            <p class="text-indigo-100 text-lg max-w-2xl mx-auto mb-8">
+                Rejoins la communauté du Projet Blocus et transforme ta façon de réviser dès aujourd'hui. C'est gratuit et ça le restera !
+            </p>
+            <a href="#" class="bg-white text-indigo-600 font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-gray-200">
+                Créer mon compte gratuit
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-center text-gray-500 py-6">
+        <p>&copy; 2025 Projet Blocus. Tous droits réservés.</p>
+    </footer>
+
+</body>
+</html>
