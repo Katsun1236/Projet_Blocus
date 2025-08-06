@@ -82,9 +82,16 @@
         </div>
     </div>
 
-    <!-- Modale de confirmation de suppression (inchangée) -->
+    <!-- Modale de confirmation de suppression -->
     <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30">
-        <!-- ... (contenu de la modale de suppression) ... -->
+        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold mb-4">Confirmer la suppression</h2>
+            <p class="text-gray-400 mb-6">Êtes-vous sûr de vouloir supprimer le cours "<span id="course-name-modal" class="font-bold"></span>" ? Cette action est irréversible.</p>
+            <div class="flex justify-center space-x-4">
+                <button id="cancel-delete" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button>
+                <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Supprimer</button>
+            </div>
+        </div>
     </div>
 
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
@@ -95,7 +102,15 @@
         import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-        const firebaseConfig = { /* ... */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
+            authDomain: "projetblocus1.firebaseapp.com",
+            projectId: "projetblocus1",
+            storageBucket: "projetblocus1.firebasestorage.app",
+            messagingSenderId: "536093956243",
+            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
+            measurementId: "G-W5WZXDHNTC"
+        };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
@@ -103,18 +118,47 @@
         let currentUserId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- UI Elements ---
+            const navLoggedIn = document.getElementById('nav-logged-in');
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenu = document.getElementById('user-menu');
+            const logoutButton = document.getElementById('logout-button');
             const newFolderBtn = document.getElementById('new-folder-button');
             const folderModal = document.getElementById('folder-modal');
             const folderForm = document.getElementById('folder-form');
             const cancelFolderBtn = document.getElementById('cancel-folder');
             const foldersGrid = document.getElementById('folders-grid');
-            // ... (autres éléments UI)
+            const coursesGrid = document.getElementById('courses-grid');
+            const loadingDiv = document.getElementById('loading-courses');
+            const noCoursesDiv = document.getElementById('no-courses');
+            const deleteModal = document.getElementById('delete-modal');
+            const courseNameModal = document.getElementById('course-name-modal');
+            const cancelDeleteBtn = document.getElementById('cancel-delete');
+            const confirmDeleteBtn = document.getElementById('confirm-delete');
+            let courseToDelete = null;
 
-            // --- Menu & Auth Logic (complet et fonctionnel) ---
-            // ...
+            function showMessage(message) {
+                const messageBox = document.getElementById('message-box');
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden');
+                setTimeout(() => { messageBox.classList.add('hidden'); }, 3000);
+            }
 
-            // --- Folder Logic ---
+            userMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+
+            window.addEventListener('click', (e) => {
+                if (navLoggedIn && !navLoggedIn.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+
+            logoutButton.addEventListener('click', async () => {
+                await signOut(auth);
+                window.location.href = '/index.html';
+            });
+
             function openFolderModal() { folderModal.classList.remove('hidden'); }
             function closeFolderModal() { folderForm.reset(); folderModal.classList.add('hidden'); }
 
@@ -142,16 +186,79 @@
                 return folderDiv;
             }
 
-            // --- Page Logic ---
+            function createCourseCard(courseData, courseId) {
+                const card = document.createElement('div');
+                card.className = "bg-gray-800 rounded-lg p-4 flex flex-col justify-between border border-gray-700 hover:border-indigo-500 transition-all duration-300";
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center space-x-3 mb-3">
+                            <i class="fas fa-file-pdf text-2xl text-red-500"></i>
+                            <h3 class="font-bold text-lg truncate" title="${courseData.name}">${courseData.name}</h3>
+                        </div>
+                        <p class="text-xs text-gray-500 truncate" title="${courseData.fileName}">Fichier: ${courseData.fileName}</p>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-700 flex justify-around">
+                        <button title="Créer un Quiz" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-clipboard-question text-xl"></i></button>
+                        <button title="Synthétiser" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-xl"></i></button>
+                        <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button text-gray-400 hover:text-red-500"><i class="fas fa-trash text-xl"></i></button>
+                    </div>
+                `;
+                return card;
+            }
+
+            function openDeleteModal(courseId, courseName, fileName) {
+                courseToDelete = { id: courseId, name: courseName, fileName: fileName };
+                courseNameModal.textContent = courseName;
+                deleteModal.classList.remove('hidden');
+            }
+
+            function closeDeleteModal() {
+                courseToDelete = null;
+                deleteModal.classList.add('hidden');
+            }
+
+            async function deleteCourse() {
+                if (!courseToDelete || !currentUserId) return;
+                
+                const { id, fileName } = courseToDelete;
+                
+                confirmDeleteBtn.disabled = true;
+                confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    const courseDocRef = doc(db, 'users', currentUserId, 'courses', id);
+                    await deleteDoc(courseDocRef);
+
+                    const fileRef = ref(storage, `users/${currentUserId}/courses/${id}/${fileName}`);
+                    await deleteObject(fileRef);
+                    
+                    showMessage("Cours supprimé avec succès.");
+                } catch(error) {
+                    console.error("Erreur de suppression:", error);
+                    showMessage("Erreur lors de la suppression.");
+                } finally {
+                    closeDeleteModal();
+                    confirmDeleteBtn.disabled = false;
+                    confirmDeleteBtn.textContent = 'Supprimer';
+                }
+            }
+
             onAuthStateChanged(auth, async (user) => {
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
-                    // ... (logique du header) ...
+                    navLoggedIn.classList.remove('hidden');
+                    navLoggedIn.classList.add('flex');
+                    
+                    const userRef = doc(db, 'users', user.uid);
+                    const docSnap = await getDoc(userRef);
+                    if (docSnap.exists()) {
+                        const profileData = docSnap.data();
+                        document.getElementById('user-name-header').textContent = profileData.firstName;
+                        document.getElementById('user-avatar-header').src = profileData.photoURL;
+                    }
 
-                    // Afficher les dossiers en temps réel
                     const foldersRef = collection(db, 'users', currentUserId, 'folders');
                     onSnapshot(foldersRef, (snapshot) => {
-                        // Nettoyer la grille sauf le bouton "Nouveau"
                         document.querySelectorAll('#folders-grid > div').forEach(el => el.remove());
                         snapshot.forEach((doc) => {
                             const folderEl = createFolderElement(doc.data());
@@ -159,17 +266,36 @@
                         });
                     });
 
-                    // Afficher les cours en temps réel
                     const coursesRef = collection(db, 'users', currentUserId, 'courses');
                     onSnapshot(coursesRef, (snapshot) => {
-                        // ... (logique d'affichage des cours inchangée)
+                        loadingDiv.classList.add('hidden');
+                        coursesGrid.innerHTML = '';
+                        if (snapshot.empty) {
+                            noCoursesDiv.classList.remove('hidden');
+                        } else {
+                            noCoursesDiv.classList.add('hidden');
+                            snapshot.forEach((doc) => {
+                                const card = createCourseCard(doc.data(), doc.id);
+                                coursesGrid.appendChild(card);
+                            });
+                        }
                     });
+
                 } else {
                     window.location.href = '/login.html';
                 }
             });
 
-            // ... (logique de suppression de cours inchangée)
+            coursesGrid.addEventListener('click', (e) => {
+                const deleteButton = e.target.closest('.delete-button');
+                if (deleteButton) {
+                    const { courseId, courseName, fileName } = deleteButton.dataset;
+                    openDeleteModal(courseId, courseName, fileName);
+                }
+            });
+            
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+            confirmDeleteBtn.addEventListener('click', deleteCourse);
         });
     </script>
 </body>
