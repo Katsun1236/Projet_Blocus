@@ -60,6 +60,7 @@
                     <i class="fas fa-plus text-2xl mb-2"></i>
                     <span>Nouveau dossier</span>
                 </button>
+                <!-- Les dossiers de l'utilisateur s'afficheront ici -->
             </div>
         </section>
 
@@ -195,14 +196,17 @@
                     const canvas = document.getElementById(canvasId);
                     if (!canvas) return;
                     const ctx = canvas.getContext('2d');
-                    const pdf = await pdfjsLib.getDocument(url).promise;
+                    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
+                    const pdf = await pdfjsLib.getDocument(proxyUrl).promise;
                     const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 0.4 });
+                    const viewport = page.getViewport({ scale: 0.3 });
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
                     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
                 } catch (error) {
                     console.error("Erreur de prévisualisation PDF:", error);
+                    const canvas = document.getElementById(canvasId);
+                    if(canvas) canvas.parentElement.innerHTML = '<p class="text-xs text-gray-500">Aperçu indisponible</p>';
                 }
             }
 
@@ -219,7 +223,8 @@
                     </a>
                     <div class="p-4 border-t border-gray-700">
                         <h3 class="font-bold text-md truncate" title="${courseData.name}">${courseData.name}</h3>
-                        <div class="mt-4 flex justify-around">
+                        <div class="mt-4 flex justify-between items-center">
+                            <a href="${courseData.url}" target="_blank" title="Lire le PDF" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-book-open text-lg"></i></a>
                             <a href="${quizLink}" title="Créer un Quiz" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-clipboard-question text-lg"></i></a>
                             <a href="${synthesizeLink}" title="Synthétiser" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-lg"></i></a>
                             <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button text-gray-400 hover:text-red-500"><i class="fas fa-trash text-lg"></i></button>
