@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projet Blocus - Le blocus, facile et gratuit.</title>
+    <!-- Favicon ajoutée -->
+    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.href='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
@@ -48,7 +50,6 @@
         </nav>
     </header>
 
-    <!-- Contenu de la page pour les utilisateurs non connectés -->
     <div id="landing-page-content">
         <!-- Hero Section -->
         <main class="hero-bg text-center py-40 px-4 pt-56">
@@ -59,13 +60,23 @@
                 <p class="mt-8 text-xl text-gray-200 max-w-3xl mx-auto drop-shadow-lg">
                     Tes examens approchent ? Nos outils IA transforment tes cours en fiches, quiz et synthèses en un clin d'œil.
                 </p>
-                <div class="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                    <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
-                        Découvrir les fonctionnalités
-                    </a>
-                    <a href="/register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
-                        Créer un compte
-                    </a>
+                <!-- Conteneur pour les boutons dynamiques -->
+                <div id="hero-buttons-container" class="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <!-- Boutons pour utilisateur DÉCONNECTÉ -->
+                    <div id="hero-logged-out" class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                        <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                            Découvrir les fonctionnalités
+                        </a>
+                        <a href="/register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                            Créer un compte
+                        </a>
+                    </div>
+                    <!-- Bouton pour utilisateur CONNECTÉ (caché par défaut) -->
+                    <div id="hero-logged-in" class="hidden">
+                        <a href="/dashboard.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                            Accéder à mon tableau de bord
+                        </a>
+                    </div>
                 </div>
             </div>
         </main>
@@ -90,19 +101,16 @@
              <div class="container mx-auto px-4 text-center">
                 <h2 class="text-4xl font-bold mb-12">Comment ça marche ?</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Étape 1 -->
                     <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:-translate-y-2 duration-300">
                         <div class="text-indigo-500 text-5xl font-extrabold mb-4">1</div>
                         <h3 class="text-2xl font-bold mb-2">Uploade tes cours</h3>
                         <p class="text-gray-400">Glisse et dépose tes fichiers PDF en quelques clics. C'est simple et rapide.</p>
                     </div>
-                    <!-- Étape 2 -->
                     <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:-translate-y-2 duration-300">
                         <div class="text-indigo-500 text-5xl font-extrabold mb-4">2</div>
                         <h3 class="text-2xl font-bold mb-2">L'IA fait le travail</h3>
                         <p class="text-gray-400">Notre IA analyse tes documents et en extrait les informations essentielles pour toi.</p>
                     </div>
-                    <!-- Étape 3 -->
                     <div class="bg-gray-800 p-8 rounded-xl shadow-xl transition-transform transform hover:-translate-y-2 duration-300">
                         <div class="text-indigo-500 text-5xl font-extrabold mb-4">3</div>
                         <h3 class="text-2xl font-bold mb-2">Réussis tes examens</h3>
@@ -117,7 +125,6 @@
             <div class="container mx-auto px-4">
                 <h2 class="text-4xl font-bold text-center mb-12">Des fonctionnalités pensées pour toi</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Les href de ces liens seront mis à jour par le script -->
                     <a id="feature-quiz" href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
                         <div class="text-indigo-400 mb-4 flex justify-center"><i class="fas fa-clipboard-question text-5xl"></i></div>
                         <h3 class="text-2xl font-bold text-center mb-2">Quiz IA</h3>
@@ -185,12 +192,18 @@
         const featureSynthesize = document.getElementById('feature-synthesize');
         const featureProfile = document.getElementById('feature-profile');
 
+        const heroLoggedOut = document.getElementById('hero-logged-out');
+        const heroLoggedIn = document.getElementById('hero-logged-in');
+
         onAuthStateChanged(auth, async (user) => {
             if (user && !user.isAnonymous) {
                 // Utilisateur connecté
                 navLoggedOut.classList.add('hidden');
                 navLoggedIn.classList.remove('hidden');
                 navLoggedIn.classList.add('flex');
+
+                heroLoggedOut.classList.add('hidden');
+                heroLoggedIn.classList.remove('hidden');
 
                 featureQuiz.href = '/quiz.html';
                 featureSynthesize.href = '/synthesize.html';
@@ -209,29 +222,29 @@
                 navLoggedIn.classList.add('hidden');
                 navLoggedOut.classList.remove('hidden');
 
+                heroLoggedIn.classList.add('hidden');
+                heroLoggedOut.classList.remove('hidden');
+
                 featureQuiz.href = '/register.html';
                 featureSynthesize.href = '/register.html';
                 featureProfile.href = '/register.html';
             }
         });
 
-        // Logique pour ouvrir/fermer le menu
         userMenuButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Empêche le clic de se propager à la fenêtre
+            e.stopPropagation();
             userMenu.classList.toggle('hidden');
         });
 
-        // Fermer le menu si on clique en dehors
-        window.addEventListener('click', function(e) {
-            if (!navLoggedIn.contains(e.target)) {
+        window.addEventListener('click', (e) => {
+            if (navLoggedIn && !navLoggedIn.contains(e.target)) {
                 userMenu.classList.add('hidden');
             }
         });
 
-        // Logique de déconnexion
         logoutButton.addEventListener('click', async () => {
             await signOut(auth);
-            window.location.reload(); // Recharger pour voir l'état déconnecté
+            window.location.reload();
         });
     </script>
 </body>

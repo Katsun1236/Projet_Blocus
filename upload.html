@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Titre corrigé pour la cohérence -->
     <title>Projet Blocus - Uploader un cours</title>
-    <!-- Favicon ajoutée pour le logo dans l'onglet -->
     <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.href='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -108,7 +106,6 @@
         let selectedFile = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // --- UI Elements ---
             const dropZone = document.getElementById('drop-zone');
             const browseButton = document.getElementById('browse-button');
             const fileInput = document.getElementById('file-input');
@@ -131,7 +128,6 @@
                 setTimeout(() => { messageBox.classList.add('hidden'); }, 3000);
             }
             
-            // --- Menu & Auth Logic ---
             onAuthStateChanged(auth, async (user) => {
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
@@ -166,7 +162,6 @@
                 window.location.href = '/index.html';
             });
 
-            // --- Upload Logic & Preview ---
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
 
             async function renderPdfPreview(file) {
@@ -254,21 +249,28 @@
                         progressBar.style.width = '0%';
                     }, 
                     async () => {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                        
-                        const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
-                        await setDoc(courseRef, {
-                            name: courseName,
-                            fileName: selectedFile.name,
-                            url: downloadURL,
-                            uploadedAt: new Date().toISOString(),
-                            status: 'uploaded'
-                        });
+                        try {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            
+                            const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
+                            await setDoc(courseRef, {
+                                name: courseName,
+                                fileName: selectedFile.name,
+                                url: downloadURL,
+                                uploadedAt: new Date().toISOString(),
+                                status: 'uploaded'
+                            });
 
-                        showMessage("Upload terminé ! Redirection vers vos cours...");
-                        setTimeout(() => {
-                            window.location.href = '/courses.html';
-                        }, 2000);
+                            showMessage("Upload terminé ! Redirection vers vos cours...");
+                            setTimeout(() => {
+                                window.location.href = '/courses.html';
+                            }, 2000);
+                        } catch (dbError) {
+                            console.error("Erreur de sauvegarde Firestore:", dbError);
+                            showMessage("Erreur lors de la sauvegarde des informations.");
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = 'Uploader et Analyser';
+                        }
                     }
                 );
             });
