@@ -18,10 +18,11 @@
         <p class="text-center text-gray-400 mb-8">Pour commencer, dis-nous en un peu plus sur toi.</p>
         
         <form id="onboarding-form">
+            <!-- Photo de profil -->
             <div class="mb-6 flex flex-col items-center">
                 <label class="block text-gray-300 font-bold mb-2">Photo de profil</label>
                 <div id="profile-picture-container" class="relative w-24 h-24 mb-2 rounded-full border-4 border-indigo-500 overflow-hidden cursor-pointer group hover:border-indigo-400 transition-colors duration-300">
-                    <img id="profile-picture-preview" src="" alt="Aperçu" class="w-full h-full object-cover">
+                    <img id="profile-picture-preview" src="" alt="Aperçu de la photo de profil" class="w-full h-full object-cover">
                     <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <i class="fas fa-camera text-white text-2xl"></i>
                     </div>
@@ -29,6 +30,7 @@
                 <input type="file" id="profilePicture" name="profilePicture" accept="image/*" class="hidden">
             </div>
 
+            <!-- Nom et Prénom -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label for="firstName" class="block text-gray-300 font-bold mb-2">Prénom</label>
@@ -40,7 +42,8 @@
                 </div>
             </div>
 
-            <div class="mb-4">
+            <!-- École -->
+            <div class="mb-6">
                 <label for="school" class="block text-gray-300 font-bold mb-2">École / Université</label>
                 <input type="text" id="school" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Ton école" required>
             </div>
@@ -95,10 +98,12 @@
             onAuthStateChanged(auth, (user) => {
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
-                    const nameParts = user.displayName ? user.displayName.split(' ') : ['', ''];
-                    document.getElementById('firstName').value = nameParts[0] || '';
-                    document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
-                    if(user.photoURL) {
+                    if (user.displayName) {
+                        const nameParts = user.displayName.split(' ');
+                        document.getElementById('firstName').value = nameParts[0] || '';
+                        document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+                    }
+                    if (user.photoURL) {
                         document.getElementById('profile-picture-preview').src = user.photoURL;
                     }
                 } else {
@@ -158,7 +163,6 @@
                     console.error("Erreur lors de l'enregistrement:", error);
                     showMessage("Erreur lors de l'enregistrement. Veuillez réessayer.");
                 } finally {
-                    // **CORRECTION CLÉ** : Réactiver le bouton dans tous les cas
                     button.disabled = false;
                     button.innerHTML = "C'est parti !";
                 }

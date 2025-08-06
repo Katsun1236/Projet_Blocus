@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Cours - Projet Blocus</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-10">
+        <a href="/dashboard.html" class="flex items-center space-x-2">
+            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
+        </a>
+        <nav id="nav-logged-in" class="hidden items-center">
+            <a href="/profile.html" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
+                <span id="user-name-header" class="font-semibold">Chargement...</span>
+            </a>
+            <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ml-6">
+                <i class="fas fa-sign-out-alt"></i>
+            </button>
+        </nav>
+    </header>
+
+    <main class="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pt-28 text-center">
+        <h1 class="text-4xl font-bold mb-4">Mes Cours</h1>
+        <p class="text-gray-400 text-xl">Ici, tu pourras bientôt voir et gérer tous tes cours.</p>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
+            authDomain: "projetblocus1.firebaseapp.com",
+            projectId: "projetblocus1",
+            storageBucket: "projetblocus1.appspot.com",
+            messagingSenderId: "536093956243",
+            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
+            measurementId: "G-W5WZXDHNTC"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user && !user.isAnonymous) {
+                const userRef = doc(db, 'users', user.uid);
+                const docSnap = await getDoc(userRef);
+                if (docSnap.exists()) {
+                    const profileData = docSnap.data();
+                    document.getElementById('user-name-header').textContent = profileData.firstName;
+                    document.getElementById('user-avatar-header').src = profileData.photoURL;
+                    document.getElementById('nav-logged-in').classList.remove('hidden');
+                    document.getElementById('nav-logged-in').classList.add('flex');
+                } else {
+                    window.location.href = '/onboarding.html';
+                }
+            } else {
+                window.location.href = '/login.html';
+            }
+        });
+
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = '/index.html';
+        });
+    </script>
+</body>
+</html>

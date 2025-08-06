@@ -9,7 +9,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; }
+        /* Correction pour le centrage vertical parfait de l'icône */
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .password-container input {
+            padding-right: 2.5rem; /* Espace pour l'icône */
+        }
+        .password-container .fa-eye, .password-container .fa-eye-slash {
+            position: absolute;
+            right: 0.75rem;
+            cursor: pointer;
+            color: #9ca3af; /* text-gray-400 */
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
@@ -22,16 +39,20 @@
                 <input type="email" id="email" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="ton.email@exemple.com" required>
             </div>
             
-            <div class="mb-4 relative">
+            <div class="mb-4">
                 <label for="password" class="block text-gray-300 font-bold mb-2">Mot de passe</label>
-                <input type="password" id="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500 pr-10" placeholder="6 caractères minimum" required>
-                <i class="fas fa-eye absolute top-10 right-3 cursor-pointer text-gray-400" id="togglePassword"></i>
+                <div class="password-container">
+                    <input type="password" id="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="6 caractères minimum" required>
+                    <i class="fas fa-eye" id="togglePassword"></i>
+                </div>
             </div>
             
-            <div class="mb-6 relative">
+            <div class="mb-6">
                 <label for="confirm-password" class="block text-gray-300 font-bold mb-2">Confirmer le mot de passe</label>
-                <input type="password" id="confirm-password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500 pr-10" placeholder="**********" required>
-                <i class="fas fa-eye absolute top-10 right-3 cursor-pointer text-gray-400" id="toggleConfirmPassword"></i>
+                <div class="password-container">
+                    <input type="password" id="confirm-password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="**********" required>
+                    <i class="fas fa-eye" id="toggleConfirmPassword"></i>
+                </div>
             </div>
             
             <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105">S'inscrire</button>
@@ -44,7 +65,7 @@
         </div>
 
         <button id="google-signup-button" class="w-full bg-white hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
-            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="Google logo" class="h-5 mr-2">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo" class="h-5 mr-3">
             S'inscrire avec Google
         </button>
         
@@ -85,16 +106,18 @@
             }
         });
 
-        function togglePasswordVisibility(inputId, toggleId) {
-            const password = document.getElementById(inputId);
-            const toggle = document.getElementById(toggleId);
-            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
-            password.setAttribute('type', type);
-            toggle.classList.toggle('fa-eye-slash');
+        function togglePasswordVisibility(inputId, toggleIcon) {
+            const passwordInput = document.getElementById(inputId);
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            toggleIcon.classList.toggle('fa-eye-slash');
         }
 
-        document.getElementById('togglePassword').addEventListener('click', () => togglePasswordVisibility('password', 'togglePassword'));
-        document.getElementById('toggleConfirmPassword').addEventListener('click', () => togglePasswordVisibility('confirm-password', 'toggleConfirmPassword'));
+        const togglePassword = document.getElementById('togglePassword');
+        const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+
+        togglePassword.addEventListener('click', () => togglePasswordVisibility('password', togglePassword));
+        toggleConfirmPassword.addEventListener('click', () => togglePasswordVisibility('confirm-password', toggleConfirmPassword));
 
         document.getElementById('signup-form').addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -111,7 +134,6 @@
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
                 showMessage("Inscription réussie ! Redirection...");
-                // onAuthStateChanged gérera la redirection vers le dashboard, qui lui-même redirigera vers l'onboarding si nécessaire.
             } catch (error) {
                 let msg = "Erreur lors de l'inscription.";
                 if (error.code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
@@ -127,7 +149,6 @@
             try {
                 await signInWithPopup(auth, provider);
                 showMessage("Inscription avec Google réussie !");
-                // onAuthStateChanged gérera la redirection
             } catch (error) {
                 console.error("Erreur d'inscription Google:", error);
                 showMessage("Erreur lors de l'inscription avec Google.");
