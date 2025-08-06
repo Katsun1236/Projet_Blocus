@@ -12,7 +12,6 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .hero-bg {
-            /* Image de bannière corrigée avec une URL directe de haute qualité */
             background: linear-gradient(180deg, rgba(17,24,39,0.8) 0%, rgba(17,24,39,0.9) 100%), url('https://images.unsplash.com/photo-1491841550275-5b462bf48372?q=80&w=2071&auto=format&fit=crop') center/cover no-repeat;
         }
     </style>
@@ -20,19 +19,36 @@
 <body class="bg-gray-900 text-white min-h-screen">
 
     <!-- Header -->
-    <header id="main-header" class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
+    <header id="main-header" class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-20 transition-all duration-300">
         <a href="/" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <nav id="nav-logged-out">
+        <!-- Navigation pour les utilisateurs DÉCONNECTÉS (cachée par défaut) -->
+        <nav id="nav-logged-out" class="hidden">
             <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
-            <a href="#how-it-works" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Comment ça marche</a>
             <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
             <a href="/login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
             <a href="/register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
         </nav>
+        <!-- Navigation pour les utilisateurs CONNECTÉS (cachée par défaut) -->
+        <nav id="nav-logged-in" class="hidden items-center relative">
+            <!-- Bouton qui déclenche le menu -->
+            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
+                <span id="user-name-header" class="font-semibold">Chargement...</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+            </button>
+            <!-- Menu déroulant -->
+            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                <hr class="border-gray-600 my-2">
+                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+            </div>
+        </nav>
     </header>
 
+    <!-- Contenu de la page pour les utilisateurs non connectés -->
     <div id="landing-page-content">
         <!-- Hero Section -->
         <main class="hero-bg text-center py-40 px-4 pt-56">
@@ -64,7 +80,6 @@
                     </p>
                 </div>
                 <div class="md:w-1/2">
-                    <!-- Image d'illustration corrigée avec une URL directe de haute qualité -->
                     <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop" alt="Groupe d'étudiants souriants qui réussissent" class="rounded-xl shadow-2xl w-full">
                 </div>
             </div>
@@ -102,18 +117,18 @@
             <div class="container mx-auto px-4">
                 <h2 class="text-4xl font-bold text-center mb-12">Des fonctionnalités pensées pour toi</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Cartes de fonctionnalités rendues cliquables -->
-                    <a href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
+                    <!-- Les href de ces liens seront mis à jour par le script -->
+                    <a id="feature-quiz" href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
                         <div class="text-indigo-400 mb-4 flex justify-center"><i class="fas fa-clipboard-question text-5xl"></i></div>
                         <h3 class="text-2xl font-bold text-center mb-2">Quiz IA</h3>
                         <p class="text-gray-400 text-center">Génère des quiz interactifs à partir de tes notes de cours en un instant.</p>
                     </a>
-                    <a href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
+                    <a id="feature-synthesize" href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
                         <div class="text-indigo-400 mb-4 flex justify-center"><i class="fas fa-file-alt text-5xl"></i></div>
                         <h3 class="text-2xl font-bold text-center mb-2">Fiches de révision</h3>
                         <p class="text-gray-400 text-center">Transforme tes longs textes en fiches synthétiques pour une révision rapide.</p>
                     </a>
-                    <a href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
+                    <a id="feature-profile" href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
                         <div class="text-indigo-400 mb-4 flex justify-center"><i class="fas fa-chart-line text-5xl"></i></div>
                         <h3 class="text-2xl font-bold text-center mb-2">Suivi de progression</h3>
                         <p class="text-gray-400 text-center">Garde une trace de tes sessions d'étude et de tes résultats aux quiz.</p>
@@ -143,7 +158,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
@@ -157,11 +173,65 @@
         
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        onAuthStateChanged(auth, (user) => {
+        const navLoggedIn = document.getElementById('nav-logged-in');
+        const navLoggedOut = document.getElementById('nav-logged-out');
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userMenu = document.getElementById('user-menu');
+        const logoutButton = document.getElementById('logout-button');
+        
+        const featureQuiz = document.getElementById('feature-quiz');
+        const featureSynthesize = document.getElementById('feature-synthesize');
+        const featureProfile = document.getElementById('feature-profile');
+
+        onAuthStateChanged(auth, async (user) => {
             if (user && !user.isAnonymous) {
-                window.location.href = '/dashboard.html';
+                // Utilisateur connecté
+                navLoggedOut.classList.add('hidden');
+                navLoggedIn.classList.remove('hidden');
+                navLoggedIn.classList.add('flex');
+
+                featureQuiz.href = '/quiz.html';
+                featureSynthesize.href = '/synthesize.html';
+                featureProfile.href = '/profile.html';
+
+                const userRef = doc(db, 'users', user.uid);
+                const docSnap = await getDoc(userRef);
+                if (docSnap.exists()) {
+                    const profileData = docSnap.data();
+                    document.getElementById('user-name-header').textContent = profileData.firstName;
+                    document.getElementById('user-avatar-header').src = profileData.photoURL;
+                }
+
+            } else {
+                // Utilisateur déconnecté
+                navLoggedIn.classList.add('hidden');
+                navLoggedOut.classList.remove('hidden');
+
+                featureQuiz.href = '/register.html';
+                featureSynthesize.href = '/register.html';
+                featureProfile.href = '/register.html';
             }
+        });
+
+        // Logique pour ouvrir/fermer le menu
+        userMenuButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Empêche le clic de se propager à la fenêtre
+            userMenu.classList.toggle('hidden');
+        });
+
+        // Fermer le menu si on clique en dehors
+        window.addEventListener('click', function(e) {
+            if (!navLoggedIn.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        // Logique de déconnexion
+        logoutButton.addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.reload(); // Recharger pour voir l'état déconnecté
         });
     </script>
 </body>
