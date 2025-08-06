@@ -15,7 +15,7 @@
         .hero-bg {
             /* Utilisation d'une image locale si elle existe, sinon le placeholder */
             background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('images/hero_background.jpg') center/cover no-repeat;
-            /* Fallback si l'image locale ne charge pas */
+            /* Fallback si l'image locale ne charge pas (peut être retiré si l'image locale est garantie) */
             background-image: url('https://placehold.co/1920x1080/1f2937/d1d5db?text=Étudiant+qui+révise');
         }
     </style>
@@ -242,7 +242,7 @@
         function showMessage(message) {
             const messageBox = document.getElementById('message-box');
             const messageText = document.getElementById('message-text');
-            messageText.textContent = message;
+            messageBox.textContent = message;
             messageBox.classList.remove('hidden');
             setTimeout(() => {
                 messageBox.classList.add('hidden');
@@ -321,11 +321,6 @@
                     logoutButton.addEventListener('click', handleLogout);
                 }
                 
-                // Les liens de navigation pour les utilisateurs déconnectés pointent directement vers les pages
-                // Pas besoin de listeners JavaScript pour ces liens car ce sont des <a> standards
-                // Exemple: <a href="/login.html">Se connecter</a>
-                // Ces liens sont déjà corrects dans le HTML fourni.
-
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de l'application:", error);
                 showMessage("Erreur de connexion au service. Veuillez réessayer.");
