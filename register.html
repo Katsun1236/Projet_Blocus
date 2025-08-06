@@ -28,7 +28,7 @@
             
             <div class="mb-4">
                 <label for="password" class="block text-gray-300 font-bold mb-2">Mot de passe</label>
-                <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="**********" required>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="6 caractères minimum" required>
             </div>
             
             <div class="mb-6">
@@ -53,9 +53,19 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         
-        // Déclaration des variables globales
+        // Ta configuration Firebase que tu as fournie
+        const firebaseConfig = {
+            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
+            authDomain: "projetblocus1.firebaseapp.com",
+            projectId: "projetblocus1",
+            storageBucket: "projetblocus1.appspot.com",
+            messagingSenderId: "536093956243",
+            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
+            measurementId: "G-W5WZXDHNTC"
+        };
+
         let app;
         let auth;
 
@@ -69,68 +79,64 @@
             }, 3000);
         }
 
-        // Fonction pour initialiser Firebase et l'authentification
-        const initializeFirebase = async () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const firebaseConfig = JSON.parse(__firebase_config);
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
+                
+                // Si l'utilisateur est déjà connecté, le rediriger
+                onAuthStateChanged(auth, (user) => {
+                    if (user && !user.isAnonymous) {
+                        window.location.href = '/index.html';
+                    }
+                });
 
-                // Gère l'authentification
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                document.getElementById('signup-form').addEventListener('submit', async function(event) {
+                    event.preventDefault();
+                    
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const confirmPassword = document.getElementById('confirm-password').value;
+                    const button = this.querySelector('button[type="submit"]');
+
+                    if (password !== confirmPassword) {
+                        showMessage("Les mots de passe ne correspondent pas.");
+                        return;
+                    }
+
+                    // Désactiver le bouton et afficher un spinner
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
+
+                    try {
+                        await createUserWithEmailAndPassword(auth, email, password);
+                        showMessage("Inscription réussie ! Vous allez être redirigé...");
+                        // Redirection vers la page d'onboarding pour compléter le profil
+                        setTimeout(() => {
+                            window.location.href = '/onboarding.html';
+                        }, 2000);
+                    } catch (error) {
+                        let errorMessage = "Erreur lors de l'inscription. Veuillez réessayer.";
+                        console.error("Erreur d'inscription:", error.code);
+                        
+                        if (error.code === 'auth/email-already-in-use') {
+                            errorMessage = "Cette adresse e-mail est déjà utilisée.";
+                        } else if (error.code === 'auth/invalid-email') {
+                            errorMessage = "L'adresse e-mail n'est pas valide.";
+                        } else if (error.code === 'auth/weak-password') {
+                            errorMessage = "Le mot de passe est trop faible (6 caractères minimum).";
+                        }
+
+                        showMessage(errorMessage);
+                        // Réactiver le bouton en cas d'erreur
+                        button.disabled = false;
+                        button.innerHTML = "S'inscrire";
+                    }
+                });
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de Firebase:", error);
                 showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
             }
-        };
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initializeFirebase();
-            
-            // Si l'utilisateur est déjà connecté, le rediriger
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    window.location.href = '/index.html';
-                }
-            });
-
-            document.getElementById('signup-form').addEventListener('submit', async function(event) {
-                event.preventDefault();
-                
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm-password').value;
-
-                if (password !== confirmPassword) {
-                    showMessage("Les mots de passe ne correspondent pas.");
-                    return;
-                }
-
-                try {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                    showMessage("Inscription réussie ! Redirection vers l'onboarding...");
-                    setTimeout(() => {
-                        window.location.href = '/onboarding.html';
-                    }, 2000);
-                } catch (error) {
-                    let errorMessage = "Erreur lors de l'inscription. Veuillez réessayer.";
-                    console.error("Erreur d'inscription:", error.code);
-                    
-                    if (error.code === 'auth/email-already-in-use') {
-                        errorMessage = "Cette adresse e-mail est déjà utilisée.";
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMessage = "L'adresse e-mail n'est pas valide.";
-                    } else if (error.code === 'auth/weak-password') {
-                        errorMessage = "Le mot de passe est trop faible (6 caractères minimum).";
-                    }
-
-                    showMessage(errorMessage);
-                }
-            });
         });
     </script>
 </body>

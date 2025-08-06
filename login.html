@@ -48,9 +48,19 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signInWithCustomToken, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         
-        // Déclaration des variables globales
+        // Ta configuration Firebase que tu as fournie
+        const firebaseConfig = {
+            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
+            authDomain: "projetblocus1.firebaseapp.com",
+            projectId: "projetblocus1",
+            storageBucket: "projetblocus1.appspot.com",
+            messagingSenderId: "536093956243",
+            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
+            measurementId: "G-W5WZXDHNTC"
+        };
+
         let app;
         let auth;
 
@@ -64,60 +74,53 @@
             }, 3000);
         }
 
-        // Fonction pour initialiser Firebase et l'authentification
-        const initializeFirebase = async () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             try {
-                const firebaseConfig = JSON.parse(__firebase_config);
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
+                
+                onAuthStateChanged(auth, (user) => {
+                    if (user && !user.isAnonymous) {
+                        // L'utilisateur est déjà connecté, redirection vers la page d'accueil
+                        window.location.href = '/index.html';
+                    }
+                });
 
-                // Gère l'authentification
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                document.getElementById('login-form').addEventListener('submit', async function(event) {
+                    event.preventDefault();
+                    
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const button = this.querySelector('button[type="submit"]');
+
+                    // Désactiver le bouton et afficher un spinner
+                    button.disabled = true;
+                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+
+                    try {
+                        await signInWithEmailAndPassword(auth, email, password);
+                        showMessage("Connexion réussie ! Redirection...");
+                        setTimeout(() => {
+                            window.location.href = '/index.html';
+                        }, 1500);
+                    } catch (error) {
+                        let errorMessage = "Erreur lors de la connexion. Veuillez vérifier vos identifiants.";
+                        console.error("Erreur de connexion:", error.code);
+                        
+                        if (error.code === 'auth/invalid-email' || error.code === 'auth/invalid-credential') {
+                            errorMessage = "L'email ou le mot de passe est incorrect.";
+                        }
+
+                        showMessage(errorMessage);
+                        // Réactiver le bouton en cas d'erreur
+                        button.disabled = false;
+                        button.innerHTML = 'Se connecter';
+                    }
+                });
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de Firebase:", error);
                 showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
             }
-        };
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await initializeFirebase();
-            
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    // L'utilisateur est déjà connecté, redirection vers la page d'accueil
-                    window.location.href = '/index.html';
-                }
-            });
-
-            document.getElementById('login-form').addEventListener('submit', async function(event) {
-                event.preventDefault();
-                
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    showMessage("Connexion réussie ! Redirection...");
-                    setTimeout(() => {
-                        window.location.href = '/index.html';
-                    }, 2000);
-                } catch (error) {
-                    let errorMessage = "Erreur lors de la connexion. Veuillez vérifier vos identifiants.";
-                    console.error("Erreur de connexion:", error.code);
-                    
-                    if (error.code === 'auth/invalid-email') {
-                        errorMessage = "L'adresse e-mail n'est pas valide.";
-                    } else if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                        errorMessage = "Identifiants incorrects.";
-                    }
-
-                    showMessage(errorMessage);
-                }
-            });
         });
     </script>
 </body>

@@ -15,12 +15,12 @@
         .hero-bg {
             /* Utilisation d'une image locale si elle existe, sinon le placeholder */
             background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('images/hero_background.jpg') center/cover no-repeat;
-            /* Fallback si l'image locale ne charge pas (peut être retiré si l'image locale est garantie) */
+            /* Fallback si l'image locale ne charge pas */
             background-image: url('https://placehold.co/1920x1080/1f2937/d1d5db?text=Étudiant+qui+révise');
         }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center">
 
     <!-- Header -->
     <header id="main-header" class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
@@ -54,9 +54,9 @@
     </div>
 
     <!-- Contenu de la page pour les utilisateurs non connectés -->
-    <div id="logged-out-content">
+    <div id="logged-out-content" class="w-full">
         <!-- Hero Section -->
-        <main class="hero-bg text-center py-40 px-4">
+        <main class="hero-bg text-center py-40 px-4 pt-56">
             <div class="max-w-5xl mx-auto">
                 <h1 class="text-6xl md:text-8xl font-extrabold tracking-tight leading-tight text-white drop-shadow-2xl">
                     Le blocus, <br class="md:hidden">facile et gratuit.
@@ -174,7 +174,7 @@
     </div>
 
     <!-- Contenu de la page pour les utilisateurs connectés -->
-    <div id="logged-in-content" class="hidden w-full max-w-4xl mt-8">
+    <div id="logged-in-content" class="hidden w-full max-w-4xl mt-32">
         <h2 class="text-2xl font-bold mb-6 text-center">Bienvenue, <span id="welcome-user-name"></span> !</h2>
         <div id="loading-container" class="text-center p-8">
             <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
@@ -228,7 +228,7 @@
             apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
             authDomain: "projetblocus1.firebaseapp.com",
             projectId: "projetblocus1",
-            storageBucket: "projetblocus1.firebasestorage.app",
+            storageBucket: "projetblocus1.appspot.com",
             messagingSenderId: "536093956243",
             appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
             measurementId: "G-W5WZXDHNTC"
@@ -242,7 +242,7 @@
         function showMessage(message) {
             const messageBox = document.getElementById('message-box');
             const messageText = document.getElementById('message-text');
-            messageBox.textContent = message;
+            messageText.textContent = message; // Correction ici
             messageBox.classList.remove('hidden');
             setTimeout(() => {
                 messageBox.classList.add('hidden');
@@ -250,14 +250,16 @@
         }
 
         const fetchUserProfile = async (userId) => {
-            const userRef = doc(db, 'artifacts', 'projet_blocus', 'users', userId, 'profile', 'data');
+            // Le chemin a été simplifié pour correspondre à une structure plus standard
+            const userRef = doc(db, 'users', userId);
             try {
                 const docSnap = await getDoc(userRef);
 
                 if (docSnap.exists()) {
                     const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = `${profileData.firstName}`;
-                    document.getElementById('welcome-user-name').textContent = `${profileData.firstName}`;
+                    const userName = profileData.firstName || 'Utilisateur';
+                    document.getElementById('user-name-header').textContent = userName;
+                    document.getElementById('welcome-user-name').textContent = userName;
                 } else {
                     console.warn("Profil introuvable pour l'utilisateur. Affichage d'un message générique.");
                     document.getElementById('user-name-header').textContent = `Invité`;
@@ -277,21 +279,20 @@
         const handleLogout = async () => {
             try {
                 await signOut(auth);
-                showMessage("Déconnexion réussie. Rechargement de la page pour afficher le contenu public.");
-                window.location.reload(); // Recharger la page pour afficher le contenu déconnecté
+                showMessage("Déconnexion réussie.");
+                // Pas besoin de recharger, onAuthStateChanged va gérer le changement d'interface
             } catch (error) {
                 console.error("Erreur lors de la déconnexion:", error);
                 showMessage("Erreur lors de la déconnexion. Veuillez réessayer.");
             }
         };
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             try {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Écoute l'état d'authentification pour afficher le bon contenu
                 onAuthStateChanged(auth, (user) => {
                     const loggedOutContent = document.getElementById('logged-out-content');
                     const loggedInContent = document.getElementById('logged-in-content');
@@ -303,11 +304,10 @@
                         navLoggedOut.classList.add('hidden');
                         navLoggedIn.classList.remove('hidden');
                         loggedOutContent.classList.add('hidden');
-                        loggedInContent.classList.remove('hidden'); // Rendre visible le contenu connecté
-                        loggedInContent.classList.add('flex', 'flex-col', 'items-center'); // Ajouter flex pour le layout
+                        loggedInContent.classList.remove('hidden');
+                        loggedInContent.classList.add('flex', 'flex-col', 'items-center');
                         fetchUserProfile(currentUserId);
                     } else {
-                        // Afficher la navigation déconnectée et le contenu public
                         navLoggedIn.classList.add('hidden');
                         navLoggedOut.classList.remove('hidden');
                         loggedOutContent.classList.remove('hidden');
@@ -315,7 +315,6 @@
                     }
                 });
 
-                // Écoute les clics sur le bouton de déconnexion
                 const logoutButton = document.getElementById('logout-button');
                 if (logoutButton) {
                     logoutButton.addEventListener('click', handleLogout);
