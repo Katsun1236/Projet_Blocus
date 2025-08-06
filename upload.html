@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uploader un cours - Projet Blocus</title>
+    <!-- Titre corrigé pour la cohérence -->
+    <title>Projet Blocus - Uploader un cours</title>
+    <!-- Favicon ajoutée pour le logo dans l'onglet -->
+    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.href='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Ajout de la bibliothèque PDF.js pour la prévisualisation -->
-    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <style> 
         body { font-family: 'Inter', sans-serif; }
         .drop-zone-active {
@@ -104,169 +107,171 @@
         let currentUserId = null;
         let selectedFile = null;
 
-        // --- UI Elements ---
-        const dropZone = document.getElementById('drop-zone');
-        const browseButton = document.getElementById('browse-button');
-        const fileInput = document.getElementById('file-input');
-        const submitButton = document.getElementById('submit-button');
-        const uploadForm = document.getElementById('upload-form');
-        const progressBar = document.getElementById('progress-bar');
-        const progressContainer = document.getElementById('progress-container');
-        const previewContainer = document.getElementById('preview-container');
-        const canvas = document.getElementById('pdf-preview-canvas');
-        const ctx = canvas.getContext('2d');
-        const navLoggedIn = document.getElementById('nav-logged-in');
-        const userMenuButton = document.getElementById('user-menu-button');
-        const userMenu = document.getElementById('user-menu');
-        const logoutButton = document.getElementById('logout-button');
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- UI Elements ---
+            const dropZone = document.getElementById('drop-zone');
+            const browseButton = document.getElementById('browse-button');
+            const fileInput = document.getElementById('file-input');
+            const submitButton = document.getElementById('submit-button');
+            const uploadForm = document.getElementById('upload-form');
+            const progressBar = document.getElementById('progress-bar');
+            const progressContainer = document.getElementById('progress-container');
+            const previewContainer = document.getElementById('preview-container');
+            const canvas = document.getElementById('pdf-preview-canvas');
+            const ctx = canvas.getContext('2d');
+            const navLoggedIn = document.getElementById('nav-logged-in');
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userMenu = document.getElementById('user-menu');
+            const logoutButton = document.getElementById('logout-button');
 
-        function showMessage(message) {
-            const messageBox = document.getElementById('message-box');
-            messageBox.textContent = message;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => { messageBox.classList.add('hidden'); }, 3000);
-        }
-        
-        // --- Menu & Auth Logic ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user && !user.isAnonymous) {
-                currentUserId = user.uid;
-                navLoggedIn.classList.remove('hidden');
-                navLoggedIn.classList.add('flex');
-                
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = profileData.firstName;
-                    document.getElementById('user-avatar-header').src = profileData.photoURL;
-                }
-            } else {
-                window.location.href = '/login.html';
+            function showMessage(message) {
+                const messageBox = document.getElementById('message-box');
+                messageBox.textContent = message;
+                messageBox.classList.remove('hidden');
+                setTimeout(() => { messageBox.classList.add('hidden'); }, 3000);
             }
-        });
-
-        userMenuButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userMenu.classList.toggle('hidden');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (!navLoggedIn.contains(e.target)) {
-                userMenu.classList.add('hidden');
-            }
-        });
-
-        logoutButton.addEventListener('click', async () => {
-            await signOut(auth);
-            window.location.href = '/index.html';
-        });
-
-        // --- Upload Logic & Preview ---
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://mozilla.github.io/pdf.js/build/pdf.worker.js`;
-
-        async function renderPdfPreview(file) {
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                try {
-                    const pdfData = new Uint8Array(event.target.result);
-                    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
-                    const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 0.5 });
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    const renderContext = { canvasContext: ctx, viewport: viewport };
-                    await page.render(renderContext).promise;
-                    previewContainer.classList.remove('hidden');
-                    dropZone.classList.add('hidden');
-                } catch (error) {
-                    console.error("Erreur de prévisualisation PDF:", error);
-                    showMessage("Impossible de prévisualiser ce PDF.");
-                    handleFile(null); // Réinitialiser si le PDF est corrompu
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function handleFile(file) {
-            if (file && file.type === "application/pdf") {
-                selectedFile = file;
-                document.getElementById('file-name-preview').textContent = file.name;
-                document.getElementById('file-size-preview').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-                renderPdfPreview(file);
-                submitButton.disabled = false;
-            } else {
-                if(file) showMessage("Veuillez sélectionner un fichier PDF.");
-                selectedFile = null;
-                previewContainer.classList.add('hidden');
-                dropZone.classList.remove('hidden');
-                submitButton.disabled = true;
-                fileInput.value = ''; // Réinitialiser l'input
-            }
-        }
-
-        browseButton.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
-
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropZone.addEventListener(eventName, (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-            }, false);
-        });
-        ['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-zone-active')));
-        ['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-zone-active')));
-        dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
-
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!selectedFile || !currentUserId) return;
-
-            const courseName = document.getElementById('courseName').value.trim();
-            if (!courseName) {
-                showMessage("Veuillez donner un nom à votre cours.");
-                return;
-            }
-
-            submitButton.disabled = true;
-            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload en cours...';
-            progressContainer.classList.remove('hidden');
-
-            const courseId = doc(collection(db, 'temp')).id;
-            const storageRef = ref(storage, `users/${currentUserId}/courses/${courseId}/${selectedFile.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    progressBar.style.width = progress + '%';
-                }, 
-                (error) => {
-                    console.error("Erreur d'upload:", error);
-                    showMessage("Une erreur est survenue lors de l'upload.");
-                    submitButton.disabled = false;
-                    submitButton.innerHTML = 'Uploader et Analyser';
-                    progressContainer.classList.add('hidden');
-                    progressBar.style.width = '0%';
-                }, 
-                async () => {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            
+            // --- Menu & Auth Logic ---
+            onAuthStateChanged(auth, async (user) => {
+                if (user && !user.isAnonymous) {
+                    currentUserId = user.uid;
+                    navLoggedIn.classList.remove('hidden');
+                    navLoggedIn.classList.add('flex');
                     
-                    const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
-                    await setDoc(courseRef, {
-                        name: courseName,
-                        fileName: selectedFile.name,
-                        url: downloadURL,
-                        uploadedAt: new Date().toISOString(),
-                        status: 'uploaded'
-                    });
-
-                    showMessage("Upload terminé ! Redirection vers vos cours...");
-                    setTimeout(() => {
-                        window.location.href = '/courses.html';
-                    }, 2000);
+                    const userRef = doc(db, 'users', user.uid);
+                    const docSnap = await getDoc(userRef);
+                    if (docSnap.exists()) {
+                        const profileData = docSnap.data();
+                        document.getElementById('user-name-header').textContent = profileData.firstName;
+                        document.getElementById('user-avatar-header').src = profileData.photoURL;
+                    }
+                } else {
+                    window.location.href = '/login.html';
                 }
-            );
+            });
+
+            userMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('hidden');
+            });
+
+            window.addEventListener('click', (e) => {
+                if (navLoggedIn && !navLoggedIn.contains(e.target)) {
+                    userMenu.classList.add('hidden');
+                }
+            });
+
+            logoutButton.addEventListener('click', async () => {
+                await signOut(auth);
+                window.location.href = '/index.html';
+            });
+
+            // --- Upload Logic & Preview ---
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+
+            async function renderPdfPreview(file) {
+                const reader = new FileReader();
+                reader.onload = async function(event) {
+                    try {
+                        const pdfData = new Uint8Array(event.target.result);
+                        const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+                        const page = await pdf.getPage(1);
+                        const viewport = page.getViewport({ scale: 0.5 });
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        const renderContext = { canvasContext: ctx, viewport: viewport };
+                        await page.render(renderContext).promise;
+                        previewContainer.classList.remove('hidden');
+                        dropZone.classList.add('hidden');
+                    } catch (error) {
+                        console.error("Erreur de prévisualisation PDF:", error);
+                        showMessage("Impossible de prévisualiser ce PDF.");
+                        handleFile(null);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            function handleFile(file) {
+                if (file && file.type === "application/pdf") {
+                    selectedFile = file;
+                    document.getElementById('file-name-preview').textContent = file.name;
+                    document.getElementById('file-size-preview').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                    renderPdfPreview(file);
+                    submitButton.disabled = false;
+                } else {
+                    if(file) showMessage("Veuillez sélectionner un fichier PDF.");
+                    selectedFile = null;
+                    previewContainer.classList.add('hidden');
+                    dropZone.classList.remove('hidden');
+                    submitButton.disabled = true;
+                    fileInput.value = '';
+                }
+            }
+
+            browseButton.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+            ['dragenter', 'dragover'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.add('drop-zone-active')));
+            ['dragleave', 'drop'].forEach(eventName => dropZone.addEventListener(eventName, () => dropZone.classList.remove('drop-zone-active')));
+            dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+
+            uploadForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!selectedFile || !currentUserId) return;
+
+                const courseName = document.getElementById('courseName').value.trim();
+                if (!courseName) {
+                    showMessage("Veuillez donner un nom à votre cours.");
+                    return;
+                }
+
+                submitButton.disabled = true;
+                submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload en cours...';
+                progressContainer.classList.remove('hidden');
+
+                const courseId = doc(collection(db, 'temp')).id;
+                const storageRef = ref(storage, `users/${currentUserId}/courses/${courseId}/${selectedFile.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        progressBar.style.width = progress + '%';
+                    }, 
+                    (error) => {
+                        console.error("Erreur d'upload:", error);
+                        showMessage("Une erreur est survenue lors de l'upload.");
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = 'Uploader et Analyser';
+                        progressContainer.classList.add('hidden');
+                        progressBar.style.width = '0%';
+                    }, 
+                    async () => {
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        
+                        const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
+                        await setDoc(courseRef, {
+                            name: courseName,
+                            fileName: selectedFile.name,
+                            url: downloadURL,
+                            uploadedAt: new Date().toISOString(),
+                            status: 'uploaded'
+                        });
+
+                        showMessage("Upload terminé ! Redirection vers vos cours...");
+                        setTimeout(() => {
+                            window.location.href = '/courses.html';
+                        }, 2000);
+                    }
+                );
+            });
         });
     </script>
 </body>
