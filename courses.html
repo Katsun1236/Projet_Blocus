@@ -11,8 +11,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- PDF.js pour les aperçus -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <style> 
         body { font-family: 'Inter', sans-serif; }
+        .course-card-preview {
+            background-color: #fff; /* Fond blanc pour l'aperçu */
+            aspect-ratio: 1 / 1.41; /* Ratio A4 */
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -54,7 +60,6 @@
                     <i class="fas fa-plus text-2xl mb-2"></i>
                     <span>Nouveau dossier</span>
                 </button>
-                <!-- Les dossiers de l'utilisateur s'afficheront ici -->
             </div>
         </section>
 
@@ -118,6 +123,8 @@
         let currentUserId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+            
             const navLoggedIn = document.getElementById('nav-logged-in');
             const userMenuButton = document.getElementById('user-menu-button');
             const userMenu = document.getElementById('user-menu');
@@ -170,10 +177,7 @@
                 const folderName = document.getElementById('folder-name').value.trim();
                 if (folderName && currentUserId) {
                     const foldersRef = collection(db, 'users', currentUserId, 'folders');
-                    await addDoc(foldersRef, {
-                        name: folderName,
-                        createdAt: serverTimestamp()
-                    });
+                    await addDoc(foldersRef, { name: folderName, createdAt: serverTimestamp() });
                     showMessage("Dossier créé avec succès.");
                     closeFolderModal();
                 }
@@ -186,23 +190,43 @@
                 return folderDiv;
             }
 
+            async function renderPdfPreview(url, canvasId) {
+                try {
+                    const canvas = document.getElementById(canvasId);
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    const pdf = await pdfjsLib.getDocument(url).promise;
+                    const page = await pdf.getPage(1);
+                    const viewport = page.getViewport({ scale: 0.4 });
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+                } catch (error) {
+                    console.error("Erreur de prévisualisation PDF:", error);
+                }
+            }
+
             function createCourseCard(courseData, courseId) {
                 const card = document.createElement('div');
-                card.className = "bg-gray-800 rounded-lg p-4 flex flex-col justify-between border border-gray-700 hover:border-indigo-500 transition-all duration-300";
+                card.className = "bg-gray-800 rounded-lg flex flex-col border border-gray-700 hover:border-indigo-500 transition-all duration-300";
+                const canvasId = `canvas-${courseId}`;
+                const quizLink = `/quiz.html?courseId=${courseId}&courseName=${encodeURIComponent(courseData.name)}`;
+                const synthesizeLink = `/synthesize.html?courseId=${courseId}&courseName=${encodeURIComponent(courseData.name)}`;
+
                 card.innerHTML = `
-                    <div>
-                        <div class="flex items-center space-x-3 mb-3">
-                            <i class="fas fa-file-pdf text-2xl text-red-500"></i>
-                            <h3 class="font-bold text-lg truncate" title="${courseData.name}">${courseData.name}</h3>
+                    <a href="${courseData.url}" target="_blank" class="block p-4 course-card-preview">
+                        <canvas id="${canvasId}"></canvas>
+                    </a>
+                    <div class="p-4 border-t border-gray-700">
+                        <h3 class="font-bold text-md truncate" title="${courseData.name}">${courseData.name}</h3>
+                        <div class="mt-4 flex justify-around">
+                            <a href="${quizLink}" title="Créer un Quiz" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-clipboard-question text-lg"></i></a>
+                            <a href="${synthesizeLink}" title="Synthétiser" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-lg"></i></a>
+                            <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button text-gray-400 hover:text-red-500"><i class="fas fa-trash text-lg"></i></button>
                         </div>
-                        <p class="text-xs text-gray-500 truncate" title="${courseData.fileName}">Fichier: ${courseData.fileName}</p>
-                    </div>
-                    <div class="mt-4 pt-4 border-t border-gray-700 flex justify-around">
-                        <button title="Créer un Quiz" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-clipboard-question text-xl"></i></button>
-                        <button title="Synthétiser" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-xl"></i></button>
-                        <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button text-gray-400 hover:text-red-500"><i class="fas fa-trash text-xl"></i></button>
                     </div>
                 `;
+                renderPdfPreview(courseData.url, canvasId);
                 return card;
             }
 
@@ -219,19 +243,14 @@
 
             async function deleteCourse() {
                 if (!courseToDelete || !currentUserId) return;
-                
                 const { id, fileName } = courseToDelete;
-                
                 confirmDeleteBtn.disabled = true;
                 confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
                 try {
                     const courseDocRef = doc(db, 'users', currentUserId, 'courses', id);
                     await deleteDoc(courseDocRef);
-
                     const fileRef = ref(storage, `users/${currentUserId}/courses/${id}/${fileName}`);
                     await deleteObject(fileRef);
-                    
                     showMessage("Cours supprimé avec succès.");
                 } catch(error) {
                     console.error("Erreur de suppression:", error);
@@ -248,7 +267,6 @@
                     currentUserId = user.uid;
                     navLoggedIn.classList.remove('hidden');
                     navLoggedIn.classList.add('flex');
-                    
                     const userRef = doc(db, 'users', user.uid);
                     const docSnap = await getDoc(userRef);
                     if (docSnap.exists()) {
@@ -280,7 +298,6 @@
                             });
                         }
                     });
-
                 } else {
                     window.location.href = '/login.html';
                 }
