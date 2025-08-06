@@ -9,33 +9,97 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; }
+        /* Style pour la scrollbar horizontale */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-10">
+
+    <!-- Header (identique aux autres pages) -->
+    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <nav id="nav-logged-in" class="hidden items-center">
-            <a href="/profile.html" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+        <nav id="nav-logged-in" class="hidden items-center relative">
+            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
                 <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
                 <span id="user-name-header" class="font-semibold">Chargement...</span>
-            </a>
-            <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ml-6">
-                <i class="fas fa-sign-out-alt"></i>
+                <i class="fas fa-chevron-down text-xs"></i>
             </button>
+            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                <hr class="border-gray-600 my-2">
+                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+            </div>
         </nav>
     </header>
 
-    <main class="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pt-28 text-center">
-        <h1 class="text-4xl font-bold mb-4">Mes Cours</h1>
-        <p class="text-gray-400 text-xl">Ici, tu pourras bientôt voir et gérer tous tes cours.</p>
+    <main class="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-4xl font-bold">Mes Cours</h1>
+            <a href="/upload.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300 flex items-center space-x-2">
+                <i class="fas fa-plus-circle"></i>
+                <span>Nouveau cours</span>
+            </a>
+        </div>
+
+        <!-- Section Dossiers (Fonctionnalité à venir) -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Dossiers</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <button class="bg-gray-800 hover:bg-gray-700 text-gray-400 p-4 rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-gray-600 transition-colors">
+                    <i class="fas fa-plus text-2xl mb-2"></i>
+                    <span>Nouveau dossier</span>
+                </button>
+                <!-- Les dossiers de l'utilisateur s'afficheront ici -->
+                 <div class="bg-gray-800 p-4 rounded-lg flex items-center space-x-3 cursor-pointer hover:bg-gray-700">
+                    <i class="fas fa-folder text-3xl text-indigo-400"></i>
+                    <span class="font-semibold truncate">Psychologie</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Tous les cours -->
+        <section>
+            <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Tous les cours</h2>
+            <div id="courses-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Les cartes de cours seront injectées ici par le script -->
+            </div>
+            <div id="loading-courses" class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
+                <p class="mt-4 text-gray-400">Chargement de vos cours...</p>
+            </div>
+             <div id="no-courses" class="hidden text-center py-12 bg-gray-800 rounded-lg">
+                <i class="fas fa-folder-open text-5xl text-gray-500 mb-4"></i>
+                <h3 class="text-2xl font-bold">Aucun cours trouvé</h3>
+                <p class="text-gray-400 mt-2">Commencez par <a href="/upload.html" class="text-indigo-400 hover:underline">uploader votre premier cours</a>.</p>
+            </div>
+        </section>
     </main>
+    
+    <!-- Modale de confirmation de suppression -->
+    <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30">
+        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold mb-4">Confirmer la suppression</h2>
+            <p class="text-gray-400 mb-6">Êtes-vous sûr de vouloir supprimer le cours "<span id="course-name-modal" class="font-bold"></span>" ? Cette action est irréversible.</p>
+            <div class="flex justify-center space-x-4">
+                <button id="cancel-delete" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button>
+                <button id="confirm-delete" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Supprimer</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
@@ -50,29 +114,106 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
+        let currentUserId = null;
+
+        // --- Menu & Auth Logic ---
+        // ... (script du menu identique aux autres pages)
+
+        // --- Page Logic ---
+        const coursesGrid = document.getElementById('courses-grid');
+        const loadingDiv = document.getElementById('loading-courses');
+        const noCoursesDiv = document.getElementById('no-courses');
+        const deleteModal = document.getElementById('delete-modal');
+        const courseNameModal = document.getElementById('course-name-modal');
+        const cancelDeleteBtn = document.getElementById('cancel-delete');
+        const confirmDeleteBtn = document.getElementById('confirm-delete');
+        let courseToDelete = null;
+
+        function createCourseCard(courseData, courseId) {
+            const card = document.createElement('div');
+            card.className = "bg-gray-800 rounded-lg p-4 flex flex-col justify-between border border-gray-700 hover:border-indigo-500 transition-all duration-300";
+            card.innerHTML = `
+                <div>
+                    <div class="flex items-center space-x-3 mb-3">
+                        <i class="fas fa-file-pdf text-2xl text-red-500"></i>
+                        <h3 class="font-bold text-lg truncate">${courseData.name}</h3>
+                    </div>
+                    <p class="text-xs text-gray-500 truncate">Fichier: ${courseData.fileName}</p>
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-700 flex justify-around">
+                    <button title="Créer un Quiz" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-clipboard-question text-xl"></i></button>
+                    <button title="Synthétiser" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-xl"></i></button>
+                    <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button text-gray-400 hover:text-red-500"><i class="fas fa-trash text-xl"></i></button>
+                </div>
+            `;
+            return card;
+        }
+
+        function openDeleteModal(courseId, courseName, fileName) {
+            courseToDelete = { id: courseId, name: courseName, fileName: fileName };
+            courseNameModal.textContent = courseName;
+            deleteModal.classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            courseToDelete = null;
+            deleteModal.classList.add('hidden');
+        }
+
+        async function deleteCourse() {
+            if (!courseToDelete || !currentUserId) return;
+            
+            const { id, fileName } = courseToDelete;
+            
+            // 1. Supprimer le document dans Firestore
+            const courseDocRef = doc(db, 'users', currentUserId, 'courses', id);
+            await deleteDoc(courseDocRef);
+
+            // 2. Supprimer le fichier dans Storage
+            const fileRef = ref(storage, `users/${currentUserId}/courses/${id}/${fileName}`);
+            await deleteObject(fileRef);
+            
+            showMessage("Cours supprimé avec succès.");
+            closeDeleteModal();
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user && !user.isAnonymous) {
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = profileData.firstName;
-                    document.getElementById('user-avatar-header').src = profileData.photoURL;
-                    document.getElementById('nav-logged-in').classList.remove('hidden');
-                    document.getElementById('nav-logged-in').classList.add('flex');
-                } else {
-                    window.location.href = '/onboarding.html';
-                }
+                currentUserId = user.uid;
+                // ... (logique du header) ...
+
+                const coursesRef = collection(db, 'users', currentUserId, 'courses');
+                onSnapshot(coursesRef, (snapshot) => {
+                    loadingDiv.classList.add('hidden');
+                    coursesGrid.innerHTML = '';
+                    if (snapshot.empty) {
+                        noCoursesDiv.classList.remove('hidden');
+                    } else {
+                        noCoursesDiv.classList.add('hidden');
+                        snapshot.forEach((doc) => {
+                            const card = createCourseCard(doc.data(), doc.id);
+                            coursesGrid.appendChild(card);
+                        });
+                    }
+                });
+
             } else {
                 window.location.href = '/login.html';
             }
         });
 
-        document.getElementById('logout-button').addEventListener('click', async () => {
-            await signOut(auth);
-            window.location.href = '/index.html';
+        coursesGrid.addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.delete-button');
+            if (deleteButton) {
+                const { courseId, courseName, fileName } = deleteButton.dataset;
+                openDeleteModal(courseId, courseName, fileName);
+            }
         });
+        
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+        confirmDeleteBtn.addEventListener('click', deleteCourse);
+
     </script>
 </body>
 </html>
