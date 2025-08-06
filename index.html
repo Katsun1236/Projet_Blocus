@@ -8,15 +8,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Ajout de la bibliothèque Font Awesome pour les icônes -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .hero-bg {
-            /* Utilisation d'une image locale si elle existe, sinon le placeholder */
-            background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('images/hero_background.jpg') center/cover no-repeat;
-            /* Fallback si l'image locale ne charge pas */
-            background-image: url('https://placehold.co/1920x1080/1f2937/d1d5db?text=Étudiant+qui+révise');
+            /* Image de bannière corrigée avec une URL directe de haute qualité */
+            background: linear-gradient(180deg, rgba(17,24,39,0.8) 0%, rgba(17,24,39,0.9) 100%), url('https://images.unsplash.com/photo-1491841550275-5b462bf48372?q=80&w=2071&auto=format&fit=crop') center/cover no-repeat;
         }
     </style>
 </head>
@@ -25,10 +22,8 @@
     <!-- Header -->
     <header id="main-header" class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
         <a href="/" class="flex items-center space-x-2">
-            <!-- Utilisation d'une image locale si elle existe, sinon le placeholder -->
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <!-- Navigation pour les utilisateurs déconnectés -->
         <nav id="nav-logged-out">
             <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
             <a href="#how-it-works" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Comment ça marche</a>
@@ -38,7 +33,6 @@
         </nav>
     </header>
 
-    <!-- Contenu principal de la page d'accueil -->
     <div id="landing-page-content">
         <!-- Hero Section -->
         <main class="hero-bg text-center py-40 px-4 pt-56">
@@ -70,7 +64,8 @@
                     </p>
                 </div>
                 <div class="md:w-1/2">
-                    <img src="images/student_success.jpg" onerror="this.onerror=null;this.src='https://placehold.co/600x400/4b5563/e5e7eb?text=Un+étudiant+souriant';" alt="Un étudiant souriant qui réussit ses examens" class="rounded-xl shadow-2xl w-full">
+                    <!-- Image d'illustration corrigée avec une URL directe de haute qualité -->
+                    <img src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2070&auto=format&fit=crop" alt="Groupe d'étudiants souriants qui réussissent" class="rounded-xl shadow-2xl w-full">
                 </div>
             </div>
         </section>
@@ -107,24 +102,22 @@
             <div class="container mx-auto px-4">
                 <h2 class="text-4xl font-bold text-center mb-12">Des fonctionnalités pensées pour toi</h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <!-- Feature 1: Quiz -->
-                    <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
+                    <!-- Cartes de fonctionnalités rendues cliquables -->
+                    <a href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
                         <div class="text-indigo-400 mb-4 flex justify-center"><i class="fas fa-clipboard-question text-5xl"></i></div>
                         <h3 class="text-2xl font-bold text-center mb-2">Quiz IA</h3>
                         <p class="text-gray-400 text-center">Génère des quiz interactifs à partir de tes notes de cours en un instant.</p>
-                    </div>
-                    <!-- Feature 2: Fiches -->
-                    <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
+                    </a>
+                    <a href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
                         <div class="text-indigo-400 mb-4 flex justify-center"><i class="fas fa-file-alt text-5xl"></i></div>
                         <h3 class="text-2xl font-bold text-center mb-2">Fiches de révision</h3>
                         <p class="text-gray-400 text-center">Transforme tes longs textes en fiches synthétiques pour une révision rapide.</p>
-                    </div>
-                    <!-- Feature 3: Suivi -->
-                    <div class="bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
+                    </a>
+                    <a href="/register.html" class="block bg-gray-900 p-8 rounded-xl shadow-xl border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:scale-105">
                         <div class="text-indigo-400 mb-4 flex justify-center"><i class="fas fa-chart-line text-5xl"></i></div>
                         <h3 class="text-2xl font-bold text-center mb-2">Suivi de progression</h3>
                         <p class="text-gray-400 text-center">Garde une trace de tes sessions d'étude et de tes résultats aux quiz.</p>
-                    </div>
+                    </a>
                 </div>
             </div>
         </section>
@@ -167,11 +160,8 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
-                // Si l'utilisateur est connecté, on le redirige vers son tableau de bord.
-                console.log("Utilisateur connecté, redirection vers le tableau de bord.");
                 window.location.href = '/dashboard.html';
             }
-            // Sinon, on ne fait rien et on affiche la page d'accueil normalement.
         });
     </script>
 </body>
