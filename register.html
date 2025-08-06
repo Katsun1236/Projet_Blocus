@@ -9,53 +9,56 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <!-- Conteneur du formulaire d'inscription -->
     <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700">
         <h2 class="text-3xl font-bold text-center mb-6">Créer un compte</h2>
         
         <form id="signup-form">
             <div class="mb-4">
                 <label for="email" class="block text-gray-300 font-bold mb-2">Adresse e-mail</label>
-                <input type="email" id="email" name="email" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="ton.email@exemple.com" required>
+                <input type="email" id="email" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="ton.email@exemple.com" required>
             </div>
             
-            <div class="mb-4">
+            <div class="mb-4 relative">
                 <label for="password" class="block text-gray-300 font-bold mb-2">Mot de passe</label>
-                <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="6 caractères minimum" required>
+                <input type="password" id="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500 pr-10" placeholder="6 caractères minimum" required>
+                <i class="fas fa-eye absolute top-10 right-3 cursor-pointer text-gray-400" id="togglePassword"></i>
             </div>
             
-            <div class="mb-6">
+            <div class="mb-6 relative">
                 <label for="confirm-password" class="block text-gray-300 font-bold mb-2">Confirmer le mot de passe</label>
-                <input type="password" id="confirm-password" name="confirm-password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="**********" required>
+                <input type="password" id="confirm-password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500 pr-10" placeholder="**********" required>
+                <i class="fas fa-eye absolute top-10 right-3 cursor-pointer text-gray-400" id="toggleConfirmPassword"></i>
             </div>
             
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105">
-                S'inscrire
-            </button>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105">S'inscrire</button>
         </form>
+
+        <div class="my-6 flex items-center">
+            <hr class="flex-grow border-gray-600">
+            <span class="mx-4 text-gray-400">OU</span>
+            <hr class="flex-grow border-gray-600">
+        </div>
+
+        <button id="google-signup-button" class="w-full bg-white hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
+            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="Google logo" class="h-5 mr-2">
+            S'inscrire avec Google
+        </button>
         
         <p class="text-center text-gray-400 mt-6">
             Déjà un compte ? <a href="/login.html" class="text-indigo-400 hover:underline">Se connecter</a>
         </p>
     </div>
 
-    <!-- Message box pour les notifications -->
-    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
-        <p id="message-text"></p>
-    </div>
+    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         
-        // Ta configuration Firebase que tu as fournie
         const firebaseConfig = {
             apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
             authDomain: "projetblocus1.firebaseapp.com",
@@ -66,76 +69,68 @@
             measurementId: "G-W5WZXDHNTC"
         };
 
-        let app;
-        let auth;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
         function showMessage(message) {
-            const messageBox = document.getElementById('message-box');
-            const messageText = document.getElementById('message-text');
-            messageText.textContent = message;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 3000);
+            const box = document.getElementById('message-box');
+            box.textContent = message;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3000);
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        onAuthStateChanged(auth, (user) => {
+            if (user && !user.isAnonymous) {
+                window.location.href = '/dashboard.html';
+            }
+        });
+
+        function togglePasswordVisibility(inputId, toggleId) {
+            const password = document.getElementById(inputId);
+            const toggle = document.getElementById(toggleId);
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            toggle.classList.toggle('fa-eye-slash');
+        }
+
+        document.getElementById('togglePassword').addEventListener('click', () => togglePasswordVisibility('password', 'togglePassword'));
+        document.getElementById('toggleConfirmPassword').addEventListener('click', () => togglePasswordVisibility('confirm-password', 'toggleConfirmPassword'));
+
+        document.getElementById('signup-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            if (password !== confirmPassword) {
+                showMessage("Les mots de passe ne correspondent pas.");
+                return;
+            }
+            const button = this.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
             try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                
-                // Si l'utilisateur est déjà connecté, le rediriger
-                onAuthStateChanged(auth, (user) => {
-                    if (user && !user.isAnonymous) {
-                        window.location.href = '/index.html';
-                    }
-                });
-
-                document.getElementById('signup-form').addEventListener('submit', async function(event) {
-                    event.preventDefault();
-                    
-                    const email = document.getElementById('email').value;
-                    const password = document.getElementById('password').value;
-                    const confirmPassword = document.getElementById('confirm-password').value;
-                    const button = this.querySelector('button[type="submit"]');
-
-                    if (password !== confirmPassword) {
-                        showMessage("Les mots de passe ne correspondent pas.");
-                        return;
-                    }
-
-                    // Désactiver le bouton et afficher un spinner
-                    button.disabled = true;
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
-
-                    try {
-                        await createUserWithEmailAndPassword(auth, email, password);
-                        showMessage("Inscription réussie ! Vous allez être redirigé...");
-                        // Redirection vers la page d'onboarding pour compléter le profil
-                        setTimeout(() => {
-                            window.location.href = '/onboarding.html';
-                        }, 2000);
-                    } catch (error) {
-                        let errorMessage = "Erreur lors de l'inscription. Veuillez réessayer.";
-                        console.error("Erreur d'inscription:", error.code);
-                        
-                        if (error.code === 'auth/email-already-in-use') {
-                            errorMessage = "Cette adresse e-mail est déjà utilisée.";
-                        } else if (error.code === 'auth/invalid-email') {
-                            errorMessage = "L'adresse e-mail n'est pas valide.";
-                        } else if (error.code === 'auth/weak-password') {
-                            errorMessage = "Le mot de passe est trop faible (6 caractères minimum).";
-                        }
-
-                        showMessage(errorMessage);
-                        // Réactiver le bouton en cas d'erreur
-                        button.disabled = false;
-                        button.innerHTML = "S'inscrire";
-                    }
-                });
+                await createUserWithEmailAndPassword(auth, email, password);
+                showMessage("Inscription réussie ! Redirection...");
+                // onAuthStateChanged gérera la redirection vers le dashboard, qui lui-même redirigera vers l'onboarding si nécessaire.
             } catch (error) {
-                console.error("Erreur lors de l'initialisation de Firebase:", error);
-                showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
+                let msg = "Erreur lors de l'inscription.";
+                if (error.code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
+                else if (error.code === 'auth/weak-password') msg = "Mot de passe trop faible (6 caractères min).";
+                showMessage(msg);
+                button.disabled = false;
+                button.innerHTML = "S'inscrire";
+            }
+        });
+        
+        document.getElementById('google-signup-button').addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                showMessage("Inscription avec Google réussie !");
+                // onAuthStateChanged gérera la redirection
+            } catch (error) {
+                console.error("Erreur d'inscription Google:", error);
+                showMessage("Erreur lors de l'inscription avec Google.");
             }
         });
     </script>

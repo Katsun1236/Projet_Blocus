@@ -32,19 +32,19 @@
         <h1 class="text-4xl font-bold mb-8">Mon Tableau de Bord</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
-            <a href="#" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
+            <a href="/upload.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
                 <i class="fas fa-file-upload text-6xl text-indigo-400 mb-4"></i>
                 <h2 class="text-2xl font-bold mb-2">Uploader un cours</h2>
                 <p class="text-gray-400">Ajoute un nouveau PDF pour commencer à travailler.</p>
             </a>
             
-            <a href="#" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
+            <a href="/quiz.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
                 <i class="fas fa-clipboard-question text-6xl text-indigo-400 mb-4"></i>
                 <h2 class="text-2xl font-bold mb-2">Créer un quiz</h2>
                 <p class="text-gray-400">Teste tes connaissances sur un de tes cours.</p>
             </a>
 
-            <a href="#" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
+            <a href="/synthesize.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
                 <i class="fas fa-file-alt text-6xl text-indigo-400 mb-4"></i>
                 <h2 class="text-2xl font-bold mb-2">Synthétiser</h2>
                 <p class="text-gray-400">Génère une fiche de révision à partir d'un document.</p>
@@ -114,11 +114,9 @@
                     navLoggedIn.classList.remove('hidden');
                     navLoggedIn.classList.add('flex');
                 } else {
-                    // Si l'utilisateur est connecté mais n'a pas de profil, on le redirige.
                     window.location.href = '/onboarding.html';
                 }
             } else {
-                // Si personne n'est connecté, on renvoie à la page de connexion.
                 window.location.href = '/login.html';
             }
         });

@@ -9,14 +9,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <!-- Conteneur du formulaire de connexion -->
     <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-sm border border-gray-700">
         <h2 class="text-3xl font-bold text-center mb-6">Connexion</h2>
         
@@ -26,31 +22,37 @@
                 <input type="email" id="email" name="email" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="ton.email@exemple.com" required>
             </div>
             
-            <div class="mb-6">
+            <div class="mb-6 relative">
                 <label for="password" class="block text-gray-300 font-bold mb-2">Mot de passe</label>
-                <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="**********" required>
+                <input type="password" id="password" name="password" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500 pr-10" placeholder="**********" required>
+                <i class="fas fa-eye absolute top-10 right-3 cursor-pointer text-gray-400" id="togglePassword"></i>
             </div>
             
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105">
-                Se connecter
-            </button>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105">Se connecter</button>
         </form>
+
+        <div class="my-6 flex items-center">
+            <hr class="flex-grow border-gray-600">
+            <span class="mx-4 text-gray-400">OU</span>
+            <hr class="flex-grow border-gray-600">
+        </div>
+
+        <button id="google-signin-button" class="w-full bg-white hover:bg-gray-200 text-gray-800 font-bold py-3 px-4 rounded-lg transition-colors duration-300 flex items-center justify-center">
+            <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" alt="Google logo" class="h-5 mr-2">
+            Se connecter avec Google
+        </button>
         
         <p class="text-center text-gray-400 mt-6">
             Pas encore de compte ? <a href="/register.html" class="text-indigo-400 hover:underline">Créer un compte</a>
         </p>
     </div>
 
-    <!-- Message box pour les notifications -->
-    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50">
-        <p id="message-text"></p>
-    </div>
+    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         
-        // Ta configuration Firebase que tu as fournie
         const firebaseConfig = {
             apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
             authDomain: "projetblocus1.firebaseapp.com",
@@ -61,65 +63,56 @@
             measurementId: "G-W5WZXDHNTC"
         };
 
-        let app;
-        let auth;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
         function showMessage(message) {
-            const messageBox = document.getElementById('message-box');
-            const messageText = document.getElementById('message-text');
-            messageText.textContent = message;
-            messageBox.classList.remove('hidden');
-            setTimeout(() => {
-                messageBox.classList.add('hidden');
-            }, 3000);
+            const box = document.getElementById('message-box');
+            box.textContent = message;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3000);
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        onAuthStateChanged(auth, (user) => {
+            if (user && !user.isAnonymous) {
+                window.location.href = '/dashboard.html';
+            }
+        });
+
+        document.getElementById('togglePassword').addEventListener('click', function (e) {
+            const password = document.getElementById('password');
+            const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+            password.setAttribute('type', type);
+            this.classList.toggle('fa-eye-slash');
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const button = this.querySelector('button[type="submit"]');
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
             try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                
-                onAuthStateChanged(auth, (user) => {
-                    if (user && !user.isAnonymous) {
-                        // L'utilisateur est déjà connecté, redirection vers la page d'accueil
-                        window.location.href = '/index.html';
-                    }
-                });
-
-                document.getElementById('login-form').addEventListener('submit', async function(event) {
-                    event.preventDefault();
-                    
-                    const email = document.getElementById('email').value;
-                    const password = document.getElementById('password').value;
-                    const button = this.querySelector('button[type="submit"]');
-
-                    // Désactiver le bouton et afficher un spinner
-                    button.disabled = true;
-                    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
-
-                    try {
-                        await signInWithEmailAndPassword(auth, email, password);
-                        showMessage("Connexion réussie ! Redirection...");
-                        setTimeout(() => {
-                            window.location.href = '/index.html';
-                        }, 1500);
-                    } catch (error) {
-                        let errorMessage = "Erreur lors de la connexion. Veuillez vérifier vos identifiants.";
-                        console.error("Erreur de connexion:", error.code);
-                        
-                        if (error.code === 'auth/invalid-email' || error.code === 'auth/invalid-credential') {
-                            errorMessage = "L'email ou le mot de passe est incorrect.";
-                        }
-
-                        showMessage(errorMessage);
-                        // Réactiver le bouton en cas d'erreur
-                        button.disabled = false;
-                        button.innerHTML = 'Se connecter';
-                    }
-                });
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage("Connexion réussie ! Redirection...");
+                // onAuthStateChanged gérera la redirection
             } catch (error) {
-                console.error("Erreur lors de l'initialisation de Firebase:", error);
-                showMessage("Erreur de connexion au service. Veuillez réessayer plus tard.");
+                showMessage("Email ou mot de passe incorrect.");
+                button.disabled = false;
+                button.innerHTML = 'Se connecter';
+            }
+        });
+
+        document.getElementById('google-signin-button').addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                showMessage("Connexion avec Google réussie !");
+                 // onAuthStateChanged gérera la redirection
+            } catch (error) {
+                console.error("Erreur de connexion Google:", error);
+                showMessage("Erreur lors de la connexion avec Google.");
             }
         });
     </script>

@@ -90,19 +90,23 @@
             db = getFirestore(app);
             storage = getStorage(app);
 
-            setRandomEmoji(); // Affiche un emoji dès le chargement
+            setRandomEmoji();
 
             onAuthStateChanged(auth, (user) => {
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
+                    const nameParts = user.displayName ? user.displayName.split(' ') : ['', ''];
+                    document.getElementById('firstName').value = nameParts[0] || '';
+                    document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+                    if(user.photoURL) {
+                        document.getElementById('profile-picture-preview').src = user.photoURL;
+                    }
                 } else {
                     window.location.href = '/login.html';
                 }
             });
 
-            document.getElementById('profile-picture-container').addEventListener('click', () => {
-                document.getElementById('profilePicture').click();
-            });
+            document.getElementById('profile-picture-container').addEventListener('click', () => document.getElementById('profilePicture').click());
 
             document.getElementById('profilePicture').addEventListener('change', function(event) {
                 const file = event.target.files[0];
@@ -116,7 +120,7 @@
             document.getElementById('onboarding-form').addEventListener('submit', async function(event) {
                 event.preventDefault();
                 if (!currentUserId) {
-                    showMessage("Erreur d'authentification. Veuillez vous reconnecter.");
+                    showMessage("Erreur d'authentification.");
                     return;
                 }
 
@@ -130,8 +134,8 @@
                 try {
                     if (profilePictureFile) {
                         const storageRef = ref(storage, `users/${currentUserId}/profilePicture.jpg`);
-                        await uploadBytes(storageRef, profilePictureFile);
-                        photoURL = await getDownloadURL(storageRef);
+                        const snapshot = await uploadBytes(storageRef, profilePictureFile);
+                        photoURL = await getDownloadURL(snapshot.ref);
                     }
 
                     const userProfile = {
@@ -139,21 +143,22 @@
                         lastName: document.getElementById('lastName').value,
                         school: document.getElementById('school').value,
                         photoURL: photoURL,
-                        courses: [], // Initialise avec un tableau de cours vide
-                        favoriteExerciseType: 'all', // Préférence par défaut
+                        courses: [],
+                        favoriteExerciseType: 'all',
                         createdAt: new Date().toISOString()
                     };
                     
-                    // **CORRECTION CLÉ** : Utilisation du chemin simple
                     const userRef = doc(db, 'users', currentUserId);
                     await setDoc(userRef, userProfile);
 
-                    showMessage("Profil créé avec succès ! Redirection...");
-                    setTimeout(() => window.location.href = '/index.html', 2000);
+                    showMessage("Profil créé avec succès !");
+                    window.location.href = '/dashboard.html';
 
                 } catch (error) {
                     console.error("Erreur lors de l'enregistrement:", error);
                     showMessage("Erreur lors de l'enregistrement. Veuillez réessayer.");
+                } finally {
+                    // **CORRECTION CLÉ** : Réactiver le bouton dans tous les cas
                     button.disabled = false;
                     button.innerHTML = "C'est parti !";
                 }
