@@ -4,26 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Cours - Projet Blocus</title>
-    <!-- Logo dans l'onglet (Favicon) -->
     <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.href='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- PDF.js pour les aperçus -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <style> 
         body { font-family: 'Inter', sans-serif; }
         .course-card-preview {
-            background-color: #fff; /* Fond blanc pour l'aperçu */
+            background-color: #fff;
             aspect-ratio: 1 / 1.41; /* Ratio A4 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- Header avec menu déroulant fonctionnel -->
+    <!-- Header (complet et fonctionnel) -->
     <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
@@ -60,7 +62,6 @@
                     <i class="fas fa-plus text-2xl mb-2"></i>
                     <span>Nouveau dossier</span>
                 </button>
-                <!-- Les dossiers de l'utilisateur s'afficheront ici -->
             </div>
         </section>
 
@@ -100,6 +101,23 @@
         </div>
     </div>
 
+    <!-- NOUVELLE MODALE : Choix d'action -->
+    <div id="action-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30">
+        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold mb-2">Que voulez-vous faire ?</h2>
+            <p class="text-gray-400 mb-6">Générez du matériel d'étude à partir de "<span id="action-course-name" class="font-bold"></span>".</p>
+            <div class="flex flex-col space-y-4">
+                <a id="action-quiz-link" href="#" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg w-full flex items-center justify-center space-x-2">
+                    <i class="fas fa-clipboard-question"></i><span>Créer un Quiz</span>
+                </a>
+                <a id="action-synthesize-link" href="#" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg w-full flex items-center justify-center space-x-2">
+                    <i class="fas fa-file-alt"></i><span>Créer une Synthèse</span>
+                </a>
+            </div>
+            <button id="cancel-action" class="mt-6 text-gray-400 hover:text-white">Annuler</button>
+        </div>
+    </div>
+
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
     <script type="module">
@@ -126,6 +144,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
             
+            const actionModal = document.getElementById('action-modal');
+            const cancelActionBtn = document.getElementById('cancel-action');
+            const actionCourseName = document.getElementById('action-course-name');
+            const actionQuizLink = document.getElementById('action-quiz-link');
+            const actionSynthesizeLink = document.getElementById('action-synthesize-link');
             const navLoggedIn = document.getElementById('nav-logged-in');
             const userMenuButton = document.getElementById('user-menu-button');
             const userMenu = document.getElementById('user-menu');
@@ -191,22 +214,30 @@
                 return folderDiv;
             }
 
+            function openActionModal(courseId, courseName) {
+                actionCourseName.textContent = courseName;
+                actionQuizLink.href = `/quiz.html?courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+                actionSynthesizeLink.href = `/synthesize.html?courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+                actionModal.classList.remove('hidden');
+            }
+            function closeActionModal() { actionModal.classList.add('hidden'); }
+            cancelActionBtn.addEventListener('click', closeActionModal);
+
             async function renderPdfPreview(url, canvasId) {
                 try {
                     const canvas = document.getElementById(canvasId);
                     if (!canvas) return;
                     const ctx = canvas.getContext('2d');
-                    const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
-                    const pdf = await pdfjsLib.getDocument(proxyUrl).promise;
+                    const pdf = await pdfjsLib.getDocument(url).promise;
                     const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 0.3 });
+                    const viewport = page.getViewport({ scale: 0.3 }); // **APERÇU RÉDUIT**
                     canvas.height = viewport.height;
                     canvas.width = viewport.width;
                     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
                 } catch (error) {
                     console.error("Erreur de prévisualisation PDF:", error);
                     const canvas = document.getElementById(canvasId);
-                    if(canvas) canvas.parentElement.innerHTML = '<p class="text-xs text-gray-500">Aperçu indisponible</p>';
+                    if(canvas) canvas.parentElement.innerHTML = '<p class="text-xs text-center text-gray-500 p-4">Aperçu indisponible</p>';
                 }
             }
 
@@ -214,19 +245,15 @@
                 const card = document.createElement('div');
                 card.className = "bg-gray-800 rounded-lg flex flex-col border border-gray-700 hover:border-indigo-500 transition-all duration-300";
                 const canvasId = `canvas-${courseId}`;
-                const quizLink = `/quiz.html?courseId=${courseId}&courseName=${encodeURIComponent(courseData.name)}`;
-                const synthesizeLink = `/synthesize.html?courseId=${courseId}&courseName=${encodeURIComponent(courseData.name)}`;
-
+                
                 card.innerHTML = `
                     <a href="${courseData.url}" target="_blank" class="block p-4 course-card-preview">
                         <canvas id="${canvasId}"></canvas>
                     </a>
                     <div class="p-4 border-t border-gray-700">
                         <h3 class="font-bold text-md truncate" title="${courseData.name}">${courseData.name}</h3>
-                        <div class="mt-4 flex justify-between items-center">
-                            <a href="${courseData.url}" target="_blank" title="Lire le PDF" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-book-open text-lg"></i></a>
-                            <a href="${quizLink}" title="Créer un Quiz" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-clipboard-question text-lg"></i></a>
-                            <a href="${synthesizeLink}" title="Synthétiser" class="text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-lg"></i></a>
+                        <div class="mt-4 flex justify-between items-center px-2">
+                            <button title="Créer..." data-course-id="${courseId}" data-course-name="${courseData.name}" class="action-button text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-lg"></i></button>
                             <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button text-gray-400 hover:text-red-500"><i class="fas fa-trash text-lg"></i></button>
                         </div>
                     </div>
@@ -309,7 +336,13 @@
             });
 
             coursesGrid.addEventListener('click', (e) => {
+                const actionButton = e.target.closest('.action-button');
                 const deleteButton = e.target.closest('.delete-button');
+
+                if (actionButton) {
+                    const { courseId, courseName } = actionButton.dataset;
+                    openActionModal(courseId, courseName);
+                }
                 if (deleteButton) {
                     const { courseId, courseName, fileName } = deleteButton.dataset;
                     openDeleteModal(courseId, courseName, fileName);
