@@ -13,7 +13,10 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .hero-bg {
-            background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('https://placehold.co/1920x1080/1f2937/d1d5db?text=Étudiant+qui+révise') center/cover no-repeat;
+            /* Utilisation d'une image locale si elle existe, sinon le placeholder */
+            background: linear-gradient(180deg, rgba(17,24,39,1) 0%, rgba(17,24,39,0.7) 100%), url('images/hero_background.jpg') center/cover no-repeat;
+            /* Fallback si l'image locale ne charge pas */
+            background-image: url('https://placehold.co/1920x1080/1f2937/d1d5db?text=Étudiant+qui+révise');
         }
     </style>
 </head>
@@ -21,16 +24,17 @@
 
     <!-- Header -->
     <header id="main-header" class="flex justify-between items-center p-6 bg-gray-900 shadow-lg fixed w-full z-10 transition-all duration-300">
-        <a href="#" class="flex items-center space-x-2">
-            <img src="https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c" alt="Logo Projet Blocus" class="h-10">
+        <a href="/" class="flex items-center space-x-2">
+            <!-- Utilisation d'une image locale si elle existe, sinon le placeholder -->
+            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
         <!-- Navigation pour les utilisateurs déconnectés -->
         <nav id="nav-logged-out">
             <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
             <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
             <a href="#cta" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Contact</a>
-            <a href="#" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
-            <a href="#" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
+            <a href="/login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
+            <a href="/register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-2">Créer un compte</a>
         </nav>
         <!-- Navigation pour les utilisateurs connectés (masquée par défaut) -->
         <nav id="nav-logged-in" class="hidden">
@@ -64,7 +68,7 @@
                     <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
                         Découvrir les fonctionnalités
                     </a>
-                    <a href="#" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
+                    <a href="/register.html" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
                         Créer un compte
                     </a>
                 </div>
@@ -84,7 +88,8 @@
                     </p>
                 </div>
                 <div class="md:w-1/2">
-                    <img src="https://placehold.co/600x400/4b5563/e5e7eb?text=Un+étudiant+souriant+qui+réussit" alt="Un étudiant souriant qui vient de finir ses révisions grâce à Projet Blocus" class="rounded-xl shadow-2xl w-full">
+                    <!-- Utilisation d'une image locale si elle existe, sinon le placeholder -->
+                    <img src="images/student_success.jpg" onerror="this.onerror=null;this.src='https://placehold.co/600x400/4b5563/e5e7eb?text=Un+étudiant+souriant+qui+réussit';" alt="Un étudiant souriant qui vient de finir ses révisions grâce à Projet Blocus" class="rounded-xl shadow-2xl w-full">
                 </div>
             </div>
         </section>
@@ -156,7 +161,7 @@
                 <p class="text-indigo-100 text-lg max-w-2xl mx-auto mb-8">
                     Rejoins la communauté du Projet Blocus et transforme ta façon de réviser dès aujourd'hui. C'est gratuit et ça le restera !
                 </p>
-                <a href="#" class="bg-white text-indigo-600 font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-gray-200">
+                <a href="/register.html" class="bg-white text-indigo-600 font-bold py-4 px-12 rounded-full shadow-lg transition-transform transform hover:scale-105 hover:bg-gray-200">
                     Créer mon compte gratuit
                 </a>
             </div>
@@ -273,7 +278,7 @@
             try {
                 await signOut(auth);
                 showMessage("Déconnexion réussie. Rechargement de la page pour afficher le contenu public.");
-                window.location.reload();
+                window.location.reload(); // Recharger la page pour afficher le contenu déconnecté
             } catch (error) {
                 console.error("Erreur lors de la déconnexion:", error);
                 showMessage("Erreur lors de la déconnexion. Veuillez réessayer.");
@@ -298,16 +303,14 @@
                         navLoggedOut.classList.add('hidden');
                         navLoggedIn.classList.remove('hidden');
                         loggedOutContent.classList.add('hidden');
-                        loggedInContent.classList.remove('flex'); // Assurez-vous que cette ligne est présente
-                        loggedInContent.classList.add('flex');
+                        loggedInContent.classList.remove('hidden'); // Rendre visible le contenu connecté
+                        loggedInContent.classList.add('flex', 'flex-col', 'items-center'); // Ajouter flex pour le layout
                         fetchUserProfile(currentUserId);
                     } else {
-                        // Afficher un message générique si l'utilisateur n'est pas connecté pour éviter les erreurs
-                        console.log("Utilisateur non authentifié. Affichage de la page de destination.");
+                        // Afficher la navigation déconnectée et le contenu public
                         navLoggedIn.classList.add('hidden');
                         navLoggedOut.classList.remove('hidden');
                         loggedOutContent.classList.remove('hidden');
-                        loggedInContent.classList.remove('flex');
                         loggedInContent.classList.add('hidden');
                     }
                 });
@@ -318,6 +321,11 @@
                     logoutButton.addEventListener('click', handleLogout);
                 }
                 
+                // Les liens de navigation pour les utilisateurs déconnectés pointent directement vers les pages
+                // Pas besoin de listeners JavaScript pour ces liens car ce sont des <a> standards
+                // Exemple: <a href="/login.html">Se connecter</a>
+                // Ces liens sont déjà corrects dans le HTML fourni.
+
             } catch (error) {
                 console.error("Erreur lors de l'initialisation de l'application:", error);
                 showMessage("Erreur de connexion au service. Veuillez réessayer.");
