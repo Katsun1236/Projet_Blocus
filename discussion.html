@@ -69,6 +69,8 @@
 
         let currentUserProfile = null;
         let friendships = {};
+        let currentPostData = null;
+        let currentRepliesData = [];
         const discussionId = new URLSearchParams(window.location.search).get('id');
         if (!discussionId) window.location.href = '/forum.html';
 
@@ -126,8 +128,10 @@
             }
         }
 
-        function renderMainPost(post) {
+        function renderMainPost() {
+            if (!currentPostData) return;
             ui.loadingPost.classList.add('hidden');
+            const post = currentPostData;
             const postDate = timeAgo(post.createdAt?.toDate());
             const content = post.content.replace(/\n/g, '<br>');
             const voteState = post.voters?.[auth.currentUser?.uid];
@@ -169,6 +173,16 @@
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(discussionRef, 1));
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(discussionRef, -1));
         }
+        
+        function renderReplies() {
+            ui.repliesList.innerHTML = '';
+            if (currentRepliesData.length > 0) {
+                ui.repliesSection.classList.remove('hidden');
+                currentRepliesData.forEach(reply => ui.repliesList.appendChild(createReplyElement(reply)));
+            } else {
+                ui.repliesSection.classList.add('hidden');
+            }
+        }
 
         function createReplyElement(reply) {
             const el = document.createElement('div');
@@ -206,11 +220,9 @@
             if (!auth.currentUser) { showMessage('Connectez-vous pour voter.', true); return; }
             const docSnap = await getDoc(docRef);
             if (!docSnap.exists()) return;
-
             const voters = docSnap.data().voters || {};
             const currentVote = voters[auth.currentUser.uid] || 0;
             let voteChange = 0;
-
             if (currentVote === voteValue) {
                 delete voters[auth.currentUser.uid];
                 voteChange = -voteValue;
@@ -218,11 +230,7 @@
                 voters[auth.currentUser.uid] = voteValue;
                 voteChange = voteValue - currentVote;
             }
-
-            await updateDoc(docRef, {
-                votes: increment(voteChange),
-                voters: voters
-            });
+            await updateDoc(docRef, { votes: increment(voteChange), voters: voters });
         }
 
         async function handleReplySubmit(e) {
@@ -230,29 +238,13 @@
             if (!currentUserProfile) { showMessage('Vous devez être connecté pour répondre.', true); return; }
             const content = document.getElementById('reply-content').value.trim();
             if (!content) { showMessage('Votre réponse ne peut pas être vide.', true); return; }
-            
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
-
             try {
                 const discussionRef = doc(db, 'forum', discussionId);
                 const repliesRef = collection(discussionRef, 'replies');
-                
-                await addDoc(repliesRef, {
-                    content,
-                    authorId: auth.currentUser.uid,
-                    authorName: currentUserProfile.firstName,
-                    authorPhotoURL: currentUserProfile.photoURL,
-                    createdAt: serverTimestamp(),
-                    votes: 0,
-                    voters: {}
-                });
-
-                await updateDoc(discussionRef, {
-                    replyCount: increment(1),
-                    lastReplyAt: serverTimestamp()
-                });
-
+                await addDoc(repliesRef, { content, authorId: auth.currentUser.uid, authorName: currentUserProfile.firstName, authorPhotoURL: currentUserProfile.photoURL, createdAt: serverTimestamp(), votes: 0, voters: {} });
+                await updateDoc(discussionRef, { replyCount: increment(1), lastReplyAt: serverTimestamp() });
                 document.getElementById('reply-content').value = '';
             } catch (error) {
                 console.error("Erreur de réponse:", error);
@@ -265,24 +257,12 @@
         async function handleFriendAction(targetId, action) {
             if (!currentUserProfile) return;
             const currentUserId = auth.currentUser.uid;
-        
             if (action === 'add') {
-                const friendshipRef = collection(db, 'friendships');
-                await addDoc(friendshipRef, {
-                    users: [currentUserId, targetId],
-                    status: 'pending',
-                    requestedBy: currentUserId,
-                    requestedTo: targetId,
-                    createdAt: serverTimestamp()
-                });
+                await addDoc(collection(db, 'friendships'), { users: [currentUserId, targetId], status: 'pending', requestedBy: currentUserId, requestedTo: targetId, createdAt: serverTimestamp() });
                 showMessage('Demande d\'ami envoyée !', false);
             }
-        
             if (action === 'accept') {
-                const q = query(collection(db, 'friendships'), 
-                    where('users', 'array-contains', currentUserId),
-                    where('requestedTo', '==', currentUserId)
-                );
+                const q = query(collection(db, 'friendships'), where('users', 'array-contains', currentUserId), where('requestedTo', '==', currentUserId));
                 const querySnapshot = await getDocs(q);
                 querySnapshot.forEach(async (d) => {
                     if(d.data().requestedBy === targetId) {
@@ -326,7 +306,8 @@
                 const discussionRef = doc(db, 'forum', discussionId);
                 onSnapshot(discussionRef, (doc) => {
                     if (doc.exists()) {
-                        renderMainPost(doc.data());
+                        currentPostData = doc.data();
+                        renderMainPost();
                     } else {
                         ui.loadingPost.innerHTML = '<p class="text-red-400">Cette discussion n\'existe pas.</p>';
                     }
@@ -335,11 +316,8 @@
                 const repliesRef = collection(discussionRef, 'replies');
                 const qReplies = query(repliesRef, orderBy('createdAt', 'asc'));
                 onSnapshot(qReplies, (snapshot) => {
-                    ui.repliesList.innerHTML = '';
-                    if (!snapshot.empty) {
-                        ui.repliesSection.classList.remove('hidden');
-                        snapshot.forEach(d => ui.repliesList.appendChild(createReplyElement({id: d.id, ...d.data()})));
-                    }
+                    currentRepliesData = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    renderReplies();
                 });
 
                 const friendshipsRef = collection(db, 'friendships');
@@ -349,28 +327,27 @@
                     snapshot.forEach(doc => {
                         const data = doc.data();
                         const otherUserId = data.users.find(id => id !== user.uid);
-                        if (data.status === 'friends') {
-                            friendships[otherUserId] = 'friends';
-                        } else if (data.status === 'pending') {
-                            friendships[otherUserId] = data.requestedBy === user.uid ? 'sent' : 'received';
-                        }
+                        if (data.status === 'friends') friendships[otherUserId] = 'friends';
+                        else if (data.status === 'pending') friendships[otherUserId] = data.requestedBy === user.uid ? 'sent' : 'received';
                     });
-                    
-                    // Re-render the main post and replies to update friend buttons
-                    getDoc(discussionRef).then(doc => {
-                        if(doc.exists()) renderMainPost(doc.data());
-                    });
-                    getDocs(qReplies).then(snap => {
-                        ui.repliesList.innerHTML = '';
-                        if (!snap.empty) {
-                            ui.repliesSection.classList.remove('hidden');
-                            snap.forEach(d => ui.repliesList.appendChild(createReplyElement({id: d.id, ...d.data()})));
-                        }
-                    });
+                    renderMainPost();
+                    renderReplies();
                 });
 
             } else {
                 ui.replyFormContainer.classList.add('hidden');
+                // Charger le contenu même si déconnecté
+                const discussionRef = doc(db, 'forum', discussionId);
+                const docSnap = await getDoc(discussionRef);
+                if(docSnap.exists()) {
+                    currentPostData = docSnap.data();
+                    renderMainPost();
+                }
+                const repliesRef = collection(discussionRef, 'replies');
+                const qReplies = query(repliesRef, orderBy('createdAt', 'asc'));
+                const repliesSnap = await getDocs(qReplies);
+                currentRepliesData = repliesSnap.docs.map(d => ({id: d.id, ...d.data()}));
+                renderReplies();
             }
         });
 
