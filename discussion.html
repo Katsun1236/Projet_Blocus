@@ -3,16 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum - Projet Blocus</title>
+    <title>Discussion - Projet Blocus</title>
     <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> 
-        body { font-family: 'Inter', sans-serif; } 
-    </style>
+    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
@@ -35,61 +33,51 @@
         </nav>
     </header>
 
-    <main class="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-4xl font-bold">Forum d'entraide</h1>
-            <button id="new-discussion-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition-colors duration-300 flex items-center space-x-2">
-                <i class="fas fa-plus-circle"></i>
-                <span>Nouvelle discussion</span>
-            </button>
+    <main class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <a href="/forum.html" class="text-indigo-400 hover:text-indigo-300 mb-6 inline-block"><i class="fas fa-arrow-left mr-2"></i>Retour au forum</a>
+
+        <div id="main-post-container">
+            <div id="loading-post" class="text-center py-12"><i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i></div>
         </div>
 
-        <div id="discussions-list" class="space-y-4"></div>
-        <div id="loading-discussions" class="text-center py-12"><i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i><p class="mt-4 text-gray-400">Chargement des discussions...</p></div>
-        <div id="no-discussions" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-comments text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucune discussion</h3><p class="mt-2 text-gray-400">Soyez le premier à lancer un sujet !</p></div>
-    </main>
+        <div id="replies-section" class="mt-12 hidden">
+            <h2 class="text-2xl font-bold mb-6 border-b border-gray-700 pb-2">Réponses</h2>
+            <div id="replies-list" class="space-y-6"></div>
+        </div>
 
-    <div id="discussion-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
-        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-2xl">
-            <h2 class="text-2xl font-bold mb-6">Lancer une nouvelle discussion</h2>
-            <form id="discussion-form">
-                <div class="mb-4">
-                    <label for="discussion-title" class="block text-gray-300 font-bold mb-2">Titre</label>
-                    <input type="text" id="discussion-title" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" required>
-                </div>
-                <div class="mb-6">
-                    <label for="discussion-content" class="block text-gray-300 font-bold mb-2">Message</label>
-                    <textarea id="discussion-content" rows="6" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" required></textarea>
-                </div>
-                <div class="flex justify-end space-x-4">
-                    <button type="button" id="cancel-discussion" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">Publier</button>
+        <div id="reply-form-container" class="mt-12 hidden">
+            <h3 class="text-xl font-bold mb-4">Votre réponse</h3>
+            <form id="reply-form">
+                <textarea id="reply-content" rows="5" class="w-full p-4 rounded-lg bg-gray-800 text-white border-2 border-gray-700 focus:outline-none focus:border-indigo-500" placeholder="Écrivez votre réponse ici..." required></textarea>
+                <div class="text-right mt-4">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg">Répondre</button>
                 </div>
             </form>
         </div>
-    </div>
+    </main>
 
     <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserProfile = null;
+        const discussionId = new URLSearchParams(window.location.search).get('id');
+        if (!discussionId) window.location.href = '/forum.html';
 
         const ui = {
             navLoggedIn: document.getElementById('nav-logged-in'),
             userMenuButton: document.getElementById('user-menu-button'),
             userMenu: document.getElementById('user-menu'),
             logoutButton: document.getElementById('logout-button'),
-            discussionsList: document.getElementById('discussions-list'),
-            loading: document.getElementById('loading-discussions'),
-            empty: document.getElementById('no-discussions'),
-            newDiscussionBtn: document.getElementById('new-discussion-btn'),
-            discussionModal: document.getElementById('discussion-modal'),
-            discussionForm: document.getElementById('discussion-form'),
-            cancelDiscussionBtn: document.getElementById('cancel-discussion'),
+            mainPostContainer: document.getElementById('main-post-container'),
+            loadingPost: document.getElementById('loading-post'),
+            repliesSection: document.getElementById('replies-section'),
+            repliesList: document.getElementById('replies-list'),
+            replyFormContainer: document.getElementById('reply-form-container'),
+            replyForm: document.getElementById('reply-form'),
             messageBoxContainer: document.getElementById('message-box'),
         };
 
@@ -117,63 +105,72 @@
             return "à l'instant";
         }
 
-        function createDiscussionElement(discussion) {
-            const el = document.createElement('a');
-            el.href = `/discussion.html?id=${discussion.id}`;
-            el.className = "block bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors duration-300";
-            const postDate = timeAgo(discussion.createdAt?.toDate());
+        function renderMainPost(post) {
+            ui.loadingPost.classList.add('hidden');
+            const postDate = timeAgo(post.createdAt?.toDate());
+            const content = post.content.replace(/\n/g, '<br>'); // Pour afficher les sauts de ligne
+            ui.mainPostContainer.innerHTML = `
+                <div class="bg-gray-800 p-8 rounded-lg border border-gray-700">
+                    <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
+                    <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
+                        <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
+                        <span>par <strong class="text-indigo-400">${post.authorName}</strong></span>
+                        <span>•</span>
+                        <span>${postDate}</span>
+                    </div>
+                    <div class="text-gray-300 leading-relaxed">${content}</div>
+                </div>
+            `;
+        }
+
+        function createReplyElement(reply) {
+            const el = document.createElement('div');
+            el.className = "flex items-start space-x-4";
+            const replyDate = timeAgo(reply.createdAt?.toDate());
+            const content = reply.content.replace(/\n/g, '<br>');
             el.innerHTML = `
-                <div class="flex items-start space-x-4">
-                    <img src="${discussion.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
-                    <div class="flex-grow">
-                        <h3 class="text-xl font-bold text-white">${discussion.title}</h3>
-                        <p class="text-sm text-gray-400">
-                            par <span class="font-semibold text-indigo-400">${discussion.authorName}</span> • ${postDate}
-                        </p>
+                <img src="${reply.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
+                <div class="bg-gray-800 p-4 rounded-lg flex-grow">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="font-semibold text-indigo-400">${reply.authorName}</p>
+                        <p class="text-xs text-gray-500">${replyDate}</p>
                     </div>
-                    <div class="text-right flex-shrink-0">
-                        <p class="text-2xl font-bold">${discussion.replyCount || 0}</p>
-                        <p class="text-sm text-gray-400">réponses</p>
-                    </div>
+                    <p class="text-gray-300">${content}</p>
                 </div>
             `;
             return el;
         }
 
-        function renderDiscussions(discussions) {
-            ui.loading.classList.add('hidden');
-            ui.discussionsList.innerHTML = '';
-            if (discussions.length === 0) {
-                ui.empty.classList.remove('hidden');
-            } else {
-                ui.empty.classList.add('hidden');
-                discussions.forEach(disc => ui.discussionsList.appendChild(createDiscussionElement(disc)));
-            }
-        }
-
-        async function handleNewDiscussion(e) {
+        async function handleReplySubmit(e) {
             e.preventDefault();
-            if (!currentUserProfile) { showMessage('Vous devez être connecté pour publier.', true); return; }
-            const title = document.getElementById('discussion-title').value.trim();
-            const content = document.getElementById('discussion-content').value.trim();
-            if (!title || !content) { showMessage('Le titre et le message ne peuvent pas être vides.', true); return; }
+            if (!currentUserProfile) { showMessage('Vous devez être connecté pour répondre.', true); return; }
+            const content = document.getElementById('reply-content').value.trim();
+            if (!content) { showMessage('Votre réponse ne peut pas être vide.', true); return; }
+            
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
+
             try {
-                await addDoc(collection(db, 'forum'), {
-                    title, content,
+                const discussionRef = doc(db, 'forum', discussionId);
+                const repliesRef = collection(discussionRef, 'replies');
+                
+                await addDoc(repliesRef, {
+                    content,
                     authorId: auth.currentUser.uid,
                     authorName: currentUserProfile.firstName,
                     authorPhotoURL: currentUserProfile.photoURL,
                     createdAt: serverTimestamp(),
-                    replyCount: 0,
+                });
+
+                // Mettre à jour le compteur de réponses et la date de dernière réponse
+                await updateDoc(discussionRef, {
+                    replyCount: increment(1),
                     lastReplyAt: serverTimestamp()
                 });
-                showMessage('Discussion publiée !', false);
-                ui.discussionForm.reset();
-                ui.discussionModal.classList.add('hidden');
+
+                document.getElementById('reply-content').value = '';
             } catch (error) {
-                console.error("Erreur de publication:", error);
+                console.error("Erreur de réponse:", error);
                 showMessage('Une erreur est survenue.', true);
             } finally {
                 btn.disabled = false;
@@ -184,9 +181,7 @@
             ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
             window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
             ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
-            ui.newDiscussionBtn.addEventListener('click', () => ui.discussionModal.classList.remove('hidden'));
-            ui.cancelDiscussionBtn.addEventListener('click', () => ui.discussionModal.classList.add('hidden'));
-            ui.discussionForm.addEventListener('submit', handleNewDiscussion);
+            ui.replyForm.addEventListener('submit', handleReplySubmit);
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -199,14 +194,31 @@
                     document.getElementById('user-avatar-header').src = currentUserProfile.photoURL;
                     ui.navLoggedIn.classList.remove('hidden');
                     ui.navLoggedIn.classList.add('flex');
+                    ui.replyFormContainer.classList.remove('hidden');
                 } else {
                     window.location.href = '/onboarding.html';
                 }
-                const q = query(collection(db, 'forum'), orderBy('lastReplyAt', 'desc'));
+
+                // Charger le post principal
+                const discussionRef = doc(db, 'forum', discussionId);
+                const discussionSnap = await getDoc(discussionRef);
+                if (discussionSnap.exists()) {
+                    renderMainPost(discussionSnap.data());
+                } else {
+                    ui.loadingPost.innerHTML = '<p class="text-red-400">Cette discussion n\'existe pas.</p>';
+                }
+
+                // Écouter les réponses en temps réel
+                const repliesRef = collection(discussionRef, 'replies');
+                const q = query(repliesRef, orderBy('createdAt', 'asc'));
                 onSnapshot(q, (snapshot) => {
-                    const discussions = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderDiscussions(discussions);
+                    ui.repliesList.innerHTML = '';
+                    if (!snapshot.empty) {
+                        ui.repliesSection.classList.remove('hidden');
+                        snapshot.forEach(d => ui.repliesList.appendChild(createReplyElement(d.data())));
+                    }
                 });
+
             } else {
                 window.location.href = '/login.html';
             }
