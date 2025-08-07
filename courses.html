@@ -10,22 +10,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <style> 
         body { font-family: 'Inter', sans-serif; }
-        .course-card-preview {
-            background-color: #fff;
-            aspect-ratio: 1 / 1.41; /* Ratio A4 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- Header (complet et fonctionnel) -->
     <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
@@ -54,7 +44,7 @@
             </a>
         </div>
 
-        <!-- Section Dossiers Fonctionnelle -->
+        <!-- Section Dossiers (inchangée) -->
         <section class="mb-12">
             <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Dossiers</h2>
             <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -65,16 +55,16 @@
             </div>
         </section>
 
-        <!-- Section Tous les cours -->
+        <!-- Section Tous les cours (NOUVEAU DESIGN) -->
         <section>
             <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Tous les cours</h2>
-            <div id="courses-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+            <div id="courses-list" class="space-y-4"></div>
             <div id="loading-courses" class="text-center py-12"><i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i><p class="mt-4 text-gray-400">Chargement...</p></div>
             <div id="no-courses" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-folder-open text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucun cours trouvé</h3><p class="mt-2 text-gray-400">Commencez par <a href="/upload.html" class="text-indigo-400 hover:underline">uploader votre premier cours</a>.</p></div>
         </section>
     </main>
     
-    <!-- Modale de création de dossier -->
+    <!-- Modales (inchangées) -->
     <div id="folder-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30">
         <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md">
             <h2 class="text-2xl font-bold mb-6">Nouveau dossier</h2>
@@ -89,7 +79,6 @@
         </div>
     </div>
 
-    <!-- Modale de confirmation de suppression -->
     <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30">
         <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
             <h2 class="text-2xl font-bold mb-4">Confirmer la suppression</h2>
@@ -101,7 +90,6 @@
         </div>
     </div>
 
-    <!-- NOUVELLE MODALE : Choix d'action -->
     <div id="action-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30">
         <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
             <h2 class="text-2xl font-bold mb-2">Que voulez-vous faire ?</h2>
@@ -120,35 +108,17 @@
 
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
+    <!-- SCRIPT MIS À JOUR -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { auth, db, storage } from './firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { getStorage, ref, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-            authDomain: "projetblocus1.firebaseapp.com",
-            projectId: "projetblocus1",
-            storageBucket: "projetblocus1.firebasestorage.app",
-            messagingSenderId: "536093956243",
-            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-            measurementId: "G-W5WZXDHNTC"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
         let currentUserId = null;
-
+        
         document.addEventListener('DOMContentLoaded', () => {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            
-            const actionModal = document.getElementById('action-modal');
-            const cancelActionBtn = document.getElementById('cancel-action');
-            const actionCourseName = document.getElementById('action-course-name');
-            const actionQuizLink = document.getElementById('action-quiz-link');
-            const actionSynthesizeLink = document.getElementById('action-synthesize-link');
+            // Déclaration des éléments du DOM
             const navLoggedIn = document.getElementById('nav-logged-in');
             const userMenuButton = document.getElementById('user-menu-button');
             const userMenu = document.getElementById('user-menu');
@@ -158,13 +128,18 @@
             const folderForm = document.getElementById('folder-form');
             const cancelFolderBtn = document.getElementById('cancel-folder');
             const foldersGrid = document.getElementById('folders-grid');
-            const coursesGrid = document.getElementById('courses-grid');
+            const coursesList = document.getElementById('courses-list');
             const loadingDiv = document.getElementById('loading-courses');
             const noCoursesDiv = document.getElementById('no-courses');
             const deleteModal = document.getElementById('delete-modal');
             const courseNameModal = document.getElementById('course-name-modal');
             const cancelDeleteBtn = document.getElementById('cancel-delete');
             const confirmDeleteBtn = document.getElementById('confirm-delete');
+            const actionModal = document.getElementById('action-modal');
+            const cancelActionBtn = document.getElementById('cancel-action');
+            const actionCourseName = document.getElementById('action-course-name');
+            const actionQuizLink = document.getElementById('action-quiz-link');
+            const actionSynthesizeLink = document.getElementById('action-synthesize-link');
             let courseToDelete = null;
 
             function showMessage(message) {
@@ -174,39 +149,36 @@
                 setTimeout(() => { messageBox.classList.add('hidden'); }, 3000);
             }
 
+            // Logique du menu utilisateur
             userMenuButton.addEventListener('click', (e) => {
                 e.stopPropagation();
                 userMenu.classList.toggle('hidden');
             });
-
             window.addEventListener('click', (e) => {
                 if (navLoggedIn && !navLoggedIn.contains(e.target)) {
                     userMenu.classList.add('hidden');
                 }
             });
-
             logoutButton.addEventListener('click', async () => {
                 await signOut(auth);
                 window.location.href = '/index.html';
             });
 
+            // Logique des dossiers
             function openFolderModal() { folderModal.classList.remove('hidden'); }
             function closeFolderModal() { folderForm.reset(); folderModal.classList.add('hidden'); }
-
             newFolderBtn.addEventListener('click', openFolderModal);
             cancelFolderBtn.addEventListener('click', closeFolderModal);
-
             folderForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const folderName = document.getElementById('folder-name').value.trim();
                 if (folderName && currentUserId) {
                     const foldersRef = collection(db, 'users', currentUserId, 'folders');
                     await addDoc(foldersRef, { name: folderName, createdAt: serverTimestamp() });
-                    showMessage("Dossier créé avec succès.");
+                    showMessage("Dossier créé.");
                     closeFolderModal();
                 }
             });
-
             function createFolderElement(folderData) {
                 const folderDiv = document.createElement('div');
                 folderDiv.className = "bg-gray-800 p-4 rounded-lg flex items-center space-x-3 cursor-pointer hover:bg-gray-700";
@@ -214,63 +186,56 @@
                 return folderDiv;
             }
 
+            // Logique des modales d'action et de suppression
             function openActionModal(courseId, courseName) {
                 actionCourseName.textContent = courseName;
-                actionQuizLink.href = `/quiz.html?courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
-                actionSynthesizeLink.href = `/synthesize.html?courseId=${courseId}&courseName=${encodeURIComponent(courseName)}`;
+                actionQuizLink.href = `/quiz.html?courseId=${courseId}`;
+                actionSynthesizeLink.href = `/synthesize.html?courseId=${courseId}`;
                 actionModal.classList.remove('hidden');
             }
             function closeActionModal() { actionModal.classList.add('hidden'); }
             cancelActionBtn.addEventListener('click', closeActionModal);
-
-            async function renderPdfPreview(url, canvasId) {
-                try {
-                    const canvas = document.getElementById(canvasId);
-                    if (!canvas) return;
-                    const ctx = canvas.getContext('2d');
-                    const pdf = await pdfjsLib.getDocument(url).promise;
-                    const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 0.3 }); // **APERÇU RÉDUIT**
-                    canvas.height = viewport.height;
-                    canvas.width = viewport.width;
-                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-                } catch (error) {
-                    console.error("Erreur de prévisualisation PDF:", error);
-                    const canvas = document.getElementById(canvasId);
-                    if(canvas) canvas.parentElement.innerHTML = '<p class="text-xs text-center text-gray-500 p-4">Aperçu indisponible</p>';
-                }
-            }
-
-            function createCourseCard(courseData, courseId) {
-                const card = document.createElement('div');
-                card.className = "bg-gray-800 rounded-lg flex flex-col border border-gray-700 hover:border-indigo-500 transition-all duration-300";
-                const canvasId = `canvas-${courseId}`;
-                
-                card.innerHTML = `
-                    <a href="${courseData.url}" target="_blank" class="block p-4 course-card-preview">
-                        <canvas id="${canvasId}"></canvas>
-                    </a>
-                    <div class="p-4 border-t border-gray-700">
-                        <h3 class="font-bold text-md truncate" title="${courseData.name}">${courseData.name}</h3>
-                        <div class="mt-4 flex justify-between items-center px-2">
-                            <button title="Créer..." data-course-id="${courseId}" data-course-name="${courseData.name}" class="action-button text-gray-400 hover:text-indigo-400"><i class="fas fa-file-alt text-lg"></i></button>
-                            <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button text-gray-400 hover:text-red-500"><i class="fas fa-trash text-lg"></i></button>
-                        </div>
-                    </div>
-                `;
-                renderPdfPreview(courseData.url, canvasId);
-                return card;
-            }
-
+            
             function openDeleteModal(courseId, courseName, fileName) {
                 courseToDelete = { id: courseId, name: courseName, fileName: fileName };
                 courseNameModal.textContent = courseName;
                 deleteModal.classList.remove('hidden');
             }
-
             function closeDeleteModal() {
                 courseToDelete = null;
                 deleteModal.classList.add('hidden');
+            }
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+            confirmDeleteBtn.addEventListener('click', deleteCourse);
+
+            // NOUVELLE FONCTION pour créer un élément de liste de cours
+            function createCourseListItem(courseData, courseId) {
+                const item = document.createElement('div');
+                item.className = "bg-gray-800 p-4 rounded-lg flex items-center justify-between border border-gray-700 hover:border-indigo-500 transition-colors duration-300";
+                
+                const uploadedDate = new Date(courseData.uploadedAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+                item.innerHTML = `
+                    <div class="flex items-center space-x-4 overflow-hidden">
+                        <i class="fas fa-file-pdf text-3xl text-red-500 flex-shrink-0"></i>
+                        <div class="overflow-hidden">
+                            <h3 class="font-bold text-md truncate" title="${courseData.name}">${courseData.name}</h3>
+                            <p class="text-sm text-gray-400">Ajouté le ${uploadedDate}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3 flex-shrink-0">
+                        <button title="Générer Quiz/Synthèse" data-course-id="${courseId}" data-course-name="${courseData.name}" class="action-button bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded-lg flex items-center space-x-2">
+                            <i class="fas fa-magic-sparkles"></i> <span class="hidden sm:inline">Générer</span>
+                        </button>
+                        <a href="${courseData.url}" target="_blank" title="Voir le PDF" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-3 rounded-lg">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <button title="Supprimer" data-course-id="${courseId}" data-course-name="${courseData.name}" data-file-name="${courseData.fileName}" class="delete-button bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                return item;
             }
 
             async function deleteCourse() {
@@ -283,7 +248,7 @@
                     await deleteDoc(courseDocRef);
                     const fileRef = ref(storage, `users/${currentUserId}/courses/${id}/${fileName}`);
                     await deleteObject(fileRef);
-                    showMessage("Cours supprimé avec succès.");
+                    showMessage("Cours supprimé.");
                 } catch(error) {
                     console.error("Erreur de suppression:", error);
                     showMessage("Erreur lors de la suppression.");
@@ -294,6 +259,7 @@
                 }
             }
 
+            // Logique principale au chargement de la page
             onAuthStateChanged(auth, async (user) => {
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
@@ -307,6 +273,7 @@
                         document.getElementById('user-avatar-header').src = profileData.photoURL;
                     }
 
+                    // Écoute des dossiers en temps réel
                     const foldersRef = collection(db, 'users', currentUserId, 'folders');
                     onSnapshot(foldersRef, (snapshot) => {
                         document.querySelectorAll('#folders-grid > div').forEach(el => el.remove());
@@ -316,17 +283,18 @@
                         });
                     });
 
+                    // Écoute des cours en temps réel
                     const coursesRef = collection(db, 'users', currentUserId, 'courses');
                     onSnapshot(coursesRef, (snapshot) => {
                         loadingDiv.classList.add('hidden');
-                        coursesGrid.innerHTML = '';
+                        coursesList.innerHTML = '';
                         if (snapshot.empty) {
                             noCoursesDiv.classList.remove('hidden');
                         } else {
                             noCoursesDiv.classList.add('hidden');
                             snapshot.forEach((doc) => {
-                                const card = createCourseCard(doc.data(), doc.id);
-                                coursesGrid.appendChild(card);
+                                const listItem = createCourseListItem(doc.data(), doc.id);
+                                coursesList.appendChild(listItem);
                             });
                         }
                     });
@@ -335,7 +303,8 @@
                 }
             });
 
-            coursesGrid.addEventListener('click', (e) => {
+            // Gestionnaire d'événements pour les boutons d'action sur la liste
+            coursesList.addEventListener('click', (e) => {
                 const actionButton = e.target.closest('.action-button');
                 const deleteButton = e.target.closest('.delete-button');
 
@@ -348,9 +317,6 @@
                     openDeleteModal(courseId, courseName, fileName);
                 }
             });
-            
-            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-            confirmDeleteBtn.addEventListener('click', deleteCourse);
         });
     </script>
 </body>

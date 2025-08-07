@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Projet Blocus - Le blocus, facile et gratuit.</title>
-    <!-- Favicon ajoutée -->
     <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.href='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -25,8 +24,8 @@
         <a href="/" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <!-- Navigation pour les utilisateurs DÉCONNECTÉS (cachée par défaut) -->
-        <nav id="nav-logged-out" class="hidden">
+        <!-- Navigation pour les utilisateurs DÉCONNECTÉS -->
+        <nav id="nav-logged-out">
             <a href="#about" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">À propos</a>
             <a href="#features" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300 hidden md:inline-block">Fonctionnalités</a>
             <a href="/login.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-300 ml-4">Se connecter</a>
@@ -34,13 +33,11 @@
         </nav>
         <!-- Navigation pour les utilisateurs CONNECTÉS (cachée par défaut) -->
         <nav id="nav-logged-in" class="hidden items-center relative">
-            <!-- Bouton qui déclenche le menu -->
             <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
                 <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
                 <span id="user-name-header" class="font-semibold">Chargement...</span>
                 <i class="fas fa-chevron-down text-xs"></i>
             </button>
-            <!-- Menu déroulant -->
             <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
                 <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
                 <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
@@ -60,9 +57,7 @@
                 <p class="mt-8 text-xl text-gray-200 max-w-3xl mx-auto drop-shadow-lg">
                     Tes examens approchent ? Nos outils IA transforment tes cours en fiches, quiz et synthèses en un clin d'œil.
                 </p>
-                <!-- Conteneur pour les boutons dynamiques -->
                 <div id="hero-buttons-container" class="mt-12 flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
-                    <!-- Boutons pour utilisateur DÉCONNECTÉ -->
                     <div id="hero-logged-out" class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-4">
                         <a href="#features" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
                             Découvrir les fonctionnalités
@@ -71,7 +66,6 @@
                             Créer un compte
                         </a>
                     </div>
-                    <!-- Bouton pour utilisateur CONNECTÉ (caché par défaut) -->
                     <div id="hero-logged-in" class="hidden">
                         <a href="/dashboard.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-10 rounded-full shadow-lg transition-transform transform hover:scale-105">
                             Accéder à mon tableau de bord
@@ -163,25 +157,14 @@
         </footer>
     </div>
 
+    <!-- SCRIPT MIS À JOUR -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        // Importation depuis le fichier centralisé
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-            authDomain: "projetblocus1.firebaseapp.com",
-            projectId: "projetblocus1",
-            storageBucket: "projetblocus1.appspot.com",
-            messagingSenderId: "536093956243",
-            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-            measurementId: "G-W5WZXDHNTC"
-        };
-        
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
+        // Le reste du code de la page reste identique
         const navLoggedIn = document.getElementById('nav-logged-in');
         const navLoggedOut = document.getElementById('nav-logged-out');
         const userMenuButton = document.getElementById('user-menu-button');

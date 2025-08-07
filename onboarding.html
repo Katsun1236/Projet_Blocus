@@ -18,7 +18,6 @@
         <p class="text-center text-gray-400 mb-8">Pour commencer, dis-nous en un peu plus sur toi.</p>
         
         <form id="onboarding-form">
-            <!-- Photo de profil -->
             <div class="mb-6 flex flex-col items-center">
                 <label class="block text-gray-300 font-bold mb-2">Photo de profil</label>
                 <div id="profile-picture-container" class="relative w-24 h-24 mb-2 rounded-full border-4 border-indigo-500 overflow-hidden cursor-pointer group hover:border-indigo-400 transition-colors duration-300">
@@ -30,7 +29,6 @@
                 <input type="file" id="profilePicture" name="profilePicture" accept="image/*" class="hidden">
             </div>
 
-            <!-- Nom et Prénom -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label for="firstName" class="block text-gray-300 font-bold mb-2">Prénom</label>
@@ -42,7 +40,6 @@
                 </div>
             </div>
 
-            <!-- École -->
             <div class="mb-6">
                 <label for="school" class="block text-gray-300 font-bold mb-2">École / Université</label>
                 <input type="text" id="school" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Ton école" required>
@@ -56,23 +53,14 @@
 
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
+    <!-- SCRIPT MIS À JOUR -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { auth, db, storage } from './firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-            authDomain: "projetblocus1.firebaseapp.com",
-            projectId: "projetblocus1",
-            storageBucket: "projetblocus1.appspot.com",
-            messagingSenderId: "536093956243",
-            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-            measurementId: "G-W5WZXDHNTC"
-        };
-        
-        let app, auth, db, storage, currentUserId;
+        let currentUserId;
         const emojiList = ['😊', '📚', '🚀', '✨', '💡', '🎓', '🤓', '🧠', '✍️'];
 
         function showMessage(message) {
@@ -88,16 +76,21 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            storage = getStorage(app);
-
             setRandomEmoji();
 
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
+                    
+                    // Vérifier si un profil existe déjà pour ne pas écraser les données
+                    const userRefCheck = doc(db, 'users', user.uid);
+                    const docSnap = await getDoc(userRefCheck);
+                    if (docSnap.exists()) {
+                        // Si l'utilisateur a un profil mais atterrit ici, on le redirige
+                        window.location.href = '/dashboard.html';
+                        return;
+                    }
+
                     if (user.displayName) {
                         const nameParts = user.displayName.split(' ');
                         document.getElementById('firstName').value = nameParts[0] || '';
@@ -148,8 +141,6 @@
                         lastName: document.getElementById('lastName').value,
                         school: document.getElementById('school').value,
                         photoURL: photoURL,
-                        courses: [],
-                        favoriteExerciseType: 'all',
                         createdAt: new Date().toISOString()
                     };
                     

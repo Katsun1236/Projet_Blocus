@@ -76,24 +76,11 @@
         <p class="mt-4 text-gray-400 text-lg">Chargement de votre espace...</p>
     </div>
 
+    <!-- SCRIPT MIS À JOUR -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-            authDomain: "projetblocus1.firebaseapp.com",
-            projectId: "projetblocus1",
-            storageBucket: "projetblocus1.appspot.com",
-            messagingSenderId: "536093956243",
-            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-            measurementId: "G-W5WZXDHNTC"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         const loadingScreen = document.getElementById('loading-dashboard');
         const dashboardContent = document.getElementById('dashboard-content');
@@ -114,9 +101,11 @@
                     navLoggedIn.classList.remove('hidden');
                     navLoggedIn.classList.add('flex');
                 } else {
+                    // Si l'utilisateur est connecté mais n'a pas de profil, on le redirige vers l'onboarding
                     window.location.href = '/onboarding.html';
                 }
             } else {
+                // Si personne n'est connecté, on redirige vers la page de connexion
                 window.location.href = '/login.html';
             }
         });

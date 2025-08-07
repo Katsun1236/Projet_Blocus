@@ -9,59 +9,98 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <!-- Ajout de Chart.js pour les graphiques -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        .badge {
+            transition: all 0.3s ease;
+        }
+        .badge.locked {
+            filter: grayscale(100%);
+            opacity: 0.5;
+        }
+        .badge:not(.locked):hover {
+            transform: scale(1.1);
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-10">
-        <a href="/index.html" class="flex items-center space-x-2">
+    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-10 sticky top-0">
+        <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
         <nav>
-             <a href="/index.html" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300">
-                <i class="fas fa-arrow-left mr-2"></i>Accueil
+             <a href="/dashboard.html" class="text-gray-300 hover:text-white px-3 py-2 transition-colors duration-300">
+                <i class="fas fa-arrow-left mr-2"></i>Tableau de bord
             </a>
         </nav>
     </header>
 
-    <main class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+    <main class="w-full max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         <div id="loading-profile" class="text-center p-12">
             <i class="fas fa-spinner fa-spin text-indigo-400 text-5xl"></i>
             <p class="mt-4 text-gray-400 text-lg">Chargement du profil...</p>
         </div>
 
-        <div id="profile-content" class="hidden bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700">
-            <div class="flex flex-col md:flex-row items-center justify-between mb-8 pb-4 border-b border-gray-700">
-                <div class="flex items-center mb-4 md:mb-0">
-                    <div class="relative w-24 h-24 rounded-full border-4 border-indigo-500 overflow-hidden group">
-                        <img id="profile-picture-display" src="" alt="Photo de profil" class="w-full h-full object-cover">
-                        <div id="edit-photo-overlay" class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer hidden">
-                            <i class="fas fa-camera text-white text-2xl"></i>
+        <div id="profile-content" class="hidden">
+            <!-- Section principale du profil -->
+            <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700 mb-8">
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="flex items-center mb-4 md:mb-0 text-center md:text-left">
+                        <div class="relative w-24 h-24 rounded-full border-4 border-indigo-500 overflow-hidden group">
+                            <img id="profile-picture-display" src="" alt="Photo de profil" class="w-full h-full object-cover">
                         </div>
-                    </div>
-                    <input type="file" id="profile-picture-input" accept="image/*" class="hidden">
-                    <div class="ml-4 text-left">
-                        <div id="view-mode-name">
+                        <div class="ml-6">
                             <h1 id="user-name" class="text-3xl font-bold"></h1>
                             <p id="user-school" class="text-gray-400"></p>
-                        </div>
-                        <div id="edit-mode-name" class="hidden space-y-2">
-                            <div class="flex space-x-2">
-                                <input type="text" id="edit-firstName" class="w-1/2 px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Prénom">
-                                <input type="text" id="edit-lastName" class="w-1/2 px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Nom">
-                            </div>
-                            <input type="text" id="edit-school" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Université/École">
+                            <p id="user-email" class="text-sm text-gray-500"></p>
                         </div>
                     </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button id="edit-profile-button" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300"><i class="fas fa-pen mr-2"></i>Modifier</button>
-                    <button id="save-profile-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg hidden"><i class="fas fa-save mr-2"></i>Sauvegarder</button>
-                    <button id="cancel-edit-button" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hidden"><i class="fas fa-times mr-2"></i>Annuler</button>
+                    <div class="flex items-center space-x-4">
+                        <a href="/profile-edit.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300"><i class="fas fa-pen mr-2"></i>Modifier le profil</a>
+                    </div>
                 </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <!-- ... Contenu des cours et préférences ... -->
+
+            <!-- Section des Statistiques -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-center space-x-4">
+                    <i class="fas fa-file-alt text-4xl text-indigo-400"></i>
+                    <div>
+                        <p class="text-gray-400">Cours Uploadés</p>
+                        <p id="stats-courses" class="text-2xl font-bold">0</p>
+                    </div>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-center space-x-4">
+                    <i class="fas fa-clipboard-question text-4xl text-green-400"></i>
+                    <div>
+                        <p class="text-gray-400">Quiz Terminés</p>
+                        <p id="stats-quizzes" class="text-2xl font-bold">0</p>
+                    </div>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-center space-x-4">
+                    <i class="fas fa-star-half-alt text-4xl text-yellow-400"></i>
+                    <div>
+                        <p class="text-gray-400">Score Moyen</p>
+                        <p id="stats-avg-score" class="text-2xl font-bold">N/A</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section des Badges -->
+            <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700 mb-8">
+                <h2 class="text-2xl font-bold mb-6">Badges de Réussite</h2>
+                <div id="badges-container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-6 text-center">
+                    <!-- Les badges seront injectés ici par le JS -->
+                </div>
+            </div>
+
+            <!-- Section du Graphique d'Activité -->
+            <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700">
+                <h2 class="text-2xl font-bold mb-6">Activité Récente</h2>
+                <canvas id="activity-chart"></canvas>
             </div>
         </div>
     </main>
@@ -69,22 +108,21 @@
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { auth, db } from './firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-            authDomain: "projetblocus1.firebaseapp.com",
-            projectId: "projetblocus1",
-            storageBucket: "projetblocus1.appspot.com",
-            messagingSenderId: "536093956243",
-            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-            measurementId: "G-W5WZXDHNTC"
+        let currentUserId;
+
+        // --- Définition des Badges ---
+        const allBadges = {
+            'first-upload': { icon: 'fa-upload', title: 'Premier Pas', description: 'Uploader votre premier cours.' },
+            'five-uploads': { icon: 'fa-book-reader', title: 'Grand Lecteur', description: 'Uploader 5 cours.' },
+            'first-quiz': { icon: 'fa-question-circle', title: 'Curieux', description: 'Terminer votre premier quiz.' },
+            'perfect-score': { icon: 'fa-crown', title: 'Génie Absolu', description: 'Obtenir un score parfait (100%).' },
+            'ten-quizzes': { icon: 'fa-brain', title: 'Maître des Quiz', description: 'Terminer 10 quiz.' },
+            'registered-one-week': { icon: 'fa-calendar-check', title: 'Habitué', description: 'Être inscrit depuis plus d\'une semaine.' }
         };
-
-        let app, auth, db, storage, currentUserId, originalProfileData = {};
 
         function showMessage(message) {
             const box = document.getElementById('message-box');
@@ -93,39 +131,112 @@
             setTimeout(() => box.classList.add('hidden'), 3000);
         }
 
-        const toggleEditMode = (isEditing) => {
-            document.getElementById('view-mode-name').classList.toggle('hidden', isEditing);
-            document.getElementById('edit-mode-name').classList.toggle('hidden', !isEditing);
-            document.getElementById('edit-profile-button').classList.toggle('hidden', isEditing);
-            document.getElementById('save-profile-button').classList.toggle('hidden', !isEditing);
-            document.getElementById('cancel-edit-button').classList.toggle('hidden', !isEditing);
-            document.getElementById('edit-photo-overlay').classList.toggle('hidden', !isEditing);
-        };
+        function renderBadges(unlockedBadges) {
+            const container = document.getElementById('badges-container');
+            container.innerHTML = ''; // Vider le conteneur
+            for (const badgeId in allBadges) {
+                const badge = allBadges[badgeId];
+                const isLocked = !unlockedBadges.includes(badgeId);
+                
+                const badgeEl = document.createElement('div');
+                badgeEl.className = `badge ${isLocked ? 'locked' : ''}`;
+                badgeEl.title = `${badge.title} - ${badge.description}`;
+                
+                badgeEl.innerHTML = `
+                    <div class="bg-gray-700 w-20 h-20 rounded-full flex items-center justify-center mx-auto border-4 ${isLocked ? 'border-gray-600' : 'border-indigo-500'}">
+                        <i class="fas ${badge.icon} text-3xl ${isLocked ? 'text-gray-500' : 'text-yellow-400'}"></i>
+                    </div>
+                    <p class="mt-2 font-semibold text-sm truncate">${badge.title}</p>
+                `;
+                container.appendChild(badgeEl);
+            }
+        }
 
-        const populateProfileData = (data) => {
-            originalProfileData = data; // Sauvegarde les données originales
-            
-            // Mode vue
-            document.getElementById('user-name').textContent = `${data.firstName} ${data.lastName}`;
-            document.getElementById('user-school').textContent = data.school;
-            document.getElementById('profile-picture-display').src = data.photoURL;
+        function renderChart(labels, data) {
+            const ctx = document.getElementById('activity-chart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels, // Ex: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+                    datasets: [{
+                        label: 'Quiz terminés cette semaine',
+                        data: data, // Ex: [2, 3, 1, 5, 4, 0, 1]
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        },
+                        x: {
+                            ticks: { color: '#9ca3af' },
+                            grid: { color: '#4b5563' }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: { color: '#d1d5db' }
+                        }
+                    }
+                }
+            });
+        }
 
-            // Mode édition
-            document.getElementById('edit-firstName').value = data.firstName;
-            document.getElementById('edit-lastName').value = data.lastName;
-            document.getElementById('edit-school').value = data.school;
-        };
-
-        const fetchUserProfile = async (userId) => {
+        const fetchAndDisplayProfile = async (userId, userEmail) => {
             const loadingSpinner = document.getElementById('loading-profile');
             const profileContent = document.getElementById('profile-content');
             try {
-                // **CORRECTION CLÉ** : Utilisation du chemin simple
                 const userRef = doc(db, 'users', userId);
-                const docSnap = await getDoc(userRef);
+                const coursesRef = collection(db, 'users', userId, 'courses');
+                // Note: La collection 'quizzes' est un exemple, elle devra être créée
+                const quizzesRef = collection(db, 'users', userId, 'quizzes');
 
-                if (docSnap.exists()) {
-                    populateProfileData(docSnap.data());
+                const [userSnap, coursesSnap, quizzesSnap] = await Promise.all([
+                    getDoc(userRef),
+                    getDocs(coursesRef),
+                    getDocs(quizzesRef) // En supposant que cette collection existera
+                ]);
+
+                if (userSnap.exists()) {
+                    const profileData = userSnap.data();
+                    
+                    // --- Affichage des infos de base ---
+                    document.getElementById('user-name').textContent = `${profileData.firstName} ${profileData.lastName}`;
+                    document.getElementById('user-school').textContent = profileData.school;
+                    document.getElementById('user-email').textContent = userEmail;
+                    document.getElementById('profile-picture-display').src = profileData.photoURL;
+
+                    // --- Calcul et affichage des stats ---
+                    const coursesCount = coursesSnap.size;
+                    const quizzesCount = quizzesSnap.size;
+                    document.getElementById('stats-courses').textContent = coursesCount;
+                    document.getElementById('stats-quizzes').textContent = quizzesCount;
+                    // TODO: Calculer le score moyen à partir des données des quiz
+
+                    // --- Vérification et affichage des badges ---
+                    const unlockedBadges = [];
+                    if (coursesCount > 0) unlockedBadges.push('first-upload');
+                    if (coursesCount >= 5) unlockedBadges.push('five-uploads');
+                    if (quizzesCount > 0) unlockedBadges.push('first-quiz');
+                    if (quizzesCount >= 10) unlockedBadges.push('ten-quizzes');
+                    // TODO: Ajouter la logique pour 'perfect-score'
+                    const registrationDate = new Date(profileData.createdAt);
+                    const oneWeekAgo = new Date();
+                    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+                    if (registrationDate < oneWeekAgo) unlockedBadges.push('registered-one-week');
+                    
+                    renderBadges(unlockedBadges);
+
+                    // --- Affichage du graphique (avec des données d'exemple) ---
+                    renderChart(['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'], [1, 0, 2, 1, 3, 0, 0]);
+
                     loadingSpinner.classList.add('hidden');
                     profileContent.classList.remove('hidden');
                 } else {
@@ -133,77 +244,18 @@
                     setTimeout(() => window.location.href = '/onboarding.html', 2000);
                 }
             } catch (error) {
-                console.error("Erreur fetchUserProfile:", error);
+                console.error("Erreur fetchAndDisplayProfile:", error);
                 loadingSpinner.innerHTML = '<p class="text-red-400">Impossible de charger le profil.</p>';
             }
         };
 
         document.addEventListener('DOMContentLoaded', () => {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            storage = getStorage(app);
-
             onAuthStateChanged(auth, (user) => {
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
-                    fetchUserProfile(currentUserId);
+                    fetchAndDisplayProfile(currentUserId, user.email);
                 } else {
                     window.location.href = '/login.html';
-                }
-            });
-
-            document.getElementById('edit-profile-button').addEventListener('click', () => toggleEditMode(true));
-            document.getElementById('cancel-edit-button').addEventListener('click', () => {
-                populateProfileData(originalProfileData); // Restaure les données
-                toggleEditMode(false);
-            });
-            
-            document.getElementById('edit-photo-overlay').addEventListener('click', () => {
-                 document.getElementById('profile-picture-input').click();
-            });
-
-            document.getElementById('profile-picture-input').addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => document.getElementById('profile-picture-display').src = e.target.result;
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            document.getElementById('save-profile-button').addEventListener('click', async () => {
-                const button = document.getElementById('save-profile-button');
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sauvegarde...';
-
-                const updates = {
-                    firstName: document.getElementById('edit-firstName').value,
-                    lastName: document.getElementById('edit-lastName').value,
-                    school: document.getElementById('edit-school').value,
-                };
-                
-                const profilePictureFile = document.getElementById('profile-picture-input').files[0];
-                try {
-                    if (profilePictureFile) {
-                        const storageRef = ref(storage, `users/${currentUserId}/profilePicture.jpg`);
-                        await uploadBytes(storageRef, profilePictureFile);
-                        updates.photoURL = await getDownloadURL(storageRef);
-                    }
-                    
-                    const userRef = doc(db, 'users', currentUserId);
-                    await updateDoc(userRef, updates);
-                    
-                    await fetchUserProfile(currentUserId);
-                    showMessage("Profil mis à jour avec succès !");
-                    toggleEditMode(false);
-
-                } catch (error) {
-                    console.error("Erreur de sauvegarde:", error);
-                    showMessage("Erreur lors de la sauvegarde.");
-                } finally {
-                    button.disabled = false;
-                    button.innerHTML = '<i class="fas fa-save mr-2"></i>Sauvegarder';
                 }
             });
         });

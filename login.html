@@ -11,20 +11,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style> 
         body { font-family: 'Inter', sans-serif; } 
-        /* Correction pour le centrage vertical parfait de l'icône */
         .password-container {
             position: relative;
             display: flex;
             align-items: center;
         }
         .password-container input {
-            padding-right: 2.5rem; /* Espace pour l'icône */
+            padding-right: 2.5rem;
         }
         .password-container .fa-eye, .password-container .fa-eye-slash {
             position: absolute;
             right: 0.75rem;
             cursor: pointer;
-            color: #9ca3af; /* text-gray-400 */
+            color: #9ca3af;
         }
     </style>
 </head>
@@ -68,23 +67,11 @@
 
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
+    <!-- SCRIPT MIS À JOUR -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { auth } from './firebase-config.js';
+        import { onAuthStateChanged, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-            authDomain: "projetblocus1.firebaseapp.com",
-            projectId: "projetblocus1",
-            storageBucket: "projetblocus1.appspot.com",
-            messagingSenderId: "536093956243",
-            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-            measurementId: "G-W5WZXDHNTC"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
         function showMessage(message) {
             const box = document.getElementById('message-box');
             box.textContent = message;
@@ -115,7 +102,6 @@
             try {
                 await signInWithEmailAndPassword(auth, email, password);
                 showMessage("Connexion réussie ! Redirection...");
-                // onAuthStateChanged gérera la redirection
             } catch (error) {
                 showMessage("Email ou mot de passe incorrect.");
                 button.disabled = false;
@@ -128,7 +114,6 @@
             try {
                 await signInWithPopup(auth, provider);
                 showMessage("Connexion avec Google réussie !");
-                 // onAuthStateChanged gérera la redirection
             } catch (error) {
                 console.error("Erreur de connexion Google:", error);
                 showMessage("Erreur lors de la connexion avec Google.");
