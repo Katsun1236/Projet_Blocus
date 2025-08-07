@@ -17,6 +17,14 @@
         .badge.locked { filter: grayscale(100%); opacity: 0.5; }
         .badge:not(.locked):hover { transform: scale(1.1); }
         .filter-btn.active { background-color: #4f46e5; color: white; }
+        #badges-wrapper {
+            max-height: 120px; /* Hauteur d'une rangée environ */
+            overflow: hidden;
+            transition: max-height 0.5s ease-in-out;
+        }
+        #badges-wrapper.expanded {
+            max-height: 1000px; /* Assez grand pour tout montrer */
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -77,15 +85,29 @@
 
             <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700 mb-8">
                 <h2 class="text-2xl font-bold mb-6">Succès</h2>
-                <div id="badges-container" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-6 text-center"></div>
+                <div id="badges-wrapper">
+                    <div id="badges-container" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-6 text-center"></div>
+                </div>
+                <div class="text-center mt-4">
+                    <button id="toggle-badges-btn" class="text-indigo-400 hover:text-indigo-300 font-semibold">
+                        Voir plus <i class="fas fa-chevron-down ml-1 transition-transform"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Activité</h2>
-                    <div id="chart-filters" class="flex space-x-2 bg-gray-700 rounded-lg p-1">
-                        <button data-period="7" class="filter-btn active px-3 py-1 rounded-md text-sm font-semibold">7 jours</button>
-                        <button data-period="30" class="filter-btn px-3 py-1 rounded-md text-sm font-semibold text-gray-300">30 jours</button>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <h2 class="text-2xl font-bold mb-4 sm:mb-0">Activité</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <div id="activity-type-filters" class="flex space-x-1 bg-gray-700 rounded-lg p-1">
+                             <button data-type="courses" class="filter-btn activity-btn active px-3 py-1 rounded-md text-sm font-semibold">Cours</button>
+                             <button data-type="quizzes" class="filter-btn activity-btn px-3 py-1 rounded-md text-sm font-semibold text-gray-300">Quiz</button>
+                             <button data-type="folders" class="filter-btn activity-btn px-3 py-1 rounded-md text-sm font-semibold text-gray-300">Dossiers</button>
+                        </div>
+                        <div id="chart-period-filters" class="flex space-x-1 bg-gray-700 rounded-lg p-1">
+                            <button data-period="7" class="filter-btn period-btn active px-3 py-1 rounded-md text-sm font-semibold">7 j</button>
+                            <button data-period="30" class="filter-btn period-btn px-3 py-1 rounded-md text-sm font-semibold text-gray-300">30 j</button>
+                        </div>
                     </div>
                 </div>
                 <canvas id="activity-chart"></canvas>
@@ -116,28 +138,56 @@
         import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         const allBadges = {
-            'course1': { title: 'Premiers Pas', desc: 'Uploader votre premier cours.', icon: 'fa-graduation-cap', goal: 1, type: 'courses' },
+            'course1': { title: 'Premiers Pas', desc: 'Uploader son premier cours.', icon: 'fa-graduation-cap', goal: 1, type: 'courses' },
+            'connect7': { title: 'Habitué(e) du Campus', desc: 'Se connecter 7 jours d\'affilée.', icon: 'fa-calendar-check', goal: 7, type: 'logins' },
+            'night-owl': { title: 'Oiseau de Nuit', desc: 'Lancer une session d\'étude après minuit.', icon: 'fa-moon', goal: 1, type: 'sessions' },
+            'early-bird': { title: 'Lève-tôt', desc: 'Lancer une session d\'étude avant 7h du matin.', icon: 'fa-sun', goal: 1, type: 'sessions' },
+            'marathon': { title: 'Marathonien(ne)', desc: 'Utiliser l\'application pendant plus de 3 heures.', icon: 'fa-running', goal: 1, type: 'sessions' },
+            'explorer': { title: 'Explorateur', desc: 'Utiliser le Quiz, la Synthèse et le Forum.', icon: 'fa-map-signs', goal: 3, type: 'features' },
+            'perfect10': { title: 'Le 10/10', desc: 'Obtenir 100% à un quiz d\'au moins 10 questions.', icon: 'fa-star', goal: 1, type: 'scores' },
+            'streak5': { title: 'Cerveau en ébullition', desc: 'Réussir 5 quiz d\'affilée (+80%).', icon: 'fa-fire', goal: 5, type: 'streaks' },
+            'time-master': { title: 'Maître du Temps', desc: 'Terminer un quiz avec plus de la moitié du temps restant.', icon: 'fa-stopwatch', goal: 1, type: 'timers' },
+            'qcm-king': { title: 'Roi / Reine du QCM', desc: 'Répondre correctement à 100 QCM.', icon: 'fa-crown', goal: 100, type: 'qcmAnswers' },
+            'short-answer-pro': { title: 'Précision Chirurgicale', desc: 'Obtenir 100% à un quiz "Réponse courte".', icon: 'fa-bullseye', goal: 1, type: 'scores' },
             'course5': { title: 'Bibliothécaire', desc: 'Uploader 5 cours.', icon: 'fa-book-reader', goal: 5, type: 'courses' },
-            'course10': { title: 'Archiviste', desc: 'Uploader 10 cours.', icon: 'fa-archive', goal: 10, type: 'courses' },
-            'course25': { title: 'Bibliothèque d\'Alexandrie', desc: 'Uploader 25 cours.', icon: 'fa-university', goal: 25, type: 'courses' },
-            'folder1': { title: 'Architecte du Savoir', desc: 'Créer votre premier dossier.', icon: 'fa-folder-plus', goal: 1, type: 'folders' },
-            'folder5': { title: 'Organisateur', desc: 'Créer 5 dossiers.', icon: 'fa-sitemap', goal: 5, type: 'folders' },
-            'quiz1': { title: 'Maître Quizzeur', desc: 'Créer votre premier quiz.', icon: 'fa-question-circle', goal: 1, type: 'quizzes' },
-            'quiz10': { title: 'Générateur en Série', desc: 'Créer 10 quiz.', icon: 'fa-clipboard-question', goal: 10, type: 'quizzes' },
-            'quiz25': { title: 'Collectionneur de Quiz', desc: 'Créer 25 quiz.', icon: 'fa-brain', goal: 25, type: 'quizzes' },
-            'synth1': { title: 'Synthétiseur', desc: 'Générer votre première synthèse.', icon: 'fa-file-signature', goal: 1, type: 'syntheses' },
-            'week1': { title: 'Habitué du Campus', desc: 'Être inscrit depuis 1 semaine.', icon: 'fa-calendar-check', type: 'date', goal: 7 },
-            'month1': { title: 'Vétéran du Blocus', desc: 'Être inscrit depuis 1 mois.', icon: 'fa-medal', type: 'date', goal: 30 },
-            'year1': { title: 'Anniversaire d\'Études', desc: 'Être inscrit depuis 1 an.', icon: 'fa-birthday-cake', type: 'date', goal: 365 },
-            'night-owl': { title: 'Oiseau de Nuit', desc: 'Lancer une session après minuit.', icon: 'fa-moon', goal: 1, type: 'sessions' }, // Logique à ajouter
-            'early-bird': { title: 'Lève-tôt', desc: 'Lancer une session avant 7h.', icon: 'fa-sun', goal: 1, type: 'sessions' }, // Logique à ajouter
-            'explorer': { title: 'Explorateur', desc: 'Utiliser le Quiz, la Synthèse et le Forum.', icon: 'fa-map-signs', goal: 3, type: 'features' }, // Logique à ajouter
-            'perfect10': { title: 'Le 10/10', desc: 'Obtenir 100% à un quiz d\'au moins 10 questions.', icon: 'fa-star', goal: 1, type: 'scores' }, // Logique à ajouter
-            'qcm-king': { title: 'Roi du QCM', desc: 'Répondre correctement à 100 QCM.', icon: 'fa-crown', goal: 100, type: 'qcmAnswers' }, // Logique à ajouter
-            'big-course': { title: 'Le Blocus, même pas peur !', desc: 'Uploader un cours de plus de 100 pages.', icon: 'fa-book-dead', goal: 1, type: 'pages' }, // Logique à ajouter
-            'curious': { title: 'Curieux', desc: 'Badge secret obtenu en cliquant sur le logo dans le pied de page.', icon: 'fa-search', goal: 1, type: 'secrets' }, // Logique à ajouter
+            'folder1': { title: 'Architecte du Savoir', desc: 'Créer son premier dossier.', icon: 'fa-folder-plus', goal: 1, type: 'folders' },
+            'synth1': { title: 'Synthétiseur', desc: 'Générer sa première synthèse.', icon: 'fa-file-signature', goal: 1, type: 'syntheses' },
+            'quiz10': { title: 'Maître Quizzeur', desc: 'Créer 10 quiz.', icon: 'fa-brain', goal: 10, type: 'quizzes' },
+            'generator25': { title: 'Générateur en Série', desc: 'Générer 25 supports (quiz + synthèses).', icon: 'fa-industry', goal: 25, type: 'creations' },
+            'ice-breaker': { title: 'Brise-Glace', desc: 'Poster son premier message sur le forum.', icon: 'fa-hand-sparkles', goal: 1, type: 'forum' },
+            'samaritan': { title: 'Bon Samaritain', desc: 'Partager un quiz ou une synthèse.', icon: 'fa-heart', goal: 1, type: 'shares' },
+            'pillar': { title: 'Pilier de la Communauté', desc: 'Recevoir 10 "j\'aime" sur le forum.', icon: 'fa-users', goal: 10, type: 'likes' },
+            'debater': { title: 'Débatteur', desc: 'Participer à 5 discussions différentes.', icon: 'fa-comments', goal: 5, type: 'forum' },
+            'veteran': { title: 'Vétéran du Blocus', desc: 'Se connecter chaque jour d\'une semaine d\'examens.', icon: 'fa-shield-alt', goal: 1, type: 'events' },
+            'big-course': { title: 'Le Blocus, même pas peur !', desc: 'Uploader un cours de plus de 100 pages.', icon: 'fa-book-dead', goal: 1, type: 'pages' },
+            'curious': { title: 'Curieux / Curieuse', desc: '???', icon: 'fa-search', goal: 1, type: 'secrets' },
             'collector10': { title: 'Collectionneur', desc: 'Débloquer 10 autres badges.', icon: 'fa-trophy', goal: 10, type: 'unlocked' },
+            'legend': { title: 'Légende du Campus', desc: 'Débloquer tous les autres badges.', icon: 'fa-star-of-david', goal: 49, type: 'unlocked' },
+            'specialist': { title: 'Spécialiste', desc: 'Créer 5 quiz sur le même cours.', icon: 'fa-chalkboard-teacher', goal: 5, type: 'mastery' },
+            'expert': { title: 'Expert / Experte', desc: 'Obtenir +90% sur 3 quiz du même cours.', icon: 'fa-microscope', goal: 3, type: 'mastery' },
+            'word-master': { title: 'Maître des Mots', desc: 'Générer une synthèse de plus de 1000 mots.', icon: 'fa-pen-fancy', goal: 1, type: 'syntheses' },
+            'sprinter': { title: 'Sprinteur / Sprinteuse', desc: 'Répondre à 20 questions en moins de 10 minutes.', icon: 'fa-bolt', goal: 1, type: 'timers' },
+            'omniscient': { title: 'Omniscient', desc: 'Réussir un quiz dans 5 matières différentes.', icon: 'fa-globe-europe', goal: 5, type: 'subjects' },
+            'course10': { title: 'Archiviste', desc: 'Uploader 10 cours.', icon: 'fa-archive', goal: 10, type: 'courses' },
+            'folder5': { title: 'Organisateur', desc: 'Créer 5 dossiers avec au moins un cours chacun.', icon: 'fa-sitemap', goal: 5, type: 'folders' },
+            'knowledge-is-power': { title: 'Le Savoir, c\'est le Pouvoir', desc: 'Avoir plus de 500 pages de cours au total.', icon: 'fa-book', goal: 500, type: 'pages' },
+            'course25': { title: 'Bibliothèque d\'Alexandrie', desc: 'Uploader 25 cours.', icon: 'fa-university', goal: 25, type: 'courses' },
+            'quiz25': { title: 'Collectionneur de Quiz', desc: 'Avoir 25 quiz sauvegardés.', icon: 'fa-scroll', goal: 25, type: 'quizzes' },
+            'mentor': { title: 'Mentor', desc: 'Aider un autre utilisateur sur le forum.', icon: 'fa-user-graduate', goal: 1, type: 'forum' },
+            'influencer': { title: 'Influenceur', desc: 'Un de tes quiz partagés a été joué 20 fois.', icon: 'fa-chart-line', goal: 20, type: 'shares' },
+            'trendsetter': { title: 'Créateur de Tendances', desc: 'Lancer une discussion qui reçoit 15 réponses.', icon: 'fa-rocket', goal: 15, type: 'forum' },
+            'collaborator': { title: 'Collaborateur', desc: 'Participer à un projet de groupe.', icon: 'fa-handshake', goal: 1, type: 'forum' },
+            'voter': { title: 'Le Peuple a parlé', desc: 'Voter sur 10 sondages ou suggestions.', icon: 'fa-vote-yea', goal: 10, type: 'forum' },
+            'procrastinator': { title: 'Procrastinateur', desc: '???', icon: 'fa-hourglass-half', goal: 1, type: 'secrets' },
+            'firefighter': { title: 'Pompier du Blocus', desc: 'Uploader 3 cours en moins d\'une heure.', icon: 'fa-fire-extinguisher', goal: 3, type: 'burst' },
+            'minimalist': { title: 'Minimaliste', desc: 'Créer une synthèse de moins de 100 mots.', icon: 'fa-feather-alt', goal: 1, type: 'syntheses' },
+            'bug-hunter': { title: 'Bug Hunter', desc: '???', icon: 'fa-bug', goal: 1, type: 'secrets' },
+            'year1': { title: 'Anniversaire d\'Études', desc: 'Se connecter un an après son inscription.', icon: 'fa-birthday-cake', goal: 365, type: 'date' },
+            'polymath': { title: 'Polymathe', desc: 'Uploader des cours dans 3 domaines différents.', icon: 'fa-atom', goal: 3, type: 'subjects' },
+            'tough-choice': { title: 'Le Choix Difficile', desc: '???', icon: 'fa-balance-scale', goal: 1, type: 'secrets' },
+            'faithful': { title: 'Fidèle au Poste', desc: 'Se connecter depuis 3 appareils différents.', icon: 'fa-laptop-house', goal: 3, type: 'devices' },
             'collector25': { title: 'Grand Collectionneur', desc: 'Débloquer 25 autres badges.', icon: 'fa-gem', goal: 25, type: 'unlocked' },
+            'master': { title: 'Maître du Blocus', desc: 'Débloquer 49 autres badges.', icon: 'fa-hat-wizard', goal: 49, type: 'unlocked' },
         };
         
         const ui = {
@@ -149,10 +199,13 @@
             logoutButton: document.getElementById('logout-button'),
             badgeModal: document.getElementById('badge-modal'),
             closeBadgeModalBtn: document.getElementById('close-badge-modal'),
-            chartFilters: document.getElementById('chart-filters'),
+            chartFilters: document.getElementById('chart-period-filters'),
+            activityTypeFilters: document.getElementById('activity-type-filters'),
+            toggleBadgesBtn: document.getElementById('toggle-badges-btn'),
+            badgesWrapper: document.getElementById('badges-wrapper'),
         };
 
-        let quizzesData = [];
+        let allData = {};
 
         function showSuccessToast(badge) {
             const container = document.getElementById('toast-container');
@@ -172,12 +225,13 @@
             const badge = allBadges[badgeId];
             if (!badge) return;
             const isUnlocked = (stats[badge.type] || 0) >= badge.goal;
+            const isSecret = badge.desc === '???';
             document.getElementById('badge-modal-icon').className = `bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto border-4 ${isUnlocked ? 'border-indigo-500' : 'border-gray-600'} mb-4`;
             document.querySelector('#badge-modal-icon i').className = `fas ${badge.icon} text-4xl ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}`;
             document.getElementById('badge-modal-title').textContent = badge.title;
-            document.getElementById('badge-modal-description').textContent = badge.desc;
+            document.getElementById('badge-modal-description').textContent = (isSecret && !isUnlocked) ? '???' : badge.desc;
             const progressContainer = document.getElementById('badge-modal-progress-container');
-            if (badge.goal) {
+            if (badge.goal && (!isSecret || isUnlocked)) {
                 const count = stats[badge.type] || 0;
                 const progress = Math.min(Math.floor((count / badge.goal) * 100), 100);
                 const progressBar = document.getElementById('badge-modal-progress-bar');
@@ -197,33 +251,46 @@
             const previouslyUnlocked = JSON.parse(localStorage.getItem('unlockedBadges')) || [];
             const newlyUnlocked = [];
             let unlockedCount = 0;
+            const unlockedBadges = [];
+            const lockedBadges = [];
 
             for (const id in allBadges) {
                 const badge = allBadges[id];
                 const isUnlocked = (stats[badge.type] || 0) >= badge.goal;
-                if(isUnlocked) unlockedCount++;
-
-                if (isUnlocked && !previouslyUnlocked.includes(id)) {
-                    showSuccessToast(badge);
-                    newlyUnlocked.push(id);
+                if(isUnlocked) {
+                    unlockedCount++;
+                    unlockedBadges.push({id, ...badge});
+                } else {
+                    lockedBadges.push({id, ...badge});
                 }
+                if (isUnlocked && !previouslyUnlocked.includes(id)) {
+                    newlyUnlocked.push(id);
+                    showSuccessToast(badge);
+                }
+            }
+
+            [...unlockedBadges, ...lockedBadges].forEach(badge => {
+                const isUnlocked = (stats[badge.type] || 0) >= badge.goal;
                 const badgeEl = document.createElement('div');
                 badgeEl.className = `badge ${!isUnlocked ? 'locked' : ''}`;
-                badgeEl.onclick = () => showBadgeModal(id, stats);
+                badgeEl.onclick = () => showBadgeModal(badge.id, stats);
                 badgeEl.innerHTML = `<div class="bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto border-4 ${isUnlocked ? 'border-indigo-500' : 'border-gray-600'}"><i class="fas ${badge.icon} text-2xl ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}"></i></div><p class="mt-2 font-semibold text-xs truncate">${badge.title}</p>`;
                 container.appendChild(badgeEl);
-            }
-            stats.unlocked = unlockedCount; // On met à jour le compte pour les badges "collectionneur"
+            });
+            
+            stats.unlocked = unlockedCount;
             if (newlyUnlocked.length > 0) {
                 localStorage.setItem('unlockedBadges', JSON.stringify([...previouslyUnlocked, ...newlyUnlocked]));
-                renderBadges(stats); // On relance pour mettre à jour les badges collectionneurs
+                renderBadges(stats);
             }
         }
 
-        function renderChart(period = 7) {
+        function renderChart() {
+            const period = parseInt(ui.chartFilters.querySelector('.active').dataset.period, 10);
+            const type = ui.activityTypeFilters.querySelector('.active').dataset.type;
+            const dataSet = allData[type] || [];
             const ctx = document.getElementById('activity-chart').getContext('2d');
-            const labels = [];
-            const data = [];
+            const labels = [], data = [];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
@@ -234,11 +301,12 @@
                 data.push(0);
             }
 
-            quizzesData.forEach(quiz => {
-                if (!quiz.createdAt) return; // Sécurité
-                const completedDate = new Date(quiz.createdAt);
-                completedDate.setHours(0, 0, 0, 0);
-                const diffDays = Math.floor((today - completedDate) / (1000 * 60 * 60 * 24));
+            dataSet.forEach(item => {
+                const timestampField = item.createdAt || item.uploadedAt;
+                if (!timestampField) return;
+                const itemDate = new Date(timestampField);
+                itemDate.setHours(0, 0, 0, 0);
+                const diffDays = Math.floor((today - itemDate) / (1000 * 60 * 60 * 24));
                 if (diffDays >= 0 && diffDays < period) {
                     data[(period - 1) - diffDays]++;
                 }
@@ -247,7 +315,7 @@
             if (window.myChart instanceof Chart) window.myChart.destroy();
             window.myChart = new Chart(ctx, {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Quiz créés', data, backgroundColor: 'rgba(99, 102, 241, 0.6)', borderColor: 'rgba(99, 102, 241, 1)', borderWidth: 1 }] },
+                data: { labels, datasets: [{ label: 'Créations', data, backgroundColor: 'rgba(99, 102, 241, 0.6)', borderColor: 'rgba(99, 102, 241, 1)', borderWidth: 1 }] },
                 options: {
                     responsive: true,
                     scales: { y: { beginAtZero: true, ticks: { color: '#9ca3af', stepSize: 1 }, grid: { color: '#4b5563' } }, x: { ticks: { color: '#9ca3af' }, grid: { color: '#4b5563' } } },
@@ -272,6 +340,12 @@
                     getDocs(coursesRef), getDocs(foldersRef), getDocs(quizzesRef)
                 ]);
                 
+                allData = {
+                    courses: coursesSnap.docs.map(d => d.data()),
+                    folders: foldersSnap.docs.map(d => d.data()),
+                    quizzes: quizzesSnap.docs.map(d => d.data()),
+                };
+
                 document.getElementById('user-name-header').textContent = profileData.firstName;
                 document.getElementById('user-avatar-header').src = profileData.photoURL;
                 document.getElementById('user-name').textContent = `${profileData.firstName} ${profileData.lastName}`;
@@ -282,25 +356,17 @@
                 const registrationDate = profileData.createdAt ? new Date(profileData.createdAt) : new Date();
                 const daysSinceRegistration = Math.floor((new Date() - registrationDate) / (1000 * 60 * 60 * 24));
                 const stats = {
-                    courses: coursesSnap.size,
-                    folders: foldersSnap.size,
-                    quizzes: quizzesSnap.size,
+                    courses: allData.courses.length,
+                    folders: allData.folders.length,
+                    quizzes: allData.quizzes.length,
                     date: daysSinceRegistration,
-                    syntheses: 0, // À implémenter
-                    sessions: 0, // À implémenter
-                    features: 0, // À implémenter
-                    scores: 0, // À implémenter
-                    qcmAnswers: 0, // À implémenter
-                    pages: 0, // À implémenter
-                    secrets: 0, // À implémenter
-                    unlocked: 0, // Sera calculé dans renderBadges
+                    // ... autres stats à 0
                 };
 
                 document.getElementById('stats-courses').textContent = stats.courses;
                 document.getElementById('stats-folders').textContent = stats.folders;
                 document.getElementById('stats-quizzes').textContent = stats.quizzes;
 
-                quizzesData = quizzesSnap.docs.map(d => d.data());
                 renderBadges(stats);
                 renderChart();
 
@@ -315,12 +381,27 @@
             }
         }
 
+        ui.toggleBadgesBtn.addEventListener('click', (e) => {
+            const wrapper = ui.badgesWrapper;
+            wrapper.classList.toggle('expanded');
+            e.currentTarget.innerHTML = wrapper.classList.contains('expanded') 
+                ? 'Voir moins <i class="fas fa-chevron-up ml-1"></i>' 
+                : 'Voir plus <i class="fas fa-chevron-down ml-1"></i>';
+        });
+
+        ui.activityTypeFilters.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                ui.activityTypeFilters.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                renderChart();
+            }
+        });
+
         ui.chartFilters.addEventListener('click', (e) => {
             if (e.target.classList.contains('filter-btn')) {
-                const period = parseInt(e.target.dataset.period, 10);
-                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                ui.chartFilters.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
                 e.target.classList.add('active');
-                renderChart(period);
+                renderChart();
             }
         });
 
