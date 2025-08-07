@@ -10,7 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        .vote-btn.voted-up { color: #22c55e; } /* green-500 */
+        .vote-btn.voted-down { color: #ef4444; } /* red-500 */
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
@@ -108,19 +112,57 @@
         function renderMainPost(post) {
             ui.loadingPost.classList.add('hidden');
             const postDate = timeAgo(post.createdAt?.toDate());
-            const content = post.content.replace(/\n/g, '<br>'); // Pour afficher les sauts de ligne
+            const content = post.content.replace(/\n/g, '<br>');
+            const voteState = post.voters?.[auth.currentUser?.uid];
+
             ui.mainPostContainer.innerHTML = `
                 <div class="bg-gray-800 p-8 rounded-lg border border-gray-700">
-                    <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
-                    <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
-                        <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
-                        <span>par <strong class="text-indigo-400">${post.authorName}</strong></span>
-                        <span>•</span>
-                        <span>${postDate}</span>
+                    <div class="flex space-x-4">
+                        <div class="flex flex-col items-center space-y-2 text-gray-400 pt-12">
+                            <button class="vote-btn ${voteState === 1 ? 'voted-up' : ''}" data-votetype="up"><i class="fas fa-arrow-up text-xl"></i></button>
+                            <span class="font-bold text-lg text-white">${post.votes || 0}</span>
+                            <button class="vote-btn ${voteState === -1 ? 'voted-down' : ''}" data-votetype="down"><i class="fas fa-arrow-down text-xl"></i></button>
+                        </div>
+                        <div class="flex-grow">
+                             <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
+                            <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
+                                <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
+                                <span>par <strong class="text-indigo-400">${post.authorName}</strong></span> • <span>${postDate}</span>
+                            </div>
+                            <div id="shared-content-container" class="mb-6"></div>
+                            <div class="text-gray-300 leading-relaxed">${content}</div>
+                        </div>
                     </div>
-                    <div class="text-gray-300 leading-relaxed">${content}</div>
-                </div>
-            `;
+                </div>`;
+            
+            if (post.sharedCourseId) {
+                loadSharedContent(post.authorId, post.sharedCourseId);
+            }
+
+            const discussionRef = doc(db, 'forum', discussionId);
+            ui.mainPostContainer.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(discussionRef, 1));
+            ui.mainPostContainer.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(discussionRef, -1));
+        }
+
+        async function loadSharedContent(authorId, courseId) {
+            const container = document.getElementById('shared-content-container');
+            try {
+                const courseRef = doc(db, 'users', authorId, 'courses', courseId);
+                const courseSnap = await getDoc(courseRef);
+                if (courseSnap.exists()) {
+                    const course = courseSnap.data();
+                    container.innerHTML = `
+                        <a href="${course.url}" target="_blank" class="block bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors">
+                            <p class="text-sm text-gray-400">Cours partagé :</p>
+                            <p class="font-bold text-white flex items-center"><i class="fas fa-file-pdf text-red-500 mr-2"></i>${course.name}</p>
+                        </a>`;
+                } else {
+                     container.innerHTML = `<div class="block bg-gray-900 p-4 rounded-lg border border-gray-700"><p class="text-sm text-gray-500">Le cours partagé n'est plus disponible.</p></div>`;
+                }
+            } catch (error) {
+                console.error("Erreur de chargement du contenu partagé:", error);
+                container.innerHTML = `<div class="block bg-gray-900 p-4 rounded-lg border border-gray-700"><p class="text-sm text-red-500">Impossible de charger le contenu partagé.</p></div>`;
+            }
         }
 
         function createReplyElement(reply) {
@@ -128,6 +170,8 @@
             el.className = "flex items-start space-x-4";
             const replyDate = timeAgo(reply.createdAt?.toDate());
             const content = reply.content.replace(/\n/g, '<br>');
+            const voteState = reply.voters?.[auth.currentUser?.uid];
+
             el.innerHTML = `
                 <img src="${reply.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
                 <div class="bg-gray-800 p-4 rounded-lg flex-grow">
@@ -135,10 +179,41 @@
                         <p class="font-semibold text-indigo-400">${reply.authorName}</p>
                         <p class="text-xs text-gray-500">${replyDate}</p>
                     </div>
-                    <p class="text-gray-300">${content}</p>
-                </div>
-            `;
+                    <p class="text-gray-300 mb-3">${content}</p>
+                    <div class="flex items-center space-x-4 text-gray-500">
+                        <button class="vote-btn ${voteState === 1 ? 'voted-up' : ''}" data-votetype="up"><i class="fas fa-arrow-up"></i></button>
+                        <span class="font-bold text-sm text-gray-300">${reply.votes || 0}</span>
+                        <button class="vote-btn ${voteState === -1 ? 'voted-down' : ''}" data-votetype="down"><i class="fas fa-arrow-down"></i></button>
+                    </div>
+                </div>`;
+            
+            const replyRef = doc(db, 'forum', discussionId, 'replies', reply.id);
+            el.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(replyRef, 1));
+            el.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(replyRef, -1));
             return el;
+        }
+
+        async function handleVote(docRef, voteValue) {
+            if (!auth.currentUser) { showMessage('Connectez-vous pour voter.', true); return; }
+            const docSnap = await getDoc(docRef);
+            if (!docSnap.exists()) return;
+
+            const voters = docSnap.data().voters || {};
+            const currentVote = voters[auth.currentUser.uid] || 0;
+            let voteChange = 0;
+
+            if (currentVote === voteValue) {
+                delete voters[auth.currentUser.uid];
+                voteChange = -voteValue;
+            } else {
+                voters[auth.currentUser.uid] = voteValue;
+                voteChange = voteValue - currentVote;
+            }
+
+            await updateDoc(docRef, {
+                votes: increment(voteChange),
+                voters: voters
+            });
         }
 
         async function handleReplySubmit(e) {
@@ -160,9 +235,10 @@
                     authorName: currentUserProfile.firstName,
                     authorPhotoURL: currentUserProfile.photoURL,
                     createdAt: serverTimestamp(),
+                    votes: 0,
+                    voters: {}
                 });
 
-                // Mettre à jour le compteur de réponses et la date de dernière réponse
                 await updateDoc(discussionRef, {
                     replyCount: increment(1),
                     lastReplyAt: serverTimestamp()
@@ -199,23 +275,22 @@
                     window.location.href = '/onboarding.html';
                 }
 
-                // Charger le post principal
                 const discussionRef = doc(db, 'forum', discussionId);
-                const discussionSnap = await getDoc(discussionRef);
-                if (discussionSnap.exists()) {
-                    renderMainPost(discussionSnap.data());
-                } else {
-                    ui.loadingPost.innerHTML = '<p class="text-red-400">Cette discussion n\'existe pas.</p>';
-                }
+                onSnapshot(discussionRef, (doc) => {
+                    if (doc.exists()) {
+                        renderMainPost(doc.data());
+                    } else {
+                        ui.loadingPost.innerHTML = '<p class="text-red-400">Cette discussion n\'existe pas.</p>';
+                    }
+                });
 
-                // Écouter les réponses en temps réel
                 const repliesRef = collection(discussionRef, 'replies');
                 const q = query(repliesRef, orderBy('createdAt', 'asc'));
                 onSnapshot(q, (snapshot) => {
                     ui.repliesList.innerHTML = '';
                     if (!snapshot.empty) {
                         ui.repliesSection.classList.remove('hidden');
-                        snapshot.forEach(d => ui.repliesList.appendChild(createReplyElement(d.data())));
+                        snapshot.forEach(d => ui.repliesList.appendChild(createReplyElement({id: d.id, ...d.data()})));
                     }
                 });
 
