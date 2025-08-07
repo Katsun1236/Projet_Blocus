@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Cours - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.href='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
+    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
@@ -12,12 +12,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style> 
         body { font-family: 'Inter', sans-serif; }
-        /* Cache le menu contextuel par défaut */
         .context-menu { display: none; }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
+    <!-- HEADER CORRIGÉ -->
     <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
@@ -46,10 +46,8 @@
             </a>
         </div>
         
-        <!-- Fil d'Ariane pour la navigation dans les dossiers -->
         <nav id="breadcrumbs" class="mb-8 text-gray-400"></nav>
 
-        <!-- Section Dossiers -->
         <section id="folders-section" class="mb-12">
             <h2 class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Dossiers</h2>
             <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -60,38 +58,26 @@
             </div>
         </section>
 
-        <!-- Section Cours -->
         <section id="courses-section">
             <h2 id="courses-title" class="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Cours</h2>
             <div id="courses-list" class="space-y-4"></div>
             <div id="loading-indicator" class="text-center py-12"><i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i><p class="mt-4 text-gray-400">Chargement...</p></div>
-            <div id="no-content" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-folder-open text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Vide</h3><p class="mt-2 text-gray-400">Ce dossier ne contient aucun cours.</p></div>
+            <div id="no-content" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-folder-open text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Vide</h3><p class="mt-2 text-gray-400">Ce dossier est vide.</p></div>
         </section>
     </main>
     
-    <!-- Modales -->
-    <div id="context-menu" class="context-menu absolute bg-gray-700 rounded-lg shadow-xl py-2 w-40 z-30">
+    <!-- Menu contextuel -->
+    <div id="context-menu" class="context-menu absolute bg-gray-700 rounded-lg shadow-xl py-2 w-48 z-30">
         <button data-action="rename" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-gray-600 flex items-center"><i class="fas fa-pen w-6"></i>Renommer</button>
+        <button data-action="move" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-gray-600 flex items-center"><i class="fas fa-folder-tree w-6"></i>Déplacer vers...</button>
         <button data-action="delete" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white flex items-center"><i class="fas fa-trash w-6"></i>Supprimer</button>
     </div>
 
-    <div id="rename-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
-        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md">
-            <h2 id="rename-title" class="text-2xl font-bold mb-6">Renommer</h2>
-            <form id="rename-form">
-                <label for="new-name-input" class="block text-gray-300 font-bold mb-2">Nouveau nom</label>
-                <input type="text" id="new-name-input" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" required>
-                <div class="flex justify-end space-x-4 mt-6">
-                    <button type="button" id="cancel-rename" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button>
-                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">Valider</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Le reste des modales (création de dossier, suppression) reste identique... -->
-    <div id="folder-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30"><!-- ... --></div>
-    <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-30"><!-- ... --></div>
+    <!-- Modales -->
+    <div id="rename-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
+    <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
+    <div id="folder-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
+    <div id="move-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
     <script type="module" src="./courses.js"></script>

@@ -16,11 +16,14 @@
         .badge { transition: all 0.3s ease; cursor: pointer; }
         .badge.locked { filter: grayscale(100%); opacity: 0.5; }
         .badge:not(.locked):hover { transform: scale(1.1); }
+        .filter-btn.active {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- HEADER MIS À JOUR -->
     <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
@@ -47,7 +50,6 @@
         </div>
 
         <div id="profile-content" class="hidden">
-            <!-- Section principale du profil -->
             <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700 mb-8">
                 <div class="flex flex-col md:flex-row items-center justify-between">
                     <div class="flex items-center mb-4 md:mb-0 text-center md:text-left">
@@ -61,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- Section des Statistiques -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 flex items-center space-x-4">
                     <i class="fas fa-file-alt text-4xl text-indigo-400"></i>
@@ -77,23 +78,24 @@
                 </div>
             </div>
 
-            <!-- Section des Badges -->
             <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700 mb-8">
                 <h2 class="text-2xl font-bold mb-6">Succès</h2>
-                <div id="badges-container" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-6 text-center">
-                    <!-- Les badges seront injectés ici par le JS -->
-                </div>
+                <div id="badges-container" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-6 text-center"></div>
             </div>
 
-            <!-- Section du Graphique d'Activité -->
             <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700">
-                <h2 class="text-2xl font-bold mb-6">Activité des 7 derniers jours</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Activité</h2>
+                    <div id="chart-filters" class="flex space-x-2 bg-gray-700 rounded-lg p-1">
+                        <button data-period="7" class="filter-btn active px-3 py-1 rounded-md text-sm font-semibold">7 jours</button>
+                        <button data-period="30" class="filter-btn px-3 py-1 rounded-md text-sm font-semibold text-gray-300">30 jours</button>
+                    </div>
+                </div>
                 <canvas id="activity-chart"></canvas>
             </div>
         </div>
     </main>
 
-    <!-- MODALE POUR LES SUCCÈS -->
     <div id="badge-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
         <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center border border-gray-600">
             <div id="badge-modal-icon" class="bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto border-4 border-indigo-500 mb-4">
@@ -101,41 +103,35 @@
             </div>
             <h2 id="badge-modal-title" class="text-2xl font-bold mb-2">Titre du Succès</h2>
             <p id="badge-modal-description" class="text-gray-400 mb-6">Description de comment débloquer ce succès.</p>
-            
             <div id="badge-modal-progress-container" class="hidden w-full bg-gray-700 rounded-full h-4 mb-2">
                 <div id="badge-modal-progress-bar" class="bg-green-500 h-4 rounded-full text-xs text-white flex items-center justify-center" style="width: 0%;"></div>
             </div>
             <p id="badge-modal-progress-text" class="text-sm text-gray-300 mb-6"></p>
-
             <button id="close-badge-modal" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">Fermer</button>
         </div>
     </div>
+
+    <div id="toast-container" class="fixed bottom-4 right-4 space-y-2 z-50"></div>
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        // --- SYSTÈME DE SUCCÈS ---
         const allBadges = {
-            // Cours
             'course1': { title: 'Premier Pas', desc: 'Uploader votre premier cours.', icon: 'fa-upload', goal: 1, type: 'courses' },
             'course5': { title: 'Bibliothécaire', desc: 'Uploader 5 cours.', icon: 'fa-book-reader', goal: 5, type: 'courses' },
             'course10': { title: 'Archiviste', desc: 'Uploader 10 cours.', icon: 'fa-archive', goal: 10, type: 'courses' },
             'course25': { title: 'Maître du Savoir', desc: 'Uploader 25 cours.', icon: 'fa-university', goal: 25, type: 'courses' },
-            // Dossiers
             'folder1': { title: 'Organisé', desc: 'Créer votre premier dossier.', icon: 'fa-folder-plus', goal: 1, type: 'folders' },
             'folder5': { title: 'Méticuleux', desc: 'Créer 5 dossiers.', icon: 'fa-sitemap', goal: 5, type: 'folders' },
-            // Quiz
             'quiz1': { title: 'Curieux', desc: 'Créer votre premier quiz.', icon: 'fa-question-circle', goal: 1, type: 'quizzes' },
             'quiz10': { title: 'Interrogateur', desc: 'Créer 10 quiz.', icon: 'fa-clipboard-question', goal: 10, type: 'quizzes' },
             'quiz25': { title: 'Grand Inquisiteur', desc: 'Créer 25 quiz.', icon: 'fa-brain', goal: 25, type: 'quizzes' },
-            // Divers
             'week1': { title: 'Habitué', desc: 'Être inscrit depuis 1 semaine.', icon: 'fa-calendar-check', type: 'date', goal: 7 },
             'month1': { title: 'Vétéran', desc: 'Être inscrit depuis 1 mois.', icon: 'fa-medal', type: 'date', goal: 30 },
         };
         
-        // --- Éléments du DOM ---
         const ui = {
             loading: document.getElementById('loading-profile'),
             content: document.getElementById('profile-content'),
@@ -145,30 +141,37 @@
             logoutButton: document.getElementById('logout-button'),
             badgeModal: document.getElementById('badge-modal'),
             closeBadgeModalBtn: document.getElementById('close-badge-modal'),
+            chartFilters: document.getElementById('chart-filters'),
         };
 
-        // --- Logique du Header ---
+        let quizzesData = []; // Pour stocker les données des quiz
+
+        function showSuccessToast(badge) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'bg-yellow-500 text-gray-900 p-4 rounded-lg shadow-lg flex items-center space-x-3 animate-pulse';
+            toast.innerHTML = `<i class="fas ${badge.icon} text-2xl"></i><div><p class="font-bold">Succès débloqué !</p><p>${badge.title}</p></div>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.remove(); }, 5000);
+        }
+
         ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
         window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
-        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
-        
-        // --- Logique de la modale de succès ---
+        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); localStorage.removeItem('unlockedBadges'); window.location.href = '/index.html'; });
         ui.closeBadgeModalBtn.addEventListener('click', () => ui.badgeModal.classList.add('hidden'));
 
         function showBadgeModal(badgeId, stats) {
             const badge = allBadges[badgeId];
             if (!badge) return;
-
-            document.getElementById('badge-modal-icon').className = `bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto border-4 ${badge.isUnlocked ? 'border-indigo-500' : 'border-gray-600'} mb-4`;
-            document.querySelector('#badge-modal-icon i').className = `fas ${badge.icon} text-4xl ${badge.isUnlocked ? 'text-yellow-400' : 'text-gray-500'}`;
+            const isUnlocked = (stats[badge.type] || 0) >= badge.goal;
+            document.getElementById('badge-modal-icon').className = `bg-gray-700 w-24 h-24 rounded-full flex items-center justify-center mx-auto border-4 ${isUnlocked ? 'border-indigo-500' : 'border-gray-600'} mb-4`;
+            document.querySelector('#badge-modal-icon i').className = `fas ${badge.icon} text-4xl ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}`;
             document.getElementById('badge-modal-title').textContent = badge.title;
             document.getElementById('badge-modal-description').textContent = badge.desc;
-
             const progressContainer = document.getElementById('badge-modal-progress-container');
             if (badge.goal) {
                 const count = stats[badge.type] || 0;
                 const progress = Math.min(Math.floor((count / badge.goal) * 100), 100);
-                
                 const progressBar = document.getElementById('badge-modal-progress-bar');
                 progressBar.style.width = `${progress}%`;
                 progressBar.textContent = `${progress}%`;
@@ -177,70 +180,61 @@
             } else {
                 progressContainer.classList.add('hidden');
             }
-
             ui.badgeModal.classList.remove('hidden');
         }
 
         function renderBadges(stats) {
             const container = document.getElementById('badges-container');
             container.innerHTML = '';
-            
+            const previouslyUnlocked = JSON.parse(localStorage.getItem('unlockedBadges')) || [];
+            const newlyUnlocked = [];
+
             for (const id in allBadges) {
                 const badge = allBadges[id];
-                const count = stats[badge.type] || 0;
-                badge.isUnlocked = count >= badge.goal;
-
+                const isUnlocked = (stats[badge.type] || 0) >= badge.goal;
+                if (isUnlocked && !previouslyUnlocked.includes(id)) {
+                    showSuccessToast(badge);
+                    newlyUnlocked.push(id);
+                }
                 const badgeEl = document.createElement('div');
-                badgeEl.className = `badge ${!badge.isUnlocked ? 'locked' : ''}`;
+                badgeEl.className = `badge ${!isUnlocked ? 'locked' : ''}`;
                 badgeEl.onclick = () => showBadgeModal(id, stats);
-                
-                badgeEl.innerHTML = `
-                    <div class="bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto border-4 ${badge.isUnlocked ? 'border-indigo-500' : 'border-gray-600'}">
-                        <i class="fas ${badge.icon} text-2xl ${badge.isUnlocked ? 'text-yellow-400' : 'text-gray-500'}"></i>
-                    </div>
-                    <p class="mt-2 font-semibold text-xs truncate">${badge.title}</p>
-                `;
+                badgeEl.innerHTML = `<div class="bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto border-4 ${isUnlocked ? 'border-indigo-500' : 'border-gray-600'}"><i class="fas ${badge.icon} text-2xl ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}"></i></div><p class="mt-2 font-semibold text-xs truncate">${badge.title}</p>`;
                 container.appendChild(badgeEl);
+            }
+            if (newlyUnlocked.length > 0) {
+                localStorage.setItem('unlockedBadges', JSON.stringify([...previouslyUnlocked, ...newlyUnlocked]));
             }
         }
 
-        function renderChart(quizData) {
+        function renderChart(period = 7) {
             const ctx = document.getElementById('activity-chart').getContext('2d');
-            
             const labels = [];
             const data = [];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            for (let i = 6; i >= 0; i--) {
+            for (let i = period - 1; i >= 0; i--) {
                 const date = new Date(today);
                 date.setDate(today.getDate() - i);
-                labels.push(date.toLocaleDateString('fr-FR', { weekday: 'short' }));
+                labels.push(date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
                 data.push(0);
             }
 
-            quizData.forEach(quiz => {
-                const completedDate = new Date(quiz.createdAt); // Assumant que le quiz a un champ 'createdAt'
+            quizzesData.forEach(quiz => {
+                if (!quiz.createdAt) return;
+                const completedDate = new Date(quiz.createdAt);
                 completedDate.setHours(0, 0, 0, 0);
                 const diffDays = Math.floor((today - completedDate) / (1000 * 60 * 60 * 24));
-                if (diffDays >= 0 && diffDays < 7) {
-                    data[6 - diffDays]++;
+                if (diffDays >= 0 && diffDays < period) {
+                    data[(period - 1) - diffDays]++;
                 }
             });
 
             if (window.myChart instanceof Chart) window.myChart.destroy();
             window.myChart = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Quiz créés',
-                        data: data,
-                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
-                        borderColor: 'rgba(99, 102, 241, 1)',
-                        borderWidth: 1
-                    }]
-                },
+                data: { labels, datasets: [{ label: 'Quiz créés', data, backgroundColor: 'rgba(99, 102, 241, 0.6)', borderColor: 'rgba(99, 102, 241, 1)', borderWidth: 1 }] },
                 options: {
                     responsive: true,
                     scales: { y: { beginAtZero: true, ticks: { color: '#9ca3af', stepSize: 1 }, grid: { color: '#4b5563' } }, x: { ticks: { color: '#9ca3af' }, grid: { color: '#4b5563' } } },
@@ -257,17 +251,13 @@
                 const quizzesRef = collection(db, 'users', userId, 'quizzes');
 
                 const [userSnap, coursesSnap, foldersSnap, quizzesSnap] = await Promise.all([
-                    getDoc(userRef), getDocs(coursesRef), getDocs(foldersRef), getDocs(quizzesRef)
+                    getDoc(userRef), getDocs(coursesRef), getDocs(foldersSnap), getDocs(quizzesRef)
                 ]);
 
-                if (!userSnap.exists()) {
-                    window.location.href = '/onboarding.html';
-                    return;
-                }
+                if (!userSnap.exists()) { window.location.href = '/onboarding.html'; return; }
                 
                 const profileData = userSnap.data();
                 
-                // --- Affichage Header & Profil ---
                 document.getElementById('user-name-header').textContent = profileData.firstName;
                 document.getElementById('user-avatar-header').src = profileData.photoURL;
                 document.getElementById('user-name').textContent = `${profileData.firstName} ${profileData.lastName}`;
@@ -275,7 +265,6 @@
                 document.getElementById('user-email').textContent = userEmail;
                 document.getElementById('profile-picture-display').src = profileData.photoURL;
 
-                // --- Calcul des stats ---
                 const registrationDate = new Date(profileData.createdAt);
                 const daysSinceRegistration = Math.floor((new Date() - registrationDate) / (1000 * 60 * 60 * 24));
                 const stats = {
@@ -289,10 +278,9 @@
                 document.getElementById('stats-folders').textContent = stats.folders;
                 document.getElementById('stats-quizzes').textContent = stats.quizzes;
 
-                // --- Rendu des composants ---
+                quizzesData = quizzesSnap.docs.map(d => d.data());
                 renderBadges(stats);
-                const quizData = quizzesSnap.docs.map(d => d.data());
-                renderChart(quizData);
+                renderChart(); // Render with default 7 days
 
                 ui.loading.classList.add('hidden');
                 ui.content.classList.remove('hidden');
@@ -304,6 +292,15 @@
                 ui.loading.innerHTML = `<p class="text-red-400">Impossible de charger le profil. Une erreur est survenue.</p>`;
             }
         }
+
+        ui.chartFilters.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                const period = parseInt(e.target.dataset.period, 10);
+                document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                renderChart(period);
+            }
+        });
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
