@@ -17,7 +17,6 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <!-- HEADER CORRIGÉ -->
     <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
@@ -67,19 +66,239 @@
     </main>
     
     <!-- Menu contextuel -->
-    <div id="context-menu" class="context-menu absolute bg-gray-700 rounded-lg shadow-xl py-2 w-48 z-30">
-        <button data-action="rename" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-gray-600 flex items-center"><i class="fas fa-pen w-6"></i>Renommer</button>
-        <button data-action="move" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-gray-600 flex items-center"><i class="fas fa-folder-tree w-6"></i>Déplacer vers...</button>
-        <button data-action="delete" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white flex items-center"><i class="fas fa-trash w-6"></i>Supprimer</button>
-    </div>
+    <div id="context-menu" class="context-menu absolute bg-gray-700 rounded-lg shadow-xl py-2 w-48 z-30"></div>
 
     <!-- Modales -->
-    <div id="rename-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
-    <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
-    <div id="folder-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
-    <div id="move-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><!-- ... --></div>
-    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
+    <div id="modal-container"></div>
+    <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
 
-    <script type="module" src="./courses.js"></script>
+    <script type="module">
+        import { auth, db, storage } from './firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc, serverTimestamp, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+
+        let currentUserId = null, currentFolderId = null, currentFolderName = "Mes Cours";
+        let allCourses = [], allFolders = [];
+        let contextTarget = null;
+
+        const ui = {
+            navLoggedIn: document.getElementById('nav-logged-in'),
+            userMenuButton: document.getElementById('user-menu-button'),
+            userMenu: document.getElementById('user-menu'),
+            logoutButton: document.getElementById('logout-button'),
+            loadingIndicator: document.getElementById('loading-indicator'),
+            foldersGrid: document.getElementById('folders-grid'),
+            coursesList: document.getElementById('courses-list'),
+            breadcrumbs: document.getElementById('breadcrumbs'),
+            mainTitle: document.getElementById('main-title'),
+            coursesTitle: document.getElementById('courses-title'),
+            noContent: document.getElementById('no-content'),
+            contextMenu: document.getElementById('context-menu'),
+            newFolderBtn: document.getElementById('new-folder-button'),
+            modalContainer: document.getElementById('modal-container'),
+            messageBoxContainer: document.getElementById('message-box'),
+        };
+
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.textContent = message;
+            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
+            ui.messageBoxContainer.appendChild(box);
+            setTimeout(() => { box.remove(); }, 3000);
+        }
+
+        function render() {
+            if (!currentUserId) return;
+            renderHeader();
+            renderBreadcrumbs();
+            renderFolders();
+            renderCourses();
+            ui.loadingIndicator.classList.add('hidden');
+        }
+
+        async function renderHeader() {
+            const userRef = doc(db, 'users', currentUserId);
+            const docSnap = await getDoc(userRef);
+            if (docSnap.exists()) {
+                const profileData = docSnap.data();
+                document.getElementById('user-name-header').textContent = profileData.firstName;
+                document.getElementById('user-avatar-header').src = profileData.photoURL;
+                ui.navLoggedIn.classList.remove('hidden');
+                ui.navLoggedIn.classList.add('flex');
+            }
+        }
+
+        function renderBreadcrumbs() {
+            ui.breadcrumbs.innerHTML = `<a href="#" data-folderid="null" class="hover:text-white">Mes Cours</a>`;
+            if (currentFolderId) {
+                ui.breadcrumbs.innerHTML += ` <span class="mx-2">/</span> ${currentFolderName}`;
+            }
+            ui.mainTitle.textContent = currentFolderName;
+        }
+
+        function renderFolders() {
+            document.getElementById('folders-section').style.display = currentFolderId ? 'none' : 'block';
+            if (currentFolderId) return;
+            ui.foldersGrid.querySelectorAll('.folder-item').forEach(el => el.remove());
+            allFolders.forEach(folder => ui.foldersGrid.appendChild(createFolderElement(folder)));
+        }
+
+        function renderCourses() {
+            ui.coursesList.innerHTML = '';
+            const coursesToDisplay = allCourses.filter(course => (course.folderId || null) === currentFolderId);
+            ui.coursesTitle.textContent = currentFolderId ? 'Cours dans ce dossier' : 'Cours non classés';
+            if (coursesToDisplay.length === 0 && (currentFolderId || allFolders.length === 0)) {
+                ui.noContent.classList.remove('hidden');
+            } else {
+                ui.noContent.classList.add('hidden');
+                coursesToDisplay.forEach(course => ui.coursesList.appendChild(createCourseElement(course)));
+            }
+        }
+
+        function createFolderElement(folder) {
+            const el = document.createElement('div');
+            el.className = 'folder-item relative bg-gray-800 p-4 rounded-lg flex items-center space-x-3 cursor-pointer hover:bg-gray-700 h-32 flex-col justify-center';
+            el.dataset.id = folder.id;
+            el.dataset.name = folder.name;
+            el.innerHTML = `<i class="fas fa-folder text-4xl text-indigo-400"></i><span class="font-semibold truncate mt-2">${folder.name}</span><button class="context-menu-btn absolute top-2 right-2 text-gray-400 hover:text-white w-8 h-8 rounded-full flex items-center justify-center bg-gray-900 bg-opacity-50"><i class="fas fa-ellipsis-v"></i></button>`;
+            el.addEventListener('click', (e) => !e.target.closest('.context-menu-btn') && navigateToFolder(folder.id, folder.name));
+            return el;
+        }
+
+        function createCourseElement(course) {
+            const el = document.createElement('div');
+            el.className = 'course-item bg-gray-800 p-4 rounded-lg flex items-center justify-between border border-gray-700';
+            el.dataset.id = course.id;
+            el.dataset.name = course.name;
+            el.dataset.fileName = course.fileName;
+            const uploadedDate = new Date(course.uploadedAt).toLocaleDateString('fr-FR');
+            el.innerHTML = `<div class="flex items-center space-x-4 overflow-hidden"><i class="fas fa-file-pdf text-3xl text-red-500 flex-shrink-0"></i><div class="overflow-hidden"><h3 class="font-bold text-md truncate" title="${course.name}">${course.name}</h3><p class="text-sm text-gray-400">Ajouté le ${uploadedDate}</p></div></div><div class="flex items-center space-x-2 flex-shrink-0"><a href="${course.url}" target="_blank" title="Voir le PDF" class="bg-gray-600 hover:bg-gray-500 text-white font-bold p-2 rounded-lg h-10 w-10 flex items-center justify-center"><i class="fas fa-eye"></i></a><button class="context-menu-btn text-gray-400 hover:text-white bg-gray-700 p-2 rounded-lg h-10 w-10 flex items-center justify-center"><i class="fas fa-ellipsis-v"></i></button></div>`;
+            return el;
+        }
+
+        function navigateToFolder(folderId, folderName) {
+            currentFolderId = folderId;
+            currentFolderName = folderName;
+            render();
+        }
+
+        function showContextMenu(e, type) {
+            e.preventDefault();
+            e.stopPropagation();
+            contextTarget = { type, id: e.currentTarget.closest('[data-id]').dataset.id, name: e.currentTarget.closest('[data-id]').dataset.name, fileName: e.currentTarget.closest('[data-id]').dataset.fileName || null };
+            let moveBtn = type === 'course' ? `<button data-action="move" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-gray-600 flex items-center"><i class="fas fa-folder-tree w-6"></i>Déplacer vers...</button>` : '';
+            ui.contextMenu.innerHTML = `<button data-action="rename" class="w-full text-left px-4 py-2 text-gray-200 hover:bg-gray-600 flex items-center"><i class="fas fa-pen w-6"></i>Renommer</button>${moveBtn}<button data-action="delete" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white flex items-center"><i class="fas fa-trash w-6"></i>Supprimer</button>`;
+            ui.contextMenu.style.top = `${e.pageY}px`;
+            ui.contextMenu.style.left = `${e.pageX}px`;
+            ui.contextMenu.style.display = 'block';
+        }
+
+        function hideContextMenu() { ui.contextMenu.style.display = 'none'; contextTarget = null; }
+
+        function createModal(id, title, content, formHandler) {
+            const modalHTML = `<div id="${id}" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md"><h2 class="text-2xl font-bold mb-6">${title}</h2><form>${content}</form></div></div>`;
+            ui.modalContainer.innerHTML = modalHTML;
+            const modal = document.getElementById(id);
+            modal.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); formHandler(e); });
+            modal.querySelector('[data-action="cancel"]').addEventListener('click', () => modal.remove());
+        }
+
+        function openRenameModal() {
+            const content = `<label for="new-name-input" class="block text-gray-300 font-bold mb-2">Nouveau nom</label><input type="text" id="new-name-input" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" value="${contextTarget.name}" required><div class="flex justify-end space-x-4 mt-6"><button type="button" data-action="cancel" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">Valider</button></div>`;
+            createModal('rename-modal', `Renommer "${contextTarget.name}"`, content, async (e) => {
+                const newName = e.target.querySelector('#new-name-input').value.trim();
+                if (newName && newName !== contextTarget.name) {
+                    const collectionName = contextTarget.type === 'folder' ? 'folders' : 'courses';
+                    await updateDoc(doc(db, 'users', currentUserId, collectionName, contextTarget.id), { name: newName });
+                    showMessage('Élément renommé.', false);
+                }
+                document.getElementById('rename-modal').remove();
+            });
+        }
+        
+        function openDeleteModal() {
+            const content = `<p class="text-gray-400 mb-6">Êtes-vous sûr de vouloir supprimer "${contextTarget.name}" ? Cette action est irréversible.</p><div class="flex justify-center space-x-4"><button type="button" data-action="cancel" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button><button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Supprimer</button></div>`;
+            createModal('delete-modal', 'Confirmer la suppression', content, async (e) => {
+                const { type, id, fileName } = contextTarget;
+                const btn = e.target.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                try {
+                    const collectionName = type === 'folder' ? 'folders' : 'courses';
+                    await deleteDoc(doc(db, 'users', currentUserId, collectionName, id));
+                    if (type === 'course' && fileName) {
+                        await deleteObject(ref(storage, `users/${currentUserId}/courses/${id}/${fileName}`));
+                    }
+                    if (type === 'folder') {
+                        const q = query(collection(db, 'users', currentUserId, 'courses'), where("folderId", "==", id));
+                        const coursesInFolder = await getDocs(q);
+                        const batch = writeBatch(db);
+                        coursesInFolder.forEach(d => batch.update(d.ref, { folderId: null }));
+                        await batch.commit();
+                    }
+                    showMessage('Élément supprimé.', false);
+                } catch (error) { showMessage('Erreur de suppression.', true); }
+                document.getElementById('delete-modal').remove();
+            });
+        }
+
+        function openMoveModal() {
+            let options = '<option value="null">Racine (aucun dossier)</option>';
+            allFolders.forEach(f => options += `<option value="${f.id}">${f.name}</option>`);
+            const content = `<label for="folder-select" class="block text-gray-300 font-bold mb-2">Choisir un dossier</label><select id="folder-select" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white">${options}</select><div class="flex justify-end space-x-4 mt-6"><button type="button" data-action="cancel" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">Déplacer</button></div>`;
+            createModal('move-modal', `Déplacer "${contextTarget.name}"`, content, async (e) => {
+                const targetFolderId = e.target.querySelector('#folder-select').value;
+                await updateDoc(doc(db, 'users', currentUserId, 'courses', contextTarget.id), { folderId: targetFolderId === 'null' ? null : targetFolderId });
+                showMessage('Cours déplacé.', false);
+                document.getElementById('move-modal').remove();
+            });
+        }
+
+        function openNewFolderModal() {
+            const content = `<label for="folder-name" class="block text-gray-300 font-bold mb-2">Nom du dossier</label><input type="text" id="folder-name" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white" required><div class="flex justify-end space-x-4 mt-6"><button type="button" data-action="cancel" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button><button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">Créer</button></div>`;
+            createModal('folder-modal', 'Nouveau dossier', content, async (e) => {
+                const folderName = e.target.querySelector('#folder-name').value.trim();
+                if (folderName) {
+                    await addDoc(collection(db, 'users', currentUserId, 'folders'), { name: folderName, createdAt: serverTimestamp() });
+                    showMessage('Dossier créé.', false);
+                }
+                document.getElementById('folder-modal').remove();
+            });
+        }
+
+        function setupEventListeners() {
+            ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
+            window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target) && !e.target.closest('.context-menu')) hideContextMenu(); });
+            ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
+            ui.breadcrumbs.addEventListener('click', (e) => e.target.dataset.folderid === 'null' && navigateToFolder(null, "Mes Cours"));
+            ui.newFolderBtn.addEventListener('click', openNewFolderModal);
+            document.addEventListener('click', (e) => {
+                const menuBtn = e.target.closest('.context-menu-btn');
+                if (menuBtn) {
+                    const parent = menuBtn.closest('.folder-item, .course-item');
+                    showContextMenu(e, parent.classList.contains('folder-item') ? 'folder' : 'course');
+                }
+            });
+            ui.contextMenu.addEventListener('click', (e) => {
+                const action = e.target.closest('button')?.dataset.action;
+                if (action === 'rename') openRenameModal();
+                if (action === 'delete') openDeleteModal();
+                if (action === 'move') openMoveModal();
+                hideContextMenu();
+            });
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user && !user.isAnonymous) {
+                currentUserId = user.uid;
+                setupEventListeners();
+                onSnapshot(collection(db, 'users', currentUserId, 'folders'), (snapshot) => { allFolders = snapshot.docs.map(d => ({ id: d.id, ...d.data() })); render(); });
+                onSnapshot(collection(db, 'users', currentUserId, 'courses'), (snapshot) => { allCourses = snapshot.docs.map(d => ({ id: d.id, ...d.data() })); render(); });
+            } else {
+                window.location.href = '/login.html';
+            }
+        });
+    </script>
 </body>
 </html>

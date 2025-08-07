@@ -144,7 +144,7 @@
             chartFilters: document.getElementById('chart-filters'),
         };
 
-        let quizzesData = []; // Pour stocker les données des quiz
+        let quizzesData = [];
 
         function showSuccessToast(badge) {
             const container = document.getElementById('toast-container');
@@ -280,7 +280,7 @@
 
                 quizzesData = quizzesSnap.docs.map(d => d.data());
                 renderBadges(stats);
-                renderChart(); // Render with default 7 days
+                renderChart();
 
                 ui.loading.classList.add('hidden');
                 ui.content.classList.remove('hidden');
