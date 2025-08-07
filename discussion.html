@@ -135,34 +135,18 @@
                     </div>
                 </div>`;
             
-            if (post.sharedCourseId) {
-                loadSharedContent(post.authorId, post.sharedCourseId);
+            if (post.sharedCourseUrl) {
+                const container = document.getElementById('shared-content-container');
+                container.innerHTML = `
+                    <a href="${post.sharedCourseUrl}" target="_blank" class="block bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors">
+                        <p class="text-sm text-gray-400">Cours partagé :</p>
+                        <p class="font-bold text-white flex items-center"><i class="fas fa-file-pdf text-red-500 mr-2"></i>${post.sharedCourseName}</p>
+                    </a>`;
             }
 
             const discussionRef = doc(db, 'forum', discussionId);
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(discussionRef, 1));
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(discussionRef, -1));
-        }
-
-        async function loadSharedContent(authorId, courseId) {
-            const container = document.getElementById('shared-content-container');
-            try {
-                const courseRef = doc(db, 'users', authorId, 'courses', courseId);
-                const courseSnap = await getDoc(courseRef);
-                if (courseSnap.exists()) {
-                    const course = courseSnap.data();
-                    container.innerHTML = `
-                        <a href="${course.url}" target="_blank" class="block bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors">
-                            <p class="text-sm text-gray-400">Cours partagé :</p>
-                            <p class="font-bold text-white flex items-center"><i class="fas fa-file-pdf text-red-500 mr-2"></i>${course.name}</p>
-                        </a>`;
-                } else {
-                     container.innerHTML = `<div class="block bg-gray-900 p-4 rounded-lg border border-gray-700"><p class="text-sm text-gray-500">Le cours partagé n'est plus disponible.</p></div>`;
-                }
-            } catch (error) {
-                console.error("Erreur de chargement du contenu partagé:", error);
-                container.innerHTML = `<div class="block bg-gray-900 p-4 rounded-lg border border-gray-700"><p class="text-sm text-red-500">Impossible de charger le contenu partagé.</p></div>`;
-            }
         }
 
         function createReplyElement(reply) {
@@ -295,7 +279,8 @@
                 });
 
             } else {
-                window.location.href = '/login.html';
+                // Si déconnecté, on cache le formulaire de réponse
+                ui.replyFormContainer.classList.add('hidden');
             }
         });
 

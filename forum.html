@@ -81,6 +81,7 @@
         import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserProfile = null;
+        let userCourses = [];
 
         const ui = {
             navLoggedIn: document.getElementById('nav-logged-in'),
@@ -162,10 +163,12 @@
             select.innerHTML = '<option value="">Ne rien partager</option>';
             const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
             const coursesSnap = await getDocs(coursesRef);
-            coursesSnap.forEach(doc => {
+            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            userCourses.forEach(course => {
                 const option = document.createElement('option');
-                option.value = doc.id;
-                option.textContent = `Cours: ${doc.data().name}`;
+                option.value = course.id;
+                option.textContent = `Cours: ${course.name}`;
                 select.appendChild(option);
             });
         }
@@ -177,21 +180,36 @@
             const content = document.getElementById('discussion-content').value.trim();
             const sharedCourseId = document.getElementById('share-select').value;
             if (!title || !content) { showMessage('Le titre et le message ne peuvent pas être vides.', true); return; }
+            
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
+
+            const postData = {
+                title, content,
+                authorId: auth.currentUser.uid,
+                authorName: currentUserProfile.firstName,
+                authorPhotoURL: currentUserProfile.photoURL,
+                createdAt: serverTimestamp(),
+                replyCount: 0,
+                lastReplyAt: serverTimestamp(),
+                votes: 0,
+                voters: {},
+                sharedCourseId: null,
+                sharedCourseName: null,
+                sharedCourseUrl: null,
+            };
+
+            if (sharedCourseId) {
+                const selectedCourse = userCourses.find(c => c.id === sharedCourseId);
+                if (selectedCourse) {
+                    postData.sharedCourseId = sharedCourseId;
+                    postData.sharedCourseName = selectedCourse.name;
+                    postData.sharedCourseUrl = selectedCourse.url;
+                }
+            }
+
             try {
-                await addDoc(collection(db, 'forum'), {
-                    title, content,
-                    authorId: auth.currentUser.uid,
-                    authorName: currentUserProfile.firstName,
-                    authorPhotoURL: currentUserProfile.photoURL,
-                    createdAt: serverTimestamp(),
-                    replyCount: 0,
-                    lastReplyAt: serverTimestamp(),
-                    sharedCourseId: sharedCourseId || null,
-                    votes: 0,
-                    voters: {},
-                });
+                await addDoc(collection(db, 'forum'), postData);
                 showMessage('Discussion publiée !', false);
                 ui.discussionForm.reset();
                 ui.discussionModal.classList.add('hidden');
