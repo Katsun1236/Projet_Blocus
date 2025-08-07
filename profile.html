@@ -16,10 +16,7 @@
         .badge { transition: all 0.3s ease; cursor: pointer; }
         .badge.locked { filter: grayscale(100%); opacity: 0.5; }
         .badge:not(.locked):hover { transform: scale(1.1); }
-        .filter-btn.active {
-            background-color: #4f46e5; /* indigo-600 */
-            color: white;
-        }
+        .filter-btn.active { background-color: #4f46e5; color: white; }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -80,7 +77,7 @@
 
             <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700 mb-8">
                 <h2 class="text-2xl font-bold mb-6">Succès</h2>
-                <div id="badges-container" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-6 text-center"></div>
+                <div id="badges-container" class="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-6 text-center"></div>
             </div>
 
             <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full border border-gray-700">
@@ -119,17 +116,28 @@
         import { doc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         const allBadges = {
-            'course1': { title: 'Premier Pas', desc: 'Uploader votre premier cours.', icon: 'fa-upload', goal: 1, type: 'courses' },
+            'course1': { title: 'Premiers Pas', desc: 'Uploader votre premier cours.', icon: 'fa-graduation-cap', goal: 1, type: 'courses' },
             'course5': { title: 'Bibliothécaire', desc: 'Uploader 5 cours.', icon: 'fa-book-reader', goal: 5, type: 'courses' },
             'course10': { title: 'Archiviste', desc: 'Uploader 10 cours.', icon: 'fa-archive', goal: 10, type: 'courses' },
-            'course25': { title: 'Maître du Savoir', desc: 'Uploader 25 cours.', icon: 'fa-university', goal: 25, type: 'courses' },
-            'folder1': { title: 'Organisé', desc: 'Créer votre premier dossier.', icon: 'fa-folder-plus', goal: 1, type: 'folders' },
-            'folder5': { title: 'Méticuleux', desc: 'Créer 5 dossiers.', icon: 'fa-sitemap', goal: 5, type: 'folders' },
-            'quiz1': { title: 'Curieux', desc: 'Créer votre premier quiz.', icon: 'fa-question-circle', goal: 1, type: 'quizzes' },
-            'quiz10': { title: 'Interrogateur', desc: 'Créer 10 quiz.', icon: 'fa-clipboard-question', goal: 10, type: 'quizzes' },
-            'quiz25': { title: 'Grand Inquisiteur', desc: 'Créer 25 quiz.', icon: 'fa-brain', goal: 25, type: 'quizzes' },
-            'week1': { title: 'Habitué', desc: 'Être inscrit depuis 1 semaine.', icon: 'fa-calendar-check', type: 'date', goal: 7 },
-            'month1': { title: 'Vétéran', desc: 'Être inscrit depuis 1 mois.', icon: 'fa-medal', type: 'date', goal: 30 },
+            'course25': { title: 'Bibliothèque d\'Alexandrie', desc: 'Uploader 25 cours.', icon: 'fa-university', goal: 25, type: 'courses' },
+            'folder1': { title: 'Architecte du Savoir', desc: 'Créer votre premier dossier.', icon: 'fa-folder-plus', goal: 1, type: 'folders' },
+            'folder5': { title: 'Organisateur', desc: 'Créer 5 dossiers.', icon: 'fa-sitemap', goal: 5, type: 'folders' },
+            'quiz1': { title: 'Maître Quizzeur', desc: 'Créer votre premier quiz.', icon: 'fa-question-circle', goal: 1, type: 'quizzes' },
+            'quiz10': { title: 'Générateur en Série', desc: 'Créer 10 quiz.', icon: 'fa-clipboard-question', goal: 10, type: 'quizzes' },
+            'quiz25': { title: 'Collectionneur de Quiz', desc: 'Créer 25 quiz.', icon: 'fa-brain', goal: 25, type: 'quizzes' },
+            'synth1': { title: 'Synthétiseur', desc: 'Générer votre première synthèse.', icon: 'fa-file-signature', goal: 1, type: 'syntheses' },
+            'week1': { title: 'Habitué du Campus', desc: 'Être inscrit depuis 1 semaine.', icon: 'fa-calendar-check', type: 'date', goal: 7 },
+            'month1': { title: 'Vétéran du Blocus', desc: 'Être inscrit depuis 1 mois.', icon: 'fa-medal', type: 'date', goal: 30 },
+            'year1': { title: 'Anniversaire d\'Études', desc: 'Être inscrit depuis 1 an.', icon: 'fa-birthday-cake', type: 'date', goal: 365 },
+            'night-owl': { title: 'Oiseau de Nuit', desc: 'Lancer une session après minuit.', icon: 'fa-moon', goal: 1, type: 'sessions' }, // Logique à ajouter
+            'early-bird': { title: 'Lève-tôt', desc: 'Lancer une session avant 7h.', icon: 'fa-sun', goal: 1, type: 'sessions' }, // Logique à ajouter
+            'explorer': { title: 'Explorateur', desc: 'Utiliser le Quiz, la Synthèse et le Forum.', icon: 'fa-map-signs', goal: 3, type: 'features' }, // Logique à ajouter
+            'perfect10': { title: 'Le 10/10', desc: 'Obtenir 100% à un quiz d\'au moins 10 questions.', icon: 'fa-star', goal: 1, type: 'scores' }, // Logique à ajouter
+            'qcm-king': { title: 'Roi du QCM', desc: 'Répondre correctement à 100 QCM.', icon: 'fa-crown', goal: 100, type: 'qcmAnswers' }, // Logique à ajouter
+            'big-course': { title: 'Le Blocus, même pas peur !', desc: 'Uploader un cours de plus de 100 pages.', icon: 'fa-book-dead', goal: 1, type: 'pages' }, // Logique à ajouter
+            'curious': { title: 'Curieux', desc: 'Badge secret obtenu en cliquant sur le logo dans le pied de page.', icon: 'fa-search', goal: 1, type: 'secrets' }, // Logique à ajouter
+            'collector10': { title: 'Collectionneur', desc: 'Débloquer 10 autres badges.', icon: 'fa-trophy', goal: 10, type: 'unlocked' },
+            'collector25': { title: 'Grand Collectionneur', desc: 'Débloquer 25 autres badges.', icon: 'fa-gem', goal: 25, type: 'unlocked' },
         };
         
         const ui = {
@@ -188,10 +196,13 @@
             container.innerHTML = '';
             const previouslyUnlocked = JSON.parse(localStorage.getItem('unlockedBadges')) || [];
             const newlyUnlocked = [];
+            let unlockedCount = 0;
 
             for (const id in allBadges) {
                 const badge = allBadges[id];
                 const isUnlocked = (stats[badge.type] || 0) >= badge.goal;
+                if(isUnlocked) unlockedCount++;
+
                 if (isUnlocked && !previouslyUnlocked.includes(id)) {
                     showSuccessToast(badge);
                     newlyUnlocked.push(id);
@@ -202,8 +213,10 @@
                 badgeEl.innerHTML = `<div class="bg-gray-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto border-4 ${isUnlocked ? 'border-indigo-500' : 'border-gray-600'}"><i class="fas ${badge.icon} text-2xl ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}"></i></div><p class="mt-2 font-semibold text-xs truncate">${badge.title}</p>`;
                 container.appendChild(badgeEl);
             }
+            stats.unlocked = unlockedCount; // On met à jour le compte pour les badges "collectionneur"
             if (newlyUnlocked.length > 0) {
                 localStorage.setItem('unlockedBadges', JSON.stringify([...previouslyUnlocked, ...newlyUnlocked]));
+                renderBadges(stats); // On relance pour mettre à jour les badges collectionneurs
             }
         }
 
@@ -222,7 +235,7 @@
             }
 
             quizzesData.forEach(quiz => {
-                if (!quiz.createdAt) return;
+                if (!quiz.createdAt) return; // Sécurité
                 const completedDate = new Date(quiz.createdAt);
                 completedDate.setHours(0, 0, 0, 0);
                 const diffDays = Math.floor((today - completedDate) / (1000 * 60 * 60 * 24));
@@ -246,17 +259,18 @@
         async function fetchProfileData(userId, userEmail) {
             try {
                 const userRef = doc(db, 'users', userId);
+                const userSnap = await getDoc(userRef);
+
+                if (!userSnap.exists()) { window.location.href = '/onboarding.html'; return; }
+                const profileData = userSnap.data();
+
                 const coursesRef = collection(db, 'users', userId, 'courses');
                 const foldersRef = collection(db, 'users', userId, 'folders');
                 const quizzesRef = collection(db, 'users', userId, 'quizzes');
 
-                const [userSnap, coursesSnap, foldersSnap, quizzesSnap] = await Promise.all([
-                    getDoc(userRef), getDocs(coursesRef), getDocs(foldersSnap), getDocs(quizzesRef)
+                const [coursesSnap, foldersSnap, quizzesSnap] = await Promise.all([
+                    getDocs(coursesRef), getDocs(foldersRef), getDocs(quizzesRef)
                 ]);
-
-                if (!userSnap.exists()) { window.location.href = '/onboarding.html'; return; }
-                
-                const profileData = userSnap.data();
                 
                 document.getElementById('user-name-header').textContent = profileData.firstName;
                 document.getElementById('user-avatar-header').src = profileData.photoURL;
@@ -265,13 +279,21 @@
                 document.getElementById('user-email').textContent = userEmail;
                 document.getElementById('profile-picture-display').src = profileData.photoURL;
 
-                const registrationDate = new Date(profileData.createdAt);
+                const registrationDate = profileData.createdAt ? new Date(profileData.createdAt) : new Date();
                 const daysSinceRegistration = Math.floor((new Date() - registrationDate) / (1000 * 60 * 60 * 24));
                 const stats = {
                     courses: coursesSnap.size,
                     folders: foldersSnap.size,
                     quizzes: quizzesSnap.size,
                     date: daysSinceRegistration,
+                    syntheses: 0, // À implémenter
+                    sessions: 0, // À implémenter
+                    features: 0, // À implémenter
+                    scores: 0, // À implémenter
+                    qcmAnswers: 0, // À implémenter
+                    pages: 0, // À implémenter
+                    secrets: 0, // À implémenter
+                    unlocked: 0, // Sera calculé dans renderBadges
                 };
 
                 document.getElementById('stats-courses').textContent = stats.courses;
@@ -289,7 +311,7 @@
 
             } catch (error) {
                 console.error("Erreur fetchProfileData:", error);
-                ui.loading.innerHTML = `<p class="text-red-400">Impossible de charger le profil. Une erreur est survenue.</p>`;
+                ui.loading.innerHTML = `<p class="text-red-400">Impossible de charger le profil. Vérifiez vos règles de sécurité Firebase.</p>`;
             }
         }
 
