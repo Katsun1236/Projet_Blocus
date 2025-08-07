@@ -65,9 +65,10 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, query, orderBy, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserProfile = null;
+        let friendships = {};
         const discussionId = new URLSearchParams(window.location.search).get('id');
         if (!discussionId) window.location.href = '/forum.html';
 
@@ -85,14 +86,6 @@
             messageBoxContainer: document.getElementById('message-box'),
         };
 
-        function showMessage(message, isError = false) {
-            const box = document.createElement('div');
-            box.textContent = message;
-            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
-            ui.messageBoxContainer.appendChild(box);
-            setTimeout(() => { box.remove(); }, 3000);
-        }
-
         function timeAgo(date) {
             if (!date) return 'date inconnue';
             const seconds = Math.floor((new Date() - date) / 1000);
@@ -109,11 +102,36 @@
             return "à l'instant";
         }
 
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.textContent = message;
+            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
+            ui.messageBoxContainer.appendChild(box);
+            setTimeout(() => { box.remove(); }, 3000);
+        }
+
+        function getFriendshipStatus(targetId) {
+            if (!auth.currentUser || auth.currentUser.uid === targetId) return 'self';
+            return friendships[targetId] || 'none';
+        }
+
+        function getFriendButton(targetId, targetName) {
+            const status = getFriendshipStatus(targetId);
+            switch (status) {
+                case 'self': return '';
+                case 'friends': return `<button disabled class="text-sm text-green-400 font-semibold flex items-center"><i class="fas fa-check-circle mr-2"></i>Amis</button>`;
+                case 'sent': return `<button disabled class="text-sm text-gray-400 font-semibold">Demande envoyée</button>`;
+                case 'received': return `<button data-action="accept" data-id="${targetId}" class="text-sm bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-lg">Accepter</button>`;
+                default: return `<button data-action="add" data-id="${targetId}" data-name="${targetName}" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg flex items-center"><i class="fas fa-user-plus mr-2"></i>Ajouter</button>`;
+            }
+        }
+
         function renderMainPost(post) {
             ui.loadingPost.classList.add('hidden');
             const postDate = timeAgo(post.createdAt?.toDate());
             const content = post.content.replace(/\n/g, '<br>');
             const voteState = post.voters?.[auth.currentUser?.uid];
+            const friendButton = getFriendButton(post.authorId, post.authorName);
 
             ui.mainPostContainer.innerHTML = `
                 <div class="bg-gray-800 p-8 rounded-lg border border-gray-700">
@@ -127,7 +145,10 @@
                              <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
                             <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
                                 <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
-                                <span>par <strong class="text-indigo-400">${post.authorName}</strong></span> • <span>${postDate}</span>
+                                <span>par <strong class="text-indigo-400">${post.authorName}</strong></span>
+                                <div id="friend-button-main">${friendButton}</div>
+                                <span>•</span>
+                                <span>${postDate}</span>
                             </div>
                             <div id="shared-content-container" class="mb-6"></div>
                             <div class="text-gray-300 leading-relaxed">${content}</div>
@@ -155,12 +176,16 @@
             const replyDate = timeAgo(reply.createdAt?.toDate());
             const content = reply.content.replace(/\n/g, '<br>');
             const voteState = reply.voters?.[auth.currentUser?.uid];
+            const friendButton = getFriendButton(reply.authorId, reply.authorName);
 
             el.innerHTML = `
                 <img src="${reply.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
                 <div class="bg-gray-800 p-4 rounded-lg flex-grow">
                     <div class="flex justify-between items-center mb-2">
-                        <p class="font-semibold text-indigo-400">${reply.authorName}</p>
+                        <div class="flex items-center space-x-3">
+                           <p class="font-semibold text-indigo-400">${reply.authorName}</p>
+                           <div id="friend-button-${reply.id}">${friendButton}</div>
+                        </div>
                         <p class="text-xs text-gray-500">${replyDate}</p>
                     </div>
                     <p class="text-gray-300 mb-3">${content}</p>
@@ -236,12 +261,51 @@
                 btn.disabled = false;
             }
         }
+        
+        async function handleFriendAction(targetId, action) {
+            if (!currentUserProfile) return;
+            const currentUserId = auth.currentUser.uid;
+        
+            if (action === 'add') {
+                const friendshipRef = collection(db, 'friendships');
+                await addDoc(friendshipRef, {
+                    users: [currentUserId, targetId],
+                    status: 'pending',
+                    requestedBy: currentUserId,
+                    requestedTo: targetId,
+                    createdAt: serverTimestamp()
+                });
+                showMessage('Demande d\'ami envoyée !', false);
+            }
+        
+            if (action === 'accept') {
+                const q = query(collection(db, 'friendships'), 
+                    where('users', 'array-contains', currentUserId),
+                    where('requestedTo', '==', currentUserId)
+                );
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach(async (d) => {
+                    if(d.data().requestedBy === targetId) {
+                        await updateDoc(d.ref, { status: 'friends' });
+                        showMessage('Ami ajouté !', false);
+                    }
+                });
+            }
+        }
 
         function setupEventListeners() {
             ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
             window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
             ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
             ui.replyForm.addEventListener('submit', handleReplySubmit);
+            document.addEventListener('click', (e) => {
+                const button = e.target.closest('[data-action="add"], [data-action="accept"]');
+                if (button) {
+                    const action = button.dataset.action;
+                    const targetId = button.dataset.id;
+                    handleFriendAction(targetId, action);
+                }
+            });
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -269,8 +333,8 @@
                 });
 
                 const repliesRef = collection(discussionRef, 'replies');
-                const q = query(repliesRef, orderBy('createdAt', 'asc'));
-                onSnapshot(q, (snapshot) => {
+                const qReplies = query(repliesRef, orderBy('createdAt', 'asc'));
+                onSnapshot(qReplies, (snapshot) => {
                     ui.repliesList.innerHTML = '';
                     if (!snapshot.empty) {
                         ui.repliesSection.classList.remove('hidden');
@@ -278,8 +342,34 @@
                     }
                 });
 
+                const friendshipsRef = collection(db, 'friendships');
+                const qFriends = query(friendshipsRef, where('users', 'array-contains', user.uid));
+                onSnapshot(qFriends, (snapshot) => {
+                    friendships = {};
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        const otherUserId = data.users.find(id => id !== user.uid);
+                        if (data.status === 'friends') {
+                            friendships[otherUserId] = 'friends';
+                        } else if (data.status === 'pending') {
+                            friendships[otherUserId] = data.requestedBy === user.uid ? 'sent' : 'received';
+                        }
+                    });
+                    
+                    // Re-render the main post and replies to update friend buttons
+                    getDoc(discussionRef).then(doc => {
+                        if(doc.exists()) renderMainPost(doc.data());
+                    });
+                    getDocs(qReplies).then(snap => {
+                        ui.repliesList.innerHTML = '';
+                        if (!snap.empty) {
+                            ui.repliesSection.classList.remove('hidden');
+                            snap.forEach(d => ui.repliesList.appendChild(createReplyElement({id: d.id, ...d.data()})));
+                        }
+                    });
+                });
+
             } else {
-                // Si déconnecté, on cache le formulaire de réponse
                 ui.replyFormContainer.classList.add('hidden');
             }
         });
