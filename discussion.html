@@ -61,16 +61,15 @@
     </main>
 
     <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
+    <div id="modal-container"></div>
 
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, query, orderBy, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, query, orderBy, where, getDocs, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserProfile = null;
         let friendships = {};
-        let currentPostData = null;
-        let currentRepliesData = [];
         const discussionId = new URLSearchParams(window.location.search).get('id');
         if (!discussionId) window.location.href = '/forum.html';
 
@@ -86,6 +85,7 @@
             replyFormContainer: document.getElementById('reply-form-container'),
             replyForm: document.getElementById('reply-form'),
             messageBoxContainer: document.getElementById('message-box'),
+            modalContainer: document.getElementById('modal-container'),
         };
 
         function timeAgo(date) {
@@ -128,14 +128,21 @@
             }
         }
 
-        function renderMainPost() {
-            if (!currentPostData) return;
+        function getModeratorButton(authorId, replyId = null) {
+            if (currentUserProfile?.role === 'moderator' && auth.currentUser?.uid !== authorId) {
+                const dataAttributes = `data-action="delete-post" ${replyId ? `data-reply-id="${replyId}"` : ''}`;
+                return `<button ${dataAttributes} class="text-sm bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-lg flex items-center"><i class="fas fa-shield-alt mr-2"></i>Modérer</button>`;
+            }
+            return '';
+        }
+
+        function renderMainPost(post) {
             ui.loadingPost.classList.add('hidden');
-            const post = currentPostData;
             const postDate = timeAgo(post.createdAt?.toDate());
             const content = post.content.replace(/\n/g, '<br>');
             const voteState = post.voters?.[auth.currentUser?.uid];
             const friendButton = getFriendButton(post.authorId, post.authorName);
+            const moderatorButton = getModeratorButton(post.authorId);
 
             ui.mainPostContainer.innerHTML = `
                 <div class="bg-gray-800 p-8 rounded-lg border border-gray-700">
@@ -147,12 +154,13 @@
                         </div>
                         <div class="flex-grow">
                              <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
-                            <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
+                            <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6 flex-wrap gap-2">
                                 <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
                                 <span>par <strong class="text-indigo-400">${post.authorName}</strong></span>
-                                <div id="friend-button-main">${friendButton}</div>
+                                <div class="friend-button-container" data-author-id="${post.authorId}" data-author-name="${post.authorName}">${friendButton}</div>
                                 <span>•</span>
                                 <span>${postDate}</span>
+                                <div class="moderator-button-container" data-author-id="${post.authorId}">${moderatorButton}</div>
                             </div>
                             <div id="shared-content-container" class="mb-6"></div>
                             <div class="text-gray-300 leading-relaxed">${content}</div>
@@ -173,16 +181,6 @@
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(discussionRef, 1));
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(discussionRef, -1));
         }
-        
-        function renderReplies() {
-            ui.repliesList.innerHTML = '';
-            if (currentRepliesData.length > 0) {
-                ui.repliesSection.classList.remove('hidden');
-                currentRepliesData.forEach(reply => ui.repliesList.appendChild(createReplyElement(reply)));
-            } else {
-                ui.repliesSection.classList.add('hidden');
-            }
-        }
 
         function createReplyElement(reply) {
             const el = document.createElement('div');
@@ -191,14 +189,16 @@
             const content = reply.content.replace(/\n/g, '<br>');
             const voteState = reply.voters?.[auth.currentUser?.uid];
             const friendButton = getFriendButton(reply.authorId, reply.authorName);
+            const moderatorButton = getModeratorButton(reply.authorId, reply.id);
 
             el.innerHTML = `
                 <img src="${reply.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
                 <div class="bg-gray-800 p-4 rounded-lg flex-grow">
                     <div class="flex justify-between items-center mb-2">
-                        <div class="flex items-center space-x-3">
+                        <div class="flex items-center space-x-3 flex-wrap gap-2">
                            <p class="font-semibold text-indigo-400">${reply.authorName}</p>
-                           <div id="friend-button-${reply.id}">${friendButton}</div>
+                           <div class="friend-button-container" data-author-id="${reply.authorId}" data-author-name="${reply.authorName}">${friendButton}</div>
+                           <div class="moderator-button-container" data-author-id="${reply.authorId}" data-reply-id="${reply.id}">${moderatorButton}</div>
                         </div>
                         <p class="text-xs text-gray-500">${replyDate}</p>
                     </div>
@@ -214,6 +214,14 @@
             el.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(replyRef, 1));
             el.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(replyRef, -1));
             return el;
+        }
+
+        function updateAllFriendButtons() {
+            document.querySelectorAll('.friend-button-container').forEach(container => {
+                const authorId = container.dataset.authorId;
+                const authorName = container.dataset.authorName;
+                container.innerHTML = getFriendButton(authorId, authorName);
+            });
         }
 
         async function handleVote(docRef, voteValue) {
@@ -273,17 +281,56 @@
             }
         }
 
+        function createModal(id, title, content, formHandler) {
+            const modalHTML = `<div id="${id}" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md"><h2 class="text-2xl font-bold mb-6">${title}</h2><form>${content}</form></div></div>`;
+            ui.modalContainer.innerHTML = modalHTML;
+            const modal = document.getElementById(id);
+            modal.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); formHandler(e); });
+            modal.querySelector('[data-action="cancel"]').addEventListener('click', () => modal.remove());
+        }
+
+        function openDeleteModal(isPost, targetId) {
+            const type = isPost ? 'discussion' : 'réponse';
+            const content = `<p class="text-gray-400 mb-6">En tant que modérateur, êtes-vous sûr de vouloir supprimer cette ${type} ?</p><div class="flex justify-center space-x-4"><button type="button" data-action="cancel" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button><button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Supprimer</button></div>`;
+            createModal('delete-modal', 'Confirmation Modérateur', content, async (e) => {
+                const btn = e.target.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                try {
+                    let docRef;
+                    if (isPost) {
+                        docRef = doc(db, 'forum', discussionId);
+                        await deleteDoc(docRef);
+                        showMessage('Discussion supprimée.', false);
+                        setTimeout(() => window.location.href = '/forum.html', 1500);
+                    } else {
+                        docRef = doc(db, 'forum', discussionId, 'replies', targetId);
+                        await deleteDoc(docRef);
+                        await updateDoc(doc(db, 'forum', discussionId), { replyCount: increment(-1) });
+                        showMessage('Réponse supprimée.', false);
+                    }
+                } catch (error) { showMessage('Erreur de suppression.', true); }
+                document.getElementById('delete-modal').remove();
+            });
+        }
+
         function setupEventListeners() {
             ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
             window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
             ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
             ui.replyForm.addEventListener('submit', handleReplySubmit);
             document.addEventListener('click', (e) => {
-                const button = e.target.closest('[data-action="add"], [data-action="accept"]');
-                if (button) {
-                    const action = button.dataset.action;
-                    const targetId = button.dataset.id;
+                const friendButton = e.target.closest('[data-action="add"], [data-action="accept"]');
+                if (friendButton) {
+                    const action = friendButton.dataset.action;
+                    const targetId = friendButton.dataset.id;
                     handleFriendAction(targetId, action);
+                }
+                const modButton = e.target.closest('[data-action="delete-post"]');
+                if (modButton) {
+                    const postContainer = modButton.closest('.moderator-button-container');
+                    const isPost = !postContainer.dataset.replyId;
+                    const targetId = postContainer.dataset.replyId || discussionId;
+                    openDeleteModal(isPost, targetId);
                 }
             });
         }
@@ -303,23 +350,6 @@
                     window.location.href = '/onboarding.html';
                 }
 
-                const discussionRef = doc(db, 'forum', discussionId);
-                onSnapshot(discussionRef, (doc) => {
-                    if (doc.exists()) {
-                        currentPostData = doc.data();
-                        renderMainPost();
-                    } else {
-                        ui.loadingPost.innerHTML = '<p class="text-red-400">Cette discussion n\'existe pas.</p>';
-                    }
-                });
-
-                const repliesRef = collection(discussionRef, 'replies');
-                const qReplies = query(repliesRef, orderBy('createdAt', 'asc'));
-                onSnapshot(qReplies, (snapshot) => {
-                    currentRepliesData = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderReplies();
-                });
-
                 const friendshipsRef = collection(db, 'friendships');
                 const qFriends = query(friendshipsRef, where('users', 'array-contains', user.uid));
                 onSnapshot(qFriends, (snapshot) => {
@@ -330,25 +360,30 @@
                         if (data.status === 'friends') friendships[otherUserId] = 'friends';
                         else if (data.status === 'pending') friendships[otherUserId] = data.requestedBy === user.uid ? 'sent' : 'received';
                     });
-                    renderMainPost();
-                    renderReplies();
+                    updateAllFriendButtons();
                 });
-
             } else {
                 ui.replyFormContainer.classList.add('hidden');
-                // Charger le contenu même si déconnecté
-                const discussionRef = doc(db, 'forum', discussionId);
-                const docSnap = await getDoc(discussionRef);
-                if(docSnap.exists()) {
-                    currentPostData = docSnap.data();
-                    renderMainPost();
-                }
-                const repliesRef = collection(discussionRef, 'replies');
-                const qReplies = query(repliesRef, orderBy('createdAt', 'asc'));
-                const repliesSnap = await getDocs(qReplies);
-                currentRepliesData = repliesSnap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderReplies();
             }
+
+            const discussionRef = doc(db, 'forum', discussionId);
+            onSnapshot(discussionRef, (doc) => {
+                if (doc.exists()) {
+                    renderMainPost(doc.data());
+                } else {
+                    ui.loadingPost.innerHTML = '<p class="text-red-400">Cette discussion n\'existe pas ou a été supprimée.</p>';
+                }
+            });
+
+            const repliesRef = collection(discussionRef, 'replies');
+            const qReplies = query(repliesRef, orderBy('createdAt', 'asc'));
+            onSnapshot(qReplies, (snapshot) => {
+                ui.repliesList.innerHTML = '';
+                if (!snapshot.empty) {
+                    ui.repliesSection.classList.remove('hidden');
+                    snapshot.forEach(d => ui.repliesList.appendChild(createReplyElement({id: d.id, ...d.data()})));
+                }
+            });
         });
 
         setupEventListeners();
