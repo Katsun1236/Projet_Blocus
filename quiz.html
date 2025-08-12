@@ -194,7 +194,8 @@
 
         async function extractTextFromPdf(url) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            const pdf = await pdfjsLib.getDocument({ url: url }).promise;
+            const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`; // Utilisation d'un proxy pour CORS
+            const pdf = await pdfjsLib.getDocument(proxyUrl).promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -245,7 +246,8 @@
                     ---
                 `;
 
-                const apiKey = "";
+                const apiKey = "AIzaSyAR4rQ7Ev5Fe24NeWmmo1aP8BxUFR_aqIw";
+
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const payload = {
@@ -283,7 +285,7 @@
 
             } catch (error) {
                 console.error("Erreur de génération:", error);
-                showMessage('L\'IA n\'a pas pu générer le quiz. Réessayez ou vérifiez votre document.', true);
+                showMessage(error.message, true);
                 showSection('setup');
             }
         }
@@ -349,7 +351,7 @@
 
             ui.scoreText.textContent = `${score}/${total}`;
             ui.scorePercentage.textContent = `Soit ${percentage}% de bonnes réponses !`;
-            ui.resultsSubtitle.textContent = `Voici vos résultats pour le quiz : ${currentQuiz.title || 'Sans titre'}`;
+            ui.resultsSubtitle.textContent = `Voici vos résultats pour le quiz : ${currentQuiz.title || document.getElementById('quiz-title-input').value}`;
             showSection('results');
         }
 
@@ -372,7 +374,7 @@
                         <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Faire le quiz</button>
                     `;
                     el.querySelector('button').addEventListener('click', () => {
-                        currentQuiz = { quiz: quiz.questions };
+                        currentQuiz = { quiz: quiz.questions, title: quiz.title };
                         currentQuizId = quiz.id;
                         displayQuiz(quiz.title);
                     });
