@@ -51,7 +51,7 @@
                 </button>
             </div>
             <div id="saved-quizzes-list" class="space-y-4"></div>
-            <div id="loading-quizzes" class="text-center py-12"><i class="fas fa-spinner fa-spin text-4xl"></i></div>
+            <div id="loading-quizzes" class="text-center py-12"><i class="fas fa-spinner fa-spin text-4xl text-indigo-400"></i></div>
             <div id="no-quizzes" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-clipboard-question text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucun quiz sauvegardé</h3><p class="mt-2 text-gray-400">Créez votre premier quiz pour le voir apparaître ici.</p></div>
         </section>
 
@@ -66,7 +66,7 @@
                     <input type="text" id="quiz-title-input" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border-2 border-gray-600" placeholder="Ex: Quiz de révision Chapitre 1" required>
                 </div>
                 <div>
-                    <label for="course-select" class="block text-lg font-bold mb-2">2. Choisir un ou plusieurs cours</label>
+                    <label for="course-select" class="block text-lg font-bold mb-2">2. Choisir un ou plusieurs cours (Ctrl+Clic)</label>
                     <select id="course-select" multiple class="w-full p-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600" required></select>
                 </div>
                 <div>
@@ -101,8 +101,23 @@
             <p class="text-gray-400 mt-2">L'IA analyse vos documents et prépare les questions. Cela peut prendre un instant.</p>
         </section>
 
-        <section id="quiz-taking-section" class="hidden"><!-- ... Contenu du quiz en cours ... --></section>
-        <section id="quiz-results-section" class="hidden text-center"><!-- ... Contenu des résultats ... --></section>
+        <section id="quiz-taking-section" class="hidden">
+            <h1 id="quiz-title" class="text-4xl font-bold mb-8"></h1>
+            <div id="quiz-questions-container" class="space-y-8"></div>
+            <button id="submit-quiz-btn" class="mt-8 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg text-xl">Terminer et voir les résultats</button>
+        </section>
+
+        <section id="quiz-results-section" class="hidden text-center">
+            <h1 class="text-4xl font-bold mb-2">Résultats</h1>
+            <p id="results-subtitle" class="text-gray-400 mb-6"></p>
+            <div class="bg-gray-800 p-8 rounded-xl border border-gray-700">
+                <p class="text-2xl font-bold">Votre score</p>
+                <p id="score-text" class="text-7xl font-extrabold text-indigo-400 my-4">0/0</p>
+                <p id="score-percentage" class="text-2xl font-bold text-green-400"></p>
+                <div id="results-summary" class="mt-8 space-y-4 text-left"></div>
+                <button id="restart-quiz-btn" class="mt-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg">Recommencer</button>
+            </div>
+        </section>
 
     </main>
     <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
@@ -110,7 +125,7 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let userCourses = [];
         let currentQuiz = null;
@@ -126,22 +141,67 @@
             courseSelect: document.getElementById('course-select'),
             questionCount: document.getElementById('question-count'),
             questionCountValue: document.getElementById('question-count-value'),
-            // ... (tous les autres éléments UI)
+            quizType: document.getElementById('quiz-type'),
+            quizTitle: document.getElementById('quiz-title'),
+            questionsContainer: document.getElementById('quiz-questions-container'),
+            submitQuizBtn: document.getElementById('submit-quiz-btn'),
+            resultsSubtitle: document.getElementById('results-subtitle'),
+            scoreText: document.getElementById('score-text'),
+            scorePercentage: document.getElementById('score-percentage'),
+            resultsSummary: document.getElementById('results-summary'),
+            restartQuizBtn: document.getElementById('restart-quiz-btn'),
+            navLoggedIn: document.getElementById('nav-logged-in'),
+            userMenuButton: document.getElementById('user-menu-button'),
+            userMenu: document.getElementById('user-menu'),
+            logoutButton: document.getElementById('logout-button'),
+            goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
+            backToListBtn: document.getElementById('back-to-list-btn'),
+            savedQuizzesList: document.getElementById('saved-quizzes-list'),
+            loadingQuizzes: document.getElementById('loading-quizzes'),
+            noQuizzes: document.getElementById('no-quizzes'),
         };
+
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.textContent = message;
+            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
+            document.getElementById('message-box').appendChild(box);
+            setTimeout(() => { box.remove(); }, 3000);
+        }
 
         function showSection(section) {
             ['list', 'setup', 'loading', 'taking', 'results'].forEach(s => ui[s].classList.add('hidden'));
             ui[section].classList.remove('hidden');
         }
-        
-        // ... (Header, showMessage, etc.)
 
         async function populateCourses() {
-            // ... (logique pour charger les cours dans le select)
+            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
+            const coursesSnap = await getDocs(coursesRef);
+            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            ui.courseSelect.innerHTML = '';
+            if (userCourses.length === 0) {
+                ui.courseSelect.innerHTML = '<option value="" disabled>Veuillez d\'abord uploader un cours</option>';
+            } else {
+                userCourses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    ui.courseSelect.appendChild(option);
+                });
+            }
         }
 
         async function extractTextFromPdf(url) {
-            // ... (logique d'extraction de texte)
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+            const pdf = await pdfjsLib.getDocument({ url: url, CMapReaderFactory: null, CMapPacked: false }).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+            }
+            return fullText;
         }
 
         async function generateQuiz(e) {
@@ -155,19 +215,39 @@
 
             try {
                 let combinedText = '';
+                let courseNames = [];
                 for (const option of selectedOptions) {
                     const course = userCourses.find(c => c.id === option.value);
                     if (course) {
+                        courseNames.push(course.name);
                         combinedText += `--- Contenu du cours: ${course.name} ---\n`;
                         const text = await extractTextFromPdf(course.url);
                         combinedText += text + '\n\n';
                     }
                 }
 
-                const prompt = `Crée un quiz...`; // Prompt détaillé comme avant
+                const count = ui.questionCount.value;
+                const type = ui.quizType.value;
+                const customInstruction = document.getElementById('custom-instruction').value.trim();
+                
+                const prompt = `
+                    Basé sur le texte suivant provenant des cours "${courseNames.join(', ')}", génère un quiz.
+                    
+                    Règles:
+                    - Crée exactement ${count} questions de type "${type}".
+                    - ${customInstruction ? `Instruction supplémentaire: ${customInstruction}` : ''}
+                    - Le format de la réponse DOIT être un JSON valide, sans aucun texte avant ou après.
+                    - Pour les QCM, fournis 4 options dont une seule est correcte.
+                    - La structure doit être un objet JSON avec une clé "quiz" contenant un tableau de questions.
+                    - Chaque question doit avoir: "question" (string), "options" (tableau de strings, pour QCM), "answer" (string). Pour Vrai/Faux, les options sont ["Vrai", "Faux"]. Pour Réponse Courte, le tableau options est vide.
+                    
+                    Texte des cours:
+                    ---
+                    ${combinedText.substring(0, 15000)} 
+                    ---
+                `;
 
-                // --- VRAI APPEL À L'IA GEMINI ---
-                const apiKey = ""; // Laissé vide, géré par l'environnement
+                const apiKey = "";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const payload = {
@@ -187,7 +267,6 @@
                 const quizText = result.candidates[0].content.parts[0].text;
                 currentQuiz = JSON.parse(quizText);
 
-                // Sauvegarder le quiz généré
                 const quizTitle = document.getElementById('quiz-title-input').value;
                 const quizRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
                     title: quizTitle,
@@ -200,33 +279,133 @@
 
             } catch (error) {
                 console.error("Erreur de génération:", error);
-                showMessage('L\'IA n\'a pas pu générer le quiz. Réessayez.', true);
+                showMessage('L\'IA n\'a pas pu générer le quiz. Réessayez ou vérifiez votre document.', true);
                 showSection('setup');
             }
         }
 
         function displayQuiz(title) {
-            // ... (logique pour afficher les questions)
+            ui.quizTitle.textContent = title;
+            ui.questionsContainer.innerHTML = '';
+            currentQuiz.quiz.forEach((q, index) => {
+                const questionEl = document.createElement('div');
+                questionEl.className = 'bg-gray-800 p-6 rounded-lg border border-gray-700';
+                
+                let optionsHtml = '';
+                if (q.options && q.options.length > 0) {
+                    optionsHtml = q.options.map((opt, i) => `
+                        <div>
+                            <label class="option-label block bg-gray-700 p-4 rounded-lg border-2 border-gray-600 hover:border-indigo-500 cursor-pointer">
+                                <input type="radio" name="q${index}" value="${opt}" class="hidden">
+                                <span>${opt}</span>
+                            </label>
+                        </div>
+                    `).join('');
+                } else {
+                    optionsHtml = `<input type="text" name="q${index}" class="w-full p-3 bg-gray-700 rounded-lg border-2 border-gray-600" placeholder="Votre réponse...">`;
+                }
+
+                questionEl.innerHTML = `
+                    <p class="text-xl font-bold mb-4">${index + 1}. ${q.question}</p>
+                    <div class="space-y-3">${optionsHtml}</div>
+                `;
+                ui.questionsContainer.appendChild(questionEl);
+            });
+            showSection('taking');
         }
 
         async function submitQuiz() {
-            // ... (logique pour calculer le score)
-            
-            // Sauvegarder le résultat
-            const resultRef = doc(db, 'users', auth.currentUser.uid, 'quizzes', currentQuizId);
-            await updateDoc(resultRef, {
-                lastResult: {
-                    score: score,
-                    total: total,
-                    percentage: percentage,
-                    completedAt: serverTimestamp()
-                }
+            let score = 0;
+            ui.resultsSummary.innerHTML = '';
+
+            currentQuiz.quiz.forEach((q, index) => {
+                const input = document.querySelector(`[name="q${index}"]:checked`) || document.querySelector(`[name="q${index}"]`);
+                const userAnswer = input ? input.value.trim() : '';
+                const isCorrect = userAnswer.toLowerCase() === q.answer.toLowerCase();
+                
+                if (isCorrect) score++;
+
+                const resultEl = document.createElement('div');
+                resultEl.className = `p-4 rounded-lg ${isCorrect ? 'bg-green-900 border-green-700' : 'bg-red-900 border-red-700'} border`;
+                resultEl.innerHTML = `
+                    <p class="font-bold">${index + 1}. ${q.question}</p>
+                    <p class="text-sm mt-2">Votre réponse : <span class="${isCorrect ? 'text-green-300' : 'text-red-300'}">${userAnswer || "Aucune"}</span></p>
+                    ${!isCorrect ? `<p class="text-sm">Réponse correcte : <span class="text-green-300">${q.answer}</span></p>` : ''}
+                `;
+                ui.resultsSummary.appendChild(resultEl);
             });
 
-            // ... (afficher les résultats)
+            const total = currentQuiz.quiz.length;
+            const percentage = Math.round((score / total) * 100);
+            
+            const resultRef = doc(db, 'users', auth.currentUser.uid, 'quizzes', currentQuizId);
+            await updateDoc(resultRef, {
+                lastResult: { score, total, percentage, completedAt: serverTimestamp() }
+            });
+
+            ui.scoreText.textContent = `${score}/${total}`;
+            ui.scorePercentage.textContent = `Soit ${percentage}% de bonnes réponses !`;
+            ui.resultsSubtitle.textContent = `Voici vos résultats pour le quiz : ${document.getElementById('quiz-title-input').value}`;
+            showSection('results');
         }
 
-        // ... (tous les autres écouteurs d'événements)
+        function renderSavedQuizzes(quizzes) {
+            ui.loadingQuizzes.classList.add('hidden');
+            ui.savedQuizzesList.innerHTML = '';
+            if (quizzes.length === 0) {
+                ui.noQuizzes.classList.remove('hidden');
+            } else {
+                ui.noQuizzes.classList.add('hidden');
+                quizzes.forEach(quiz => {
+                    const el = document.createElement('div');
+                    el.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700';
+                    const lastResult = quiz.lastResult ? `${quiz.lastResult.score}/${quiz.lastResult.total} (${quiz.lastResult.percentage}%)` : 'Pas encore fait';
+                    el.innerHTML = `
+                        <div>
+                            <h3 class="font-bold text-lg">${quiz.title}</h3>
+                            <p class="text-sm text-gray-400">Dernier score: ${lastResult}</p>
+                        </div>
+                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Faire le quiz</button>
+                    `;
+                    ui.savedQuizzesList.appendChild(el);
+                });
+            }
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userRef = doc(db, 'users', user.uid);
+                const docSnap = await getDoc(userRef);
+                if (docSnap.exists()) {
+                    const profileData = docSnap.data();
+                    document.getElementById('user-name-header').textContent = profileData.firstName;
+                    document.getElementById('user-avatar-header').src = profileData.photoURL;
+                    ui.navLoggedIn.classList.remove('hidden');
+                    ui.navLoggedIn.classList.add('flex');
+                }
+                populateCourses();
+                
+                const quizzesRef = collection(db, 'users', user.uid, 'quizzes');
+                onSnapshot(quizzesRef, (snapshot) => {
+                    const quizzes = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    renderSavedQuizzes(quizzes);
+                });
+
+            } else {
+                window.location.href = '/login.html';
+            }
+        });
+
+        ui.questionCount.addEventListener('input', (e) => { ui.questionCountValue.textContent = e.target.value; });
+        ui.form.addEventListener('submit', generateQuiz);
+        ui.submitQuizBtn.addEventListener('click', submitQuiz);
+        ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
+        ui.goToGeneratorBtn.addEventListener('click', () => showSection('setup'));
+        ui.backToListBtn.addEventListener('click', () => showSection('list'));
+        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
+        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
+        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
+
     </script>
 </body>
 </html>
