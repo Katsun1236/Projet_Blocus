@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Quiz - Projet Blocus</title>
+    <title>Mes Quiz & Flashcards - Projet Blocus</title>
     <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +20,34 @@
         #timer-progress-bar { transition: width 1s linear; }
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
+
+        /* Styles pour les Flashcards */
+        .flashcard-container { perspective: 1000px; }
+        .flashcard {
+            width: 100%;
+            height: 300px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+        }
+        .flashcard.is-flipped { transform: rotateY(180deg); }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            border: 1px solid #4b5563;
+        }
+        .flashcard-front { background-color: #374151; /* gray-700 */ }
+        .flashcard-back {
+            background-color: #4f46e5; /* indigo-600 */
+            transform: rotateY(180deg);
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -47,34 +75,34 @@
         
         <section id="quiz-list-section">
              <div class="flex justify-between items-center mb-8">
-                <h1 class="text-4xl font-bold">Mes Quiz</h1>
+                <h1 class="text-4xl font-bold">Mes Quiz & Flashcards</h1>
                 <button id="go-to-generator-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg flex items-center space-x-2">
                     <i class="fas fa-plus-circle"></i>
-                    <span>Nouveau Quiz</span>
+                    <span>Nouveau Contenu</span>
                 </button>
             </div>
             <div id="saved-quizzes-list" class="space-y-4"></div>
             <div id="loading-quizzes" class="text-center py-12"><i class="fas fa-spinner fa-spin text-4xl text-indigo-400"></i></div>
-            <div id="no-quizzes" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-clipboard-question text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucun quiz sauvegardé</h3><p class="mt-2 text-gray-400">Créez votre premier quiz pour le voir apparaître ici.</p></div>
+            <div id="no-quizzes" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-clipboard-question text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucun contenu sauvegardé</h3><p class="mt-2 text-gray-400">Créez votre premier quiz ou jeu de flashcards pour le voir apparaître ici.</p></div>
         </section>
 
         <section id="quiz-setup-section" class="hidden">
             <button id="back-to-list-btn" class="text-indigo-400 hover:text-indigo-300 mb-6 inline-block"><i class="fas fa-arrow-left mr-2"></i>Retour à la liste</button>
-            <h1 class="text-4xl font-bold mb-2">Générateur de Quiz IA</h1>
-            <p class="text-gray-400 mb-8">Configure ton quiz sur mesure.</p>
+            <h1 class="text-4xl font-bold mb-2">Générateur de Contenu IA</h1>
+            <p class="text-gray-400 mb-8">Crée des quiz ou des flashcards sur mesure.</p>
             
             <form id="quiz-generator-form" class="bg-gray-800 p-8 rounded-xl border border-gray-700 space-y-6">
                 <div>
-                    <label for="quiz-title-input" class="block text-lg font-bold mb-2">1. Titre du Quiz</label>
-                    <input type="text" id="quiz-title-input" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border-2 border-gray-600" placeholder="Ex: Quiz de révision Chapitre 1" required>
+                    <label for="quiz-title-input" class="block text-lg font-bold mb-2">1. Titre</label>
+                    <input type="text" id="quiz-title-input" class="w-full px-4 py-3 rounded-lg bg-gray-700" placeholder="Ex: Quiz de révision Chapitre 1" required>
                 </div>
                 <div>
                     <label for="course-select" class="block text-lg font-bold mb-2">2. Choisir un ou plusieurs cours (Ctrl+Clic)</label>
-                    <select id="course-select" multiple class="w-full p-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600" required></select>
+                    <select id="course-select" multiple class="w-full p-2 rounded-lg bg-gray-700" required></select>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre de questions</label>
+                        <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre d'éléments</label>
                         <div class="flex items-center space-x-4">
                             <input type="range" id="question-count" min="5" max="100" value="10" class="w-full">
                             <span id="question-count-value" class="font-bold text-indigo-400 text-xl w-16 text-center">10</span>
@@ -82,7 +110,7 @@
                     </div>
                     <div>
                         <label for="difficulty-select" class="block text-lg font-bold mb-2">4. Difficulté</label>
-                        <select id="difficulty-select" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border-2 border-gray-600">
+                        <select id="difficulty-select" class="w-full px-4 py-3 rounded-lg bg-gray-700">
                             <option value="Facile">Facile</option>
                             <option value="Moyen" selected>Moyen</option>
                             <option value="Difficile">Difficile</option>
@@ -90,15 +118,16 @@
                     </div>
                 </div>
                 <div>
-                    <label for="quiz-type" class="block text-lg font-bold mb-2">5. Type d'exercices</label>
-                    <select id="quiz-type" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border-2 border-gray-600">
-                        <option value="QCM">QCM (Choix multiples)</option>
-                        <option value="Vrai/Faux">Vrai / Faux</option>
-                        <option value="Réponse Courte">Réponse Courte</option>
-                        <option value="Texte à trous">Texte à trous</option>
+                    <label for="quiz-type" class="block text-lg font-bold mb-2">5. Type de contenu</label>
+                    <select id="quiz-type" class="w-full px-4 py-3 rounded-lg bg-gray-700">
+                        <option value="QCM">Quiz - QCM</option>
+                        <option value="Vrai/Faux">Quiz - Vrai / Faux</option>
+                        <option value="Réponse Courte">Quiz - Réponse Courte</option>
+                        <option value="Texte à trous">Quiz - Texte à trous</option>
+                        <option value="Flashcards">Flashcards</option>
                     </select>
                 </div>
-                <div class="bg-gray-900 p-4 rounded-lg">
+                <div id="timer-config-container" class="bg-gray-900 p-4 rounded-lg">
                     <p class="text-lg font-bold mb-3">6. Options du minuteur</p>
                     <div class="flex items-center justify-between mb-4">
                         <label for="timer-toggle" class="font-semibold">Activer le minuteur</label>
@@ -124,7 +153,7 @@
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg text-xl flex items-center justify-center">
                     <i class="fas fa-magic-sparkles mr-3"></i>
-                    Générer le Quiz
+                    Générer
                 </button>
             </form>
         </section>
@@ -132,7 +161,7 @@
         <section id="quiz-loading-section" class="hidden text-center py-20">
             <i class="fas fa-spinner fa-spin text-indigo-400 text-6xl"></i>
             <h2 class="text-3xl font-bold mt-6">Génération en cours...</h2>
-            <p class="text-gray-400 mt-2">L'IA analyse vos documents et prépare les questions. Cela peut prendre un instant.</p>
+            <p class="text-gray-400 mt-2">L'IA analyse vos documents et prépare le contenu. Cela peut prendre un instant.</p>
         </section>
 
         <section id="quiz-taking-section" class="hidden">
@@ -171,6 +200,27 @@
             </div>
         </section>
 
+        <section id="flashcard-section" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h1 id="flashcard-title" class="text-3xl font-bold"></h1>
+                <button id="back-to-list-from-flashcards-btn" class="text-indigo-400 hover:text-indigo-300 font-semibold">Retour à la liste</button>
+            </div>
+            <div class="flashcard-container">
+                <div id="flashcard" class="flashcard">
+                    <div id="flashcard-front" class="flashcard-face flashcard-front text-2xl font-bold"></div>
+                    <div id="flashcard-back" class="flashcard-face flashcard-back text-lg"></div>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-center">
+                <button id="flip-card-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-8 rounded-lg">Retourner</button>
+            </div>
+            <div class="flex justify-between items-center mt-8">
+                <button id="prev-card-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg disabled:opacity-50" disabled>Précédent</button>
+                <span id="card-progress" class="font-semibold"></span>
+                <button id="next-card-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg">Suivant</button>
+            </div>
+        </section>
+
     </main>
     <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
 
@@ -180,10 +230,10 @@
         import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let userCourses = [];
-        let currentQuiz = null;
-        let currentQuizId = null;
+        let currentContent = null;
+        let currentContentId = null;
         let timerInterval = null;
-        let currentQuestionIndex = 0;
+        let currentItemIndex = 0;
         let userAnswers = [];
         let wrongAnswers = [];
 
@@ -193,6 +243,7 @@
             loading: document.getElementById('quiz-loading-section'),
             taking: document.getElementById('quiz-taking-section'),
             results: document.getElementById('quiz-results-section'),
+            flashcard: document.getElementById('flashcard-section'),
             form: document.getElementById('quiz-generator-form'),
             courseSelect: document.getElementById('course-select'),
             questionCount: document.getElementById('question-count'),
@@ -226,6 +277,11 @@
             timerOptions: document.getElementById('timer-options'),
             reviewErrorsBtn: document.getElementById('review-errors-btn'),
             shareResultsBtn: document.getElementById('share-results-btn'),
+            flashcardTitle: document.getElementById('flashcard-title'),
+            prevCardBtn: document.getElementById('prev-card-btn'),
+            nextCardBtn: document.getElementById('next-card-btn'),
+            cardProgress: document.getElementById('card-progress'),
+            backToListFromFlashcardsBtn: document.getElementById('back-to-list-from-flashcards-btn'),
         };
 
         function showMessage(message, isError = false) {
@@ -237,7 +293,7 @@
         }
 
         function showSection(section) {
-            ['list', 'setup', 'loading', 'taking', 'results'].forEach(s => ui[s].classList.add('hidden'));
+            ['list', 'setup', 'loading', 'taking', 'results', 'flashcard'].forEach(s => ui[s].classList.add('hidden'));
             ui[section].classList.remove('hidden');
         }
 
@@ -271,7 +327,7 @@
             return fullText;
         }
 
-        async function generateQuiz(e) {
+        async function generateContent(e) {
             e.preventDefault();
             const selectedOptions = [...ui.courseSelect.selectedOptions];
             if (selectedOptions.length === 0) {
@@ -297,39 +353,56 @@
                 const type = ui.quizType.value;
                 const difficulty = document.getElementById('difficulty-select').value;
                 const customInstruction = document.getElementById('custom-instruction').value.trim();
-                const timerEnabled = ui.timerToggle.checked;
-                let timerInstruction = '';
-                if (timerEnabled) {
-                    const timerType = document.querySelector('input[name="timer-type"]:checked').value;
-                    if (timerType === 'global') {
-                        const minutes = document.getElementById('timer-global-value').value;
-                        timerInstruction = `Le quiz doit être réalisable en environ ${minutes} minutes.`;
-                    } else {
-                        const seconds = document.getElementById('timer-per-question-value').value;
-                        timerInstruction = `Chaque question doit être conçue pour être répondue en environ ${seconds} secondes.`;
-                    }
-                }
                 
-                const prompt = `
-                    Basé sur le texte suivant provenant des cours "${courseNames.join(', ')}", génère un quiz.
-                    Règles:
-                    - Crée exactement ${count} questions de type "${type}".
-                    - La difficulté du quiz doit être : ${difficulty}.
-                    - Chaque question doit aussi avoir une clé "explanation" (string) qui explique brièvement pourquoi la réponse est correcte.
-                    - ${customInstruction ? `Instruction supplémentaire: ${customInstruction}` : ''}
-                    - ${timerInstruction}
-                    - Pour "Texte à trous", la question doit contenir le mot [BLANK] et la réponse doit être le mot manquant.
-                    - Le format de la réponse DOIT être un JSON valide, sans aucun texte avant ou après.
-                    - La structure doit être un objet JSON avec une clé "quiz" contenant un tableau de questions.
-                    - Chaque question doit avoir: "question" (string), "options" (tableau de strings, pour QCM), "answer" (string), et "explanation" (string). Pour Vrai/Faux, les options sont ["Vrai", "Faux"]. Pour Réponse Courte, le tableau options est vide.
-                    Texte des cours:
-                    ---
-                    ${combinedText.substring(0, 15000)} 
-                    ---
-                `;
+                let prompt;
+                if (type === 'Flashcards') {
+                    prompt = `
+                        Basé sur le texte suivant, génère un jeu de flashcards.
+                        - Crée exactement ${count} flashcards.
+                        - Chaque flashcard doit identifier un terme clé et sa définition concise.
+                        - La difficulté doit être : ${difficulty}.
+                        - ${customInstruction ? `Instruction supplémentaire: ${customInstruction}` : ''}
+                        - Le format de la réponse DOIT être un JSON valide.
+                        - La structure doit être un objet JSON avec une clé "flashcards" contenant un tableau d'objets.
+                        - Chaque objet doit avoir: "term" (string) et "definition" (string).
+                        Texte:
+                        ---
+                        ${combinedText.substring(0, 15000)} 
+                        ---
+                    `;
+                } else {
+                    const timerEnabled = ui.timerToggle.checked;
+                    let timerInstruction = '';
+                    if (timerEnabled) {
+                        const timerType = document.querySelector('input[name="timer-type"]:checked').value;
+                        if (timerType === 'global') {
+                            const minutes = document.getElementById('timer-global-value').value;
+                            timerInstruction = `Le quiz doit être réalisable en environ ${minutes} minutes.`;
+                        } else {
+                            const seconds = document.getElementById('timer-per-question-value').value;
+                            timerInstruction = `Chaque question doit être conçue pour être répondue en environ ${seconds} secondes.`;
+                        }
+                    }
+                    prompt = `
+                        Basé sur le texte suivant, génère un quiz.
+                        Règles:
+                        - Crée exactement ${count} questions de type "${type}".
+                        - La difficulté doit être : ${difficulty}.
+                        - Chaque question doit aussi avoir une clé "explanation" (string) qui explique brièvement pourquoi la réponse est correcte.
+                        - ${customInstruction ? `Instruction supplémentaire: ${customInstruction}` : ''}
+                        - ${timerInstruction}
+                        - Pour "Texte à trous", la question doit contenir le mot [BLANK] et la réponse doit être le mot manquant.
+                        - Le format de la réponse DOIT être un JSON valide.
+                        - La structure doit être un objet JSON avec une clé "quiz" contenant un tableau de questions.
+                        - Chaque question doit avoir: "question", "options" (si applicable), "answer", et "explanation".
+                        Texte:
+                        ---
+                        ${combinedText.substring(0, 15000)} 
+                        ---
+                    `;
+                }
 
                 const apiKey = "AIzaSyAR4rQ7Ev5Fe24NeWmmo1aP8BxUFR_aqIw";
-
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
                 
                 const payload = {
@@ -353,28 +426,33 @@
                     throw new Error("La réponse de l'IA est invalide ou vide.");
                 }
                 
-                let quizText = result.candidates[0].content.parts[0].text;
-                const jsonStart = quizText.indexOf('{');
-                const jsonEnd = quizText.lastIndexOf('}');
+                let responseText = result.candidates[0].content.parts[0].text;
+                const jsonStart = responseText.indexOf('{');
+                const jsonEnd = responseText.lastIndexOf('}');
                 if (jsonStart !== -1 && jsonEnd !== -1) {
-                    quizText = quizText.substring(jsonStart, jsonEnd + 1);
+                    responseText = responseText.substring(jsonStart, jsonEnd + 1);
                 }
 
                 try {
-                    currentQuiz = JSON.parse(quizText);
+                    currentContent = JSON.parse(responseText);
                 } catch (parseError) {
                     throw new Error("L'IA a renvoyé un format JSON invalide. Veuillez réessayer.");
                 }
 
-                const quizTitle = document.getElementById('quiz-title-input').value;
-                const quizRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
-                    title: quizTitle,
-                    questions: currentQuiz.quiz,
+                const title = document.getElementById('quiz-title-input').value;
+                const contentRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
+                    title: title,
+                    type: type, // 'QCM', 'Flashcards', etc.
+                    content: type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz,
                     createdAt: serverTimestamp()
                 });
-                currentQuizId = quizRef.id;
+                currentContentId = contentRef.id;
 
-                displayQuiz(quizTitle, currentQuiz.quiz);
+                if (type === 'Flashcards') {
+                    displayFlashcards(title, currentContent.flashcards);
+                } else {
+                    displayQuiz(title, currentContent.quiz);
+                }
 
             } catch (error) {
                 console.error("Erreur de génération:", error);
@@ -386,8 +464,8 @@
         function displayQuiz(title, questions) {
             currentQuiz = { quiz: questions, title: title };
             userAnswers = new Array(questions.length).fill(null);
-            currentQuestionIndex = 0;
-            showQuestion(currentQuestionIndex);
+            currentItemIndex = 0;
+            showQuestion(currentItemIndex);
             startTimer();
             showSection('taking');
         }
@@ -419,9 +497,9 @@
         }
 
         function saveAnswer() {
-            const input = document.querySelector(`[name="q${currentQuestionIndex}"]:checked`) || document.querySelector(`[name="q${currentQuestionIndex}"]`);
+            const input = document.querySelector(`[name="q${currentItemIndex}"]:checked`) || document.querySelector(`[name="q${currentItemIndex}"]`);
             if (input) {
-                userAnswers[currentQuestionIndex] = input.value;
+                userAnswers[currentItemIndex] = input.value;
             }
         }
 
@@ -484,8 +562,8 @@
             const total = currentQuiz.quiz.length;
             const percentage = Math.round((score / total) * 100);
             
-            if (currentQuizId) {
-                await updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentQuizId), {
+            if (currentContentId) {
+                await updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentContentId), {
                     lastResult: { score, total, percentage, completedAt: serverTimestamp() }
                 });
             }
@@ -507,12 +585,30 @@
                 quizzes.forEach(quiz => {
                     const el = document.createElement('div');
                     el.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700';
+                    const isFlashcard = quiz.type === 'Flashcards';
                     const lastResult = quiz.lastResult ? `${quiz.lastResult.score}/${quiz.lastResult.total} (${quiz.lastResult.percentage}%)` : 'Pas encore fait';
-                    el.innerHTML = `<div><h3 class="font-bold text-lg">${quiz.title}</h3><p class="text-sm text-gray-400">Dernier score: ${lastResult}</p></div><div class="flex items-center space-x-2"><button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Faire</button><button data-id="${quiz.id}" class="delete-quiz-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-trash"></i></button></div>`;
+                    const icon = isFlashcard ? 'fa-clone' : 'fa-question-circle';
+
+                    el.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <i class="fas ${icon} text-indigo-400 text-xl"></i>
+                            <div>
+                                <h3 class="font-bold text-lg">${quiz.title}</h3>
+                                <p class="text-sm text-gray-400">${isFlashcard ? `${quiz.content.length} cartes` : `Dernier score: ${lastResult}`}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">${isFlashcard ? 'Étudier' : 'Faire'}</button>
+                            <button data-id="${quiz.id}" class="delete-quiz-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                    
                     el.querySelector('button').addEventListener('click', () => {
-                        currentQuiz = { quiz: quiz.questions, title: quiz.title };
-                        currentQuizId = quiz.id;
-                        displayQuiz(quiz.title, quiz.questions);
+                        currentContentId = quiz.id;
+                        if (isFlashcard) {
+                            displayFlashcards(quiz.title, quiz.content);
+                        } else {
+                            displayQuiz(quiz.title, quiz.content);
+                        }
                     });
                     ui.savedQuizzesList.appendChild(el);
                 });
@@ -520,9 +616,9 @@
         }
 
         async function deleteQuiz(quizId) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer ce quiz ?")) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce contenu ?")) {
                 await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', quizId));
-                showMessage('Quiz supprimé.', false);
+                showMessage('Contenu supprimé.', false);
             }
         }
 
@@ -551,7 +647,7 @@
         });
 
         ui.questionCount.addEventListener('input', (e) => { ui.questionCountValue.textContent = e.target.value; });
-        ui.form.addEventListener('submit', generateQuiz);
+        ui.form.addEventListener('submit', generateContent);
         ui.submitQuizBtn.addEventListener('click', submitQuiz);
         ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
         ui.goToGeneratorBtn.addEventListener('click', () => showSection('setup'));
@@ -564,8 +660,8 @@
         window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
         ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
         ui.timerToggle.addEventListener('change', (e) => { ui.timerOptions.classList.toggle('hidden', !e.target.checked); });
-        ui.nextQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(++currentQuestionIndex); });
-        ui.prevQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(--currentQuestionIndex); });
+        ui.nextQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(++currentItemIndex); });
+        ui.prevQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(--currentItemIndex); });
         ui.reviewErrorsBtn.addEventListener('click', () => {
             displayQuiz(`Révision des erreurs - ${currentQuiz.title}`, wrongAnswers);
         });
@@ -581,6 +677,16 @@
                 deleteQuiz(quizId);
             }
         });
+        ui.quizType.addEventListener('change', (e) => {
+            const isQuiz = e.target.value !== 'Flashcards';
+            document.getElementById('timer-config-container').classList.toggle('hidden', !isQuiz);
+        });
+        document.getElementById('flip-card-btn').addEventListener('click', () => {
+            document.getElementById('flashcard').classList.toggle('is-flipped');
+        });
+        ui.nextCardBtn.addEventListener('click', () => showFlashcard(++currentItemIndex));
+        ui.prevCardBtn.addEventListener('click', () => showFlashcard(--currentItemIndex));
+        ui.backToListFromFlashcardsBtn.addEventListener('click', () => showSection('list'));
         
     </script>
 </body>
