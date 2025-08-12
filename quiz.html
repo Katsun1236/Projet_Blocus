@@ -72,7 +72,7 @@
                 <div>
                     <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre de questions</label>
                     <div class="flex items-center space-x-4">
-                        <input type="range" id="question-count" min="5" max="200" value="10" class="w-full">
+                        <input type="range" id="question-count" min="5" max="25" value="10" class="w-full">
                         <span id="question-count-value" class="font-bold text-indigo-400 text-xl w-16 text-center">10</span>
                     </div>
                 </div>
@@ -166,7 +166,7 @@
             box.textContent = message;
             box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
             document.getElementById('message-box').appendChild(box);
-            setTimeout(() => { box.remove(); }, 3000);
+            setTimeout(() => { box.remove(); }, 5000);
         }
 
         function showSection(section) {
@@ -194,7 +194,7 @@
 
         async function extractTextFromPdf(url) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            const pdf = await pdfjsLib.getDocument({ url: url, CMapReaderFactory: null, CMapPacked: false }).promise;
+            const pdf = await pdfjsLib.getDocument({ url: url }).promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -232,7 +232,6 @@
                 
                 const prompt = `
                     Basé sur le texte suivant provenant des cours "${courseNames.join(', ')}", génère un quiz.
-                    
                     Règles:
                     - Crée exactement ${count} questions de type "${type}".
                     - ${customInstruction ? `Instruction supplémentaire: ${customInstruction}` : ''}
@@ -240,7 +239,6 @@
                     - Pour les QCM, fournis 4 options dont une seule est correcte.
                     - La structure doit être un objet JSON avec une clé "quiz" contenant un tableau de questions.
                     - Chaque question doit avoir: "question" (string), "options" (tableau de strings, pour QCM), "answer" (string). Pour Vrai/Faux, les options sont ["Vrai", "Faux"]. Pour Réponse Courte, le tableau options est vide.
-                    
                     Texte des cours:
                     ---
                     ${combinedText.substring(0, 15000)} 
@@ -261,9 +259,15 @@
                     body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) throw new Error(`Erreur API: ${response.statusText}`);
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    throw new Error(`Erreur API: ${response.status} ${response.statusText} - ${errorBody}`);
+                }
 
                 const result = await response.json();
+                if (!result.candidates || !result.candidates[0].content.parts[0].text) {
+                    throw new Error("La réponse de l'IA est invalide ou vide.");
+                }
                 const quizText = result.candidates[0].content.parts[0].text;
                 currentQuiz = JSON.parse(quizText);
 
@@ -293,7 +297,7 @@
                 
                 let optionsHtml = '';
                 if (q.options && q.options.length > 0) {
-                    optionsHtml = q.options.map((opt, i) => `
+                    optionsHtml = q.options.map((opt) => `
                         <div>
                             <label class="option-label block bg-gray-700 p-4 rounded-lg border-2 border-gray-600 hover:border-indigo-500 cursor-pointer">
                                 <input type="radio" name="q${index}" value="${opt}" class="hidden">
@@ -345,7 +349,7 @@
 
             ui.scoreText.textContent = `${score}/${total}`;
             ui.scorePercentage.textContent = `Soit ${percentage}% de bonnes réponses !`;
-            ui.resultsSubtitle.textContent = `Voici vos résultats pour le quiz : ${document.getElementById('quiz-title-input').value}`;
+            ui.resultsSubtitle.textContent = `Voici vos résultats pour le quiz : ${currentQuiz.title || 'Sans titre'}`;
             showSection('results');
         }
 
@@ -367,6 +371,11 @@
                         </div>
                         <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Faire le quiz</button>
                     `;
+                    el.querySelector('button').addEventListener('click', () => {
+                        currentQuiz = { quiz: quiz.questions };
+                        currentQuizId = quiz.id;
+                        displayQuiz(quiz.title);
+                    });
                     ui.savedQuizzesList.appendChild(el);
                 });
             }
