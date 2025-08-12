@@ -194,7 +194,7 @@
 
         async function extractTextFromPdf(url) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`; // Utilisation d'un proxy pour CORS
+            const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
             const pdf = await pdfjsLib.getDocument(proxyUrl).promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -270,8 +270,20 @@
                 if (!result.candidates || !result.candidates[0].content.parts[0].text) {
                     throw new Error("La réponse de l'IA est invalide ou vide.");
                 }
-                const quizText = result.candidates[0].content.parts[0].text;
-                currentQuiz = JSON.parse(quizText);
+                
+                // CORRECTION : On nettoie la réponse de l'IA
+                let quizText = result.candidates[0].content.parts[0].text;
+                const jsonStart = quizText.indexOf('{');
+                const jsonEnd = quizText.lastIndexOf('}');
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    quizText = quizText.substring(jsonStart, jsonEnd + 1);
+                }
+
+                try {
+                    currentQuiz = JSON.parse(quizText);
+                } catch (parseError) {
+                    throw new Error("L'IA a renvoyé un format JSON invalide. Veuillez réessayer.");
+                }
 
                 const quizTitle = document.getElementById('quiz-title-input').value;
                 const quizRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
