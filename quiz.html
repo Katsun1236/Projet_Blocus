@@ -194,8 +194,8 @@
 
         async function extractTextFromPdf(url) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            const proxyUrl = `https://cors-anywhere.herokuapp.com/${url}`;
-            const pdf = await pdfjsLib.getDocument(proxyUrl).promise;
+            // CORRECTION: On utilise l'URL directe, sans proxy
+            const pdf = await pdfjsLib.getDocument(url).promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
@@ -271,7 +271,6 @@
                     throw new Error("La réponse de l'IA est invalide ou vide.");
                 }
                 
-                // CORRECTION : On nettoie la réponse de l'IA
                 let quizText = result.candidates[0].content.parts[0].text;
                 const jsonStart = quizText.indexOf('{');
                 const jsonEnd = quizText.lastIndexOf('}');
