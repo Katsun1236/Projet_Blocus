@@ -442,7 +442,7 @@
                 const title = document.getElementById('quiz-title-input').value;
                 const contentRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
                     title: title,
-                    type: type, // 'QCM', 'Flashcards', etc.
+                    type: type,
                     content: type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz,
                     createdAt: serverTimestamp()
                 });
@@ -468,6 +468,24 @@
             showQuestion(currentItemIndex);
             startTimer();
             showSection('taking');
+        }
+        
+        function displayFlashcards(title, flashcards) {
+            currentContent = { flashcards: flashcards, title: title };
+            currentItemIndex = 0;
+            ui.flashcardTitle.textContent = title;
+            showFlashcard(currentItemIndex);
+            showSection('flashcard');
+        }
+
+        function showFlashcard(index) {
+            const card = currentContent.flashcards[index];
+            document.getElementById('flashcard').classList.remove('is-flipped');
+            document.getElementById('flashcard-front').textContent = card.term;
+            document.getElementById('flashcard-back').textContent = card.definition;
+            ui.cardProgress.textContent = `Carte ${index + 1} / ${currentContent.flashcards.length}`;
+            ui.prevCardBtn.disabled = index === 0;
+            ui.nextCardBtn.disabled = index === currentContent.flashcards.length - 1;
         }
 
         function showQuestion(index) {
