@@ -18,6 +18,8 @@
         #course-select option { padding: 8px; }
         #course-select option:checked { background-color: #4f46e5; color: white; }
         #timer-progress-bar { transition: width 1s linear; }
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -70,15 +72,25 @@
                     <label for="course-select" class="block text-lg font-bold mb-2">2. Choisir un ou plusieurs cours (Ctrl+Clic)</label>
                     <select id="course-select" multiple class="w-full p-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600" required></select>
                 </div>
-                <div>
-                    <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre de questions</label>
-                    <div class="flex items-center space-x-4">
-                        <input type="range" id="question-count" min="5" max="100" value="10" class="w-full">
-                        <span id="question-count-value" class="font-bold text-indigo-400 text-xl w-16 text-center">10</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre de questions</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="range" id="question-count" min="5" max="100" value="10" class="w-full">
+                            <span id="question-count-value" class="font-bold text-indigo-400 text-xl w-16 text-center">10</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="difficulty-select" class="block text-lg font-bold mb-2">4. Difficulté</label>
+                        <select id="difficulty-select" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border-2 border-gray-600">
+                            <option value="Facile">Facile</option>
+                            <option value="Moyen" selected>Moyen</option>
+                            <option value="Difficile">Difficile</option>
+                        </select>
                     </div>
                 </div>
                 <div>
-                    <label for="quiz-type" class="block text-lg font-bold mb-2">4. Type d'exercices</label>
+                    <label for="quiz-type" class="block text-lg font-bold mb-2">5. Type d'exercices</label>
                     <select id="quiz-type" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border-2 border-gray-600">
                         <option value="QCM">QCM (Choix multiples)</option>
                         <option value="Vrai/Faux">Vrai / Faux</option>
@@ -87,7 +99,7 @@
                     </select>
                 </div>
                 <div class="bg-gray-900 p-4 rounded-lg">
-                    <p class="text-lg font-bold mb-3">5. Options du minuteur</p>
+                    <p class="text-lg font-bold mb-3">6. Options du minuteur</p>
                     <div class="flex items-center justify-between mb-4">
                         <label for="timer-toggle" class="font-semibold">Activer le minuteur</label>
                         <input type="checkbox" id="timer-toggle" class="form-checkbox h-6 w-6 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500">
@@ -107,7 +119,7 @@
                     </div>
                 </div>
                 <div>
-                    <label for="custom-instruction" class="block text-lg font-bold mb-2">6. Instruction pour l'IA (optionnel)</label>
+                    <label for="custom-instruction" class="block text-lg font-bold mb-2">7. Instruction pour l'IA (optionnel)</label>
                     <textarea id="custom-instruction" rows="2" class="w-full p-3 bg-gray-700 rounded-lg" placeholder="Ex: Concentre-toi sur les dates importantes..."></textarea>
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg text-xl flex items-center justify-center">
@@ -133,9 +145,12 @@
             </div>
             <div id="quiz-questions-container"></div>
             <div class="flex justify-between items-center mt-8">
-                <button id="prev-question-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg disabled:opacity-50" disabled>Précédent</button>
+                <button id="quit-quiz-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-lg">Quitter</button>
                 <span id="question-progress" class="font-semibold"></span>
-                <button id="next-question-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg">Suivant</button>
+                <div>
+                    <button id="prev-question-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg disabled:opacity-50" disabled>Précédent</button>
+                    <button id="next-question-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg ml-2">Suivant</button>
+                </div>
             </div>
             <button id="submit-quiz-btn" class="hidden mt-8 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-lg text-xl">Terminer</button>
         </section>
@@ -147,8 +162,12 @@
                 <p class="text-2xl font-bold">Votre score</p>
                 <p id="score-text" class="text-7xl font-extrabold text-indigo-400 my-4">0/0</p>
                 <p id="score-percentage" class="text-2xl font-bold text-green-400"></p>
+                <div class="mt-8 flex justify-center space-x-4">
+                    <button id="restart-quiz-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg">Retour à la liste</button>
+                    <button id="review-errors-btn" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-3 px-8 rounded-lg">Réviser mes erreurs</button>
+                    <button id="share-results-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-lg">Partager</button>
+                </div>
                 <div id="results-summary" class="mt-8 space-y-4 text-left"></div>
-                <button id="restart-quiz-btn" class="mt-8 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg">Recommencer</button>
             </div>
         </section>
 
@@ -158,7 +177,7 @@
     <script type="module">
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let userCourses = [];
         let currentQuiz = null;
@@ -166,6 +185,7 @@
         let timerInterval = null;
         let currentQuestionIndex = 0;
         let userAnswers = [];
+        let wrongAnswers = [];
 
         const ui = {
             list: document.getElementById('quiz-list-section'),
@@ -200,9 +220,12 @@
             questionTimerBar: document.getElementById('question-timer-bar'),
             prevQuestionBtn: document.getElementById('prev-question-btn'),
             nextQuestionBtn: document.getElementById('next-question-btn'),
+            quitQuizBtn: document.getElementById('quit-quiz-btn'),
             questionProgress: document.getElementById('question-progress'),
             timerToggle: document.getElementById('timer-toggle'),
             timerOptions: document.getElementById('timer-options'),
+            reviewErrorsBtn: document.getElementById('review-errors-btn'),
+            shareResultsBtn: document.getElementById('share-results-btn'),
         };
 
         function showMessage(message, isError = false) {
@@ -272,6 +295,7 @@
 
                 const count = ui.questionCount.value;
                 const type = ui.quizType.value;
+                const difficulty = document.getElementById('difficulty-select').value;
                 const customInstruction = document.getElementById('custom-instruction').value.trim();
                 const timerEnabled = ui.timerToggle.checked;
                 let timerInstruction = '';
@@ -290,12 +314,14 @@
                     Basé sur le texte suivant provenant des cours "${courseNames.join(', ')}", génère un quiz.
                     Règles:
                     - Crée exactement ${count} questions de type "${type}".
+                    - La difficulté du quiz doit être : ${difficulty}.
+                    - Chaque question doit aussi avoir une clé "explanation" (string) qui explique brièvement pourquoi la réponse est correcte.
                     - ${customInstruction ? `Instruction supplémentaire: ${customInstruction}` : ''}
                     - ${timerInstruction}
                     - Pour "Texte à trous", la question doit contenir le mot [BLANK] et la réponse doit être le mot manquant.
                     - Le format de la réponse DOIT être un JSON valide, sans aucun texte avant ou après.
                     - La structure doit être un objet JSON avec une clé "quiz" contenant un tableau de questions.
-                    - Chaque question doit avoir: "question" (string), "options" (tableau de strings, pour QCM), "answer" (string). Pour Vrai/Faux, les options sont ["Vrai", "Faux"]. Pour Réponse Courte, le tableau options est vide.
+                    - Chaque question doit avoir: "question" (string), "options" (tableau de strings, pour QCM), "answer" (string), et "explanation" (string). Pour Vrai/Faux, les options sont ["Vrai", "Faux"]. Pour Réponse Courte, le tableau options est vide.
                     Texte des cours:
                     ---
                     ${combinedText.substring(0, 15000)} 
@@ -348,7 +374,7 @@
                 });
                 currentQuizId = quizRef.id;
 
-                displayQuiz(quizTitle);
+                displayQuiz(quizTitle, currentQuiz.quiz);
 
             } catch (error) {
                 console.error("Erreur de génération:", error);
@@ -357,9 +383,9 @@
             }
         }
 
-        function displayQuiz(title) {
-            ui.quizTitle.textContent = title;
-            userAnswers = new Array(currentQuiz.quiz.length).fill(null);
+        function displayQuiz(title, questions) {
+            currentQuiz = { quiz: questions, title: title };
+            userAnswers = new Array(questions.length).fill(null);
             currentQuestionIndex = 0;
             showQuestion(currentQuestionIndex);
             startTimer();
@@ -386,7 +412,6 @@
             questionEl.innerHTML = `<p class="text-xl font-bold mb-4">${index + 1}. ${q.question}</p><div class="space-y-3">${optionsHtml}</div>`;
             ui.questionsContainer.appendChild(questionEl);
             
-            // Update progress and buttons
             ui.questionProgress.textContent = `Question ${index + 1} / ${currentQuiz.quiz.length}`;
             ui.prevQuestionBtn.disabled = index === 0;
             ui.nextQuestionBtn.classList.toggle('hidden', index === currentQuiz.quiz.length - 1);
@@ -402,7 +427,10 @@
 
         function startTimer() {
             clearInterval(timerInterval);
-            if (!ui.timerToggle.checked) return;
+            if (!ui.timerToggle.checked) {
+                ui.timerDisplay.classList.add('hidden');
+                return;
+            }
             
             ui.timerDisplay.classList.remove('hidden');
             const timerType = document.querySelector('input[name="timer-type"]:checked').value;
@@ -413,36 +441,59 @@
                     const minutes = Math.floor(time / 60);
                     const seconds = time % 60;
                     ui.timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                    if (time-- <= 0) submitQuiz();
+                    if (time-- <= 0) {
+                        clearInterval(timerInterval);
+                        submitQuiz();
+                    }
                 }, 1000);
-            } else {
-                // Timer par question (logique à affiner si besoin)
             }
         }
 
         async function submitQuiz() {
             clearInterval(timerInterval);
-            saveAnswer(); // Save the last answer
+            saveAnswer();
             let score = 0;
+            wrongAnswers = [];
             ui.resultsSummary.innerHTML = '';
 
             currentQuiz.quiz.forEach((q, index) => {
                 const userAnswer = userAnswers[index] || '';
-                const isCorrect = userAnswer.toLowerCase() === q.answer.toLowerCase();
-                if (isCorrect) score++;
-                // ... (logique d'affichage des résultats)
+                const isCorrect = userAnswer.toLowerCase().trim() === q.answer.toLowerCase().trim();
+                if (isCorrect) {
+                    score++;
+                } else {
+                    wrongAnswers.push(q);
+                }
+                
+                const resultEl = document.createElement('details');
+                resultEl.className = `p-4 rounded-lg ${isCorrect ? 'bg-green-900 border-green-700' : 'bg-red-900 border-red-700'} border`;
+                resultEl.innerHTML = `
+                    <summary class="flex justify-between items-center cursor-pointer">
+                        <p class="font-bold">${index + 1}. ${q.question}</p>
+                        <i class="fas fa-chevron-down"></i>
+                    </summary>
+                    <div class="mt-4 pt-4 border-t border-gray-600">
+                        <p class="text-sm">Votre réponse : <span class="${isCorrect ? 'text-green-300' : 'text-red-300'}">${userAnswer || "Aucune"}</span></p>
+                        ${!isCorrect ? `<p class="text-sm">Réponse correcte : <span class="text-green-300">${q.answer}</span></p>` : ''}
+                        ${q.explanation ? `<p class="text-sm mt-2 text-gray-400"><em>Explication : ${q.explanation}</em></p>` : ''}
+                    </div>
+                `;
+                ui.resultsSummary.appendChild(resultEl);
             });
 
             const total = currentQuiz.quiz.length;
             const percentage = Math.round((score / total) * 100);
             
-            await updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentQuizId), {
-                lastResult: { score, total, percentage, completedAt: serverTimestamp() }
-            });
+            if (currentQuizId) {
+                await updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentQuizId), {
+                    lastResult: { score, total, percentage, completedAt: serverTimestamp() }
+                });
+            }
 
             ui.scoreText.textContent = `${score}/${total}`;
             ui.scorePercentage.textContent = `Soit ${percentage}% de bonnes réponses !`;
             ui.resultsSubtitle.textContent = `Résultats pour : ${currentQuiz.title}`;
+            ui.reviewErrorsBtn.classList.toggle('hidden', wrongAnswers.length === 0);
             showSection('results');
         }
 
@@ -457,14 +508,21 @@
                     const el = document.createElement('div');
                     el.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700';
                     const lastResult = quiz.lastResult ? `${quiz.lastResult.score}/${quiz.lastResult.total} (${quiz.lastResult.percentage}%)` : 'Pas encore fait';
-                    el.innerHTML = `<div><h3 class="font-bold text-lg">${quiz.title}</h3><p class="text-sm text-gray-400">Dernier score: ${lastResult}</p></div><button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Faire le quiz</button>`;
+                    el.innerHTML = `<div><h3 class="font-bold text-lg">${quiz.title}</h3><p class="text-sm text-gray-400">Dernier score: ${lastResult}</p></div><div class="flex items-center space-x-2"><button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Faire</button><button data-id="${quiz.id}" class="delete-quiz-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-trash"></i></button></div>`;
                     el.querySelector('button').addEventListener('click', () => {
                         currentQuiz = { quiz: quiz.questions, title: quiz.title };
                         currentQuizId = quiz.id;
-                        displayQuiz(quiz.title);
+                        displayQuiz(quiz.title, quiz.questions);
                     });
                     ui.savedQuizzesList.appendChild(el);
                 });
+            }
+        }
+
+        async function deleteQuiz(quizId) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer ce quiz ?")) {
+                await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', quizId));
+                showMessage('Quiz supprimé.', false);
             }
         }
 
@@ -498,12 +556,31 @@
         ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
         ui.goToGeneratorBtn.addEventListener('click', () => showSection('setup'));
         ui.backToListBtn.addEventListener('click', () => showSection('list'));
+        ui.quitQuizBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            showSection('list');
+        });
         ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
         window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
         ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
         ui.timerToggle.addEventListener('change', (e) => { ui.timerOptions.classList.toggle('hidden', !e.target.checked); });
         ui.nextQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(++currentQuestionIndex); });
         ui.prevQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(--currentQuestionIndex); });
+        ui.reviewErrorsBtn.addEventListener('click', () => {
+            displayQuiz(`Révision des erreurs - ${currentQuiz.title}`, wrongAnswers);
+        });
+        ui.shareResultsBtn.addEventListener('click', () => {
+            const score = ui.scoreText.textContent;
+            const title = `J'ai eu ${score} à mon quiz "${currentQuiz.title}" !`;
+            const content = `Venez tester vos connaissances ! J'ai généré ce quiz avec Projet Blocus.`;
+            window.location.href = `/forum.html?shareTitle=${encodeURIComponent(title)}&shareContent=${encodeURIComponent(content)}`;
+        });
+        ui.savedQuizzesList.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-quiz-btn')) {
+                const quizId = e.target.closest('.delete-quiz-btn').dataset.id;
+                deleteQuiz(quizId);
+            }
+        });
         
     </script>
 </body>
