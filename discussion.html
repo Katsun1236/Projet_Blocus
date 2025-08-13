@@ -60,16 +60,14 @@
         </div>
     </main>
 
-    <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
-    <div id="modal-container"></div>
+    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script type="module">
-        import { auth, db } from './firebase-config.js';
+        import { auth, db } from '/firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, query, orderBy, where, getDocs, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, updateDoc, increment, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserProfile = null;
-        let friendships = {};
         const discussionId = new URLSearchParams(window.location.search).get('id');
         if (!discussionId) window.location.href = '/forum.html';
 
@@ -85,7 +83,6 @@
             replyFormContainer: document.getElementById('reply-form-container'),
             replyForm: document.getElementById('reply-form'),
             messageBoxContainer: document.getElementById('message-box'),
-            modalContainer: document.getElementById('modal-container'),
         };
 
         function timeAgo(date) {
@@ -112,37 +109,11 @@
             setTimeout(() => { box.remove(); }, 3000);
         }
 
-        function getFriendshipStatus(targetId) {
-            if (!auth.currentUser || auth.currentUser.uid === targetId) return 'self';
-            return friendships[targetId] || 'none';
-        }
-
-        function getFriendButton(targetId, targetName) {
-            const status = getFriendshipStatus(targetId);
-            switch (status) {
-                case 'self': return '';
-                case 'friends': return `<button disabled class="text-sm text-green-400 font-semibold flex items-center"><i class="fas fa-check-circle mr-2"></i>Amis</button>`;
-                case 'sent': return `<button disabled class="text-sm text-gray-400 font-semibold">Demande envoyée</button>`;
-                case 'received': return `<button data-action="accept" data-id="${targetId}" class="text-sm bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded-lg">Accepter</button>`;
-                default: return `<button data-action="add" data-id="${targetId}" data-name="${targetName}" class="text-sm bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg flex items-center"><i class="fas fa-user-plus mr-2"></i>Ajouter</button>`;
-            }
-        }
-
-        function getModeratorButton(authorId, replyId = null) {
-            if (currentUserProfile?.role === 'moderator' && auth.currentUser?.uid !== authorId) {
-                const dataAttributes = `data-action="delete-post" ${replyId ? `data-reply-id="${replyId}"` : ''}`;
-                return `<button ${dataAttributes} class="text-sm bg-red-600 hover:bg-red-700 text-white font-bold py-1 px-3 rounded-lg flex items-center"><i class="fas fa-shield-alt mr-2"></i>Modérer</button>`;
-            }
-            return '';
-        }
-
         function renderMainPost(post) {
             ui.loadingPost.classList.add('hidden');
             const postDate = timeAgo(post.createdAt?.toDate());
             const content = post.content.replace(/\n/g, '<br>');
             const voteState = post.voters?.[auth.currentUser?.uid];
-            const friendButton = getFriendButton(post.authorId, post.authorName);
-            const moderatorButton = getModeratorButton(post.authorId);
 
             ui.mainPostContainer.innerHTML = `
                 <div class="bg-gray-800 p-8 rounded-lg border border-gray-700">
@@ -154,13 +125,11 @@
                         </div>
                         <div class="flex-grow">
                              <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
-                            <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6 flex-wrap gap-2">
+                            <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
                                 <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
                                 <span>par <strong class="text-indigo-400">${post.authorName}</strong></span>
-                                <div class="friend-button-container" data-author-id="${post.authorId}" data-author-name="${post.authorName}">${friendButton}</div>
                                 <span>•</span>
                                 <span>${postDate}</span>
-                                <div class="moderator-button-container" data-author-id="${post.authorId}">${moderatorButton}</div>
                             </div>
                             <div id="shared-content-container" class="mb-6"></div>
                             <div class="text-gray-300 leading-relaxed">${content}</div>
@@ -168,18 +137,68 @@
                     </div>
                 </div>`;
             
-            if (post.sharedCourseUrl) {
+            if (post.sharedQuizId) {
                 const container = document.getElementById('shared-content-container');
+                const icon = post.sharedQuizType === 'Flashcards' ? 'fa-clone' : 'fa-question-circle';
                 container.innerHTML = `
-                    <a href="${post.sharedCourseUrl}" target="_blank" class="block bg-gray-900 p-4 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors">
-                        <p class="text-sm text-gray-400">Cours partagé :</p>
-                        <p class="font-bold text-white flex items-center"><i class="fas fa-file-pdf text-red-500 mr-2"></i>${post.sharedCourseName}</p>
-                    </a>`;
+                    <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
+                        <p class="text-sm text-gray-400">Contenu partagé :</p>
+                        <div class="flex justify-between items-center mt-2">
+                            <p class="font-bold text-white flex items-center"><i class="fas ${icon} text-indigo-400 mr-2"></i>${post.sharedQuizTitle}</p>
+                            <button id="add-shared-content-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Ajouter à mes quiz</button>
+                        </div>
+                    </div>`;
+                
+                document.getElementById('add-shared-content-btn').addEventListener('click', () => addSharedContentToUser(post));
             }
 
             const discussionRef = doc(db, 'forum', discussionId);
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(discussionRef, 1));
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(discussionRef, -1));
+        }
+
+        async function addSharedContentToUser(post) {
+            if (!auth.currentUser) {
+                showMessage('Connectez-vous pour ajouter ce contenu.', true);
+                return;
+            }
+            if (auth.currentUser.uid === post.authorId) {
+                showMessage('Vous ne pouvez pas ajouter votre propre contenu.', true);
+                return;
+            }
+
+            const btn = document.getElementById('add-shared-content-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const originalQuizRef = doc(db, 'users', post.authorId, 'quizzes', post.sharedQuizId);
+                const originalQuizSnap = await getDoc(originalQuizRef);
+
+                if (!originalQuizSnap.exists()) {
+                    throw new Error("Le contenu original n'existe plus.");
+                }
+                
+                const quizData = originalQuizSnap.data();
+
+                // Ajout des informations sur l'auteur original
+                quizData.sharedFromId = post.authorId;
+                quizData.sharedFromName = post.authorName;
+                quizData.sharedFromPhotoURL = post.authorPhotoURL;
+                quizData.createdAt = serverTimestamp(); // Nouvelle date de création pour le nouvel utilisateur
+                delete quizData.lastResult; // On ne copie pas le résultat
+
+                await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), quizData);
+                showMessage('Contenu ajouté à votre liste !', false);
+                btn.textContent = 'Ajouté ✔';
+                btn.classList.replace('bg-indigo-600', 'bg-green-600');
+
+            } catch (error) {
+                console.error("Erreur d'ajout:", error);
+                showMessage(error.message, true);
+                btn.disabled = false;
+                btn.textContent = 'Ajouter à mes quiz';
+            }
         }
 
         function createReplyElement(reply) {
@@ -188,18 +207,12 @@
             const replyDate = timeAgo(reply.createdAt?.toDate());
             const content = reply.content.replace(/\n/g, '<br>');
             const voteState = reply.voters?.[auth.currentUser?.uid];
-            const friendButton = getFriendButton(reply.authorId, reply.authorName);
-            const moderatorButton = getModeratorButton(reply.authorId, reply.id);
 
             el.innerHTML = `
                 <img src="${reply.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
                 <div class="bg-gray-800 p-4 rounded-lg flex-grow">
                     <div class="flex justify-between items-center mb-2">
-                        <div class="flex items-center space-x-3 flex-wrap gap-2">
-                           <p class="font-semibold text-indigo-400">${reply.authorName}</p>
-                           <div class="friend-button-container" data-author-id="${reply.authorId}" data-author-name="${reply.authorName}">${friendButton}</div>
-                           <div class="moderator-button-container" data-author-id="${reply.authorId}" data-reply-id="${reply.id}">${moderatorButton}</div>
-                        </div>
+                        <p class="font-semibold text-indigo-400">${reply.authorName}</p>
                         <p class="text-xs text-gray-500">${replyDate}</p>
                     </div>
                     <p class="text-gray-300 mb-3">${content}</p>
@@ -214,14 +227,6 @@
             el.querySelector('.vote-btn[data-votetype="up"]').addEventListener('click', () => handleVote(replyRef, 1));
             el.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(replyRef, -1));
             return el;
-        }
-
-        function updateAllFriendButtons() {
-            document.querySelectorAll('.friend-button-container').forEach(container => {
-                const authorId = container.dataset.authorId;
-                const authorName = container.dataset.authorName;
-                container.innerHTML = getFriendButton(authorId, authorName);
-            });
         }
 
         async function handleVote(docRef, voteValue) {
@@ -261,78 +266,12 @@
                 btn.disabled = false;
             }
         }
-        
-        async function handleFriendAction(targetId, action) {
-            if (!currentUserProfile) return;
-            const currentUserId = auth.currentUser.uid;
-            if (action === 'add') {
-                await addDoc(collection(db, 'friendships'), { users: [currentUserId, targetId], status: 'pending', requestedBy: currentUserId, requestedTo: targetId, createdAt: serverTimestamp() });
-                showMessage('Demande d\'ami envoyée !', false);
-            }
-            if (action === 'accept') {
-                const q = query(collection(db, 'friendships'), where('users', 'array-contains', currentUserId), where('requestedTo', '==', currentUserId));
-                const querySnapshot = await getDocs(q);
-                querySnapshot.forEach(async (d) => {
-                    if(d.data().requestedBy === targetId) {
-                        await updateDoc(d.ref, { status: 'friends' });
-                        showMessage('Ami ajouté !', false);
-                    }
-                });
-            }
-        }
-
-        function createModal(id, title, content, formHandler) {
-            const modalHTML = `<div id="${id}" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40"><div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md"><h2 class="text-2xl font-bold mb-6">${title}</h2><form>${content}</form></div></div>`;
-            ui.modalContainer.innerHTML = modalHTML;
-            const modal = document.getElementById(id);
-            modal.querySelector('form').addEventListener('submit', (e) => { e.preventDefault(); formHandler(e); });
-            modal.querySelector('[data-action="cancel"]').addEventListener('click', () => modal.remove());
-        }
-
-        function openDeleteModal(isPost, targetId) {
-            const type = isPost ? 'discussion' : 'réponse';
-            const content = `<p class="text-gray-400 mb-6">En tant que modérateur, êtes-vous sûr de vouloir supprimer cette ${type} ?</p><div class="flex justify-center space-x-4"><button type="button" data-action="cancel" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg">Annuler</button><button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg">Supprimer</button></div>`;
-            createModal('delete-modal', 'Confirmation Modérateur', content, async (e) => {
-                const btn = e.target.querySelector('button[type="submit"]');
-                btn.disabled = true;
-                try {
-                    let docRef;
-                    if (isPost) {
-                        docRef = doc(db, 'forum', discussionId);
-                        await deleteDoc(docRef);
-                        showMessage('Discussion supprimée.', false);
-                        setTimeout(() => window.location.href = '/forum.html', 1500);
-                    } else {
-                        docRef = doc(db, 'forum', discussionId, 'replies', targetId);
-                        await deleteDoc(docRef);
-                        await updateDoc(doc(db, 'forum', discussionId), { replyCount: increment(-1) });
-                        showMessage('Réponse supprimée.', false);
-                    }
-                } catch (error) { showMessage('Erreur de suppression.', true); }
-                document.getElementById('delete-modal').remove();
-            });
-        }
 
         function setupEventListeners() {
             ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
             window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
             ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
             ui.replyForm.addEventListener('submit', handleReplySubmit);
-            document.addEventListener('click', (e) => {
-                const friendButton = e.target.closest('[data-action="add"], [data-action="accept"]');
-                if (friendButton) {
-                    const action = friendButton.dataset.action;
-                    const targetId = friendButton.dataset.id;
-                    handleFriendAction(targetId, action);
-                }
-                const modButton = e.target.closest('[data-action="delete-post"]');
-                if (modButton) {
-                    const postContainer = modButton.closest('.moderator-button-container');
-                    const isPost = !postContainer.dataset.replyId;
-                    const targetId = postContainer.dataset.replyId || discussionId;
-                    openDeleteModal(isPost, targetId);
-                }
-            });
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -349,19 +288,6 @@
                 } else {
                     window.location.href = '/onboarding.html';
                 }
-
-                const friendshipsRef = collection(db, 'friendships');
-                const qFriends = query(friendshipsRef, where('users', 'array-contains', user.uid));
-                onSnapshot(qFriends, (snapshot) => {
-                    friendships = {};
-                    snapshot.forEach(doc => {
-                        const data = doc.data();
-                        const otherUserId = data.users.find(id => id !== user.uid);
-                        if (data.status === 'friends') friendships[otherUserId] = 'friends';
-                        else if (data.status === 'pending') friendships[otherUserId] = data.requestedBy === user.uid ? 'sent' : 'received';
-                    });
-                    updateAllFriendButtons();
-                });
             } else {
                 ui.replyFormContainer.classList.add('hidden');
             }

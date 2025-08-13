@@ -60,7 +60,7 @@
                     <textarea id="discussion-content" rows="6" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" required></textarea>
                 </div>
                 <div class="mb-6">
-                    <label for="share-select" class="block text-gray-300 font-bold mb-2">Partager un cours (optionnel)</label>
+                    <label for="share-select" class="block text-gray-300 font-bold mb-2">Partager un Quiz ou Flashcard (optionnel)</label>
                     <select id="share-select" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500">
                         <option value="">Ne rien partager</option>
                     </select>
@@ -73,15 +73,15 @@
         </div>
     </div>
 
-    <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
+    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script type="module">
-        import { auth, db } from './firebase-config.js';
+        import { auth, db } from '/firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserProfile = null;
-        let userCourses = [];
+        let userQuizzes = [];
 
         const ui = {
             navLoggedIn: document.getElementById('nav-logged-in'),
@@ -96,6 +96,7 @@
             discussionForm: document.getElementById('discussion-form'),
             cancelDiscussionBtn: document.getElementById('cancel-discussion'),
             messageBoxContainer: document.getElementById('message-box'),
+            shareSelect: document.getElementById('share-select'),
         };
 
         function showMessage(message, isError = false) {
@@ -127,7 +128,7 @@
             el.href = `/discussion.html?id=${discussion.id}`;
             el.className = "block bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors duration-300";
             const postDate = timeAgo(discussion.createdAt?.toDate());
-            const sharedIcon = discussion.sharedCourseId ? `<i class="fas fa-paperclip text-gray-500 ml-2" title="Contenu partagé"></i>` : '';
+            const sharedIcon = discussion.sharedQuizId ? `<i class="fas fa-share-alt text-gray-500 ml-2" title="Contenu partagé"></i>` : '';
             el.innerHTML = `
                 <div class="flex items-start space-x-4">
                     <img src="${discussion.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
@@ -159,17 +160,16 @@
         }
 
         async function populateShareSelect() {
-            const select = document.getElementById('share-select');
-            select.innerHTML = '<option value="">Ne rien partager</option>';
-            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
-            const coursesSnap = await getDocs(coursesRef);
-            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            ui.shareSelect.innerHTML = '<option value="">Ne rien partager</option>';
+            const quizzesRef = collection(db, 'users', auth.currentUser.uid, 'quizzes');
+            const quizzesSnap = await getDocs(quizzesRef);
+            userQuizzes = quizzesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            userCourses.forEach(course => {
+            userQuizzes.forEach(quiz => {
                 const option = document.createElement('option');
-                option.value = course.id;
-                option.textContent = `Cours: ${course.name}`;
-                select.appendChild(option);
+                option.value = quiz.id;
+                option.textContent = `(${quiz.type}) ${quiz.title}`;
+                ui.shareSelect.appendChild(option);
             });
         }
 
@@ -178,7 +178,7 @@
             if (!currentUserProfile) { showMessage('Vous devez être connecté pour publier.', true); return; }
             const title = document.getElementById('discussion-title').value.trim();
             const content = document.getElementById('discussion-content').value.trim();
-            const sharedCourseId = document.getElementById('share-select').value;
+            const sharedQuizId = ui.shareSelect.value;
             if (!title || !content) { showMessage('Le titre et le message ne peuvent pas être vides.', true); return; }
             
             const btn = e.target.querySelector('button[type="submit"]');
@@ -194,17 +194,17 @@
                 lastReplyAt: serverTimestamp(),
                 votes: 0,
                 voters: {},
-                sharedCourseId: null,
-                sharedCourseName: null,
-                sharedCourseUrl: null,
+                sharedQuizId: null,
+                sharedQuizTitle: null,
+                sharedQuizType: null,
             };
 
-            if (sharedCourseId) {
-                const selectedCourse = userCourses.find(c => c.id === sharedCourseId);
-                if (selectedCourse) {
-                    postData.sharedCourseId = sharedCourseId;
-                    postData.sharedCourseName = selectedCourse.name;
-                    postData.sharedCourseUrl = selectedCourse.url;
+            if (sharedQuizId) {
+                const selectedQuiz = userQuizzes.find(q => q.id === sharedQuizId);
+                if (selectedQuiz) {
+                    postData.sharedQuizId = sharedQuizId;
+                    postData.sharedQuizTitle = selectedQuiz.title;
+                    postData.sharedQuizType = selectedQuiz.type;
                 }
             }
 

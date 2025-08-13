@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de Bord - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
@@ -13,22 +14,26 @@
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-10">
+    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <nav id="nav-logged-in" class="hidden items-center">
-            <a href="/profile.html" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+        <nav id="nav-logged-in" class="hidden items-center relative">
+            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
                 <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
                 <span id="user-name-header" class="font-semibold">Chargement...</span>
-            </a>
-            <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ml-6">
-                <i class="fas fa-sign-out-alt"></i>
+                <i class="fas fa-chevron-down text-xs"></i>
             </button>
+            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                <hr class="border-gray-600 my-2">
+                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+            </div>
         </nav>
     </header>
 
-    <main id="dashboard-content" class="hidden w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pt-28">
+    <main id="dashboard-content" class="hidden w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
         <h1 class="text-4xl font-bold mb-8">Mon Tableau de Bord</h1>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
@@ -39,7 +44,7 @@
             </a>
             
             <a href="/quiz.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
-                <i class="fas fa-clipboard-question text-6xl text-indigo-400 mb-4"></i>
+                <i class="fas fa-brain text-6xl text-indigo-400 mb-4"></i>
                 <h2 class="text-2xl font-bold mb-2">Créer un quiz</h2>
                 <p class="text-gray-400">Teste tes connaissances sur un cours.</p>
             </a>
@@ -76,15 +81,17 @@
         <p class="mt-4 text-gray-400 text-lg">Chargement de votre espace...</p>
     </div>
 
-    <!-- SCRIPT MIS À JOUR -->
     <script type="module">
-        import { auth, db } from './firebase-config.js';
+        import { auth, db } from '/firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         const loadingScreen = document.getElementById('loading-dashboard');
         const dashboardContent = document.getElementById('dashboard-content');
         const navLoggedIn = document.getElementById('nav-logged-in');
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userMenu = document.getElementById('user-menu');
+        const logoutButton = document.getElementById('logout-button');
 
         onAuthStateChanged(auth, async (user) => {
             if (user && !user.isAnonymous) {
@@ -101,16 +108,25 @@
                     navLoggedIn.classList.remove('hidden');
                     navLoggedIn.classList.add('flex');
                 } else {
-                    // Si l'utilisateur est connecté mais n'a pas de profil, on le redirige vers l'onboarding
                     window.location.href = '/onboarding.html';
                 }
             } else {
-                // Si personne n'est connecté, on redirige vers la page de connexion
                 window.location.href = '/login.html';
             }
         });
 
-        document.getElementById('logout-button').addEventListener('click', async () => {
+        userMenuButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', (e) => {
+            if (navLoggedIn && !navLoggedIn.contains(e.target)) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        logoutButton.addEventListener('click', async () => {
             await signOut(auth);
             window.location.href = '/index.html';
         });
