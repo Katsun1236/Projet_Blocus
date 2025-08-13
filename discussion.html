@@ -137,15 +137,24 @@
                     </div>
                 </div>`;
             
-            if (post.sharedQuizId) {
+            if (post.sharedContentId) {
                 const container = document.getElementById('shared-content-container');
-                const icon = post.sharedQuizType === 'Flashcards' ? 'fa-clone' : 'fa-question-circle';
+                let icon;
+                let buttonText;
+                if (post.sharedContentType === 'quiz') {
+                    icon = 'fa-question-circle';
+                    buttonText = 'Ajouter à mes quiz';
+                } else if (post.sharedContentType === 'course') {
+                    icon = 'fa-book';
+                    buttonText = 'Ajouter à mes cours';
+                }
+
                 container.innerHTML = `
                     <div class="bg-gray-900 p-4 rounded-lg border border-gray-700">
                         <p class="text-sm text-gray-400">Contenu partagé :</p>
                         <div class="flex justify-between items-center mt-2">
-                            <p class="font-bold text-white flex items-center"><i class="fas ${icon} text-indigo-400 mr-2"></i>${post.sharedQuizTitle}</p>
-                            <button id="add-shared-content-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Ajouter à mes quiz</button>
+                            <p class="font-bold text-white flex items-center"><i class="fas ${icon} text-indigo-400 mr-2"></i>${post.sharedContentTitle}</p>
+                            <button id="add-shared-content-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">${buttonText}</button>
                         </div>
                     </div>`;
                 
@@ -172,23 +181,29 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
             try {
-                const originalQuizRef = doc(db, 'users', post.authorId, 'quizzes', post.sharedQuizId);
-                const originalQuizSnap = await getDoc(originalQuizRef);
+                const sharedContentRef = doc(db, 'sharedContent', post.sharedContentId);
+                const sharedContentSnap = await getDoc(sharedContentRef);
 
-                if (!originalQuizSnap.exists()) {
-                    throw new Error("Le contenu original n'existe plus.");
+                if (!sharedContentSnap.exists()) {
+                    throw new Error("Le contenu partagé original n'existe plus.");
                 }
                 
-                const quizData = originalQuizSnap.data();
+                const contentData = sharedContentSnap.data();
+                const destinationCollection = contentData.type === 'course' ? 'courses' : 'quizzes';
 
-                // Ajout des informations sur l'auteur original
-                quizData.sharedFromId = post.authorId;
-                quizData.sharedFromName = post.authorName;
-                quizData.sharedFromPhotoURL = post.authorPhotoURL;
-                quizData.createdAt = serverTimestamp(); // Nouvelle date de création pour le nouvel utilisateur
-                delete quizData.lastResult; // On ne copie pas le résultat
+                // On enlève les infos de l'auteur original pour la nouvelle copie
+                delete contentData.originalAuthorId;
+                delete contentData.originalAuthorName;
+                delete contentData.originalAuthorPhotoURL;
+                
+                // On ajoute les nouvelles infos
+                contentData.sharedFromId = post.authorId;
+                contentData.sharedFromName = post.authorName;
+                contentData.sharedFromPhotoURL = post.authorPhotoURL;
+                contentData.createdAt = serverTimestamp();
+                delete contentData.lastResult;
 
-                await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), quizData);
+                await addDoc(collection(db, 'users', auth.currentUser.uid, destinationCollection), contentData);
                 showMessage('Contenu ajouté à votre liste !', false);
                 btn.textContent = 'Ajouté ✔';
                 btn.classList.replace('bg-indigo-600', 'bg-green-600');
@@ -197,7 +212,7 @@
                 console.error("Erreur d'ajout:", error);
                 showMessage(error.message, true);
                 btn.disabled = false;
-                btn.textContent = 'Ajouter à mes quiz';
+                btn.textContent = 'Ajouter';
             }
         }
 

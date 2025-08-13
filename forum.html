@@ -60,7 +60,7 @@
                     <textarea id="discussion-content" rows="6" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" required></textarea>
                 </div>
                 <div class="mb-6">
-                    <label for="share-select" class="block text-gray-300 font-bold mb-2">Partager un Quiz ou Flashcard (optionnel)</label>
+                    <label for="share-select" class="block text-gray-300 font-bold mb-2">Partager un contenu (optionnel)</label>
                     <select id="share-select" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500">
                         <option value="">Ne rien partager</option>
                     </select>
@@ -81,7 +81,7 @@
         import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserProfile = null;
-        let userQuizzes = [];
+        let userSharableContent = [];
 
         const ui = {
             navLoggedIn: document.getElementById('nav-logged-in'),
@@ -128,7 +128,7 @@
             el.href = `/discussion.html?id=${discussion.id}`;
             el.className = "block bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors duration-300";
             const postDate = timeAgo(discussion.createdAt?.toDate());
-            const sharedIcon = discussion.sharedQuizId ? `<i class="fas fa-share-alt text-gray-500 ml-2" title="Contenu partagé"></i>` : '';
+            const sharedIcon = discussion.sharedContentId ? `<i class="fas fa-share-alt text-gray-500 ml-2" title="Contenu partagé"></i>` : '';
             el.innerHTML = `
                 <div class="flex items-start space-x-4">
                     <img src="${discussion.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
@@ -161,28 +161,77 @@
 
         async function populateShareSelect() {
             ui.shareSelect.innerHTML = '<option value="">Ne rien partager</option>';
+            userSharableContent = [];
+
+            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
+            const coursesSnap = await getDocs(coursesRef);
+            const courses = coursesSnap.docs.map(doc => ({ id: doc.id, type: 'course', ...doc.data() }));
+            userSharableContent.push(...courses);
+
             const quizzesRef = collection(db, 'users', auth.currentUser.uid, 'quizzes');
             const quizzesSnap = await getDocs(quizzesRef);
-            userQuizzes = quizzesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const quizzes = quizzesSnap.docs.map(doc => ({ id: doc.id, type: 'quiz', ...doc.data() }));
+            userSharableContent.push(...quizzes);
             
-            userQuizzes.forEach(quiz => {
+            const coursesOptgroup = document.createElement('optgroup');
+            coursesOptgroup.label = 'Cours';
+            courses.forEach(course => {
                 const option = document.createElement('option');
-                option.value = quiz.id;
-                option.textContent = `(${quiz.type}) ${quiz.title}`;
-                ui.shareSelect.appendChild(option);
+                option.value = `course_${course.id}`;
+                option.textContent = course.name;
+                coursesOptgroup.appendChild(option);
             });
+            ui.shareSelect.appendChild(coursesOptgroup);
+
+            const quizzesOptgroup = document.createElement('optgroup');
+            quizzesOptgroup.label = 'Quiz & Flashcards';
+            quizzes.forEach(quiz => {
+                const option = document.createElement('option');
+                option.value = `quiz_${quiz.id}`;
+                option.textContent = `(${quiz.type}) ${quiz.title}`;
+                quizzesOptgroup.appendChild(option);
+            });
+            ui.shareSelect.appendChild(quizzesOptgroup);
         }
 
         async function handleNewDiscussion(e) {
             e.preventDefault();
             if (!currentUserProfile) { showMessage('Vous devez être connecté pour publier.', true); return; }
+            
             const title = document.getElementById('discussion-title').value.trim();
             const content = document.getElementById('discussion-content').value.trim();
-            const sharedQuizId = ui.shareSelect.value;
-            if (!title || !content) { showMessage('Le titre et le message ne peuvent pas être vides.', true); return; }
+            const selectedShare = ui.shareSelect.value;
+
+            if (!title || !content) { 
+                showMessage('Le titre et le message ne peuvent pas être vides.', true); 
+                return; 
+            }
             
             const btn = e.target.querySelector('button[type="submit"]');
             btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publication...';
+
+            let sharedContentId = null;
+            let sharedContentTitle = null;
+            let sharedContentType = null;
+
+            if (selectedShare) {
+                const [type, id] = selectedShare.split('_');
+                const originalContent = userSharableContent.find(item => item.id === id);
+
+                if (originalContent) {
+                    // Créer une copie dans la collection publique 'sharedContent'
+                    const publicContentRef = await addDoc(collection(db, 'sharedContent'), {
+                        ...originalContent,
+                        originalAuthorId: auth.currentUser.uid,
+                        originalAuthorName: currentUserProfile.firstName,
+                        originalAuthorPhotoURL: currentUserProfile.photoURL,
+                    });
+                    sharedContentId = publicContentRef.id;
+                    sharedContentTitle = originalContent.title || originalContent.name;
+                    sharedContentType = originalContent.type;
+                }
+            }
 
             const postData = {
                 title, content,
@@ -194,19 +243,10 @@
                 lastReplyAt: serverTimestamp(),
                 votes: 0,
                 voters: {},
-                sharedQuizId: null,
-                sharedQuizTitle: null,
-                sharedQuizType: null,
+                sharedContentId,
+                sharedContentTitle,
+                sharedContentType,
             };
-
-            if (sharedQuizId) {
-                const selectedQuiz = userQuizzes.find(q => q.id === sharedQuizId);
-                if (selectedQuiz) {
-                    postData.sharedQuizId = sharedQuizId;
-                    postData.sharedQuizTitle = selectedQuiz.title;
-                    postData.sharedQuizType = selectedQuiz.type;
-                }
-            }
 
             try {
                 await addDoc(collection(db, 'forum'), postData);
@@ -218,6 +258,7 @@
                 showMessage('Une erreur est survenue.', true);
             } finally {
                 btn.disabled = false;
+                btn.textContent = 'Publier';
             }
         }
 
