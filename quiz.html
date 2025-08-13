@@ -417,7 +417,7 @@
                 const customInstruction = document.getElementById('custom-instruction').value.trim();
                 
                 // Construction du prompt pour l'API Gemini
-                let prompt;
+                let instructionPrompt;
                 let schema;
 
                 if (type === 'Flashcards') {
@@ -437,7 +437,7 @@
                             }
                         }
                     };
-                    prompt = `À partir du texte fourni, génère ${count} flashcards de difficulté "${difficulty}". Chaque flashcard doit avoir un "term" (terme clé) et une "definition". ${customInstruction}`;
+                    instructionPrompt = `Génère ${count} flashcards de difficulté "${difficulty}". Chaque flashcard doit avoir un "term" (terme clé) et une "definition". ${customInstruction}`;
                 } else { // C'est un Quiz
                     const quizType = ui.quizType.value;
                     schema = {
@@ -458,14 +458,16 @@
                             }
                         }
                     };
-                    prompt = `À partir du texte fourni, génère un quiz de type "${quizType}" avec ${count} questions de difficulté "${difficulty}". Pour chaque question, fournis la "question", la "answer" (réponse correcte), et une "explanation" (brève explication). Pour les QCM, fournis aussi un tableau "options" avec 4 choix incluant la bonne réponse. ${customInstruction}`;
+                    instructionPrompt = `Génère un quiz de type "${quizType}" avec ${count} questions de difficulté "${difficulty}". Pour chaque question, fournis la "question", la "answer" (réponse correcte), et une "explanation" (brève explication). Pour les QCM, fournis aussi un tableau "options" avec 4 choix incluant la bonne réponse. ${customInstruction}`;
                 }
+                
+                const finalPrompt = `Voici le contenu d'un ou plusieurs cours:\n\n${combinedText}\n\n---\n\nÀ partir de ce contenu, suis cette instruction: ${instructionPrompt}`;
 
                 const apiKey = "AIzaSyAR4rQ7Ev5Fe24NeWmmo1aP8BxUFR_aqIw";
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 
                 const payload = { 
-                    contents: [{ parts: [{ text: prompt }] }], 
+                    contents: [{ parts: [{ text: finalPrompt }] }], 
                     generationConfig: { 
                         responseMimeType: "application/json",
                         responseSchema: schema
