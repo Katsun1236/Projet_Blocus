@@ -64,7 +64,7 @@
     <script type="module">
         import { auth, db } from '/firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, query, where, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, query, where, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserId = null;
 
@@ -81,24 +81,18 @@
             userAvatarHeader: document.getElementById('user-avatar-header'),
         };
 
-        async function fetchUsers(userIds) {
-            const users = {};
-            if (userIds.length === 0) return users;
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('__name__', 'in', userIds.slice(0, 10)));
-            const querySnapshot = await getDocs(q);
-            querySnapshot.forEach(doc => {
-                users[doc.id] = doc.data();
-            });
-            return users;
+        async function fetchUser(userId) {
+            if (!userId) return null;
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+            return userSnap.exists() ? { id: userSnap.id, ...userSnap.data() } : null;
         }
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) { window.location.href = '/login.html'; return; }
             currentUserId = user.uid;
 
-            const currentUserRef = doc(db, 'users', currentUserId);
-            const currentUserSnap = await getDoc(currentUserRef);
+            const currentUserSnap = await getDoc(doc(db, 'users', currentUserId));
             if (currentUserSnap.exists()) {
                 const data = currentUserSnap.data();
                 ui.userNameHeader.textContent = data.firstName;
@@ -123,20 +117,17 @@
                     }
                 });
 
-                const userIdsToFetch = [...new Set([...requests.map(r => r.otherUserId), ...friends.map(f => f.otherUserId)])];
-                const userProfiles = await fetchUsers(userIdsToFetch);
-
-                renderRequests(requests, userProfiles);
-                renderFriends(friends, userProfiles);
+                renderRequests(requests);
+                renderFriends(friends);
             });
         });
 
-        function renderRequests(requests, profiles) {
+        async function renderRequests(requests) {
             ui.requestsList.innerHTML = '';
             ui.noRequests.classList.toggle('hidden', requests.length > 0);
-            requests.forEach(req => {
-                const profile = profiles[req.otherUserId];
-                if (!profile) return;
+            for (const req of requests) {
+                const profile = await fetchUser(req.otherUserId);
+                if (!profile) continue;
                 const el = document.createElement('div');
                 el.className = 'bg-gray-800 p-6 rounded-xl border border-gray-700 transition-all duration-300 transform hover:-translate-y-1';
                 el.innerHTML = `
@@ -152,15 +143,15 @@
                         <button data-id="${req.id}" class="decline-btn flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Refuser</button>
                     </div>`;
                 ui.requestsList.appendChild(el);
-            });
+            }
         }
 
-        function renderFriends(friends, profiles) {
+        async function renderFriends(friends) {
             ui.friendsList.innerHTML = '';
             ui.noFriends.classList.toggle('hidden', friends.length > 0);
-            friends.forEach(friend => {
-                const profile = profiles[friend.otherUserId];
-                if (!profile) return;
+            for (const friend of friends) {
+                const profile = await fetchUser(friend.otherUserId);
+                if (!profile) continue;
                 const el = document.createElement('div');
                 el.className = 'bg-gray-800 p-6 rounded-xl flex flex-col items-center text-center border border-gray-700 hover:border-indigo-500 transition-all duration-300 transform hover:-translate-y-1';
                 el.innerHTML = `
@@ -171,7 +162,7 @@
                     <p class="text-sm text-gray-400 mb-4">${profile.school}</p>
                     <a href="/chat.html?with=${friend.otherUserId}" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Message</a>`;
                 ui.friendsList.appendChild(el);
-            });
+            }
         }
 
         ui.requestsList.addEventListener('click', async e => {
