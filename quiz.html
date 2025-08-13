@@ -1,621 +1,858 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Quiz & Flashcards - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <style> 
-        body { font-family: 'Inter', sans-serif; }
-        .option-label:has(input:checked) { background-color: #4f46e5; border-color: #6366f1; }
-        #course-select { height: 150px; }
-        #course-select option { padding: 8px; }
-        #course-select option:checked { background-color: #4f46e5; color: white; }
-        #timer-progress-bar { transition: width 1s linear; }
-        details > summary { list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-        .flashcard-container { perspective: 1000px; }
-        .flashcard { width: 100%; height: 300px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
-        .flashcard.is-flipped { transform: rotateY(180deg); }
-        .flashcard-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 2rem; border-radius: 0.75rem; border: 1px solid #4b5563; }
-        .flashcard-front { background-color: #374151; }
-        .flashcard-back { background-color: #4f46e5; transform: rotateY(180deg); }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mes Quiz & Flashcards — Projet Blocus (Optimisé)</title>
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+  <!-- PDF.js (CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji"; }
+    .option-label:has(input:checked){ outline:2px solid rgb(99 102 241); background-color: rgb(49 46 129 / 0.25); }
+    details > summary { list-style: none; cursor: pointer; }
+    details > summary::-webkit-details-marker { display: none; }
+
+    /* Flashcards */
+    .flashcard-container { perspective: 1000px; }
+    .flashcard { position: relative; width: 100%; height: 300px; transform-style: preserve-3d; transition: transform .6s; }
+    .flashcard.is-flipped { transform: rotateY(180deg); }
+    .flashcard-face { position:absolute; inset:0; backface-visibility: hidden; display:flex; align-items:center; justify-content:center; padding:2rem; border-radius: .75rem; border:1px solid rgb(55 65 81); }
+    .flashcard-front { background:#111827; }
+    .flashcard-back { background:#4f46e5; transform: rotateY(180deg); }
+
+    /* Loader */
+    .spinner { width: 56px; height:56px; border-radius: 9999px; border:6px solid rgba(129,140,248,.25); border-top-color:#6366f1; animation:spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg);} }
+  </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
 
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
-        <a href="/dashboard.html" class="flex items-center space-x-2">
-            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
-        </a>
-        <nav id="nav-logged-in" class="hidden items-center relative">
-            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                <span id="user-name-header" class="font-semibold">Chargement...</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                <hr class="border-gray-600 my-2">
-                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
-            </div>
-        </nav>
-    </header>
+  <!-- Header -->
+  <header class="sticky top-0 z-20 bg-gray-900/80 backdrop-blur border-b border-gray-800">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3">
+        <img src="https://placehold.co/48x48/111827/ffffff?text=PB" alt="Logo" class="h-10 w-10 rounded-lg shadow" />
+        <span class="text-xl font-extrabold">Projet Blocus</span>
+      </a>
 
-    <main class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
-        
-        <section id="quiz-list-section">
-             <div class="flex justify-between items-center mb-8">
-                <h1 class="text-4xl font-bold">Mes Quiz & Flashcards</h1>
-                <button id="go-to-generator-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg flex items-center space-x-2">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Nouveau Contenu</span>
-                </button>
-            </div>
-            <div id="saved-quizzes-list" class="space-y-4"></div>
-            <div id="loading-quizzes" class="text-center py-12"><i class="fas fa-spinner fa-spin text-4xl text-indigo-400"></i></div>
-            <div id="no-quizzes" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-clipboard-question text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucun contenu sauvegardé</h3><p class="mt-2 text-gray-400">Créez votre premier quiz ou jeu de flashcards pour le voir apparaître ici.</p></div>
-        </section>
+      <div class="flex items-center gap-2 text-sm text-gray-300">
+        <label class="px-3 py-1 rounded bg-gray-800 border border-gray-700 cursor-pointer hover:bg-gray-700">
+          <i class="fa-solid fa-file-arrow-up mr-2"></i> Importer PDF(s)
+          <input id="pdf-input" type="file" accept="application/pdf" multiple class="hidden">
+        </label>
 
-        <section id="quiz-setup-section" class="hidden">
-            <button id="back-to-list-btn" class="text-indigo-400 hover:text-indigo-300 mb-6 inline-block"><i class="fas fa-arrow-left mr-2"></i>Retour à la liste</button>
-            <h1 id="generator-title" class="text-4xl font-bold mb-2">Générateur de Contenu IA</h1>
-            <p class="text-gray-400 mb-8">Configurez votre contenu sur mesure.</p>
-            
-            <form id="quiz-generator-form" class="bg-gray-800 p-8 rounded-xl border border-gray-700 space-y-6">
-                <input type="hidden" id="content-type-hidden">
-                <div>
-                    <label for="quiz-title-input" class="block text-lg font-bold mb-2">1. Titre</label>
-                    <input type="text" id="quiz-title-input" class="w-full px-4 py-3 rounded-lg bg-gray-700" placeholder="Ex: Quiz de révision Chapitre 1" required>
-                </div>
-                <div>
-                    <label for="course-select" class="block text-lg font-bold mb-2">2. Choisir un ou plusieurs cours (Ctrl+Clic)</label>
-                    <select id="course-select" multiple class="w-full p-2 rounded-lg bg-gray-700" required></select>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre d'éléments</label>
-                        <div class="flex items-center space-x-4">
-                            <input type="range" id="question-count" min="5" max="100" value="10" class="w-full">
-                            <span id="question-count-value" class="font-bold text-indigo-400 text-xl w-16 text-center">10</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label for="difficulty-select" class="block text-lg font-bold mb-2">4. Difficulté</label>
-                        <select id="difficulty-select" class="w-full px-4 py-3 rounded-lg bg-gray-700">
-                            <option value="Facile">Facile</option>
-                            <option value="Moyen" selected>Moyen</option>
-                            <option value="Difficile">Difficile</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="quiz-type-container">
-                    <label for="quiz-type" class="block text-lg font-bold mb-2">5. Type de questions</label>
-                    <select id="quiz-type" class="w-full px-4 py-3 rounded-lg bg-gray-700">
-                        <option value="QCM">QCM (Choix multiples)</option>
-                        <option value="Vrai/Faux">Vrai / Faux</option>
-                        <option value="Réponse Courte">Réponse Courte</option>
-                        <option value="Texte à trous">Texte à trous</option>
-                    </select>
-                </div>
-                <div id="timer-config-container" class="bg-gray-900 p-4 rounded-lg">
-                    <p class="text-lg font-bold mb-3">Options du minuteur</p>
-                    <div class="flex items-center justify-between mb-4">
-                        <label for="timer-toggle" class="font-semibold">Activer le minuteur</label>
-                        <input type="checkbox" id="timer-toggle" class="form-checkbox h-6 w-6 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500">
-                    </div>
-                    <div id="timer-options" class="hidden space-y-4">
-                        <div class="flex items-center">
-                            <input type="radio" id="timer-global" name="timer-type" value="global" class="h-4 w-4 text-indigo-600" checked>
-                            <label for="timer-global" class="ml-3 block text-sm font-medium">Temps total pour le quiz (minutes)</label>
-                        </div>
-                        <input type="number" id="timer-global-value" min="1" value="10" class="w-full p-2 bg-gray-700 rounded-lg">
-                        
-                        <div class="flex items-center">
-                            <input type="radio" id="timer-per-question" name="timer-type" value="per-question" class="h-4 w-4 text-indigo-600">
-                            <label for="timer-per-question" class="ml-3 block text-sm font-medium">Temps par question (secondes)</label>
-                        </div>
-                        <input type="number" id="timer-per-question-value" min="10" value="30" class="w-full p-2 bg-gray-700 rounded-lg">
-                    </div>
-                </div>
-                <div>
-                    <label for="custom-instruction" class="block text-lg font-bold mb-2">Instruction pour l'IA (optionnel)</label>
-                    <textarea id="custom-instruction" rows="2" class="w-full p-3 bg-gray-700 rounded-lg" placeholder="Ex: Concentre-toi sur les dates importantes..."></textarea>
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg text-xl flex items-center justify-center">
-                    <i class="fas fa-magic-sparkles mr-3"></i>
-                    Générer
-                </button>
-            </form>
-        </section>
+        <button id="open-generator" class="px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-700 font-semibold">
+          <i class="fa-solid fa-wand-magic-sparkles mr-2"></i> Nouveau contenu
+        </button>
+      </div>
+    </div>
+  </header>
 
-        <section id="quiz-loading-section" class="hidden text-center py-20"><!-- ... --></section>
-        <section id="quiz-taking-section" class="hidden"><!-- ... --></section>
-        <section id="quiz-results-section" class="hidden text-center"><!-- ... --></section>
-        <section id="flashcard-section" class="hidden"><!-- ... --></section>
+  <!-- Main -->
+  <main class="max-w-5xl mx-auto px-4 py-8 space-y-10">
 
-    </main>
-    
-    <div id="content-choice-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
-        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
-            <h2 class="text-2xl font-bold mb-6">Que voulez-vous créer ?</h2>
-            <div class="flex justify-center space-x-4">
-                <button data-type="Quiz" class="content-choice-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg flex flex-col items-center space-y-2 w-40">
-                    <i class="fas fa-question-circle text-3xl"></i><span>Quiz</span>
-                </button>
-                <button data-type="Flashcards" class="content-choice-btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg flex flex-col items-center space-y-2 w-40">
-                    <i class="fas fa-clone text-3xl"></i><span>Flashcards</span>
-                </button>
-            </div>
-             <button id="cancel-choice-btn" class="mt-6 text-gray-400 hover:text-white">Annuler</button>
+    <!-- Liste -->
+    <section id="list-section">
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-3xl font-extrabold">Mes Quiz & Flashcards</h1>
+      </div>
+
+      <div id="loading-quizzes" class="hidden flex flex-col items-center justify-center py-16">
+        <div class="spinner"></div>
+        <p class="text-gray-400 mt-4">Chargement…</p>
+      </div>
+
+      <div id="no-quizzes" class="hidden text-center py-16 border border-dashed border-gray-700 rounded-xl">
+        <i class="fa-regular fa-rectangle-list text-5xl text-gray-500 mb-4"></i>
+        <h3 class="text-xl font-bold">Aucun contenu</h3>
+        <p class="text-gray-400 mt-1">Crée ton premier quiz ou jeu de flashcards.</p>
+      </div>
+
+      <div id="saved-list" class="grid md:grid-cols-2 gap-4"></div>
+    </section>
+
+    <!-- Generator -->
+    <section id="generator-section" class="hidden">
+      <button id="back-to-list" class="text-indigo-400 hover:text-indigo-300 mb-6">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Retour à la liste
+      </button>
+
+      <h2 class="text-2xl font-bold mb-2">Générateur de contenu (Local, sans API)</h2>
+      <p class="text-gray-400 mb-6">Colle du texte ou importe des PDF, choisis le type et génère.</p>
+
+      <form id="generator-form" class="bg-gray-800 rounded-xl border border-gray-700 p-6 space-y-6">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-2 font-semibold">Titre</label>
+            <input id="gen-title" type="text" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3" placeholder="Ex: Révision Chapitre 1" required>
+          </div>
+          <div>
+            <label class="block mb-2 font-semibold">Type</label>
+            <select id="gen-type" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3">
+              <option value="QCM">Quiz — QCM</option>
+              <option value="Vrai/Faux">Quiz — Vrai/Faux</option>
+              <option value="Réponse Courte">Quiz — Réponse courte</option>
+              <option value="Texte à trous">Quiz — Texte à trous</option>
+              <option value="Flashcards">Flashcards</option>
+            </select>
+          </div>
         </div>
+
+        <div class="grid md:grid-cols-3 gap-4">
+          <div>
+            <label class="block mb-2 font-semibold">Nombre d'éléments</label>
+            <input id="gen-count" type="range" min="5" max="50" value="10" class="w-full">
+            <div class="text-right"><span id="gen-count-value" class="text-indigo-400 font-bold">10</span></div>
+          </div>
+          <div>
+            <label class="block mb-2 font-semibold">Difficulté</label>
+            <select id="gen-difficulty" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3">
+              <option>Facile</option>
+              <option selected>Moyen</option>
+              <option>Difficile</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-2 font-semibold">Minuteur</label>
+            <div class="flex items-center gap-2">
+              <input id="timer-enabled" type="checkbox" class="h-5 w-5">
+              <span>Activer</span>
+            </div>
+            <div id="timer-config" class="mt-3 hidden space-y-2">
+              <div class="flex items-center gap-2">
+                <input type="radio" name="timer-type" id="timer-global" value="global" checked>
+                <label for="timer-global">Global (min)</label>
+                <input id="timer-global-value" type="number" min="1" value="10" class="ml-3 w-20 bg-gray-900 border border-gray-700 rounded px-2 py-1">
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="radio" name="timer-type" id="timer-perq" value="perq">
+                <label for="timer-perq">Par question (sec)</label>
+                <input id="timer-perq-value" type="number" min="5" value="30" class="ml-3 w-20 bg-gray-900 border border-gray-700 rounded px-2 py-1">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block mb-2 font-semibold">Instruction (optionnel)</label>
+          <textarea id="gen-instruction" rows="2" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3" placeholder="Ex: insiste sur les dates clés…"></textarea>
+        </div>
+
+        <div>
+          <label class="block mb-2 font-semibold">Texte source</label>
+          <textarea id="gen-text" rows="8" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3" placeholder="Colle ici du texte…"></textarea>
+          <p class="text-xs text-gray-400 mt-2">Astuce : tu peux aussi importer des PDF en haut à droite, ils seront concaténés ici.</p>
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 font-bold py-3 rounded-lg">
+          <i class="fa-solid fa-bolt mr-2"></i>Générer
+        </button>
+      </form>
+    </section>
+
+    <!-- Prise de quiz -->
+    <section id="taking-section" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="take-title" class="text-2xl font-bold"></h2>
+        <div id="timer-display" class="hidden text-2xl font-extrabold text-indigo-400"></div>
+      </div>
+
+      <div id="q-timer-bar-wrap" class="hidden w-full bg-gray-800 rounded-full h-2.5 mb-4">
+        <div id="q-timer-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width:0%"></div>
+      </div>
+
+      <div id="question-wrap"></div>
+
+      <div class="flex justify-between items-center mt-8">
+        <button id="quit-quiz" class="bg-red-600 hover:bg-red-700 font-bold px-4 py-2 rounded-lg">Quitter</button>
+        <span id="q-progress" class="text-sm text-gray-300"></span>
+        <div>
+          <button id="prev-q" class="bg-gray-700 hover:bg-gray-600 font-bold px-4 py-2 rounded-lg disabled:opacity-50" disabled>Précédent</button>
+          <button id="next-q" class="bg-indigo-600 hover:bg-indigo-700 font-bold px-4 py-2 rounded-lg ml-2">Suivant</button>
+        </div>
+      </div>
+
+      <button id="submit-quiz" class="hidden mt-8 w-full bg-green-600 hover:bg-green-700 font-bold px-4 py-3 rounded-lg">Terminer</button>
+    </section>
+
+    <!-- Résultats -->
+    <section id="results-section" class="hidden text-center">
+      <h2 class="text-3xl font-extrabold mb-2">Résultats</h2>
+      <p id="results-sub" class="text-gray-400 mb-6"></p>
+      <div class="bg-gray-800 border border-gray-700 rounded-xl p-6">
+        <p class="text-xl font-semibold">Votre score</p>
+        <p id="score-text" class="text-6xl font-extrabold text-indigo-400 my-3">0/0</p>
+        <p id="score-pct" class="text-xl font-bold text-green-400"></p>
+        <div class="mt-6 flex justify-center gap-3">
+          <button id="back-home" class="bg-indigo-600 hover:bg-indigo-700 font-bold px-5 py-2 rounded-lg">Retour à la liste</button>
+          <button id="review-errors" class="bg-yellow-500 hover:bg-yellow-600 font-bold px-5 py-2 rounded-lg">Réviser mes erreurs</button>
+        </div>
+        <div id="results-list" class="text-left mt-6 space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- Flashcards -->
+    <section id="flashcards-section" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <h2 id="fc-title" class="text-2xl font-bold"></h2>
+        <button id="fc-back" class="text-indigo-400 hover:text-indigo-300 font-semibold">Retour à la liste</button>
+      </div>
+
+      <div class="flashcard-container">
+        <div id="flashcard" class="flashcard">
+          <div id="fc-front" class="flashcard-face flashcard-front text-2xl font-bold"></div>
+          <div id="fc-backside" class="flashcard-face flashcard-back text-lg"></div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-center">
+        <button id="fc-flip" class="bg-gray-700 hover:bg-gray-600 font-bold px-6 py-2 rounded-lg">Retourner</button>
+      </div>
+
+      <div class="flex items-center justify-between mt-8">
+        <button id="fc-prev" class="bg-indigo-600 hover:bg-indigo-700 font-bold px-6 py-2 rounded-lg disabled:opacity-50" disabled>Précédent</button>
+        <span id="fc-progress" class="text-sm text-gray-300"></span>
+        <button id="fc-next" class="bg-indigo-600 hover:bg-indigo-700 font-bold px-6 py-2 rounded-lg">Suivant</button>
+      </div>
+    </section>
+
+    <!-- Loader global -->
+    <div id="global-loader" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 flex flex-col items-center">
+        <div class="spinner"></div>
+        <p class="mt-4 text-gray-300">Traitement en cours…</p>
+      </div>
     </div>
 
-    <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
+    <!-- Messages -->
+    <div id="toast" class="fixed bottom-4 right-4 z-50"></div>
 
-    <script type="module">
-        import { auth, db } from './firebase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+  </main>
 
-        let userCourses = [];
-        let currentContent = null;
-        let currentContentId = null;
-        let timerInterval = null;
-        let currentItemIndex = 0;
-        let userAnswers = [];
-        let wrongAnswers = [];
+  <script>
+    // ======================
+    // Utils
+    // ======================
+    const $ = (sel, root=document) => root.querySelector(sel);
+    const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+    const show = (el, yes=true) => el?.classList.toggle('hidden', !yes);
+    const text = (el, t='') => el && (el.textContent = t);
+    const html = (el, h='') => el && (el.innerHTML = h);
+    const byId = id => document.getElementById(id);
 
-        const ui = {
-            list: document.getElementById('quiz-list-section'),
-            setup: document.getElementById('quiz-setup-section'),
-            loading: document.getElementById('quiz-loading-section'),
-            taking: document.getElementById('quiz-taking-section'),
-            results: document.getElementById('quiz-results-section'),
-            flashcard: document.getElementById('flashcard-section'),
-            form: document.getElementById('quiz-generator-form'),
-            courseSelect: document.getElementById('course-select'),
-            questionCount: document.getElementById('question-count'),
-            questionCountValue: document.getElementById('question-count-value'),
-            quizType: document.getElementById('quiz-type'),
-            quizTitle: document.getElementById('quiz-title'),
-            questionsContainer: document.getElementById('quiz-questions-container'),
-            submitQuizBtn: document.getElementById('submit-quiz-btn'),
-            resultsSubtitle: document.getElementById('results-subtitle'),
-            scoreText: document.getElementById('score-text'),
-            scorePercentage: document.getElementById('score-percentage'),
-            resultsSummary: document.getElementById('results-summary'),
-            restartQuizBtn: document.getElementById('restart-quiz-btn'),
-            navLoggedIn: document.getElementById('nav-logged-in'),
-            userMenuButton: document.getElementById('user-menu-button'),
-            userMenu: document.getElementById('user-menu'),
-            logoutButton: document.getElementById('logout-button'),
-            goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
-            backToListBtn: document.getElementById('back-to-list-btn'),
-            savedQuizzesList: document.getElementById('saved-quizzes-list'),
-            loadingQuizzes: document.getElementById('loading-quizzes'),
-            noQuizzes: document.getElementById('no-quizzes'),
-            timerDisplay: document.getElementById('timer-display'),
-            questionTimerBarContainer: document.getElementById('question-timer-bar-container'),
-            questionTimerBar: document.getElementById('question-timer-bar'),
-            prevQuestionBtn: document.getElementById('prev-question-btn'),
-            nextQuestionBtn: document.getElementById('next-question-btn'),
-            quitQuizBtn: document.getElementById('quit-quiz-btn'),
-            questionProgress: document.getElementById('question-progress'),
-            timerToggle: document.getElementById('timer-toggle'),
-            timerOptions: document.getElementById('timer-options'),
-            reviewErrorsBtn: document.getElementById('review-errors-btn'),
-            shareResultsBtn: document.getElementById('share-results-btn'),
-            flashcardTitle: document.getElementById('flashcard-title'),
-            prevCardBtn: document.getElementById('prev-card-btn'),
-            nextCardBtn: document.getElementById('next-card-btn'),
-            cardProgress: document.getElementById('card-progress'),
-            backToListFromFlashcardsBtn: document.getElementById('back-to-list-from-flashcards-btn'),
-            contentChoiceModal: document.getElementById('content-choice-modal'),
-            cancelChoiceBtn: document.getElementById('cancel-choice-btn'),
-            quizTypeContainer: document.getElementById('quiz-type-container'),
-            timerConfigContainer: document.getElementById('timer-config-container'),
-            generatorTitle: document.getElementById('generator-title'),
-            contentTypeHidden: document.getElementById('content-type-hidden'),
-        };
+    const toast = (msg, ok=true) => {
+      const box = document.createElement('div');
+      box.className = `px-4 py-3 rounded-lg shadow-lg mb-2 ${ok?'bg-green-600':'bg-red-600'}`;
+      box.textContent = msg;
+      byId('toast').appendChild(box);
+      setTimeout(()=> box.remove(), 3500);
+    };
 
-        function showMessage(message, isError = false) {
-            const box = document.createElement('div');
-            box.textContent = message;
-            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
-            document.getElementById('message-box').appendChild(box);
-            setTimeout(() => { box.remove(); }, 5000);
+    const loader = {
+      show(){ show(byId('global-loader'), true); },
+      hide(){ show(byId('global-loader'), false); }
+    };
+
+    const STORAGE = {
+      KEY: 'pb_contents_v1',
+      all(){
+        try { return JSON.parse(localStorage.getItem(this.KEY) || '[]'); }
+        catch{ return []; }
+      },
+      saveAll(list){ localStorage.setItem(this.KEY, JSON.stringify(list)); },
+      add(item){
+        const list = this.all();
+        list.unshift(item);
+        this.saveAll(list);
+      },
+      remove(id){
+        const list = this.all().filter(x => x.id !== id);
+        this.saveAll(list);
+      }
+    };
+
+    const UID = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+    // ======================
+    // PDF Extraction (local)
+    // ======================
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+    async function extractTextFromPDF(file){
+      const arrayBuf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({data: arrayBuf}).promise;
+      let full = '';
+      for(let i=1;i<=pdf.numPages;i++){
+        const page = await pdf.getPage(i);
+        const tc = await page.getTextContent();
+        full += tc.items.map(it=>it.str).join(' ') + '\n';
+      }
+      return full;
+    }
+
+    // ======================
+    // Simple Local Generators (no API)
+    // ======================
+    function pick(arr, n){
+      const a = [...arr];
+      const out = [];
+      while(out.length < Math.min(n, a.length)){
+        const idx = Math.floor(Math.random()*a.length);
+        out.push(a.splice(idx,1)[0]);
+      }
+      return out;
+    }
+
+    function sentencesFrom(text){
+      return text
+        .replace(/\s+/g,' ')
+        .split(/(?<=[.!?])\s+/)
+        .map(s => s.trim())
+        .filter(s => s.length > 30);
+    }
+
+    function keywords(text, n=30){
+      const stop = new Set("le la les de des du un une et ou mais donc or ni car à au aux en dans sur sous chez par pour avec sans entre vers versus selon selon que qui quoi dont où comme si se sa son ses ce cet cette ces leur leurs ne pas plus moins très aussi afin ainsi encore déjà tout toute tous toutes lorsque tandis pendant avant après contre".split(/\s+/));
+      const words = text.toLowerCase().match(/[a-zàâçéèêëîïôûùüÿœ'-]{3,}/g) || [];
+      const freq = new Map();
+      for(const w of words){ if(!stop.has(w)) freq.set(w,(freq.get(w)||0)+1); }
+      return [...freq.entries()].sort((a,b)=>b[1]-a[1]).slice(0,n).map(([w])=>w);
+    }
+
+    function generateFlashcardsLocal(text, count){
+      const sents = sentencesFrom(text);
+      const keys = keywords(text, Math.max(count*3, 30));
+      const cards = [];
+      for(let i=0;i<count;i++){
+        const term = (keys[i] || `Concept ${i+1}`).replace(/^./, c=>c.toUpperCase());
+        const sentence = sents[i % sents.length] || "Définition à partir du contexte du cours.";
+        const def = sentence.length > 160 ? sentence.slice(0,160) + '…' : sentence;
+        cards.push({ term, definition: def });
+      }
+      return cards;
+    }
+
+    function generateQuizLocal(text, count, type){
+      const sents = sentencesFrom(text);
+      const keys = keywords(text, Math.max(count*4, 40));
+      const quiz = [];
+
+      for(let i=0;i<count;i++){
+        const base = sents[i % sents.length] || "Le cours indique un fait important à retenir.";
+        let q = { question:'', options:null, answer:'', explanation:'' };
+
+        if(type === 'QCM'){
+          const key = (keys[i] || 'connaissance');
+          const blank = base.replace(new RegExp(`\\b${key}\\b`,'i'), '_____');
+          q.question = blank.includes('_____') ? `Complète : ${blank}` : `À propos : ${key}`;
+          const correct = key;
+          const distractors = pick(keys.filter(k=>k!==key), 3);
+          q.options = pick([correct, ...distractors], 4);
+          q.answer = correct;
+          q.explanation = `La bonne réponse est « ${correct} » d'après le contenu du cours.`;
+
+        } else if(type === 'Vrai/Faux'){
+          const isTrue = Math.random() > 0.5;
+          q.question = base;
+          q.options = ['Vrai','Faux'];
+          q.answer = isTrue ? 'Vrai' : 'Faux';
+          q.explanation = isTrue ? 'Énoncé conforme au cours.' : 'Énoncé altéré pour le piège.';
+        } else if(type === 'Réponse Courte'){
+          const key = (keys[i] || 'concept');
+          q.question = `Définis brièvement : « ${key} »`;
+          q.options = null;
+          q.answer = key;
+          q.explanation = `Mot-clé attendu : « ${key} ».`;
+        } else { // Texte à trous
+          const key = (keys[i] || 'concept');
+          const cloze = base.replace(new RegExp(`\\b${key}\\b`,'i'), '[BLANK]');
+          q.question = cloze.includes('[BLANK]') ? cloze : `${base} → Remplace un mot clé par [BLANK]`;
+          q.options = null;
+          q.answer = key;
+          q.explanation = `Le mot manquant est « ${key} ».`;
         }
+        quiz.push(q);
+      }
+      return quiz;
+    }
 
-        function showSection(section) {
-            ['list', 'setup', 'loading', 'taking', 'results', 'flashcard'].forEach(s => ui[s].classList.add('hidden'));
-            ui[section].classList.remove('hidden');
-        }
+    // ======================
+    // State
+    // ======================
+    const UI = {
+      list: byId('list-section'),
+      generator: byId('generator-section'),
+      taking: byId('taking-section'),
+      results: byId('results-section'),
+      flashcards: byId('flashcards-section'),
 
-        function openGenerator(type) {
-            showSection('setup');
-            ui.contentTypeHidden.value = type;
-            if (type === 'Flashcards') {
-                ui.generatorTitle.textContent = 'Générateur de Flashcards IA';
-                ui.quizTypeContainer.classList.add('hidden');
-                ui.timerConfigContainer.classList.add('hidden');
+      savedList: byId('saved-list'),
+      noQuizzes: byId('no-quizzes'),
+      loadingQuizzes: byId('loading-quizzes'),
+
+      openGen: byId('open-generator'),
+      backToList: byId('back-to-list'),
+
+      genForm: byId('generator-form'),
+      genTitle: byId('gen-title'),
+      genType: byId('gen-type'),
+      genCount: byId('gen-count'),
+      genCountValue: byId('gen-count-value'),
+      genDiff: byId('gen-difficulty'),
+      genInstr: byId('gen-instruction'),
+      genText: byId('gen-text'),
+
+      timerEnabled: byId('timer-enabled'),
+      timerConfig: byId('timer-config'),
+      timerGlobal: byId('timer-global'),
+      timerGlobalVal: byId('timer-global-value'),
+      timerPerQ: byId('timer-perq'),
+      timerPerQVal: byId('timer-perq-value'),
+
+      pdfInput: byId('pdf-input'),
+
+      // taking
+      takeTitle: byId('take-title'),
+      qWrap: byId('question-wrap'),
+      qProgress: byId('q-progress'),
+      prevQ: byId('prev-q'),
+      nextQ: byId('next-q'),
+      submitQuiz: byId('submit-quiz'),
+      quitQuiz: byId('quit-quiz'),
+      timerDisplay: byId('timer-display'),
+      qTimerBarWrap: byId('q-timer-bar-wrap'),
+      qTimerBar: byId('q-timer-bar'),
+
+      // results
+      resultsSub: byId('results-sub'),
+      scoreText: byId('score-text'),
+      scorePct: byId('score-pct'),
+      resultsList: byId('results-list'),
+      backHome: byId('back-home'),
+      reviewErrors: byId('review-errors'),
+
+      // flashcards
+      fcTitle: byId('fc-title'),
+      fcCard: byId('flashcard'),
+      fcFront: byId('fc-front'),
+      fcBack: byId('fc-backside'),
+      fcFlip: byId('fc-flip'),
+      fcPrev: byId('fc-prev'),
+      fcNext: byId('fc-next'),
+      fcProgress: byId('fc-progress'),
+      fcBackBtn: byId('fc-back'),
+    };
+
+    let current = {
+      mode: null,            // 'quiz' | 'flashcards'
+      title: '',
+      quiz: null,            // {questions:[], timer:{type:'global'|'perq', value:number}|null}
+      flashcards: null,      // []
+      answers: [],
+      wrong: [],
+      idx: 0,
+      timer: null,
+      timeLeft: 0,
+      perQTotal: 0,
+      savedId: null
+    };
+
+    function resetCurrent(){
+      current = {
+        mode: null, title:'', quiz:null, flashcards:null, answers:[], wrong:[], idx:0,
+        timer: null, timeLeft:0, perQTotal:0, savedId:null
+      };
+    }
+
+    // ======================
+    // Render: Saved list
+    // ======================
+    function renderSaved(){
+      const items = STORAGE.all();
+      show(UI.loadingQuizzes, false);
+
+      if(!items.length){
+        show(UI.noQuizzes, true);
+        html(UI.savedList, '');
+        return;
+      }
+      show(UI.noQuizzes, false);
+
+      html(UI.savedList, items.map(item => {
+        const isFlash = item.type === 'Flashcards';
+        const stat = isFlash ? `${item.content.length} cartes`
+                             : (item.lastResult ? `${item.lastResult.score}/${item.lastResult.total} (${item.lastResult.pct}%)` : 'Pas encore fait');
+        const icon = isFlash ? 'fa-clone' : 'fa-circle-question';
+        return `
+          <div class="p-4 rounded-xl border border-gray-800 bg-gray-900 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid ${icon} text-indigo-400 text-xl"></i>
+              <div>
+                <div class="font-bold">${escapeHtml(item.title)}</div>
+                <div class="text-sm text-gray-400">${isFlash ? stat : `Dernier score : ${stat}`}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button class="px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-700 font-semibold" data-action="open" data-id="${item.id}">
+                ${isFlash ? 'Étudier' : 'Faire'}
+              </button>
+              <button class="px-3 py-1 rounded bg-red-600 hover:bg-red-700" data-action="del" data-id="${item.id}">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join(''));
+    }
+
+    function escapeHtml(s=''){
+      return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    }
+
+    // ======================
+    // Navigation (Sections)
+    // ======================
+    function go(section){
+      show(UI.list, section==='list');
+      show(UI.generator, section==='generator');
+      show(UI.taking, section==='taking');
+      show(UI.results, section==='results');
+      show(UI.flashcards, section==='flashcards');
+    }
+
+    // ======================
+    // Quiz taking
+    // ======================
+    function startQuizFlow(title, questions, timerCfg, savedId=null){
+      resetCurrent();
+      current.mode = 'quiz';
+      current.title = title;
+      current.quiz = { questions, timer: timerCfg || null };
+      current.answers = new Array(questions.length).fill(null);
+      current.idx = 0;
+      current.savedId = savedId || null;
+
+      text(UI.takeTitle, title);
+      renderQuestion(0);
+      startTimerIfAny();
+      go('taking');
+    }
+
+    function renderQuestion(i){
+      const q = current.quiz.questions[i];
+      current.idx = i;
+
+      const optionsHtml = q.options?.length
+        ? q.options.map(opt => {
+            const checked = current.answers[i] === opt ? 'checked' : '';
+            return `
+              <label class="option-label block bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 cursor-pointer hover:bg-gray-800/70">
+                <input class="hidden" type="radio" name="qi${i}" value="${escapeHtml(opt)}" ${checked}>
+                <span>${escapeHtml(opt)}</span>
+              </label>
+            `;
+          }).join('')
+        : `<input type="text" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3" placeholder="Votre réponse…" value="${escapeHtml(current.answers[i]||'')}">`;
+
+      html(UI.qWrap, `
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-6">
+          <p class="text-lg font-bold mb-4">${i+1}. ${escapeHtml(q.question)}</p>
+          <div class="space-y-3">${optionsHtml}</div>
+        </div>
+      `);
+
+      // bind input save
+      if(q.options?.length){
+        $$('#question-wrap input[type="radio"]').forEach(inp => {
+          inp.addEventListener('change', () => current.answers[i] = inp.value);
+        });
+      } else {
+        $('#question-wrap input[type="text"]').addEventListener('input', e => current.answers[i] = e.target.value);
+      }
+
+      text(UI.qProgress, `Question ${i+1} / ${current.quiz.questions.length}`);
+      UI.prevQ.disabled = i === 0;
+      show(UI.nextQ, i < current.quiz.questions.length - 1);
+      show(UI.submitQuiz, i === current.quiz.questions.length - 1);
+    }
+
+    function startTimerIfAny(){
+      clearInterval(current.timer);
+      show(UI.timerDisplay, false);
+      show(UI.qTimerBarWrap, false);
+
+      const t = current.quiz.timer;
+      if(!t) return;
+
+      if(t.type === 'global'){
+        current.timeLeft = t.value * 60;
+        show(UI.timerDisplay, true);
+        current.timer = setInterval(()=>{
+          current.timeLeft--;
+          const m = Math.max(0, Math.floor(current.timeLeft/60));
+          const s = Math.max(0, current.timeLeft % 60);
+          text(UI.timerDisplay, `${m}:${String(s).padStart(2,'0')}`);
+          if(current.timeLeft<=0){ clearInterval(current.timer); finishQuiz(); }
+        }, 1000);
+      } else {
+        current.perQTotal = t.value;
+        show(UI.qTimerBarWrap, true);
+        current.timeLeft = t.value;
+        updatePerQBar();
+        current.timer = setInterval(()=>{
+          current.timeLeft--;
+          updatePerQBar();
+          if(current.timeLeft<=0){
+            // auto next or finish
+            if(current.idx < current.quiz.questions.length - 1){
+              renderQuestion(current.idx+1);
+              current.timeLeft = current.perQTotal;
+              updatePerQBar();
             } else {
-                ui.generatorTitle.textContent = 'Générateur de Quiz IA';
-                ui.quizTypeContainer.classList.remove('hidden');
-                ui.timerConfigContainer.classList.remove('hidden');
+              clearInterval(current.timer);
+              finishQuiz();
             }
+          }
+        }, 1000);
+      }
+    }
+
+    function updatePerQBar(){
+      const pct = Math.max(0, Math.min(100, (current.timeLeft/current.perQTotal)*100));
+      UI.qTimerBar.style.width = pct + '%';
+    }
+
+    function finishQuiz(){
+      clearInterval(current.timer);
+      // grade
+      let score = 0;
+      const wrong = [];
+      current.quiz.questions.forEach((q, i) => {
+        const ans = (current.answers[i] || '').trim().toLowerCase();
+        const correct = (q.answer || '').trim().toLowerCase();
+        const ok = ans === correct || (q.options?.length && ans === correct);
+        if(ok) score++; else wrong.push({ ...q, your: current.answers[i] || '' });
+      });
+      current.wrong = wrong;
+
+      const total = current.quiz.questions.length;
+      const pct = Math.round((score/total)*100);
+
+      text(UI.resultsSub, `Résultats pour : ${current.title}`);
+      text(UI.scoreText, `${score}/${total}`);
+      text(UI.scorePct, `${pct}% de bonnes réponses`);
+      html(UI.resultsList, current.quiz.questions.map((q, idx) => {
+        const your = current.answers[idx] || 'Aucune';
+        const isOk = (your.trim().toLowerCase() === (q.answer||'').trim().toLowerCase());
+        return `
+          <details class="border rounded-lg ${isOk?'border-green-700 bg-green-900/20':'border-red-700 bg-red-900/20'} p-4">
+            <summary class="flex items-center justify-between">
+              <span class="font-semibold">${idx+1}. ${escapeHtml(q.question)}</span>
+              <i class="fa-solid fa-chevron-down ml-4"></i>
+            </summary>
+            <div class="mt-3 pt-3 border-t border-gray-700 text-sm">
+              <p>Votre réponse : <span class="${isOk?'text-green-300':'text-red-300'}">${escapeHtml(your)}</span></p>
+              ${!isOk ? `<p>Réponse correcte : <span class="text-green-300">${escapeHtml(q.answer||'')}</span></p>` : ''}
+              ${q.explanation ? `<p class="text-gray-300 mt-2"><em>${escapeHtml(q.explanation)}</em></p>` : ''}
+            </div>
+          </details>
+        `;
+      }).join(''));
+
+      // persist last result if saved
+      if(current.savedId){
+        const all = STORAGE.all();
+        const idx = all.findIndex(x => x.id === current.savedId);
+        if(idx !== -1){
+          all[idx].lastResult = { score, total, pct, at: Date.now() };
+          STORAGE.saveAll(all);
         }
+      }
 
-        async function populateCourses() {
-            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
-            const coursesSnap = await getDocs(coursesRef);
-            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            ui.courseSelect.innerHTML = '';
-            if (userCourses.length === 0) {
-                ui.courseSelect.innerHTML = '<option value="" disabled>Veuillez d\'abord uploader un cours</option>';
-            } else {
-                userCourses.forEach(course => {
-                    const option = document.createElement('option');
-                    option.value = course.id;
-                    option.textContent = course.name;
-                    ui.courseSelect.appendChild(option);
-                });
-            }
+      go('results');
+    }
+
+    // ======================
+    // Flashcards study
+    // ======================
+    function startFlashcardsFlow(title, cards){
+      resetCurrent();
+      current.mode = 'flashcards';
+      current.title = title;
+      current.flashcards = cards;
+      current.idx = 0;
+
+      text(UI.fcTitle, title);
+      renderFlashcard(0);
+      go('flashcards');
+    }
+
+    function renderFlashcard(i){
+      const card = current.flashcards[i];
+      current.idx = i;
+      UI.fcCard.classList.remove('is-flipped');
+      text(UI.fcFront, card.term);
+      text(UI.fcBack, card.definition);
+      text(UI.fcProgress, `Carte ${i+1} / ${current.flashcards.length}`);
+      UI.fcPrev.disabled = i === 0;
+      UI.fcNext.disabled = i === current.flashcards.length - 1;
+    }
+
+    // ======================
+    // Generator submit
+    // ======================
+    UI.genCount.addEventListener('input', e => text(UI.genCountValue, e.target.value));
+    UI.timerEnabled.addEventListener('change', e => show(UI.timerConfig, e.target.checked));
+
+    UI.genForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      const title = UI.genTitle.value.trim();
+      const type = UI.genType.value;
+      const count = parseInt(UI.genCount.value, 10);
+      const diff = UI.genDiff.value;
+      const instr = UI.genInstr.value.trim();
+      let source = UI.genText.value.trim();
+
+      if(!title){ toast('Ajoute un titre.', false); return; }
+      if(source.length < 20){ toast('Ajoute du texte source (ou importe des PDF).', false); return; }
+
+      loader.show();
+      try{
+        let content;
+        if(type === 'Flashcards'){
+          const flashcards = generateFlashcardsLocal(source, count);
+          content = { type, title, content: flashcards };
+          STORAGE.add({ id: UID(), ...content });
+          toast('Flashcards générées ✅');
+          renderSaved();
+          startFlashcardsFlow(title, flashcards);
+        }else{
+          const questions = generateQuizLocal(source, count, type);
+          // build timer cfg if any
+          let timerCfg = null;
+          if(UI.timerEnabled.checked){
+            if(UI.timerGlobal.checked) timerCfg = { type:'global', value: parseInt(UI.timerGlobalVal.value||'10',10) };
+            else timerCfg = { type:'perq', value: parseInt(UI.timerPerQVal.value||'30',10) };
+          }
+          const savedId = UID();
+          STORAGE.add({ id: savedId, type, title, content: questions, timer: timerCfg, lastResult:null });
+          toast('Quiz généré ✅');
+          renderSaved();
+          startQuizFlow(title, questions, timerCfg, savedId);
         }
+      } catch(err){
+        console.error(err);
+        toast('Erreur pendant la génération.', false);
+      } finally {
+        loader.hide();
+      }
+    });
 
-        async function extractTextFromPdf(url) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            const pdf = await pdfjsLib.getDocument(url).promise;
-            let fullText = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-            }
-            return fullText;
+    // ======================
+    // Saved list interactions
+    // ======================
+    UI.savedList.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-action]');
+      if(!btn) return;
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      if(action === 'del'){
+        const ok = confirm('Supprimer ce contenu ?');
+        if(!ok) return;
+        STORAGE.remove(id);
+        renderSaved();
+        toast('Supprimé.');
+      } else if(action === 'open'){
+        const item = STORAGE.all().find(x => x.id === id);
+        if(!item) return;
+        if(item.type === 'Flashcards'){
+          startFlashcardsFlow(item.title, item.content);
+        } else {
+          startQuizFlow(item.title, item.content, item.timer || null, item.id);
         }
+      }
+    });
 
-        async function generateContent(e) {
-            e.preventDefault();
-            const selectedOptions = [...ui.courseSelect.selectedOptions];
-            if (selectedOptions.length === 0) {
-                showMessage('Veuillez sélectionner au moins un cours.', true);
-                return;
-            }
-            showSection('loading');
+    // ======================
+    // Controls (Taking)
+    // ======================
+    UI.prevQ.addEventListener('click', () => {
+      if(current.idx > 0){
+        renderQuestion(current.idx - 1);
+        if(current.quiz.timer?.type === 'perq'){ current.timeLeft = current.perQTotal; updatePerQBar(); }
+      }
+    });
+    UI.nextQ.addEventListener('click', () => {
+      if(current.idx < current.quiz.questions.length - 1){
+        renderQuestion(current.idx + 1);
+        if(current.quiz.timer?.type === 'perq'){ current.timeLeft = current.perQTotal; updatePerQBar(); }
+      }
+    });
+    UI.submitQuiz.addEventListener('click', finishQuiz);
+    UI.quitQuiz.addEventListener('click', () => { clearInterval(current.timer); go('list'); });
 
-            try {
-                let combinedText = '';
-                let courseNames = [];
-                for (const option of selectedOptions) {
-                    const course = userCourses.find(c => c.id === option.value);
-                    if (course) {
-                        courseNames.push(course.name);
-                        combinedText += `--- Contenu du cours: ${course.name} ---\n`;
-                        const text = await extractTextFromPdf(course.url);
-                        combinedText += text + '\n\n';
-                    }
-                }
+    UI.backHome.addEventListener('click', () => { go('list'); });
+    UI.reviewErrors.addEventListener('click', () => {
+      if(!current.wrong.length){ toast('Aucune erreur à réviser 🎉'); return; }
+      startQuizFlow(`Révision — ${current.title}`, current.wrong, current.quiz.timer);
+    });
 
-                const count = ui.questionCount.value;
-                const type = ui.contentTypeHidden.value === 'Flashcards' ? 'Flashcards' : ui.quizType.value;
-                const difficulty = document.getElementById('difficulty-select').value;
-                const customInstruction = document.getElementById('custom-instruction').value.trim();
-                
-                let prompt;
-                if (type === 'Flashcards') {
-                    prompt = `Basé sur le texte suivant, génère un jeu de flashcards...`; // Prompt pour flashcards
-                } else {
-                    prompt = `Basé sur le texte suivant, génère un quiz...`; // Prompt pour quiz
-                }
+    // ======================
+    // Controls (Flashcards)
+    // ======================
+    UI.fcFlip.addEventListener('click', () => UI.fcCard.classList.toggle('is-flipped'));
+    UI.fcPrev.addEventListener('click', () => { if(current.idx>0) renderFlashcard(current.idx-1); });
+    UI.fcNext.addEventListener('click', () => { if(current.idx<current.flashcards.length-1) renderFlashcard(current.idx+1); });
+    UI.fcBackBtn.addEventListener('click', () => go('list'));
 
-                const apiKey = "AIzaSyAR4rQ7Ev5Fe24NeWmmo1aP8BxUFR_aqIw";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                
-                const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } };
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    // ======================
+    // Navigation
+    // ======================
+    UI.openGen.addEventListener('click', () => { go('generator'); });
+    UI.backToList.addEventListener('click', () => { go('list'); });
 
-                if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
-                const result = await response.json();
-                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) throw new Error("Réponse de l'IA invalide.");
-                
-                let responseText = result.candidates[0].content.parts[0].text;
-                const jsonStart = responseText.indexOf('{');
-                const jsonEnd = responseText.lastIndexOf('}');
-                if (jsonStart !== -1 && jsonEnd !== -1) responseText = responseText.substring(jsonStart, jsonEnd + 1);
-
-                currentContent = JSON.parse(responseText);
-
-                const title = document.getElementById('quiz-title-input').value;
-                const contentRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
-                    title: title,
-                    type: type,
-                    content: type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz,
-                    createdAt: serverTimestamp()
-                });
-                currentContentId = contentRef.id;
-
-                if (type === 'Flashcards') {
-                    displayFlashcards(title, currentContent.flashcards);
-                } else {
-                    displayQuiz(title, currentContent.quiz);
-                }
-
-            } catch (error) {
-                console.error("Erreur de génération:", error);
-                showMessage(error.message, true);
-                showSection('setup');
-            }
+    // ======================
+    // PDF import → append to textarea
+    // ======================
+    UI.pdfInput.addEventListener('change', async e => {
+      const files = Array.from(e.target.files || []);
+      if(!files.length) return;
+      loader.show();
+      try{
+        const texts = [];
+        for(const f of files){
+          const t = await extractTextFromPDF(f);
+          texts.push(`--- ${f.name} ---\n` + t);
         }
+        const joined = texts.join('\n\n');
+        UI.genText.value = (UI.genText.value.trim() + '\n\n' + joined).trim();
+        toast('PDF importé et ajouté au texte source ✅');
+        go('generator');
+      } catch(err){
+        console.error(err);
+        toast('Échec de l\'import PDF.', false);
+      } finally {
+        loader.hide();
+        e.target.value = '';
+      }
+    });
 
-        function displayQuiz(title, questions) {
-            currentContent = { quiz: questions, title: title };
-            userAnswers = new Array(questions.length).fill(null);
-            currentItemIndex = 0;
-            showQuestion(currentItemIndex);
-            startTimer();
-            showSection('taking');
-        }
-        
-        function displayFlashcards(title, flashcards) {
-            currentContent = { flashcards: flashcards, title: title };
-            currentItemIndex = 0;
-            ui.flashcardTitle.textContent = title;
-            showFlashcard(currentItemIndex);
-            showSection('flashcard');
-        }
-
-        function showFlashcard(index) {
-            const card = currentContent.flashcards[index];
-            document.getElementById('flashcard').classList.remove('is-flipped');
-            document.getElementById('flashcard-front').textContent = card.term;
-            document.getElementById('flashcard-back').textContent = card.definition;
-            ui.cardProgress.textContent = `Carte ${index + 1} / ${currentContent.flashcards.length}`;
-            ui.prevCardBtn.disabled = index === 0;
-            ui.nextCardBtn.disabled = index === currentContent.flashcards.length - 1;
-        }
-
-        function showQuestion(index) {
-            ui.questionsContainer.innerHTML = '';
-            const q = currentContent.quiz[index];
-            const questionEl = document.createElement('div');
-            questionEl.className = 'bg-gray-800 p-6 rounded-lg border border-gray-700';
-            
-            let optionsHtml = '';
-            if (q.options && q.options.length > 0) {
-                optionsHtml = q.options.map((opt) => {
-                    const isChecked = userAnswers[index] === opt ? 'checked' : '';
-                    return `<div><label class="option-label block bg-gray-700 p-4 rounded-lg border-2 border-gray-600 hover:border-indigo-500 cursor-pointer"><input type="radio" name="q${index}" value="${opt}" class="hidden" ${isChecked}><span>${opt}</span></label></div>`;
-                }).join('');
-            } else {
-                const value = userAnswers[index] || '';
-                optionsHtml = `<input type="text" name="q${index}" class="w-full p-3 bg-gray-700 rounded-lg border-2 border-gray-600" placeholder="Votre réponse..." value="${value}">`;
-            }
-
-            questionEl.innerHTML = `<p class="text-xl font-bold mb-4">${index + 1}. ${q.question}</p><div class="space-y-3">${optionsHtml}</div>`;
-            ui.questionsContainer.appendChild(questionEl);
-            
-            ui.questionProgress.textContent = `Question ${index + 1} / ${currentContent.quiz.length}`;
-            ui.prevQuestionBtn.disabled = index === 0;
-            ui.nextQuestionBtn.classList.toggle('hidden', index === currentContent.quiz.length - 1);
-            ui.submitQuizBtn.classList.toggle('hidden', index !== currentContent.quiz.length - 1);
-        }
-
-        function saveAnswer() {
-            const input = document.querySelector(`[name="q${currentItemIndex}"]:checked`) || document.querySelector(`[name="q${currentItemIndex}"]`);
-            if (input) {
-                userAnswers[currentItemIndex] = input.value;
-            }
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            if (!ui.timerToggle.checked) {
-                ui.timerDisplay.classList.add('hidden');
-                return;
-            }
-            
-            ui.timerDisplay.classList.remove('hidden');
-            const timerType = document.querySelector('input[name="timer-type"]:checked').value;
-            
-            if (timerType === 'global') {
-                let time = parseInt(document.getElementById('timer-global-value').value) * 60;
-                timerInterval = setInterval(() => {
-                    const minutes = Math.floor(time / 60);
-                    const seconds = time % 60;
-                    ui.timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                    if (time-- <= 0) {
-                        clearInterval(timerInterval);
-                        submitQuiz();
-                    }
-                }, 1000);
-            }
-        }
-
-        async function submitQuiz() {
-            clearInterval(timerInterval);
-            saveAnswer();
-            let score = 0;
-            wrongAnswers = [];
-            ui.resultsSummary.innerHTML = '';
-
-            currentContent.quiz.forEach((q, index) => {
-                const userAnswer = userAnswers[index] || '';
-                const isCorrect = userAnswer.toLowerCase().trim() === q.answer.toLowerCase().trim();
-                if (isCorrect) {
-                    score++;
-                } else {
-                    wrongAnswers.push(q);
-                }
-                
-                const resultEl = document.createElement('details');
-                resultEl.className = `p-4 rounded-lg ${isCorrect ? 'bg-green-900 border-green-700' : 'bg-red-900 border-red-700'} border`;
-                resultEl.innerHTML = `
-                    <summary class="flex justify-between items-center cursor-pointer">
-                        <p class="font-bold">${index + 1}. ${q.question}</p>
-                        <i class="fas fa-chevron-down"></i>
-                    </summary>
-                    <div class="mt-4 pt-4 border-t border-gray-600">
-                        <p class="text-sm">Votre réponse : <span class="${isCorrect ? 'text-green-300' : 'text-red-300'}">${userAnswer || "Aucune"}</span></p>
-                        ${!isCorrect ? `<p class="text-sm">Réponse correcte : <span class="text-green-300">${q.answer}</span></p>` : ''}
-                        ${q.explanation ? `<p class="text-sm mt-2 text-gray-400"><em>Explication : ${q.explanation}</em></p>` : ''}
-                    </div>
-                `;
-                ui.resultsSummary.appendChild(resultEl);
-            });
-
-            const total = currentContent.quiz.length;
-            const percentage = Math.round((score / total) * 100);
-            
-            if (currentContentId) {
-                await updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentContentId), {
-                    lastResult: { score, total, percentage, completedAt: serverTimestamp() }
-                });
-            }
-
-            ui.scoreText.textContent = `${score}/${total}`;
-            ui.scorePercentage.textContent = `Soit ${percentage}% de bonnes réponses !`;
-            ui.resultsSubtitle.textContent = `Résultats pour : ${currentContent.title}`;
-            ui.reviewErrorsBtn.classList.toggle('hidden', wrongAnswers.length === 0);
-            showSection('results');
-        }
-
-        function renderSavedQuizzes(quizzes) {
-            ui.loadingQuizzes.classList.add('hidden');
-            ui.savedQuizzesList.innerHTML = '';
-            if (quizzes.length === 0) {
-                ui.noQuizzes.classList.remove('hidden');
-            } else {
-                ui.noQuizzes.classList.add('hidden');
-                quizzes.forEach(quiz => {
-                    const el = document.createElement('div');
-                    el.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700';
-                    const isFlashcard = quiz.type === 'Flashcards';
-                    const lastResult = quiz.lastResult ? `${quiz.lastResult.score}/${quiz.lastResult.total} (${quiz.lastResult.percentage}%)` : 'Pas encore fait';
-                    const icon = isFlashcard ? 'fa-clone' : 'fa-question-circle';
-
-                    el.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <i class="fas ${icon} text-indigo-400 text-xl"></i>
-                            <div>
-                                <h3 class="font-bold text-lg">${quiz.title}</h3>
-                                <p class="text-sm text-gray-400">${isFlashcard ? `${quiz.content.length} cartes` : `Dernier score: ${lastResult}`}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button class="play-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">${isFlashcard ? 'Étudier' : 'Faire'}</button>
-                            <button data-id="${quiz.id}" class="delete-quiz-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-trash"></i></button>
-                        </div>`;
-                    
-                    const playBtn = el.querySelector('.play-btn');
-                    playBtn.dataset.content = JSON.stringify(quiz);
-
-                    ui.savedQuizzesList.appendChild(el);
-                });
-            }
-        }
-
-        async function deleteQuiz(quizId) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer ce contenu ?")) {
-                await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', quizId));
-                showMessage('Contenu supprimé.', false);
-            }
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = profileData.firstName;
-                    document.getElementById('user-avatar-header').src = profileData.photoURL;
-                    ui.navLoggedIn.classList.remove('hidden');
-                    ui.navLoggedIn.classList.add('flex');
-                }
-                populateCourses();
-                
-                const quizzesRef = collection(db, 'users', user.uid, 'quizzes');
-                onSnapshot(quizzesRef, (snapshot) => {
-                    const quizzes = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderSavedQuizzes(quizzes);
-                });
-
-            } else {
-                window.location.href = '/login.html';
-            }
-        });
-
-        ui.questionCount.addEventListener('input', (e) => { ui.questionCountValue.textContent = e.target.value; });
-        ui.form.addEventListener('submit', generateContent);
-        ui.submitQuizBtn.addEventListener('click', submitQuiz);
-        ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
-        ui.goToGeneratorBtn.addEventListener('click', () => ui.contentChoiceModal.classList.remove('hidden'));
-        ui.cancelChoiceBtn.addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
-        document.querySelectorAll('.content-choice-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const type = btn.dataset.type;
-                openGenerator(type);
-                ui.contentChoiceModal.classList.add('hidden');
-            });
-        });
-        ui.backToListBtn.addEventListener('click', () => showSection('list'));
-        ui.quitQuizBtn.addEventListener('click', () => {
-            clearInterval(timerInterval);
-            showSection('list');
-        });
-        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
-        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
-        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
-        ui.timerToggle.addEventListener('change', (e) => { ui.timerOptions.classList.toggle('hidden', !e.target.checked); });
-        ui.nextQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(++currentItemIndex); });
-        ui.prevQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(--currentItemIndex); });
-        ui.reviewErrorsBtn.addEventListener('click', () => {
-            displayQuiz(`Révision des erreurs - ${currentContent.title}`, wrongAnswers);
-        });
-        ui.shareResultsBtn.addEventListener('click', () => {
-            const score = ui.scoreText.textContent;
-            const title = `J'ai eu ${score} à mon quiz "${currentContent.title}" !`;
-            const content = `Venez tester vos connaissances ! J'ai généré ce quiz avec Projet Blocus.`;
-            window.location.href = `/forum.html?shareTitle=${encodeURIComponent(title)}&shareContent=${encodeURIComponent(content)}`;
-        });
-        ui.savedQuizzesList.addEventListener('click', (e) => {
-            const playBtn = e.target.closest('.play-btn');
-            const deleteBtn = e.target.closest('.delete-quiz-btn');
-
-            if (playBtn) {
-                const data = JSON.parse(playBtn.dataset.content);
-                currentContentId = data.id;
-                if (data.type === 'Flashcards') {
-                    displayFlashcards(data.title, data.content);
-                } else {
-                    displayQuiz(data.title, data.content);
-                }
-            }
-            if (deleteBtn) {
-                const quizId = deleteBtn.dataset.id;
-                deleteQuiz(quizId);
-            }
-        });
-        ui.quizType.addEventListener('change', (e) => {
-            const isQuiz = e.target.value !== 'Flashcards';
-            document.getElementById('timer-config-container').classList.toggle('hidden', !isQuiz);
-        });
-        document.getElementById('flip-card-btn').addEventListener('click', () => {
-            document.getElementById('flashcard').classList.toggle('is-flipped');
-        });
-        ui.nextCardBtn.addEventListener('click', () => showFlashcard(++currentItemIndex));
-        ui.prevCardBtn.addEventListener('click', () => showFlashcard(--currentItemIndex));
-        ui.backToListFromFlashcardsBtn.addEventListener('click', () => showSection('list'));
-        
-    </script>
+    // ======================
+    // Init
+    // ======================
+    (function init(){
+      renderSaved();
+      go('list');
+      text(UI.genCountValue, UI.genCount.value);
+    })();
+  </script>
 </body>
 </html>
