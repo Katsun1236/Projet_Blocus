@@ -10,16 +10,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- PDF.js worker -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <style> 
         body { font-family: 'Inter', sans-serif; }
+        /* Style pour les options de quiz sélectionnées */
         .option-label:has(input:checked) { background-color: #4f46e5; border-color: #6366f1; }
+        /* Style pour la liste de sélection des cours */
         #course-select { height: 150px; }
         #course-select option { padding: 8px; }
         #course-select option:checked { background-color: #4f46e5; color: white; }
-        #timer-progress-bar { transition: width 1s linear; }
+        /* Style pour la barre de progression du minuteur */
+        #timer-progress-bar, #question-timer-bar { transition: width 1s linear; }
+        /* Cacher les marqueurs de liste pour les 'details' */
         details > summary { list-style: none; }
         details > summary::-webkit-details-marker { display: none; }
+        /* Styles pour les flashcards */
         .flashcard-container { perspective: 1000px; }
         .flashcard { width: 100%; height: 300px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
         .flashcard.is-flipped { transform: rotateY(180deg); }
@@ -51,6 +57,7 @@
 
     <main class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
         
+        <!-- SECTION 1 : LISTE DES QUIZ SAUVEGARDÉS -->
         <section id="quiz-list-section">
              <div class="flex justify-between items-center mb-8">
                 <h1 class="text-4xl font-bold">Mes Quiz & Flashcards</h1>
@@ -64,6 +71,7 @@
             <div id="no-quizzes" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-clipboard-question text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucun contenu sauvegardé</h3><p class="mt-2 text-gray-400">Créez votre premier quiz ou jeu de flashcards pour le voir apparaître ici.</p></div>
         </section>
 
+        <!-- SECTION 2 : FORMULAIRE DE CRÉATION -->
         <section id="quiz-setup-section" class="hidden">
             <button id="back-to-list-btn" class="text-indigo-400 hover:text-indigo-300 mb-6 inline-block"><i class="fas fa-arrow-left mr-2"></i>Retour à la liste</button>
             <h1 id="generator-title" class="text-4xl font-bold mb-2">Générateur de Contenu IA</h1>
@@ -83,7 +91,7 @@
                     <div>
                         <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre d'éléments</label>
                         <div class="flex items-center space-x-4">
-                            <input type="range" id="question-count" min="5" max="100" value="10" class="w-full">
+                            <input type="range" id="question-count" min="5" max="50" value="10" class="w-full">
                             <span id="question-count-value" class="font-bold text-indigo-400 text-xl w-16 text-center">10</span>
                         </div>
                     </div>
@@ -102,7 +110,6 @@
                         <option value="QCM">QCM (Choix multiples)</option>
                         <option value="Vrai/Faux">Vrai / Faux</option>
                         <option value="Réponse Courte">Réponse Courte</option>
-                        <option value="Texte à trous">Texte à trous</option>
                     </select>
                 </div>
                 <div id="timer-config-container" class="bg-gray-900 p-4 rounded-lg">
@@ -136,13 +143,93 @@
             </form>
         </section>
 
-        <section id="quiz-loading-section" class="hidden text-center py-20"><!-- ... --></section>
-        <section id="quiz-taking-section" class="hidden"><!-- ... --></section>
-        <section id="quiz-results-section" class="hidden text-center"><!-- ... --></section>
-        <section id="flashcard-section" class="hidden"><!-- ... --></section>
+        <!-- SECTION 3 : ÉCRAN DE CHARGEMENT -->
+        <section id="quiz-loading-section" class="hidden text-center py-20">
+            <i class="fas fa-spinner fa-spin text-6xl text-indigo-400"></i>
+            <h2 class="text-3xl font-bold mt-6">Génération en cours...</h2>
+            <p class="text-gray-400 mt-2">L'IA prépare votre contenu. Cela peut prendre un moment.</p>
+        </section>
+
+        <!-- SECTION 4 : QUIZ EN COURS -->
+        <section id="quiz-taking-section" class="hidden">
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 id="quiz-title" class="text-2xl font-bold truncate">Titre du Quiz</h2>
+                    <div id="timer-display" class="text-xl font-bold bg-gray-700 px-4 py-2 rounded-lg"></div>
+                </div>
+                <div id="question-timer-bar-container" class="w-full bg-gray-700 rounded-full h-1.5 mb-6 hidden">
+                    <div id="question-timer-bar" class="bg-indigo-500 h-1.5 rounded-full"></div>
+                </div>
+                
+                <div id="quiz-questions-container">
+                    <!-- Les questions seront injectées ici par le JS -->
+                </div>
+
+                <div class="flex justify-between items-center mt-6">
+                    <button id="prev-question-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg">Précédent</button>
+                    <p id="question-progress" class="font-semibold text-gray-400"></p>
+                    <button id="next-question-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-lg">Suivant</button>
+                    <button id="submit-quiz-btn" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg">Terminer</button>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <button id="quit-quiz-btn" class="text-sm text-red-400 hover:underline">Quitter le quiz</button>
+            </div>
+        </section>
+
+        <!-- SECTION 5 : RÉSULTATS DU QUIZ -->
+        <section id="quiz-results-section" class="hidden text-center">
+            <div class="bg-gray-800 p-8 rounded-xl border border-gray-700">
+                <i class="fas fa-trophy text-6xl text-yellow-400 mb-4"></i>
+                <h2 class="text-4xl font-bold">Résultats</h2>
+                <p id="results-subtitle" class="text-gray-400 text-lg mt-2 mb-6"></p>
+                
+                <div class="bg-gray-900 inline-block p-6 rounded-full border-4 border-indigo-500 mb-6">
+                    <p id="score-text" class="text-5xl font-extrabold"></p>
+                </div>
+                <p id="score-percentage" class="text-2xl font-semibold mb-8"></p>
+
+                <div class="flex justify-center space-x-4 mb-8">
+                    <button id="restart-quiz-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg">Retour à la liste</button>
+                    <button id="review-errors-btn" class="hidden bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg">Revoir mes erreurs</button>
+                    <button id="share-results-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">Partager</button>
+                </div>
+
+                <div id="results-summary" class="space-y-4 text-left">
+                    <!-- Le résumé des réponses sera injecté ici -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 6 : FLASHCARDS -->
+        <section id="flashcard-section" class="hidden">
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h2 id="flashcard-title" class="text-2xl font-bold truncate text-center mb-6"></h2>
+                <div class="flashcard-container">
+                    <div id="flashcard" class="flashcard">
+                        <div id="flashcard-front" class="flashcard-face flashcard-front"></div>
+                        <div id="flashcard-back" class="flashcard-face flashcard-back"></div>
+                    </div>
+                </div>
+                <div class="text-center mt-6">
+                    <button id="flip-card-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg">
+                        <i class="fas fa-sync-alt mr-2"></i>Retourner
+                    </button>
+                </div>
+                <div class="flex justify-between items-center mt-6">
+                    <button id="prev-card-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg">Précédent</button>
+                    <p id="card-progress" class="font-semibold text-gray-400"></p>
+                    <button id="next-card-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg">Suivant</button>
+                </div>
+            </div>
+             <div class="text-center mt-4">
+                <button id="back-to-list-from-flashcards-btn" class="text-sm text-indigo-400 hover:underline">Retour à la liste</button>
+            </div>
+        </section>
 
     </main>
     
+    <!-- Modale pour choisir le type de contenu -->
     <div id="content-choice-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
         <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
             <h2 class="text-2xl font-bold mb-6">Que voulez-vous créer ?</h2>
@@ -158,13 +245,16 @@
         </div>
     </div>
 
-    <div id="message-box" class="fixed bottom-4 right-4 z-50"></div>
+    <!-- Conteneur pour les messages/notifications -->
+    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script type="module">
+        // Importation des modules Firebase
         import { auth, db } from './firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
         import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
+        // --- VARIABLES GLOBALES ---
         let userCourses = [];
         let currentContent = null;
         let currentContentId = null;
@@ -173,6 +263,7 @@
         let userAnswers = [];
         let wrongAnswers = [];
 
+        // --- SÉLECTEURS D'ÉLÉMENTS UI ---
         const ui = {
             list: document.getElementById('quiz-list-section'),
             setup: document.getElementById('quiz-setup-section'),
@@ -214,6 +305,7 @@
             reviewErrorsBtn: document.getElementById('review-errors-btn'),
             shareResultsBtn: document.getElementById('share-results-btn'),
             flashcardTitle: document.getElementById('flashcard-title'),
+            flipCardBtn: document.getElementById('flip-card-btn'),
             prevCardBtn: document.getElementById('prev-card-btn'),
             nextCardBtn: document.getElementById('next-card-btn'),
             cardProgress: document.getElementById('card-progress'),
@@ -226,6 +318,9 @@
             contentTypeHidden: document.getElementById('content-type-hidden'),
         };
 
+        // --- FONCTIONS UTILITAIRES ---
+
+        // Affiche un message de notification
         function showMessage(message, isError = false) {
             const box = document.createElement('div');
             box.textContent = message;
@@ -234,11 +329,13 @@
             setTimeout(() => { box.remove(); }, 5000);
         }
 
+        // Affiche une section spécifique de la page et cache les autres
         function showSection(section) {
             ['list', 'setup', 'loading', 'taking', 'results', 'flashcard'].forEach(s => ui[s].classList.add('hidden'));
             ui[section].classList.remove('hidden');
         }
 
+        // Ouvre le formulaire de génération en adaptant l'UI au type de contenu (Quiz/Flashcards)
         function openGenerator(type) {
             showSection('setup');
             ui.contentTypeHidden.value = type;
@@ -253,6 +350,9 @@
             }
         }
 
+        // --- GESTION DES DONNÉES (Firebase & PDF) ---
+
+        // Récupère les cours de l'utilisateur depuis Firestore et les affiche dans le select
         async function populateCourses() {
             const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
             const coursesSnap = await getDocs(coursesRef);
@@ -271,10 +371,14 @@
             }
         }
 
+        // Extrait le texte brut d'un fichier PDF à partir de son URL
         async function extractTextFromPdf(url) {
+            // Configure le worker pour PDF.js
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+            // Charge le document PDF
             const pdf = await pdfjsLib.getDocument(url).promise;
             let fullText = '';
+            // Itère sur chaque page pour extraire le texte
             for (let i = 1; i <= pdf.numPages; i++) {
                 const page = await pdf.getPage(i);
                 const textContent = await page.getTextContent();
@@ -283,6 +387,9 @@
             return fullText;
         }
 
+        // --- GÉNÉRATION DE CONTENU (API Gemini) ---
+
+        // Gère la soumission du formulaire de génération
         async function generateContent(e) {
             e.preventDefault();
             const selectedOptions = [...ui.courseSelect.selectedOptions];
@@ -290,15 +397,14 @@
                 showMessage('Veuillez sélectionner au moins un cours.', true);
                 return;
             }
-            showSection('loading');
+            showSection('loading'); // Affiche l'écran de chargement
 
             try {
+                // Combine le texte de tous les cours sélectionnés
                 let combinedText = '';
-                let courseNames = [];
                 for (const option of selectedOptions) {
                     const course = userCourses.find(c => c.id === option.value);
                     if (course) {
-                        courseNames.push(course.name);
                         combinedText += `--- Contenu du cours: ${course.name} ---\n`;
                         const text = await extractTextFromPdf(course.url);
                         combinedText += text + '\n\n';
@@ -306,90 +412,130 @@
                 }
 
                 const count = ui.questionCount.value;
-                const type = ui.contentTypeHidden.value === 'Flashcards' ? 'Flashcards' : ui.quizType.value;
+                const type = ui.contentTypeHidden.value;
                 const difficulty = document.getElementById('difficulty-select').value;
                 const customInstruction = document.getElementById('custom-instruction').value.trim();
                 
+                // Construction du prompt pour l'API Gemini
                 let prompt;
+                let schema;
+
                 if (type === 'Flashcards') {
-                    prompt = `Basé sur le texte suivant, génère un jeu de flashcards...`; // Prompt pour flashcards
-                } else {
-                    prompt = `Basé sur le texte suivant, génère un quiz...`; // Prompt pour quiz
+                    schema = {
+                        type: "OBJECT",
+                        properties: {
+                            flashcards: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        term: { type: "STRING" },
+                                        definition: { type: "STRING" }
+                                    },
+                                    required: ["term", "definition"]
+                                }
+                            }
+                        }
+                    };
+                    prompt = `À partir du texte fourni, génère ${count} flashcards de difficulté "${difficulty}". Chaque flashcard doit avoir un "term" (terme clé) et une "definition". ${customInstruction}`;
+                } else { // C'est un Quiz
+                    const quizType = ui.quizType.value;
+                    schema = {
+                        type: "OBJECT",
+                        properties: {
+                            quiz: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        question: { type: "STRING" },
+                                        options: { type: "ARRAY", items: { type: "STRING" } },
+                                        answer: { type: "STRING" },
+                                        explanation: { type: "STRING" }
+                                    },
+                                    required: ["question", "answer"]
+                                }
+                            }
+                        }
+                    };
+                    prompt = `À partir du texte fourni, génère un quiz de type "${quizType}" avec ${count} questions de difficulté "${difficulty}". Pour chaque question, fournis la "question", la "answer" (réponse correcte), et une "explanation" (brève explication). Pour les QCM, fournis aussi un tableau "options" avec 4 choix incluant la bonne réponse. ${customInstruction}`;
                 }
 
+                // Clé API (à remplacer par une solution sécurisée en production)
+                // IMPORTANT: Ne jamais exposer une clé API côté client dans un vrai projet.
+                // Utiliser une fonction Cloud ou un backend pour appeler l'API.
                 const apiKey = "AIzaSyAR4rQ7Ev5Fe24NeWmmo1aP8BxUFR_aqIw";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-preview-0514:generateContent?key=${apiKey}`;
                 
-                const payload = { contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseMimeType: "application/json" } };
+                const payload = { 
+                    contents: [{ parts: [{ text: prompt }] }], 
+                    generationConfig: { 
+                        responseMimeType: "application/json",
+                        responseSchema: schema
+                    } 
+                };
+                
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 
-                if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
+                if (!response.ok) throw new Error(`Erreur de l'API Gemini: ${response.statusText}`);
                 const result = await response.json();
-                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) throw new Error("Réponse de l'IA invalide.");
                 
+                // Nettoyage de la réponse pour s'assurer que c'est un JSON valide
                 let responseText = result.candidates[0].content.parts[0].text;
-                const jsonStart = responseText.indexOf('{');
-                const jsonEnd = responseText.lastIndexOf('}');
-                if (jsonStart !== -1 && jsonEnd !== -1) responseText = responseText.substring(jsonStart, jsonEnd + 1);
-
+                
                 currentContent = JSON.parse(responseText);
 
+                // Sauvegarde du contenu généré dans Firestore
                 const title = document.getElementById('quiz-title-input').value;
+                const contentData = type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz;
+                
                 const contentRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
                     title: title,
                     type: type,
-                    content: type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz,
+                    content: contentData,
                     createdAt: serverTimestamp()
                 });
                 currentContentId = contentRef.id;
 
+                // Affichage du contenu généré
                 if (type === 'Flashcards') {
-                    displayFlashcards(title, currentContent.flashcards);
+                    displayFlashcards(title, contentData);
                 } else {
-                    displayQuiz(title, currentContent.quiz);
+                    displayQuiz(title, contentData);
                 }
 
             } catch (error) {
                 console.error("Erreur de génération:", error);
-                showMessage(error.message, true);
+                showMessage(`La génération a échoué. L'IA a peut-être eu un souci. Réessayez. (${error.message})`, true);
                 showSection('setup');
             }
         }
 
+
+        // --- AFFICHAGE ET LOGIQUE DU QUIZ ---
+
+        // Affiche le quiz à l'utilisateur
         function displayQuiz(title, questions) {
             currentContent = { quiz: questions, title: title };
             userAnswers = new Array(questions.length).fill(null);
             currentItemIndex = 0;
+            ui.quizTitle.textContent = title;
             showQuestion(currentItemIndex);
             startTimer();
             showSection('taking');
         }
         
-        function displayFlashcards(title, flashcards) {
-            currentContent = { flashcards: flashcards, title: title };
-            currentItemIndex = 0;
-            ui.flashcardTitle.textContent = title;
-            showFlashcard(currentItemIndex);
-            showSection('flashcard');
-        }
-
-        function showFlashcard(index) {
-            const card = currentContent.flashcards[index];
-            document.getElementById('flashcard').classList.remove('is-flipped');
-            document.getElementById('flashcard-front').textContent = card.term;
-            document.getElementById('flashcard-back').textContent = card.definition;
-            ui.cardProgress.textContent = `Carte ${index + 1} / ${currentContent.flashcards.length}`;
-            ui.prevCardBtn.disabled = index === 0;
-            ui.nextCardBtn.disabled = index === currentContent.flashcards.length - 1;
-        }
-
+        // Affiche une question spécifique
         function showQuestion(index) {
             ui.questionsContainer.innerHTML = '';
             const q = currentContent.quiz[index];
+            if (!q) return; // Sécurité si la question n'existe pas
+
             const questionEl = document.createElement('div');
             questionEl.className = 'bg-gray-800 p-6 rounded-lg border border-gray-700';
             
             let optionsHtml = '';
+            // Génère les options pour QCM/VraiFaux ou un champ de texte pour les autres
             if (q.options && q.options.length > 0) {
                 optionsHtml = q.options.map((opt) => {
                     const isChecked = userAnswers[index] === opt ? 'checked' : '';
@@ -403,12 +549,14 @@
             questionEl.innerHTML = `<p class="text-xl font-bold mb-4">${index + 1}. ${q.question}</p><div class="space-y-3">${optionsHtml}</div>`;
             ui.questionsContainer.appendChild(questionEl);
             
+            // Mise à jour de la navigation du quiz
             ui.questionProgress.textContent = `Question ${index + 1} / ${currentContent.quiz.length}`;
             ui.prevQuestionBtn.disabled = index === 0;
             ui.nextQuestionBtn.classList.toggle('hidden', index === currentContent.quiz.length - 1);
             ui.submitQuizBtn.classList.toggle('hidden', index !== currentContent.quiz.length - 1);
         }
 
+        // Sauvegarde la réponse de l'utilisateur pour la question actuelle
         function saveAnswer() {
             const input = document.querySelector(`[name="q${currentItemIndex}"]:checked`) || document.querySelector(`[name="q${currentItemIndex}"]`);
             if (input) {
@@ -416,6 +564,7 @@
             }
         }
 
+        // Démarre le minuteur du quiz s'il est activé
         function startTimer() {
             clearInterval(timerInterval);
             if (!ui.timerToggle.checked) {
@@ -440,6 +589,7 @@
             }
         }
 
+        // Gère la soumission du quiz et calcule les résultats
         async function submitQuiz() {
             clearInterval(timerInterval);
             saveAnswer();
@@ -449,19 +599,22 @@
 
             currentContent.quiz.forEach((q, index) => {
                 const userAnswer = userAnswers[index] || '';
+                // Comparaison insensible à la casse et aux espaces
                 const isCorrect = userAnswer.toLowerCase().trim() === q.answer.toLowerCase().trim();
+                
                 if (isCorrect) {
                     score++;
                 } else {
                     wrongAnswers.push(q);
                 }
                 
+                // Création de l'élément de résumé pour chaque question
                 const resultEl = document.createElement('details');
                 resultEl.className = `p-4 rounded-lg ${isCorrect ? 'bg-green-900 border-green-700' : 'bg-red-900 border-red-700'} border`;
                 resultEl.innerHTML = `
                     <summary class="flex justify-between items-center cursor-pointer">
                         <p class="font-bold">${index + 1}. ${q.question}</p>
-                        <i class="fas fa-chevron-down"></i>
+                        <i class="fas fa-chevron-down transition-transform"></i>
                     </summary>
                     <div class="mt-4 pt-4 border-t border-gray-600">
                         <p class="text-sm">Votre réponse : <span class="${isCorrect ? 'text-green-300' : 'text-red-300'}">${userAnswer || "Aucune"}</span></p>
@@ -475,12 +628,14 @@
             const total = currentContent.quiz.length;
             const percentage = Math.round((score / total) * 100);
             
+            // Mise à jour du score dans Firestore
             if (currentContentId) {
                 await updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentContentId), {
                     lastResult: { score, total, percentage, completedAt: serverTimestamp() }
                 });
             }
 
+            // Affichage de l'écran des résultats
             ui.scoreText.textContent = `${score}/${total}`;
             ui.scorePercentage.textContent = `Soit ${percentage}% de bonnes réponses !`;
             ui.resultsSubtitle.textContent = `Résultats pour : ${currentContent.title}`;
@@ -488,6 +643,35 @@
             showSection('results');
         }
 
+        // --- AFFICHAGE ET LOGIQUE DES FLASHCARDS ---
+
+        // Affiche l'interface des flashcards
+        function displayFlashcards(title, flashcards) {
+            currentContent = { flashcards: flashcards, title: title };
+            currentItemIndex = 0;
+            ui.flashcardTitle.textContent = title;
+            showFlashcard(currentItemIndex);
+            showSection('flashcard');
+        }
+
+        // Affiche une flashcard spécifique
+        function showFlashcard(index) {
+            const card = currentContent.flashcards[index];
+            if (!card) return;
+            // Réinitialise la carte à l'état "recto"
+            document.getElementById('flashcard').classList.remove('is-flipped');
+            // Met à jour le contenu
+            document.getElementById('flashcard-front').textContent = card.term;
+            document.getElementById('flashcard-back').textContent = card.definition;
+            // Met à jour la navigation
+            ui.cardProgress.textContent = `Carte ${index + 1} / ${currentContent.flashcards.length}`;
+            ui.prevCardBtn.disabled = index === 0;
+            ui.nextCardBtn.disabled = index === currentContent.flashcards.length - 1;
+        }
+
+        // --- GESTION DE LA LISTE DE CONTENUS SAUVEGARDÉS ---
+
+        // Affiche la liste des quiz et flashcards sauvegardés
         function renderSavedQuizzes(quizzes) {
             ui.loadingQuizzes.classList.add('hidden');
             ui.savedQuizzesList.innerHTML = '';
@@ -503,33 +687,35 @@
                     const icon = isFlashcard ? 'fa-clone' : 'fa-question-circle';
 
                     el.innerHTML = `
-                        <div class="flex items-center space-x-3">
-                            <i class="fas ${icon} text-indigo-400 text-xl"></i>
-                            <div>
-                                <h3 class="font-bold text-lg">${quiz.title}</h3>
+                        <div class="flex items-center space-x-3 overflow-hidden">
+                            <i class="fas ${icon} text-indigo-400 text-xl flex-shrink-0"></i>
+                            <div class="truncate">
+                                <h3 class="font-bold text-lg truncate" title="${quiz.title}">${quiz.title}</h3>
                                 <p class="text-sm text-gray-400">${isFlashcard ? `${quiz.content.length} cartes` : `Dernier score: ${lastResult}`}</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <button class="play-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">${isFlashcard ? 'Étudier' : 'Faire'}</button>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <button data-content='${JSON.stringify(quiz)}' class="play-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">${isFlashcard ? 'Étudier' : 'Faire'}</button>
                             <button data-id="${quiz.id}" class="delete-quiz-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-trash"></i></button>
                         </div>`;
                     
-                    const playBtn = el.querySelector('.play-btn');
-                    playBtn.dataset.content = JSON.stringify(quiz);
-
                     ui.savedQuizzesList.appendChild(el);
                 });
             }
         }
 
+        // Supprime un contenu de Firestore
         async function deleteQuiz(quizId) {
-            if (confirm("Êtes-vous sûr de vouloir supprimer ce contenu ?")) {
+            // Utilisation d'une modale custom au lieu de confirm()
+            if (window.confirm("Êtes-vous sûr de vouloir supprimer ce contenu ?")) {
                 await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', quizId));
                 showMessage('Contenu supprimé.', false);
             }
         }
 
+        // --- INITIALISATION ET ÉCOUTEURS D'ÉVÉNEMENTS ---
+
+        // Vérifie l'état d'authentification de l'utilisateur
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const userRef = doc(db, 'users', user.uid);
@@ -543,6 +729,7 @@
                 }
                 populateCourses();
                 
+                // Écoute les changements en temps réel sur la collection de quiz
                 const quizzesRef = collection(db, 'users', user.uid, 'quizzes');
                 onSnapshot(quizzesRef, (snapshot) => {
                     const quizzes = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
@@ -554,39 +741,50 @@
             }
         });
 
+        // --- Écouteurs d'événements pour l'interactivité ---
+        
+        // Mise à jour de la valeur du slider
         ui.questionCount.addEventListener('input', (e) => { ui.questionCountValue.textContent = e.target.value; });
+        // Soumission du formulaire de génération
         ui.form.addEventListener('submit', generateContent);
+        // Boutons de la page des résultats
         ui.submitQuizBtn.addEventListener('click', submitQuiz);
         ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
-        ui.goToGeneratorBtn.addEventListener('click', () => ui.contentChoiceModal.classList.remove('hidden'));
-        ui.cancelChoiceBtn.addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
-        document.querySelectorAll('.content-choice-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const type = btn.dataset.type;
-                openGenerator(type);
-                ui.contentChoiceModal.classList.add('hidden');
-            });
-        });
-        ui.backToListBtn.addEventListener('click', () => showSection('list'));
-        ui.quitQuizBtn.addEventListener('click', () => {
-            clearInterval(timerInterval);
-            showSection('list');
-        });
-        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
-        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
-        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
-        ui.timerToggle.addEventListener('change', (e) => { ui.timerOptions.classList.toggle('hidden', !e.target.checked); });
-        ui.nextQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(++currentItemIndex); });
-        ui.prevQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(--currentItemIndex); });
-        ui.reviewErrorsBtn.addEventListener('click', () => {
-            displayQuiz(`Révision des erreurs - ${currentContent.title}`, wrongAnswers);
-        });
+        ui.reviewErrorsBtn.addEventListener('click', () => displayQuiz(`Révision des erreurs - ${currentContent.title}`, wrongAnswers));
         ui.shareResultsBtn.addEventListener('click', () => {
             const score = ui.scoreText.textContent;
             const title = `J'ai eu ${score} à mon quiz "${currentContent.title}" !`;
             const content = `Venez tester vos connaissances ! J'ai généré ce quiz avec Projet Blocus.`;
             window.location.href = `/forum.html?shareTitle=${encodeURIComponent(title)}&shareContent=${encodeURIComponent(content)}`;
         });
+
+        // Navigation entre les sections
+        ui.goToGeneratorBtn.addEventListener('click', () => ui.contentChoiceModal.classList.remove('hidden'));
+        ui.backToListBtn.addEventListener('click', () => showSection('list'));
+        ui.quitQuizBtn.addEventListener('click', () => { clearInterval(timerInterval); showSection('list'); });
+        
+        // Modale de choix de contenu
+        ui.cancelChoiceBtn.addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
+        document.querySelectorAll('.content-choice-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                openGenerator(btn.dataset.type);
+                ui.contentChoiceModal.classList.add('hidden');
+            });
+        });
+
+        // Menu utilisateur
+        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
+        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
+        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
+        
+        // Options du minuteur
+        ui.timerToggle.addEventListener('change', (e) => { ui.timerOptions.classList.toggle('hidden', !e.target.checked); });
+        
+        // Navigation dans le quiz
+        ui.nextQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(++currentItemIndex); });
+        ui.prevQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(--currentItemIndex); });
+
+        // Clics sur la liste des contenus sauvegardés (délégation d'événement)
         ui.savedQuizzesList.addEventListener('click', (e) => {
             const playBtn = e.target.closest('.play-btn');
             const deleteBtn = e.target.closest('.delete-quiz-btn');
@@ -601,17 +799,12 @@
                 }
             }
             if (deleteBtn) {
-                const quizId = deleteBtn.dataset.id;
-                deleteQuiz(quizId);
+                deleteQuiz(deleteBtn.dataset.id);
             }
         });
-        ui.quizType.addEventListener('change', (e) => {
-            const isQuiz = e.target.value !== 'Flashcards';
-            document.getElementById('timer-config-container').classList.toggle('hidden', !isQuiz);
-        });
-        document.getElementById('flip-card-btn').addEventListener('click', () => {
-            document.getElementById('flashcard').classList.toggle('is-flipped');
-        });
+
+        // Logique des flashcards
+        ui.flipCardBtn.addEventListener('click', () => document.getElementById('flashcard').classList.toggle('is-flipped'));
         ui.nextCardBtn.addEventListener('click', () => showFlashcard(++currentItemIndex));
         ui.prevCardBtn.addEventListener('click', () => showFlashcard(--currentItemIndex));
         ui.backToListFromFlashcardsBtn.addEventListener('click', () => showSection('list'));
