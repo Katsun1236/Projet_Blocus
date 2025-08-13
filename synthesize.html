@@ -3,76 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Synthétiser un cours - Projet Blocus</title>
+    <title>Mes Synthèses - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <!-- PDF.js and jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style> 
+        body { font-family: 'Inter', sans-serif; }
+        #course-select { height: 150px; }
+        #course-select option { padding: 8px; }
+        #course-select option:checked { background-color: #4f46e5; color: white; }
+        #synthesis-result-content h2 { font-size: 1.25rem; font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem; }
+        #synthesis-result-content ul { list-style-type: disc; margin-left: 1.5rem; }
+        #synthesis-result-content p { margin-bottom: 1rem; }
+    </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-10">
+
+    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <nav id="nav-logged-in" class="hidden items-center">
-            <a href="/profile.html" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+        <nav id="nav-logged-in" class="hidden items-center relative">
+            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
                 <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
                 <span id="user-name-header" class="font-semibold">Chargement...</span>
-            </a>
-            <button id="logout-button" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ml-6">
-                <i class="fas fa-sign-out-alt"></i>
+                <i class="fas fa-chevron-down text-xs"></i>
             </button>
+            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                <hr class="border-gray-600 my-2">
+                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+            </div>
         </nav>
     </header>
 
-    <main class="w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 pt-28 text-center">
-        <h1 class="text-4xl font-bold mb-4">Synthétiser un cours</h1>
-        <p class="text-gray-400 text-xl">Cette fonctionnalité sera bientôt disponible !</p>
+    <main class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <section id="synthesis-list-section">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-4xl font-bold">Mes Synthèses</h1>
+                <button id="go-to-generator-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg flex items-center space-x-2">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Nouvelle Synthèse</span>
+                </button>
+            </div>
+            <div id="saved-syntheses-list" class="space-y-4"></div>
+            <div id="loading-syntheses" class="text-center py-12"><i class="fas fa-spinner fa-spin text-4xl text-indigo-400"></i></div>
+            <div id="no-syntheses" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-file-alt text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucune synthèse sauvegardée</h3><p class="mt-2 text-gray-400">Créez votre première synthèse pour la voir apparaître ici.</p></div>
+        </section>
+
+        <section id="synthesis-setup-section" class="hidden">
+            <button id="back-to-list-btn-setup" class="text-indigo-400 hover:text-indigo-300 mb-6 inline-block"><i class="fas fa-arrow-left mr-2"></i>Retour à la liste</button>
+            <h1 class="text-4xl font-bold mb-2 text-center">Générateur de Synthèse IA</h1>
+            <p class="text-gray-400 mb-8 text-center">Transformez vos longs cours en résumés clairs et concis.</p>
+            
+            <form id="synthesis-generator-form" class="bg-gray-800 p-8 rounded-xl border border-gray-700 space-y-6">
+                <div>
+                    <label for="synthesis-title-input" class="block text-lg font-bold mb-2">1. Titre de la synthèse</label>
+                    <input type="text" id="synthesis-title-input" class="w-full px-4 py-3 rounded-lg bg-gray-700" placeholder="Ex: Fiche de révision - Psychologie Cognitive" required>
+                </div>
+                <div>
+                    <label for="course-select" class="block text-lg font-bold mb-2">2. Choisir un ou plusieurs cours</label>
+                    <select id="course-select" multiple class="w-full p-2 rounded-lg bg-gray-700" required></select>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="word-count" class="block text-lg font-bold mb-2">3. Nombre de mots (approx.)</label>
+                        <div class="flex items-center space-x-4">
+                            <input type="range" id="word-count" min="100" max="2000" value="500" step="50" class="w-full">
+                            <span id="word-count-value" class="font-bold text-indigo-400 text-xl w-24 text-center">500 mots</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="synthesis-style" class="block text-lg font-bold mb-2">4. Style de synthèse</label>
+                        <select id="synthesis-style" class="w-full px-4 py-3 rounded-lg bg-gray-700">
+                            <option value="Résumé Standard" selected>Résumé Standard</option>
+                            <option value="Points Clés (Puces)">Points Clés (Puces)</option>
+                            <option value="Fiche de Révision (Q&A)">Fiche de Révision (Q&A)</option>
+                            <option value="Explication Simplifiée (ELI5)">Explication Simplifiée</option>
+                            <option value="Plan Détaillé">Plan Détaillé</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg text-xl flex items-center justify-center">
+                    <i class="fas fa-magic-sparkles mr-3"></i>
+                    Générer et Sauvegarder
+                </button>
+            </form>
+        </section>
+
+        <section id="synthesis-loading-section" class="hidden text-center py-20">
+            <i class="fas fa-spinner fa-spin text-6xl text-indigo-400"></i>
+            <h2 class="text-3xl font-bold mt-6">Synthèse en cours...</h2>
+            <p class="text-gray-400 mt-2">L'IA analyse vos documents et rédige le résumé.</p>
+        </section>
+
+        <section id="synthesis-result-section" class="hidden">
+            <button id="back-to-list-btn-result" class="text-indigo-400 hover:text-indigo-300 mb-6 inline-block"><i class="fas fa-arrow-left mr-2"></i>Retour à la liste</button>
+            <h1 id="synthesis-result-title" class="text-4xl font-bold mb-6 text-center"></h1>
+            <div class="bg-gray-800 p-8 rounded-xl border border-gray-700">
+                <div id="synthesis-result-content" class="text-left leading-relaxed text-gray-300 max-h-96 overflow-y-auto">
+                    <!-- Le contenu de la synthèse sera injecté ici -->
+                </div>
+                <div class="flex justify-center space-x-4 mt-8 border-t border-gray-700 pt-6">
+                    <button id="copy-synthesis-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-3 px-6 rounded-lg"><i class="fas fa-copy mr-2"></i>Copier</button>
+                    <button id="download-pdf-btn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg"><i class="fas fa-file-pdf mr-2"></i>Télécharger en PDF</button>
+                </div>
+            </div>
+        </section>
+
     </main>
+    
+    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { auth, db } from '/firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-            authDomain: "projetblocus1.firebaseapp.com",
-            projectId: "projetblocus1",
-            storageBucket: "projetblocus1.appspot.com",
-            messagingSenderId: "536093956243",
-            appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-            measurementId: "G-W5WZXDHNTC"
+        let userCourses = [];
+
+        const ui = {
+            list: document.getElementById('synthesis-list-section'),
+            setup: document.getElementById('synthesis-setup-section'),
+            loading: document.getElementById('synthesis-loading-section'),
+            result: document.getElementById('synthesis-result-section'),
+            form: document.getElementById('synthesis-generator-form'),
+            courseSelect: document.getElementById('course-select'),
+            wordCount: document.getElementById('word-count'),
+            wordCountValue: document.getElementById('word-count-value'),
+            resultTitle: document.getElementById('synthesis-result-title'),
+            resultContent: document.getElementById('synthesis-result-content'),
+            copyBtn: document.getElementById('copy-synthesis-btn'),
+            downloadPdfBtn: document.getElementById('download-pdf-btn'),
+            goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
+            backToListBtnSetup: document.getElementById('back-to-list-btn-setup'),
+            backToListBtnResult: document.getElementById('back-to-list-btn-result'),
+            savedSynthesesList: document.getElementById('saved-syntheses-list'),
+            loadingSyntheses: document.getElementById('loading-syntheses'),
+            noSyntheses: document.getElementById('no-syntheses'),
+            navLoggedIn: document.getElementById('nav-logged-in'),
+            userMenuButton: document.getElementById('user-menu-button'),
+            userMenu: document.getElementById('user-menu'),
+            logoutButton: document.getElementById('logout-button'),
         };
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.textContent = message;
+            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
+            document.getElementById('message-box').appendChild(box);
+            setTimeout(() => { box.remove(); }, 5000);
+        }
+
+        function showSection(section) {
+            ['list', 'setup', 'loading', 'result'].forEach(s => ui[s].classList.add('hidden'));
+            ui[section].classList.remove('hidden');
+        }
+
+        async function populateCourses() {
+            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
+            const coursesSnap = await getDocs(coursesRef);
+            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            ui.courseSelect.innerHTML = '';
+            if (userCourses.length === 0) {
+                ui.courseSelect.innerHTML = '<option value="" disabled>Veuillez d\'abord uploader un cours</option>';
+            } else {
+                userCourses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.name;
+                    ui.courseSelect.appendChild(option);
+                });
+            }
+        }
+
+        async function extractTextFromPdf(url) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+            const pdf = await pdfjsLib.getDocument(url).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+            }
+            return fullText;
+        }
+
+        async function generateSynthesis(e) {
+            e.preventDefault();
+            const selectedOptions = [...ui.courseSelect.selectedOptions];
+            if (selectedOptions.length === 0) {
+                showMessage('Veuillez sélectionner au moins un cours.', true);
+                return;
+            }
+            showSection('loading');
+
+            try {
+                let combinedText = '';
+                for (const option of selectedOptions) {
+                    const course = userCourses.find(c => c.id === option.value);
+                    if (course) {
+                        combinedText += `--- Contenu du cours: ${course.name} ---\n${await extractTextFromPdf(course.url)}\n\n`;
+                    }
+                }
+
+                const wordCount = ui.wordCount.value;
+                const style = document.getElementById('synthesis-style').value;
+                
+                const prompt = `À partir du texte suivant:\n\n${combinedText}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>).`;
+
+                const apiKey = "AIzaSyAR4rQ7Ev5Fe24NeWmmo1aP8BxUFR_aqIw";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+                if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
+                const result = await response.json();
+                
+                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    throw new Error("Réponse de l'IA invalide.");
+                }
+                
+                let synthesisHtml = result.candidates[0].content.parts[0].text;
+                synthesisHtml = synthesisHtml.replace(/```html/g, '').replace(/```/g, '').trim();
+
+                const title = document.getElementById('synthesis-title-input').value;
+
+                // Sauvegarder la synthèse dans Firestore
+                await addDoc(collection(db, 'users', auth.currentUser.uid, 'syntheses'), {
+                    title: title,
+                    content: synthesisHtml,
+                    createdAt: serverTimestamp()
+                });
+
+                showMessage('Synthèse générée et sauvegardée !');
+                displaySynthesis(title, synthesisHtml);
+
+            } catch (error) {
+                console.error("Erreur de génération:", error);
+                showMessage(error.message, true);
+                showSection('setup');
+            }
+        }
+
+        function displaySynthesis(title, content) {
+            ui.resultTitle.textContent = title;
+            ui.resultContent.innerHTML = content;
+            showSection('result');
+        }
+
+        function renderSavedSyntheses(syntheses) {
+            ui.loadingSyntheses.classList.add('hidden');
+            ui.savedSynthesesList.innerHTML = '';
+
+            if (syntheses.length === 0) {
+                ui.noSyntheses.classList.remove('hidden');
+            } else {
+                ui.noSyntheses.classList.add('hidden');
+                syntheses.forEach(synth => {
+                    const el = document.createElement('div');
+                    el.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700';
+                    const creationDate = synth.createdAt ? new Date(synth.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'Date inconnue';
+                    
+                    el.innerHTML = `
+                        <div class="flex items-center space-x-3 overflow-hidden">
+                            <i class="fas fa-file-alt text-indigo-400 text-xl flex-shrink-0"></i>
+                            <div class="truncate">
+                                <h3 class="font-bold text-lg truncate" title="${synth.title}">${synth.title}</h3>
+                                <p class="text-sm text-gray-400">Créée le ${creationDate}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 flex-shrink-0">
+                            <button class="view-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">Voir</button>
+                            <button data-id="${synth.id}" class="delete-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-trash"></i></button>
+                        </div>`;
+                    
+                    el.querySelector('.view-btn').addEventListener('click', () => displaySynthesis(synth.title, synth.content));
+                    ui.savedSynthesesList.appendChild(el);
+                });
+            }
+        }
+
+        async function deleteSynthesis(id) {
+            if (confirm("Êtes-vous sûr de vouloir supprimer cette synthèse ?")) {
+                await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'syntheses', id));
+                showMessage('Synthèse supprimée.');
+            }
+        }
+
+        function copyToClipboard() {
+            const textToCopy = ui.resultContent.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showMessage('Synthèse copiée !');
+            }, (err) => {
+                showMessage('Erreur lors de la copie.', true);
+            });
+        }
+
+        function downloadAsPdf() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const title = ui.resultTitle.textContent;
+            
+            doc.setFontSize(18);
+            doc.text(title, 14, 22);
+            doc.setFontSize(11);
+            
+            const text = ui.resultContent.innerText;
+            const splitText = doc.splitTextToSize(text, 180);
+            doc.text(splitText, 14, 30);
+
+            doc.save(`${title}.pdf`);
+        }
 
         onAuthStateChanged(auth, async (user) => {
-            if (user && !user.isAnonymous) {
+            if (user) {
                 const userRef = doc(db, 'users', user.uid);
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
                     const profileData = docSnap.data();
                     document.getElementById('user-name-header').textContent = profileData.firstName;
                     document.getElementById('user-avatar-header').src = profileData.photoURL;
-                    document.getElementById('nav-logged-in').classList.remove('hidden');
-                    document.getElementById('nav-logged-in').classList.add('flex');
-                } else {
-                    window.location.href = '/onboarding.html';
+                    ui.navLoggedIn.classList.remove('hidden');
+                    ui.navLoggedIn.classList.add('flex');
                 }
+                populateCourses();
+
+                const synthesesRef = collection(db, 'users', user.uid, 'syntheses');
+                onSnapshot(synthesesRef, (snapshot) => {
+                    const syntheses = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    renderSavedSyntheses(syntheses);
+                });
+
             } else {
                 window.location.href = '/login.html';
             }
         });
 
-        document.getElementById('logout-button').addEventListener('click', async () => {
-            await signOut(auth);
-            window.location.href = '/index.html';
+        ui.wordCount.addEventListener('input', (e) => { ui.wordCountValue.textContent = `${e.target.value} mots`; });
+        ui.form.addEventListener('submit', generateSynthesis);
+        ui.copyBtn.addEventListener('click', copyToClipboard);
+        ui.downloadPdfBtn.addEventListener('click', downloadAsPdf);
+        ui.goToGeneratorBtn.addEventListener('click', () => showSection('setup'));
+        ui.backToListBtnSetup.addEventListener('click', () => showSection('list'));
+        ui.backToListBtnResult.addEventListener('click', () => showSection('list'));
+        
+        ui.savedSynthesesList.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-btn')) {
+                const id = e.target.closest('.delete-btn').dataset.id;
+                deleteSynthesis(id);
+            }
         });
+
+        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
+        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
+        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
     </script>
 </body>
 </html>
