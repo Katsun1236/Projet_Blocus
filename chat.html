@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversation - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        #chat-messages { height: calc(100vh - 250px); }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col h-screen">
+
+    <header class="flex justify-between items-center p-4 bg-gray-800 shadow-lg w-full z-20">
+        <a href="/friends.html" class="text-white"><i class="fas fa-arrow-left text-xl"></i></a>
+        <div id="chat-header-info" class="flex items-center space-x-3">
+            <img id="recipient-avatar" src="https://placehold.co/40x40" class="w-10 h-10 rounded-full object-cover">
+            <span id="recipient-name" class="font-bold text-lg">Chargement...</span>
+        </div>
+        <div></div>
+    </header>
+
+    <main id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4">
+        <!-- Les messages seront injectés ici -->
+    </main>
+
+    <footer class="p-4 bg-gray-800">
+        <form id="message-form" class="flex items-center space-x-2">
+            <button type="button" id="attachment-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold p-3 rounded-full">
+                <i class="fas fa-plus"></i>
+            </button>
+            <input type="file" id="file-input" class="hidden">
+            <input type="text" id="message-input" class="w-full px-4 py-3 rounded-full bg-gray-700 text-white focus:outline-none" placeholder="Écrivez un message..." autocomplete="off">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-full">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </form>
+    </footer>
+
+    <!-- Modale de partage de contenu -->
+    <div id="share-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
+        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <h2 class="text-2xl font-bold mb-6">Partager un contenu</h2>
+            <div id="share-content-list" class="overflow-y-auto space-y-3">
+                <!-- Le contenu à partager sera listé ici -->
+            </div>
+            <button id="cancel-share-btn" class="mt-6 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg self-center">Annuler</button>
+        </div>
+    </div>
+
+    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <script type="module">
+        import { auth, db, storage } from '/firebase-config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+
+        const recipientId = new URLSearchParams(window.location.search).get('with');
+        let currentUserId = null;
+        let chatId = null;
+        let userSharableContent = [];
+
+        const ui = {
+            messagesContainer: document.getElementById('chat-messages'),
+            messageForm: document.getElementById('message-form'),
+            messageInput: document.getElementById('message-input'),
+            recipientAvatar: document.getElementById('recipient-avatar'),
+            recipientName: document.getElementById('recipient-name'),
+            attachmentBtn: document.getElementById('attachment-btn'),
+            fileInput: document.getElementById('file-input'),
+            shareModal: document.getElementById('share-modal'),
+            shareContentList: document.getElementById('share-content-list'),
+            cancelShareBtn: document.getElementById('cancel-share-btn'),
+        };
+
+        function createChatId(user1, user2) {
+            return [user1, user2].sort().join('_');
+        }
+
+        function showMessage(message, isError = false) { /* ... */ }
+
+        async function loadSharableContent() {
+            userSharableContent = [];
+            const collectionsToFetch = ['courses', 'quizzes', 'syntheses'];
+            for (const coll of collectionsToFetch) {
+                const ref = collection(db, 'users', currentUserId, coll);
+                const snapshot = await getDocs(ref);
+                const items = snapshot.docs.map(doc => ({ id: doc.id, collection: coll, ...doc.data() }));
+                userSharableContent.push(...items);
+            }
+        }
+
+        function populateShareModal() {
+            ui.shareContentList.innerHTML = '';
+            if (userSharableContent.length === 0) {
+                ui.shareContentList.innerHTML = '<p class="text-gray-400">Vous n\'avez aucun contenu à partager.</p>';
+                return;
+            }
+            userSharableContent.forEach(item => {
+                const el = document.createElement('div');
+                el.className = 'bg-gray-700 p-3 rounded-lg flex justify-between items-center';
+                el.innerHTML = `
+                    <p>${item.title || item.name}</p>
+                    <button data-id="${item.id}" data-collection="${item.collection}" class="share-item-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg">Partager</button>
+                `;
+                ui.shareContentList.appendChild(el);
+            });
+        }
+
+        async function shareContent(contentId, contentCollection) {
+            const originalContent = userSharableContent.find(item => item.id === contentId);
+            if (!originalContent) return;
+
+            const publicContentRef = await addDoc(collection(db, 'sharedContent'), {
+                ...originalContent,
+                originalAuthorId: currentUserId,
+            });
+
+            await addDoc(collection(db, 'chats', chatId, 'messages'), {
+                type: 'sharedContent',
+                contentId: publicContentRef.id,
+                contentTitle: originalContent.title || originalContent.name,
+                contentType: contentCollection,
+                senderId: currentUserId,
+                createdAt: serverTimestamp()
+            });
+            ui.shareModal.classList.add('hidden');
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = '/login.html'; return; }
+            currentUserId = user.uid;
+            
+            if (!recipientId) {
+                ui.messagesContainer.innerHTML = '<p class="text-center text-gray-400">Aucun destinataire sélectionné.</p>';
+                return;
+            }
+            chatId = createChatId(currentUserId, recipientId);
+            loadSharableContent();
+
+            const recipientRef = doc(db, 'users', recipientId);
+            const recipientSnap = await getDoc(recipientRef);
+            if (recipientSnap.exists()) {
+                const data = recipientSnap.data();
+                ui.recipientName.textContent = `${data.firstName} ${data.lastName}`;
+                ui.recipientAvatar.src = data.photoURL;
+            }
+
+            const messagesRef = collection(db, 'chats', chatId, 'messages');
+            const q = query(messagesRef, orderBy('createdAt', 'asc'));
+
+            onSnapshot(q, (snapshot) => {
+                ui.messagesContainer.innerHTML = '';
+                snapshot.forEach(doc => {
+                    renderMessage(doc.data());
+                });
+                ui.messagesContainer.scrollTop = ui.messagesContainer.scrollHeight;
+            });
+        });
+
+        function renderMessage(data) {
+            const isSender = data.senderId === currentUserId;
+            const messageEl = document.createElement('div');
+            messageEl.className = `flex items-end space-x-2 ${isSender ? 'justify-end' : ''}`;
+            
+            const bubbleClass = isSender ? 'bg-indigo-600 rounded-br-none' : 'bg-gray-700 rounded-bl-none';
+            let contentHtml = '';
+
+            switch(data.type) {
+                case 'file':
+                    if (data.fileType.startsWith('image/')) {
+                        contentHtml = `<img src="${data.fileURL}" class="max-w-xs rounded-lg">`;
+                    } else {
+                        contentHtml = `<a href="${data.fileURL}" target="_blank" class="flex items-center space-x-2 p-3 bg-gray-600 rounded-lg"><i class="fas fa-file"></i><span>${data.fileName}</span></a>`;
+                    }
+                    break;
+                case 'sharedContent':
+                    contentHtml = `<div class="p-3 bg-gray-600 rounded-lg w-64">
+                                     <p class="text-sm text-gray-300">Contenu partagé :</p>
+                                     <p class="font-bold">${data.contentTitle}</p>
+                                     <button data-content-id="${data.contentId}" class="add-content-btn mt-2 w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1 px-3 rounded-lg">Ajouter</button>
+                                   </div>`;
+                    break;
+                default: // text message
+                    contentHtml = `<div class="max-w-xs md:max-w-md p-3 rounded-lg ${bubbleClass}"><p>${data.text}</p></div>`;
+            }
+            messageEl.innerHTML = contentHtml;
+            ui.messagesContainer.appendChild(messageEl);
+        }
+
+        ui.messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = ui.messageInput.value.trim();
+            if (text && chatId) {
+                ui.messageInput.value = '';
+                await addDoc(collection(db, 'chats', chatId, 'messages'), {
+                    type: 'text',
+                    text: text,
+                    senderId: currentUserId,
+                    createdAt: serverTimestamp()
+                });
+            }
+        });
+
+        ui.attachmentBtn.addEventListener('click', () => {
+            // Simple menu for now, could be a modal
+            const choice = prompt("Que voulez-vous envoyer ? (fichier / contenu)");
+            if (choice === 'fichier') {
+                ui.fileInput.click();
+            } else if (choice === 'contenu') {
+                populateShareModal();
+                ui.shareModal.classList.remove('hidden');
+            }
+        });
+
+        ui.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const storageRef = ref(storage, `chats/${chatId}/${Date.now()}_${file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, file);
+
+            uploadTask.on('state_changed', null, 
+                (error) => { showMessage("Erreur d'envoi du fichier.", true); }, 
+                async () => {
+                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                    await addDoc(collection(db, 'chats', chatId, 'messages'), {
+                        type: 'file',
+                        fileURL: downloadURL,
+                        fileName: file.name,
+                        fileType: file.type,
+                        senderId: currentUserId,
+                        createdAt: serverTimestamp()
+                    });
+                }
+            );
+        });
+
+        ui.cancelShareBtn.addEventListener('click', () => ui.shareModal.classList.add('hidden'));
+        ui.shareContentList.addEventListener('click', e => {
+            if (e.target.classList.contains('share-item-btn')) {
+                const { id, collection } = e.target.dataset;
+                shareContent(id, collection);
+            }
+        });
+
+        ui.messagesContainer.addEventListener('click', async e => {
+            if (e.target.classList.contains('add-content-btn')) {
+                const contentId = e.target.dataset.contentId;
+                // Logic to copy from sharedContent to user's private collection
+                const sharedRef = doc(db, 'sharedContent', contentId);
+                const sharedSnap = await getDoc(sharedRef);
+                if (sharedSnap.exists()) {
+                    const data = sharedSnap.data();
+                    const destination = data.collection; // 'courses', 'quizzes', 'syntheses'
+                    await addDoc(collection(db, 'users', currentUserId, destination), data);
+                    showMessage("Contenu ajouté à votre collection !");
+                    e.target.textContent = 'Ajouté ✔';
+                    e.target.disabled = true;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

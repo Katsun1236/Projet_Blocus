@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communauté - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style> body { font-family: 'Inter', sans-serif; } </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+
+    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
+        <a href="/dashboard.html" class="flex items-center space-x-2">
+            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
+        </a>
+        <nav id="nav-logged-in" class="hidden items-center relative">
+            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
+                <span id="user-name-header" class="font-semibold">Chargement...</span>
+                <i class="fas fa-chevron-down text-xs"></i>
+            </button>
+            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                <a href="/friends.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Amis</a>
+                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                <hr class="border-gray-600 my-2">
+                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="w-full max-w-2xl mx-auto p-4 sm:p-6 lg:p-8">
+        <h1 class="text-4xl font-bold mb-8 text-center">Fil d'actualité de la Communauté</h1>
+        <div id="feed-container" class="space-y-8">
+            <!-- Les publications du fil d'actualité seront injectées ici -->
+        </div>
+        <div id="loading-feed" class="text-center py-12">
+            <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
+        </div>
+        <div id="empty-feed" class="hidden text-center py-12 bg-gray-800 rounded-lg">
+            <i class="fas fa-user-friends text-5xl text-gray-500 mb-4"></i>
+            <h3 class="text-2xl font-bold">Votre fil est vide</h3>
+            <p class="mt-2 text-gray-400">Ajoutez des amis pour voir leurs publications ici.</p>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth, db } from '/firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+        let currentUserId = null;
+
+        const ui = {
+            navLoggedIn: document.getElementById('nav-logged-in'),
+            userMenuButton: document.getElementById('user-menu-button'),
+            userMenu: document.getElementById('user-menu'),
+            logoutButton: document.getElementById('logout-button'),
+            userNameHeader: document.getElementById('user-name-header'),
+            userAvatarHeader: document.getElementById('user-avatar-header'),
+            feedContainer: document.getElementById('feed-container'),
+            loadingFeed: document.getElementById('loading-feed'),
+            emptyFeed: document.getElementById('empty-feed'),
+        };
+
+        function timeAgo(date) {
+            if (!date) return 'date inconnue';
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return "il y a " + Math.floor(interval) + " ans";
+            interval = seconds / 2592000;
+            if (interval > 1) return "il y a " + Math.floor(interval) + " mois";
+            interval = seconds / 86400;
+            if (interval > 1) return "il y a " + Math.floor(interval) + " jours";
+            interval = seconds / 3600;
+            if (interval > 1) return "il y a " + Math.floor(interval) + " heures";
+            interval = seconds / 60;
+            if (interval > 1) return "il y a " + Math.floor(interval) + " minutes";
+            return "à l'instant";
+        }
+
+        function createPostElement(post) {
+            const el = document.createElement('div');
+            el.className = 'bg-gray-800 rounded-xl border border-gray-700 overflow-hidden';
+            
+            let contentHtml = '';
+            let icon = 'fa-question';
+            if (post.sharedContentType === 'course') {
+                icon = 'fa-book';
+                contentHtml = `<div class="p-6"><i class="fas fa-book text-indigo-400 mr-2"></i> Un nouveau cours a été partagé : <strong>${post.sharedContentTitle}</strong></div>`;
+            } else if (post.sharedContentType === 'quiz') {
+                icon = 'fa-question-circle';
+                 contentHtml = `<div class="p-6"><i class="fas fa-question-circle text-indigo-400 mr-2"></i> Un nouveau quiz a été partagé : <strong>${post.sharedContentTitle}</strong></div>`;
+            } else if (post.sharedContentType === 'synthesis') {
+                icon = 'fa-file-alt';
+                 contentHtml = `<div class="p-6"><i class="fas fa-file-alt text-indigo-400 mr-2"></i> Une nouvelle synthèse a été partagée : <strong>${post.sharedContentTitle}</strong></div>`;
+            } else {
+                contentHtml = `<div class="p-6">${post.content.replace(/\n/g, '<br>')}</div>`;
+            }
+
+            el.innerHTML = `
+                <div class="p-4 flex items-center space-x-3 border-b border-gray-700">
+                    <a href="/view-profile.html?id=${post.authorId}">
+                        <img src="${post.authorPhotoURL}" class="w-10 h-10 rounded-full object-cover">
+                    </a>
+                    <div>
+                        <a href="/view-profile.html?id=${post.authorId}" class="font-bold hover:underline">${post.authorName}</a>
+                        <p class="text-xs text-gray-400">${timeAgo(post.createdAt?.toDate())}</p>
+                    </div>
+                </div>
+                <a href="/discussion.html?id=${post.id}" class="block hover:bg-gray-700">
+                    ${contentHtml}
+                </a>
+            `;
+            return el;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = '/login.html'; return; }
+            currentUserId = user.uid;
+
+            const currentUserRef = doc(db, 'users', currentUserId);
+            const currentUserSnap = await getDoc(currentUserRef);
+            if (currentUserSnap.exists()) {
+                const data = currentUserSnap.data();
+                ui.userNameHeader.textContent = data.firstName;
+                ui.userAvatarHeader.src = data.photoURL;
+                ui.navLoggedIn.classList.remove('hidden');
+            }
+
+            // 1. Get friends list
+            const friendshipsRef = collection(db, 'friendships');
+            const qFriends = query(friendshipsRef, where('users', 'array-contains', currentUserId), where('status', '==', 'friends'));
+            const friendsSnapshot = await getDocs(qFriends);
+            const friendIds = friendsSnapshot.docs.map(doc => doc.data().users.find(id => id !== currentUserId));
+
+            if (friendIds.length === 0) {
+                ui.loadingFeed.classList.add('hidden');
+                ui.emptyFeed.classList.remove('hidden');
+                return;
+            }
+
+            // 2. Get posts from friends
+            const postsRef = collection(db, 'forum');
+            const qPosts = query(postsRef, where('authorId', 'in', friendIds), orderBy('createdAt', 'desc'), limit(50));
+            
+            onSnapshot(qPosts, (snapshot) => {
+                ui.loadingFeed.classList.add('hidden');
+                ui.feedContainer.innerHTML = '';
+                if (snapshot.empty) {
+                    ui.emptyFeed.classList.remove('hidden');
+                } else {
+                    ui.emptyFeed.classList.add('hidden');
+                    snapshot.forEach(doc => {
+                        ui.feedContainer.appendChild(createPostElement({ id: doc.id, ...doc.data() }));
+                    });
+                }
+            });
+        });
+        
+        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
+        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
+        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
+    </script>
+</body>
+</html>

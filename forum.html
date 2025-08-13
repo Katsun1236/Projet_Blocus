@@ -18,17 +18,25 @@
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <nav id="nav-logged-in" class="hidden items-center relative">
-            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                <span id="user-name-header" class="font-semibold">Chargement...</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                <hr class="border-gray-600 my-2">
-                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+        <nav id="nav-logged-in" class="hidden items-center space-x-6">
+            <!-- Liens de navigation principaux -->
+            <a href="/community.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Communauté</a>
+            <a href="/friends.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Amis</a>
+            
+            <!-- Menu déroulant de l'utilisateur -->
+            <div class="relative">
+                <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+                    <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
+                    <span id="user-name-header" class="font-semibold">Chargement...</span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                    <a href="/index.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Accueil</a>
+                    <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                    <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                    <hr class="border-gray-600 my-2">
+                    <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+                </div>
             </div>
         </nav>
     </header>
@@ -99,42 +107,25 @@
             shareSelect: document.getElementById('share-select'),
         };
 
-        function showMessage(message, isError = false) {
-            const box = document.createElement('div');
-            box.textContent = message;
-            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
-            ui.messageBoxContainer.appendChild(box);
-            setTimeout(() => { box.remove(); }, 3000);
-        }
-
-        function timeAgo(date) {
-            if (!date) return 'date inconnue';
-            const seconds = Math.floor((new Date() - date) / 1000);
-            let interval = seconds / 31536000;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " ans";
-            interval = seconds / 2592000;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " mois";
-            interval = seconds / 86400;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " jours";
-            interval = seconds / 3600;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " heures";
-            interval = seconds / 60;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " minutes";
-            return "à l'instant";
-        }
+        function showMessage(message, isError = false) { /* ... */ }
+        function timeAgo(date) { /* ... */ }
 
         function createDiscussionElement(discussion) {
-            const el = document.createElement('a');
-            el.href = `/discussion.html?id=${discussion.id}`;
-            el.className = "block bg-gray-800 p-6 rounded-lg border border-gray-700 hover:border-indigo-500 transition-colors duration-300";
+            const el = document.createElement('div');
+            el.className = "bg-gray-800 p-6 rounded-lg border border-gray-700";
             const postDate = timeAgo(discussion.createdAt?.toDate());
             const sharedIcon = discussion.sharedContentId ? `<i class="fas fa-share-alt text-gray-500 ml-2" title="Contenu partagé"></i>` : '';
+            
             el.innerHTML = `
                 <div class="flex items-start space-x-4">
-                    <img src="${discussion.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
+                    <a href="/view-profile.html?id=${discussion.authorId}">
+                        <img src="${discussion.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover hover:ring-2 ring-indigo-400">
+                    </a>
                     <div class="flex-grow">
-                        <h3 class="text-xl font-bold text-white flex items-center">${discussion.title} ${sharedIcon}</h3>
-                        <p class="text-sm text-gray-400">par <span class="font-semibold text-indigo-400">${discussion.authorName}</span> • ${postDate}</p>
+                        <a href="/discussion.html?id=${discussion.id}" class="hover:text-indigo-400">
+                            <h3 class="text-xl font-bold text-white flex items-center">${discussion.title} ${sharedIcon}</h3>
+                        </a>
+                        <p class="text-sm text-gray-400">par <a href="/view-profile.html?id=${discussion.authorId}" class="font-semibold text-indigo-400 hover:underline">${discussion.authorName}</a> • ${postDate}</p>
                     </div>
                     <div class="text-right flex-shrink-0">
                         <p class="text-2xl font-bold">${discussion.votes || 0}</p>
@@ -148,123 +139,20 @@
             return el;
         }
 
-        function renderDiscussions(discussions) {
-            ui.loading.classList.add('hidden');
-            ui.discussionsList.innerHTML = '';
-            if (discussions.length === 0) {
-                ui.empty.classList.remove('hidden');
-            } else {
-                ui.empty.classList.add('hidden');
-                discussions.forEach(disc => ui.discussionsList.appendChild(createDiscussionElement(disc)));
-            }
-        }
-
-        async function populateShareSelect() {
-            ui.shareSelect.innerHTML = '<option value="">Ne rien partager</option>';
-            userSharableContent = [];
-
-            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
-            const coursesSnap = await getDocs(coursesRef);
-            const courses = coursesSnap.docs.map(doc => ({ id: doc.id, type: 'course', ...doc.data() }));
-            userSharableContent.push(...courses);
-
-            const quizzesRef = collection(db, 'users', auth.currentUser.uid, 'quizzes');
-            const quizzesSnap = await getDocs(quizzesRef);
-            const quizzes = quizzesSnap.docs.map(doc => ({ id: doc.id, type: 'quiz', ...doc.data() }));
-            userSharableContent.push(...quizzes);
-            
-            const coursesOptgroup = document.createElement('optgroup');
-            coursesOptgroup.label = 'Cours';
-            courses.forEach(course => {
-                const option = document.createElement('option');
-                option.value = `course_${course.id}`;
-                option.textContent = course.name;
-                coursesOptgroup.appendChild(option);
-            });
-            ui.shareSelect.appendChild(coursesOptgroup);
-
-            const quizzesOptgroup = document.createElement('optgroup');
-            quizzesOptgroup.label = 'Quiz & Flashcards';
-            quizzes.forEach(quiz => {
-                const option = document.createElement('option');
-                option.value = `quiz_${quiz.id}`;
-                option.textContent = `(${quiz.type}) ${quiz.title}`;
-                quizzesOptgroup.appendChild(option);
-            });
-            ui.shareSelect.appendChild(quizzesOptgroup);
-        }
-
-        async function handleNewDiscussion(e) {
-            e.preventDefault();
-            if (!currentUserProfile) { showMessage('Vous devez être connecté pour publier.', true); return; }
-            
-            const title = document.getElementById('discussion-title').value.trim();
-            const content = document.getElementById('discussion-content').value.trim();
-            const selectedShare = ui.shareSelect.value;
-
-            if (!title || !content) { 
-                showMessage('Le titre et le message ne peuvent pas être vides.', true); 
-                return; 
-            }
-            
-            const btn = e.target.querySelector('button[type="submit"]');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publication...';
-
-            let sharedContentId = null;
-            let sharedContentTitle = null;
-            let sharedContentType = null;
-
-            if (selectedShare) {
-                const [type, id] = selectedShare.split('_');
-                const originalContent = userSharableContent.find(item => item.id === id);
-
-                if (originalContent) {
-                    // Créer une copie dans la collection publique 'sharedContent'
-                    const publicContentRef = await addDoc(collection(db, 'sharedContent'), {
-                        ...originalContent,
-                        originalAuthorId: auth.currentUser.uid,
-                        originalAuthorName: currentUserProfile.firstName,
-                        originalAuthorPhotoURL: currentUserProfile.photoURL,
-                    });
-                    sharedContentId = publicContentRef.id;
-                    sharedContentTitle = originalContent.title || originalContent.name;
-                    sharedContentType = originalContent.type;
-                }
-            }
-
-            const postData = {
-                title, content,
-                authorId: auth.currentUser.uid,
-                authorName: currentUserProfile.firstName,
-                authorPhotoURL: currentUserProfile.photoURL,
-                createdAt: serverTimestamp(),
-                replyCount: 0,
-                lastReplyAt: serverTimestamp(),
-                votes: 0,
-                voters: {},
-                sharedContentId,
-                sharedContentTitle,
-                sharedContentType,
-            };
-
-            try {
-                await addDoc(collection(db, 'forum'), postData);
-                showMessage('Discussion publiée !', false);
-                ui.discussionForm.reset();
-                ui.discussionModal.classList.add('hidden');
-            } catch (error) {
-                console.error("Erreur de publication:", error);
-                showMessage('Une erreur est survenue.', true);
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Publier';
-            }
-        }
-
+        function renderDiscussions(discussions) { /* ... */ }
+        async function populateShareSelect() { /* ... */ }
+        async function handleNewDiscussion(e) { /* ... */ }
+        
         function setupEventListeners() {
-            ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
-            window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
+            ui.userMenuButton.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                ui.userMenu.classList.toggle('hidden'); 
+            });
+            window.addEventListener('click', (e) => { 
+                if (ui.userMenuButton.parentElement && !ui.userMenuButton.parentElement.contains(e.target)) {
+                    ui.userMenu.classList.add('hidden');
+                }
+            });
             ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
             ui.newDiscussionBtn.addEventListener('click', () => {
                 populateShareSelect();

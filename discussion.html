@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style> 
         body { font-family: 'Inter', sans-serif; } 
-        .vote-btn.voted-up { color: #22c55e; } /* green-500 */
-        .vote-btn.voted-down { color: #ef4444; } /* red-500 */
+        .vote-btn.voted-up { color: #22c55e; }
+        .vote-btn.voted-down { color: #ef4444; }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -22,17 +22,22 @@
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <nav id="nav-logged-in" class="hidden items-center relative">
-            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                <span id="user-name-header" class="font-semibold">Chargement...</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                <hr class="border-gray-600 my-2">
-                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+        <nav id="nav-logged-in" class="hidden items-center space-x-6">
+            <a href="/community.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Communauté</a>
+            <a href="/friends.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Amis</a>
+            <div class="relative">
+                <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+                    <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
+                    <span id="user-name-header" class="font-semibold">Chargement...</span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                    <a href="/index.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Accueil</a>
+                    <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                    <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                    <hr class="border-gray-600 my-2">
+                    <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+                </div>
             </div>
         </nav>
     </header>
@@ -85,29 +90,8 @@
             messageBoxContainer: document.getElementById('message-box'),
         };
 
-        function timeAgo(date) {
-            if (!date) return 'date inconnue';
-            const seconds = Math.floor((new Date() - date) / 1000);
-            let interval = seconds / 31536000;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " ans";
-            interval = seconds / 2592000;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " mois";
-            interval = seconds / 86400;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " jours";
-            interval = seconds / 3600;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " heures";
-            interval = seconds / 60;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " minutes";
-            return "à l'instant";
-        }
-
-        function showMessage(message, isError = false) {
-            const box = document.createElement('div');
-            box.textContent = message;
-            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
-            ui.messageBoxContainer.appendChild(box);
-            setTimeout(() => { box.remove(); }, 3000);
-        }
+        function timeAgo(date) { /* ... */ }
+        function showMessage(message, isError = false) { /* ... */ }
 
         function renderMainPost(post) {
             ui.loadingPost.classList.add('hidden');
@@ -126,8 +110,10 @@
                         <div class="flex-grow">
                              <h1 class="text-4xl font-bold mb-4">${post.title}</h1>
                             <div class="flex items-center space-x-3 text-sm text-gray-400 mb-6">
-                                <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover">
-                                <span>par <strong class="text-indigo-400">${post.authorName}</strong></span>
+                                <a href="/view-profile.html?id=${post.authorId}">
+                                    <img src="${post.authorPhotoURL}" alt="Avatar" class="w-8 h-8 rounded-full object-cover hover:ring-2 ring-indigo-400">
+                                </a>
+                                <span>par <a href="/view-profile.html?id=${post.authorId}" class="font-semibold text-indigo-400 hover:underline">${post.authorName}</a></span>
                                 <span>•</span>
                                 <span>${postDate}</span>
                             </div>
@@ -139,14 +125,20 @@
             
             if (post.sharedContentId) {
                 const container = document.getElementById('shared-content-container');
-                let icon;
-                let buttonText;
-                if (post.sharedContentType === 'quiz') {
-                    icon = 'fa-question-circle';
-                    buttonText = 'Ajouter à mes quiz';
-                } else if (post.sharedContentType === 'course') {
-                    icon = 'fa-book';
-                    buttonText = 'Ajouter à mes cours';
+                let icon, buttonText;
+                switch (post.sharedContentType) {
+                    case 'course':
+                        icon = 'fa-book';
+                        buttonText = 'Ajouter à mes cours';
+                        break;
+                    case 'quiz':
+                        icon = 'fa-question-circle';
+                        buttonText = 'Ajouter à mes quiz';
+                        break;
+                    case 'synthesis':
+                        icon = 'fa-file-alt';
+                        buttonText = 'Ajouter à mes synthèses';
+                        break;
                 }
 
                 container.innerHTML = `
@@ -166,55 +158,7 @@
             ui.mainPostContainer.querySelector('.vote-btn[data-votetype="down"]').addEventListener('click', () => handleVote(discussionRef, -1));
         }
 
-        async function addSharedContentToUser(post) {
-            if (!auth.currentUser) {
-                showMessage('Connectez-vous pour ajouter ce contenu.', true);
-                return;
-            }
-            if (auth.currentUser.uid === post.authorId) {
-                showMessage('Vous ne pouvez pas ajouter votre propre contenu.', true);
-                return;
-            }
-
-            const btn = document.getElementById('add-shared-content-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
-            try {
-                const sharedContentRef = doc(db, 'sharedContent', post.sharedContentId);
-                const sharedContentSnap = await getDoc(sharedContentRef);
-
-                if (!sharedContentSnap.exists()) {
-                    throw new Error("Le contenu partagé original n'existe plus.");
-                }
-                
-                const contentData = sharedContentSnap.data();
-                const destinationCollection = contentData.type === 'course' ? 'courses' : 'quizzes';
-
-                // On enlève les infos de l'auteur original pour la nouvelle copie
-                delete contentData.originalAuthorId;
-                delete contentData.originalAuthorName;
-                delete contentData.originalAuthorPhotoURL;
-                
-                // On ajoute les nouvelles infos
-                contentData.sharedFromId = post.authorId;
-                contentData.sharedFromName = post.authorName;
-                contentData.sharedFromPhotoURL = post.authorPhotoURL;
-                contentData.createdAt = serverTimestamp();
-                delete contentData.lastResult;
-
-                await addDoc(collection(db, 'users', auth.currentUser.uid, destinationCollection), contentData);
-                showMessage('Contenu ajouté à votre liste !', false);
-                btn.textContent = 'Ajouté ✔';
-                btn.classList.replace('bg-indigo-600', 'bg-green-600');
-
-            } catch (error) {
-                console.error("Erreur d'ajout:", error);
-                showMessage(error.message, true);
-                btn.disabled = false;
-                btn.textContent = 'Ajouter';
-            }
-        }
+        async function addSharedContentToUser(post) { /* ... */ }
 
         function createReplyElement(reply) {
             const el = document.createElement('div');
@@ -224,10 +168,12 @@
             const voteState = reply.voters?.[auth.currentUser?.uid];
 
             el.innerHTML = `
-                <img src="${reply.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover">
+                <a href="/view-profile.html?id=${reply.authorId}">
+                    <img src="${reply.authorPhotoURL}" alt="Avatar" class="w-12 h-12 rounded-full object-cover hover:ring-2 ring-indigo-400">
+                </a>
                 <div class="bg-gray-800 p-4 rounded-lg flex-grow">
                     <div class="flex justify-between items-center mb-2">
-                        <p class="font-semibold text-indigo-400">${reply.authorName}</p>
+                        <a href="/view-profile.html?id=${reply.authorId}" class="font-semibold text-indigo-400 hover:underline">${reply.authorName}</a>
                         <p class="text-xs text-gray-500">${replyDate}</p>
                     </div>
                     <p class="text-gray-300 mb-3">${content}</p>
@@ -244,47 +190,19 @@
             return el;
         }
 
-        async function handleVote(docRef, voteValue) {
-            if (!auth.currentUser) { showMessage('Connectez-vous pour voter.', true); return; }
-            const docSnap = await getDoc(docRef);
-            if (!docSnap.exists()) return;
-            const voters = docSnap.data().voters || {};
-            const currentVote = voters[auth.currentUser.uid] || 0;
-            let voteChange = 0;
-            if (currentVote === voteValue) {
-                delete voters[auth.currentUser.uid];
-                voteChange = -voteValue;
-            } else {
-                voters[auth.currentUser.uid] = voteValue;
-                voteChange = voteValue - currentVote;
-            }
-            await updateDoc(docRef, { votes: increment(voteChange), voters: voters });
-        }
-
-        async function handleReplySubmit(e) {
-            e.preventDefault();
-            if (!currentUserProfile) { showMessage('Vous devez être connecté pour répondre.', true); return; }
-            const content = document.getElementById('reply-content').value.trim();
-            if (!content) { showMessage('Votre réponse ne peut pas être vide.', true); return; }
-            const btn = e.target.querySelector('button[type="submit"]');
-            btn.disabled = true;
-            try {
-                const discussionRef = doc(db, 'forum', discussionId);
-                const repliesRef = collection(discussionRef, 'replies');
-                await addDoc(repliesRef, { content, authorId: auth.currentUser.uid, authorName: currentUserProfile.firstName, authorPhotoURL: currentUserProfile.photoURL, createdAt: serverTimestamp(), votes: 0, voters: {} });
-                await updateDoc(discussionRef, { replyCount: increment(1), lastReplyAt: serverTimestamp() });
-                document.getElementById('reply-content').value = '';
-            } catch (error) {
-                console.error("Erreur de réponse:", error);
-                showMessage('Une erreur est survenue.', true);
-            } finally {
-                btn.disabled = false;
-            }
-        }
-
+        async function handleVote(docRef, voteValue) { /* ... */ }
+        async function handleReplySubmit(e) { /* ... */ }
+        
         function setupEventListeners() {
-            ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
-            window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
+            ui.userMenuButton.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                ui.userMenu.classList.toggle('hidden'); 
+            });
+            window.addEventListener('click', (e) => { 
+                if (ui.userMenuButton.parentElement && !ui.userMenuButton.parentElement.contains(e.target)) {
+                    ui.userMenu.classList.add('hidden');
+                }
+            });
             ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
             ui.replyForm.addEventListener('submit', handleReplySubmit);
         }

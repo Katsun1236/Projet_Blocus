@@ -239,7 +239,6 @@
 
                 const title = document.getElementById('synthesis-title-input').value;
 
-                // Sauvegarder la synthèse dans Firestore
                 await addDoc(collection(db, 'users', auth.currentUser.uid, 'syntheses'), {
                     title: title,
                     content: synthesisHtml,
@@ -275,11 +274,18 @@
                     el.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700';
                     const creationDate = synth.createdAt ? new Date(synth.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'Date inconnue';
                     
+                    const sharedFromAvatar = synth.sharedFromPhotoURL 
+                        ? `<img src="${synth.sharedFromPhotoURL}" alt="${synth.sharedFromName}" title="Partagé par ${synth.sharedFromName}" class="w-6 h-6 rounded-full border-2 border-indigo-400 ml-2">`
+                        : '';
+
                     el.innerHTML = `
                         <div class="flex items-center space-x-3 overflow-hidden">
                             <i class="fas fa-file-alt text-indigo-400 text-xl flex-shrink-0"></i>
                             <div class="truncate">
-                                <h3 class="font-bold text-lg truncate" title="${synth.title}">${synth.title}</h3>
+                                <div class="flex items-center">
+                                    <h3 class="font-bold text-lg truncate" title="${synth.title}">${synth.title}</h3>
+                                    ${sharedFromAvatar}
+                                </div>
                                 <p class="text-sm text-gray-400">Créée le ${creationDate}</p>
                             </div>
                         </div>
