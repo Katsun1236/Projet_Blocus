@@ -18,41 +18,83 @@
         <a href="/dashboard.html" class="flex items-center space-x-2">
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
-        <nav id="nav-logged-in" class="hidden items-center relative">
-            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                <span id="user-name-header" class="font-semibold">Chargement...</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                <a href="/friends.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Amis</a>
-                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                <hr class="border-gray-600 my-2">
-                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+        <nav id="nav-logged-in" class="hidden items-center space-x-6">
+            <a href="/community.html" class="text-indigo-400 font-bold">Communauté</a>
+            <a href="/friends.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Amis</a>
+            <div class="relative">
+                <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
+                    <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
+                    <span id="user-name-header" class="font-semibold">Chargement...</span>
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </button>
+                <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
+                    <a href="/index.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Accueil</a>
+                    <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
+                    <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
+                    <hr class="border-gray-600 my-2">
+                    <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+                </div>
             </div>
         </nav>
     </header>
 
-    <main class="w-full max-w-2xl mx-auto p-4 sm:p-6 lg:p-8">
-        <h1 class="text-4xl font-bold mb-8 text-center">Fil d'actualité de la Communauté</h1>
-        <div id="feed-container" class="space-y-8">
-            <!-- Les publications du fil d'actualité seront injectées ici -->
+    <main class="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Colonne principale : Fil d'actualité -->
+        <div class="lg:col-span-2">
+            <h1 class="text-4xl font-bold mb-8">Fil d'actualité</h1>
+            <div id="feed-container" class="space-y-8">
+                <!-- Les publications du fil d'actualité seront injectées ici -->
+            </div>
+            <div id="loading-feed" class="text-center py-12">
+                <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
+            </div>
+            <div id="empty-feed" class="hidden text-center py-12 bg-gray-800 rounded-lg">
+                <i class="fas fa-user-friends text-5xl text-gray-500 mb-4"></i>
+                <h3 class="text-2xl font-bold">Votre fil est vide</h3>
+                <p class="mt-2 text-gray-400">Ajoutez des amis pour voir leurs publications ici, ou explorez le forum pour trouver de nouvelles personnes !</p>
+            </div>
         </div>
-        <div id="loading-feed" class="text-center py-12">
-            <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
-        </div>
-        <div id="empty-feed" class="hidden text-center py-12 bg-gray-800 rounded-lg">
-            <i class="fas fa-user-friends text-5xl text-gray-500 mb-4"></i>
-            <h3 class="text-2xl font-bold">Votre fil est vide</h3>
-            <p class="mt-2 text-gray-400">Ajoutez des amis pour voir leurs publications ici.</p>
-        </div>
+
+        <!-- Colonne latérale : Social Hub -->
+        <aside class="space-y-8">
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <div id="profile-card-loader" class="text-center"><i class="fas fa-spinner fa-spin"></i></div>
+                <div id="profile-card" class="hidden">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <img id="profile-card-avatar" src="" class="w-16 h-16 rounded-full object-cover">
+                        <div>
+                            <h3 id="profile-card-name" class="text-xl font-bold"></h3>
+                            <a href="/profile.html" class="text-sm text-indigo-400 hover:underline">Voir mon profil</a>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <a href="/friends.html" class="bg-gray-700 hover:bg-gray-600 text-center p-3 rounded-lg">
+                            <p class="font-bold text-lg" id="friends-count">0</p>
+                            <p class="text-sm text-gray-400">Amis</p>
+                        </a>
+                        <a href="/friends.html" class="bg-gray-700 hover:bg-gray-600 text-center p-3 rounded-lg">
+                            <p class="font-bold text-lg" id="requests-count">0</p>
+                            <p class="text-sm text-gray-400">Demandes</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
+                <h3 class="text-xl font-bold mb-4">Suggestions d'amis</h3>
+                <div id="suggestions-list" class="space-y-4"></div>
+                <p id="no-suggestions" class="hidden text-gray-400 text-sm">Aucune suggestion pour le moment.</p>
+            </div>
+        </aside>
     </main>
+    
+    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <script type="module">
         import { auth, db } from '/firebase-config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs, onSnapshot, addDoc, serverTimestamp, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
         let currentUserId = null;
 
@@ -66,58 +108,99 @@
             feedContainer: document.getElementById('feed-container'),
             loadingFeed: document.getElementById('loading-feed'),
             emptyFeed: document.getElementById('empty-feed'),
+            profileCard: document.getElementById('profile-card'),
+            profileCardLoader: document.getElementById('profile-card-loader'),
+            profileCardAvatar: document.getElementById('profile-card-avatar'),
+            profileCardName: document.getElementById('profile-card-name'),
+            friendsCount: document.getElementById('friends-count'),
+            requestsCount: document.getElementById('requests-count'),
+            suggestionsList: document.getElementById('suggestions-list'),
+            noSuggestions: document.getElementById('no-suggestions'),
         };
 
-        function timeAgo(date) {
-            if (!date) return 'date inconnue';
-            const seconds = Math.floor((new Date() - date) / 1000);
-            let interval = seconds / 31536000;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " ans";
-            interval = seconds / 2592000;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " mois";
-            interval = seconds / 86400;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " jours";
-            interval = seconds / 3600;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " heures";
-            interval = seconds / 60;
-            if (interval > 1) return "il y a " + Math.floor(interval) + " minutes";
-            return "à l'instant";
-        }
+        function timeAgo(date) { /* ... */ }
+        function showMessage(message, isError = false) { /* ... */ }
 
         function createPostElement(post) {
             const el = document.createElement('div');
-            el.className = 'bg-gray-800 rounded-xl border border-gray-700 overflow-hidden';
+            el.className = 'bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg';
             
             let contentHtml = '';
-            let icon = 'fa-question';
-            if (post.sharedContentType === 'course') {
-                icon = 'fa-book';
-                contentHtml = `<div class="p-6"><i class="fas fa-book text-indigo-400 mr-2"></i> Un nouveau cours a été partagé : <strong>${post.sharedContentTitle}</strong></div>`;
-            } else if (post.sharedContentType === 'quiz') {
-                icon = 'fa-question-circle';
-                 contentHtml = `<div class="p-6"><i class="fas fa-question-circle text-indigo-400 mr-2"></i> Un nouveau quiz a été partagé : <strong>${post.sharedContentTitle}</strong></div>`;
-            } else if (post.sharedContentType === 'synthesis') {
-                icon = 'fa-file-alt';
-                 contentHtml = `<div class="p-6"><i class="fas fa-file-alt text-indigo-400 mr-2"></i> Une nouvelle synthèse a été partagée : <strong>${post.sharedContentTitle}</strong></div>`;
+            let icon = 'fa-pen-alt'; // Default for text post
+            let typeLabel = 'a publié';
+            let contentTitle = post.title;
+
+            if (post.sharedContentId) {
+                switch (post.sharedContentType) {
+                    case 'course': icon = 'fa-book'; typeLabel = 'a partagé un cours'; contentTitle = post.sharedContentTitle; break;
+                    case 'quiz': icon = 'fa-question-circle'; typeLabel = 'a partagé un quiz'; contentTitle = post.sharedContentTitle; break;
+                    case 'synthesis': icon = 'fa-file-alt'; typeLabel = 'a partagé une synthèse'; contentTitle = post.sharedContentTitle; break;
+                }
+                contentHtml = `
+                    <div class="p-6">
+                        <div class="flex items-center text-gray-400 text-sm mb-2">
+                            <i class="fas ${icon} mr-2"></i>
+                            <span>${typeLabel}</span>
+                        </div>
+                        <p class="font-bold text-xl text-white">${contentTitle}</p>
+                    </div>`;
             } else {
-                contentHtml = `<div class="p-6">${post.content.replace(/\n/g, '<br>')}</div>`;
+                contentHtml = `<div class="p-6 text-gray-300">${post.content.replace(/\n/g, '<br>')}</div>`;
             }
 
             el.innerHTML = `
                 <div class="p-4 flex items-center space-x-3 border-b border-gray-700">
                     <a href="/view-profile.html?id=${post.authorId}">
-                        <img src="${post.authorPhotoURL}" class="w-10 h-10 rounded-full object-cover">
+                        <img src="${post.authorPhotoURL}" class="w-10 h-10 rounded-full object-cover hover:ring-2 ring-indigo-400">
                     </a>
                     <div>
                         <a href="/view-profile.html?id=${post.authorId}" class="font-bold hover:underline">${post.authorName}</a>
                         <p class="text-xs text-gray-400">${timeAgo(post.createdAt?.toDate())}</p>
                     </div>
                 </div>
-                <a href="/discussion.html?id=${post.id}" class="block hover:bg-gray-700">
-                    ${contentHtml}
-                </a>
+                <div class="hover:bg-gray-700/50 transition-colors">
+                    <a href="/discussion.html?id=${post.id}" class="block">
+                        ${contentHtml}
+                    </a>
+                </div>
+                <div class="p-4 border-t border-gray-700 flex justify-between">
+                    <a href="/discussion.html?id=${post.id}" class="text-indigo-400 hover:text-indigo-300 font-semibold text-sm">
+                        <i class="fas fa-comment-alt mr-2"></i>Voir la discussion (${post.replyCount || 0})
+                    </a>
+                </div>
             `;
             return el;
+        }
+
+        async function loadSuggestions() {
+            // This is a simple suggestion algorithm: get 3 random users who are not the current user.
+            // A real-world app would have a more complex algorithm (friends of friends, etc.)
+            const usersRef = collection(db, 'users');
+            const q = query(usersRef, where('__name__', '!=', currentUserId), limit(3));
+            const snapshot = await getDocs(q);
+
+            ui.suggestionsList.innerHTML = '';
+            if (snapshot.empty) {
+                ui.noSuggestions.classList.remove('hidden');
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const user = {id: doc.id, ...doc.data()};
+                const el = document.createElement('div');
+                el.className = 'flex items-center justify-between';
+                el.innerHTML = `
+                    <a href="/view-profile.html?id=${user.id}" class="flex items-center space-x-3">
+                        <img src="${user.photoURL}" class="w-10 h-10 rounded-full object-cover">
+                        <div>
+                            <p class="font-semibold">${user.firstName}</p>
+                            <p class="text-xs text-gray-400">${user.school}</p>
+                        </div>
+                    </a>
+                    <a href="/view-profile.html?id=${user.id}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Voir</a>
+                `;
+                ui.suggestionsList.appendChild(el);
+            });
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -130,37 +213,57 @@
                 const data = currentUserSnap.data();
                 ui.userNameHeader.textContent = data.firstName;
                 ui.userAvatarHeader.src = data.photoURL;
+                ui.profileCardName.textContent = `${data.firstName} ${data.lastName}`;
+                ui.profileCardAvatar.src = data.photoURL;
+                ui.profileCardLoader.classList.add('hidden');
+                ui.profileCard.classList.remove('hidden');
                 ui.navLoggedIn.classList.remove('hidden');
+                ui.navLoggedIn.classList.add('flex');
             }
 
-            // 1. Get friends list
             const friendshipsRef = collection(db, 'friendships');
-            const qFriends = query(friendshipsRef, where('users', 'array-contains', currentUserId), where('status', '==', 'friends'));
-            const friendsSnapshot = await getDocs(qFriends);
-            const friendIds = friendsSnapshot.docs.map(doc => doc.data().users.find(id => id !== currentUserId));
+            const qFriends = query(friendshipsRef, where('users', 'array-contains', currentUserId));
+            onSnapshot(qFriends, (snapshot) => {
+                let friendsCount = 0;
+                let requestsCount = 0;
+                const friendIds = [];
 
-            if (friendIds.length === 0) {
-                ui.loadingFeed.classList.add('hidden');
-                ui.emptyFeed.classList.remove('hidden');
-                return;
-            }
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.status === 'friends') {
+                        friendsCount++;
+                        friendIds.push(data.users.find(id => id !== currentUserId));
+                    } else if (data.status === 'pending' && data.requestedTo === currentUserId) {
+                        requestsCount++;
+                    }
+                });
+                ui.friendsCount.textContent = friendsCount;
+                ui.requestsCount.textContent = requestsCount;
 
-            // 2. Get posts from friends
-            const postsRef = collection(db, 'forum');
-            const qPosts = query(postsRef, where('authorId', 'in', friendIds), orderBy('createdAt', 'desc'), limit(50));
-            
-            onSnapshot(qPosts, (snapshot) => {
-                ui.loadingFeed.classList.add('hidden');
-                ui.feedContainer.innerHTML = '';
-                if (snapshot.empty) {
+                if (friendIds.length === 0) {
+                    ui.loadingFeed.classList.add('hidden');
                     ui.emptyFeed.classList.remove('hidden');
-                } else {
-                    ui.emptyFeed.classList.add('hidden');
-                    snapshot.forEach(doc => {
-                        ui.feedContainer.appendChild(createPostElement({ id: doc.id, ...doc.data() }));
-                    });
+                    return;
                 }
+
+                const postsRef = collection(db, 'forum');
+                const qPosts = query(postsRef, where('authorId', 'in', friendIds), orderBy('createdAt', 'desc'), limit(50));
+                
+                onSnapshot(qPosts, (postSnapshot) => {
+                    ui.loadingFeed.classList.add('hidden');
+                    ui.feedContainer.innerHTML = '';
+                    if (postSnapshot.empty) {
+                        ui.emptyFeed.classList.remove('hidden');
+                    } else {
+                        ui.emptyFeed.classList.add('hidden');
+                        postSnapshot.forEach(doc => {
+                            ui.feedContainer.appendChild(createPostElement({ id: doc.id, ...doc.data() }));
+                        });
+                    }
+                });
             });
+
+            loadSuggestions();
         });
         
         ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });

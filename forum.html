@@ -19,11 +19,9 @@
             <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
         </a>
         <nav id="nav-logged-in" class="hidden items-center space-x-6">
-            <!-- Liens de navigation principaux -->
             <a href="/community.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Communauté</a>
             <a href="/friends.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Amis</a>
             
-            <!-- Menu déroulant de l'utilisateur -->
             <div class="relative">
                 <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
                     <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
@@ -107,8 +105,25 @@
             shareSelect: document.getElementById('share-select'),
         };
 
-        function showMessage(message, isError = false) { /* ... */ }
-        function timeAgo(date) { /* ... */ }
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.textContent = message;
+            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
+            ui.messageBoxContainer.appendChild(box);
+            setTimeout(() => { box.remove(); }, 3000);
+        }
+
+        function timeAgo(date) {
+            if (!date) return 'date inconnue';
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return "à l'instant";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `il y a ${minutes} min`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `il y a ${hours} h`;
+            const days = Math.floor(hours / 24);
+            return `il y a ${days} j`;
+        }
 
         function createDiscussionElement(discussion) {
             const el = document.createElement('div');
@@ -139,9 +154,112 @@
             return el;
         }
 
-        function renderDiscussions(discussions) { /* ... */ }
-        async function populateShareSelect() { /* ... */ }
-        async function handleNewDiscussion(e) { /* ... */ }
+        function renderDiscussions(discussions) {
+            ui.loading.classList.add('hidden');
+            ui.discussionsList.innerHTML = '';
+            if (discussions.length === 0) {
+                ui.empty.classList.remove('hidden');
+            } else {
+                ui.empty.classList.add('hidden');
+                discussions.forEach(disc => ui.discussionsList.appendChild(createDiscussionElement(disc)));
+            }
+        }
+
+        async function populateShareSelect() {
+            ui.shareSelect.innerHTML = '<option value="">Ne rien partager</option>';
+            userSharableContent = [];
+
+            const collectionsToFetch = ['courses', 'quizzes', 'syntheses'];
+            for (const coll of collectionsToFetch) {
+                const ref = collection(db, 'users', auth.currentUser.uid, coll);
+                const snapshot = await getDocs(ref);
+                const items = snapshot.docs.map(doc => ({ id: doc.id, type: coll.slice(0, -1), ...doc.data() }));
+                userSharableContent.push(...items);
+            }
+            
+            const groupedContent = userSharableContent.reduce((acc, item) => {
+                const key = item.type;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(item);
+                return acc;
+            }, {});
+
+            for (const type in groupedContent) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = type.charAt(0).toUpperCase() + type.slice(1) + 's';
+                groupedContent[type].forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = `${type}_${item.id}`;
+                    option.textContent = item.title || item.name;
+                    optgroup.appendChild(option);
+                });
+                ui.shareSelect.appendChild(optgroup);
+            }
+        }
+
+        async function handleNewDiscussion(e) {
+            e.preventDefault();
+            if (!currentUserProfile) { return; }
+            
+            const title = document.getElementById('discussion-title').value.trim();
+            const content = document.getElementById('discussion-content').value.trim();
+            const selectedShare = ui.shareSelect.value;
+
+            if (!title || !content) { return; }
+            
+            const btn = e.target.querySelector('button[type="submit"]');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publication...';
+
+            let sharedContentId = null;
+            let sharedContentTitle = null;
+            let sharedContentType = null;
+
+            if (selectedShare) {
+                const [type, id] = selectedShare.split('_');
+                const originalContent = userSharableContent.find(item => item.id === id);
+
+                if (originalContent) {
+                    const publicContentRef = await addDoc(collection(db, 'sharedContent'), {
+                        ...originalContent,
+                        originalAuthorId: auth.currentUser.uid,
+                        originalAuthorName: currentUserProfile.firstName,
+                        originalAuthorPhotoURL: currentUserProfile.photoURL,
+                    });
+                    sharedContentId = publicContentRef.id;
+                    sharedContentTitle = originalContent.title || originalContent.name;
+                    sharedContentType = type;
+                }
+            }
+
+            const postData = {
+                title, content,
+                authorId: auth.currentUser.uid,
+                authorName: currentUserProfile.firstName,
+                authorPhotoURL: currentUserProfile.photoURL,
+                createdAt: serverTimestamp(),
+                replyCount: 0,
+                lastReplyAt: serverTimestamp(),
+                votes: 0,
+                voters: {},
+                sharedContentId,
+                sharedContentTitle,
+                sharedContentType,
+            };
+
+            try {
+                await addDoc(collection(db, 'forum'), postData);
+                showMessage('Discussion publiée !');
+                ui.discussionForm.reset();
+                ui.discussionModal.classList.add('hidden');
+            } catch (error) {
+                console.error("Erreur de publication:", error);
+                showMessage('Une erreur est survenue.', true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Publier';
+            }
+        }
         
         function setupEventListeners() {
             ui.userMenuButton.addEventListener('click', (e) => { 
