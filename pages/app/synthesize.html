@@ -371,7 +371,7 @@
                     userCourses.forEach(course => {
                         const option = document.createElement('option');
                         option.value = course.id;
-                        option.textContent = course.title || course.name || course.fileName; 
+                        option.textContent = course.title || course.name || course.fileName;
                         ui.courseSelect.appendChild(option);
                     });
                 }
@@ -383,6 +383,11 @@
 
         async function extractTextFromPdf(url) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+            
+            // NOTE: La lecture du PDF échoue si les règles CORS de Firebase Storage sont incorrectes.
+            // L'erreur "ERR_FAILED" est souvent causée par le blocage du CORS.
+            // La solution est d'appliquer les règles CORS via gsutil sur votre bucket.
+
             const pdf = await pdfjsLib.getDocument(url).promise;
             let fullText = '';
             for (let i = 1; i <= pdf.numPages; i++) {
@@ -408,6 +413,9 @@
                     const course = userCourses.find(c => c.id === option.value);
                     if (course && (course.url || course.fileURL)) { 
                         const url = course.url || course.fileURL;
+                        
+                        // Tentative de lecture du PDF via PDF.js. C'est ici que l'erreur CORS se produit.
+                        // Si le CORS est résolu, cela fonctionne :
                         combinedText += `--- Contenu du cours: ${course.title || course.name} ---\n${await extractTextFromPdf(url)}\n\n`;
                     }
                 }
@@ -417,9 +425,7 @@
                 
                 const prompt = `À partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
 
-                // **********************************************
-                // CORRECTION: Appel à la Cloud Function
-                // **********************************************
+                // Appel à la Cloud Function
                 const result = await generateSynthesisCloud({ prompt: prompt });
                 
                 if (!result.data || !result.data.content) {
@@ -445,12 +451,10 @@
                 console.error("Erreur de génération/Cloud Function:", error);
                 
                 let displayMsg = "Erreur lors de la génération. ";
-                if (error.code === 'unauthenticated') {
-                     displayMsg = "Erreur d'authentification. Veuillez vous reconnecter.";
-                } else if (error.code === 'internal') {
-                     displayMsg = "Erreur interne de l'IA. Le contenu du PDF est peut-être trop long ou la clé API Cloud Functions est mal configurée.";
+                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
+                     displayMsg = "Erreur de connexion (CORS). Vérifiez si les règles CORS de Firebase Storage et la Cloud Function sont déployées.";
                 } else if (error.message.includes('PDF')) {
-                     displayMsg = "Erreur de lecture du PDF.";
+                     displayMsg = "Erreur de lecture du PDF (le fichier est peut-être inaccessible).";
                 } else {
                     displayMsg += `Détails: ${error.message}`;
                 }
