@@ -4,107 +4,238 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de Bord - Projet Blocus</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> 
-        body { font-family: 'Inter', sans-serif; }
-        /* Scrollbar personnalisée */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { bg-gray-900; }
-        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <style>
+        /* Ajustements spécifiques au dashboard */
+        .sidebar-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #fff;
+            border-left: 3px solid #6366f1;
+        }
+
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e5e7eb;
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white h-screen flex overflow-hidden">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <!-- Sidebar -->
-    <aside class="w-64 bg-gray-800 flex-shrink-0 border-r border-gray-700 hidden md:flex flex-col">
-        <div class="p-6 border-b border-gray-700 flex items-center">
-            <i class="fas fa-graduation-cap text-indigo-500 text-2xl mr-3"></i>
-            <span class="font-bold text-xl">Projet Blocus</span>
+    <!-- FOND ANIMÉ -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: -10%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -20%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
+        <div class="p-6 flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+                B.
+            </div>
+            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
         </div>
-        <nav class="flex-grow p-4 space-y-2">
-            <a href="#" class="block py-2.5 px-4 rounded bg-indigo-600 text-white font-bold">
-                <i class="fas fa-th-large mr-3"></i> Dashboard
+
+        <nav class="flex-grow px-4 space-y-2">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            
+            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Tableau de Bord</span>
             </a>
-            <a href="/courses.html" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300 transition">
-                <i class="fas fa-book mr-3"></i> Mes Cours
+            
+            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
             </a>
-            <a href="/quiz.html" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300 transition">
-                <i class="fas fa-brain mr-3"></i> Quiz
+            
+            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
             </a>
-            <a href="/planning.html" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300 transition">
-                <i class="fas fa-calendar-alt mr-3"></i> Planning
+            
+            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
             </a>
         </nav>
-        <div class="p-4 border-t border-gray-700">
-            <button id="logout-button" class="w-full flex items-center justify-center py-2 px-4 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition">
-                <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+
+        <div class="p-4 border-t border-gray-800">
+            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
+                <span class="font-medium">Déconnexion</span>
             </button>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <div class="flex-grow flex flex-col min-w-0">
-        <!-- Header -->
-        <header class="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6">
-            <h1 class="text-xl font-bold text-gray-100">Tableau de Bord</h1>
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+        
+        <!-- HEADER -->
+        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
+            <div class="flex items-center gap-4 md:hidden">
+                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <span class="font-bold text-lg text-white">Dashboard</span>
+            </div>
             
-            <div id="nav-logged-in" class="flex items-center space-x-4 hidden">
-                <span id="user-name-header" class="font-bold text-gray-300 hidden sm:block">Étudiant</span>
-                <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-indigo-500 object-cover">
+            <div class="hidden md:block">
+                <h1 class="text-xl font-display font-bold text-white">Bon retour ! 👋</h1>
+                <p class="text-sm text-gray-400" id="date-display">Chargement...</p>
+            </div>
+
+            <div id="nav-logged-in" class="flex items-center gap-6">
+                <button class="relative text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-bell text-xl"></i>
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-indigo-500 rounded-full border-2 border-gray-900"></span>
+                </button>
+                
+                <div class="h-8 w-px bg-gray-800"></div>
+
+                <a href="profile.html" class="flex items-center gap-3 group cursor-pointer">
+                    <div class="text-right hidden sm:block">
+                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">Étudiant</p>
+                        <p class="text-xs text-gray-500">Voir mon profil</p>
+                    </div>
+                    <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
+                </a>
             </div>
         </header>
 
-        <!-- Content Scrollable -->
-        <main class="flex-grow p-6 overflow-y-auto">
+        <!-- SCROLLABLE CONTENT -->
+        <main class="flex-grow p-8 overflow-y-auto">
             
-            <!-- Breadcrumbs -->
-            <div id="breadcrumbs" class="mb-6 text-gray-400 text-sm">
-                <span>Accueil</span>
+            <!-- Stats / Quick Actions Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <!-- Card: Total Cours -->
+                <div class="content-glass rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fas fa-book text-6xl text-indigo-500"></i>
+                    </div>
+                    <p class="text-gray-400 text-sm font-medium mb-1">Total Cours</p>
+                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-courses-count">0</h3>
+                    <div class="flex items-center text-xs text-green-400 bg-green-400/10 w-fit px-2 py-1 rounded">
+                        <i class="fas fa-arrow-up mr-1"></i> +2 cette semaine
+                    </div>
+                </div>
+
+                <!-- Card: Quiz Complétés -->
+                <div class="content-glass rounded-2xl p-6 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <i class="fas fa-check-circle text-6xl text-purple-500"></i>
+                    </div>
+                    <p class="text-gray-400 text-sm font-medium mb-1">Quiz Complétés</p>
+                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-quiz-count">0</h3>
+                    <div class="flex items-center text-xs text-purple-400 bg-purple-400/10 w-fit px-2 py-1 rounded">
+                        <i class="fas fa-fire mr-1"></i> En feu !
+                    </div>
+                </div>
+
+                <!-- Card: Action Rapide Upload -->
+                <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-center flex flex-col justify-center items-center shadow-lg shadow-indigo-900/20 group cursor-pointer hover:scale-[1.02] transition-transform" onclick="document.getElementById('new-folder-button').click()">
+                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3 text-white group-hover:rotate-90 transition-transform">
+                        <i class="fas fa-plus text-xl"></i>
+                    </div>
+                    <h3 class="font-bold text-white text-lg">Ajouter un contenu</h3>
+                    <p class="text-indigo-200 text-xs mt-1">PDF, Image ou Note</p>
+                </div>
             </div>
 
-            <div class="flex justify-between items-center mb-6">
-                <h2 id="main-title" class="text-2xl font-bold">Mes Cours</h2>
-                <button id="new-folder-button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition">
-                    <i class="fas fa-folder-plus mr-2"></i> Nouveau Dossier
-                </button>
+            <!-- Breadcrumbs & Actions -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                <div>
+                    <div id="breadcrumbs" class="flex items-center text-sm text-gray-500 mb-1">
+                        <span class="hover:text-white cursor-pointer transition-colors">Accueil</span>
+                    </div>
+                    <h2 id="main-title" class="text-2xl font-display font-bold text-white">Mes Dossiers</h2>
+                </div>
+                
+                <div class="flex gap-3">
+                    <a href="upload.html" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-lg border border-gray-700 transition-colors flex items-center gap-2">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload
+                    </a>
+                    <button id="new-folder-button" class="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                        <i class="fas fa-folder-plus"></i> Nouveau Dossier
+                    </button>
+                </div>
             </div>
 
-            <!-- Loading Indicator -->
+            <!-- Loading -->
             <div id="loading-indicator" class="flex justify-center items-center py-20">
-                <i class="fas fa-spinner fa-spin text-4xl text-indigo-500"></i>
+                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
             </div>
 
             <!-- Folders Grid -->
-            <div id="folders-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+            <div id="folders-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
                 <!-- Les dossiers seront injectés ici par JS -->
             </div>
 
-            <!-- Courses List -->
-            <div>
-                <h3 id="courses-title" class="text-xl font-bold mb-4 text-gray-300 border-b border-gray-700 pb-2">Fichiers & Synthèses</h3>
-                <div id="courses-list">
+            <!-- Courses List Section -->
+            <div class="content-glass rounded-2xl border border-gray-800 overflow-hidden">
+                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                    <h3 id="courses-title" class="font-display font-bold text-lg text-white">Fichiers & Synthèses</h3>
+                    <div class="flex gap-2">
+                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-filter"></i></button>
+                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-sort"></i></button>
+                    </div>
+                </div>
+                
+                <div id="courses-list" class="divide-y divide-gray-800">
                     <!-- Les cours seront injectés ici -->
                 </div>
-                <div id="no-content" class="hidden text-center py-10 text-gray-500">
-                    <i class="fas fa-box-open text-4xl mb-3"></i>
-                    <p>Aucun contenu dans ce dossier.</p>
+                
+                <div id="no-content" class="hidden text-center py-16">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800/50 text-gray-600 mb-4">
+                        <i class="fas fa-box-open text-3xl"></i>
+                    </div>
+                    <p class="text-gray-400 font-medium">Ce dossier est vide.</p>
+                    <p class="text-gray-600 text-sm mt-1">Commence par ajouter un fichier !</p>
                 </div>
             </div>
 
         </main>
     </div>
 
+    <!-- Modals Container (Vide pour l'instant, rempli par JS si besoin) -->
+    <div id="modal-container"></div>
+
     <!-- Message Box -->
-    <div id="message-box" class="hidden fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl z-50"></div>
+    <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
+        <!-- Icone gérée par JS -->
+    </div>
 
     <!-- Scripts -->
-    <!-- On charge courses.js qui contient toute la logique et les imports Firebase corrigés -->
-    <script type="module" src="./courses.js"></script>
+    <script>
+        // Simple script pour afficher la date du jour
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('date-display').textContent = new Date().toLocaleDateString('fr-FR', options);
+    </script>
+    <!-- Import du module logique -->
+    <script type="module" src="../../assets/js/courses.js"></script>
 
 </body>
 </html>
