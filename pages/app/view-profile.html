@@ -33,10 +33,20 @@
             background: rgba(255, 255, 255, 0.03);
             color: #e5e7eb;
         }
-        .badge-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .badge-item { 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            cursor: pointer;
+        }
+        .badge-item.locked { 
+            filter: grayscale(100%) opacity(0.4); 
+        }
+        .badge-item:not(.locked):hover { 
+            transform: translateY(-3px) scale(1.05); 
+            filter: drop-shadow(0 0 8px rgba(99,102,241,0.5)); 
+        }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -58,10 +68,47 @@
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Tableau de Bord</span>
             </a>
-             <!-- ... autres liens du menu ... -->
+            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
+            </a>
+            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
             <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Amis</span>
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
+            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
             </a>
         </nav>
 
@@ -95,6 +142,7 @@
                 
                 <!-- Carte Profil -->
                 <div class="content-glass rounded-3xl p-8 relative overflow-hidden border border-gray-800">
+                    <!-- Bannière de fond -->
                     <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-900/50 to-purple-900/50"></div>
                     
                     <div class="relative z-10 flex flex-col md:flex-row items-end md:items-center gap-6 mt-16 md:mt-4 px-4">
@@ -107,7 +155,7 @@
                             </p>
                         </div>
 
-                        <div id="action-buttons" class="flex gap-3">
+                        <div id="action-buttons" class="flex gap-3 flex-wrap justify-center md:justify-end">
                             <!-- Boutons injectés par JS (Ajouter / Message / En attente) -->
                         </div>
                     </div>
@@ -144,11 +192,12 @@
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         const urlParams = new URLSearchParams(window.location.search);
         const profileId = urlParams.get('id');
         let currentUserId = null;
+        let currentUserProfile = null;
 
         const ui = {
             loading: document.getElementById('loading-profile'),
@@ -162,27 +211,35 @@
             noBadges: document.getElementById('no-badges'),
             logoutButton: document.getElementById('logout-button'),
         };
-
-        // Badges config (même que profile.html)
+        
+        // Configuration des Badges (simulée ici pour l'affichage)
         const allBadges = {
-            'course1': { title: 'Premiers Pas', icon: 'fa-graduation-cap' },
-            'course5': { title: 'Bibliothécaire', icon: 'fa-book-reader' },
-            // ... Ajouter les autres pour l'affichage
+            'course1': { title: 'Premiers Pas', icon: 'fa-graduation-cap', color: 'text-indigo-400', unlocked: true }, // Exemple: Débloqué par défaut
+            'quiz1': { title: 'Quizzeur', icon: 'fa-brain', color: 'text-purple-400', unlocked: false }, // Exemple: Verrouillé
+            'social1': { title: 'Connecté', icon: 'fa-user-friends', color: 'text-yellow-400', unlocked: true },
+            // ... Mettre à jour avec les badges réels
         };
 
-        function showMessage(message) {
+
+        function showMessage(message, isError = false) {
             const box = document.createElement('div');
-            box.className = `p-4 rounded-xl shadow-2xl bg-gray-900 border border-indigo-500/30 text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto`;
+            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
             box.innerHTML = `<p class="font-medium text-sm">${message}</p>`;
             document.getElementById('message-box').appendChild(box);
             requestAnimationFrame(() => box.classList.remove('translate-y-10', 'opacity-0'));
             setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
         }
 
+        /**
+         * Vérifie le statut d'amitié entre l'utilisateur courant et le profil affiché.
+         * @param {string} otherUserId - ID du profil affiché
+         * @returns {Promise<{status: 'self' | 'friends' | 'pending' | 'none', friendshipId: string | null, requestedTo: string | null}>}
+         */
         async function checkFriendshipStatus(otherUserId) {
-            if (currentUserId === otherUserId) return 'self';
+            if (currentUserId === otherUserId) return { status: 'self', friendshipId: null, requestedTo: null };
 
             const friendshipsRef = collection(db, 'friendships');
+            // Requête pour trouver toutes les relations où l'utilisateur courant est impliqué
             const q = query(friendshipsRef, where('users', 'array-contains', currentUserId));
             const snapshot = await getDocs(q);
             
@@ -192,6 +249,7 @@
 
             snapshot.forEach(doc => {
                 const data = doc.data();
+                // Vérifier si cette relation implique aussi le profil affiché
                 if (data.users.includes(otherUserId)) {
                     status = data.status;
                     friendshipId = doc.id;
@@ -200,6 +258,148 @@
             });
 
             return { status, friendshipId, requestedTo };
+        }
+
+        async function renderActionButtons(otherUserId) {
+            ui.actions.innerHTML = '';
+            
+            if (!currentUserId || currentUserId === otherUserId) {
+                 ui.actions.innerHTML = `<a href="profile.html" class="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors">Modifier mon profil</a>`;
+                 return;
+            }
+
+            const { status, friendshipId, requestedTo } = await checkFriendshipStatus(otherUserId);
+            
+            if (status === 'friends') {
+                // Boutons: Amis & Message
+                ui.actions.innerHTML = `
+                    <button class="px-4 py-2 bg-green-600/20 text-green-400 font-bold rounded-xl border border-green-600/30 cursor-default"><i class="fas fa-check mr-2"></i>Amis</button>
+                    <a href="chat.html?with=${otherUserId}" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors"><i class="fas fa-comment-alt mr-2"></i>Message</a>
+                    <button id="remove-friend-btn" class="px-4 py-2 bg-red-600/20 text-red-400 font-bold rounded-xl border border-red-600/30 hover:bg-red-600 hover:text-white" data-id="${friendshipId}"><i class="fas fa-user-minus"></i></button>
+                `;
+            } else if (status === 'pending') {
+                if (requestedTo === currentUserId) {
+                    // Demande reçue: Accepter/Refuser
+                    ui.actions.innerHTML = `
+                        <button id="accept-btn" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl transition-colors">Accepter</button>
+                        <button id="refuse-btn" class="px-6 py-2 bg-red-600/20 hover:bg-red-500/30 text-red-400 font-bold rounded-xl border border-red-600/30">Refuser</button>
+                    `;
+                } else {
+                    // Demande envoyée: Annuler/En attente
+                    ui.actions.innerHTML = `
+                        <button class="px-6 py-2 bg-gray-800 text-gray-400 font-bold rounded-xl cursor-default"><i class="fas fa-clock mr-2"></i>Demande envoyée</button>
+                        <button id="cancel-request-btn" class="px-4 py-2 bg-red-600/20 text-red-400 font-bold rounded-xl border border-red-600/30 hover:bg-red-600 hover:text-white" data-id="${friendshipId}">Annuler</button>
+                    `;
+                }
+            } else {
+                // Aucun lien: Ajouter
+                const addBtn = document.createElement('button');
+                addBtn.id = 'add-friend-btn';
+                addBtn.className = "px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-900/20";
+                addBtn.innerHTML = `<i class="fas fa-user-plus mr-2"></i>Ajouter`;
+                ui.actions.appendChild(addBtn);
+            }
+
+            // Attacher les handlers après que les boutons sont dans le DOM
+            setupActionHandlers(otherUserId, friendshipId, status);
+        }
+
+        function setupActionHandlers(otherUserId, friendshipId, initialStatus) {
+            // Ajouter un ami
+            const addBtn = document.getElementById('add-friend-btn');
+            if (addBtn) {
+                addBtn.onclick = async () => {
+                    addBtn.disabled = true;
+                    addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    try {
+                        await addDoc(collection(db, 'friendships'), {
+                            users: [currentUserId, otherUserId],
+                            status: 'pending',
+                            requestedBy: currentUserId,
+                            requestedTo: otherUserId,
+                            createdAt: serverTimestamp()
+                        });
+                        showMessage("Demande envoyée !");
+                        // Re-render les boutons pour passer au statut 'Demande envoyée'
+                        renderActionButtons(otherUserId); 
+                    } catch (e) {
+                        console.error(e);
+                        showMessage("Erreur lors de l'envoi.", true);
+                        addBtn.disabled = false;
+                        addBtn.innerHTML = `<i class="fas fa-user-plus mr-2"></i>Ajouter`;
+                    }
+                };
+            }
+            
+            // Annuler une demande (si j'ai envoyé) ou Retirer un ami
+            const removeBtn = document.getElementById('remove-friend-btn') || document.getElementById('cancel-request-btn');
+            if (removeBtn) {
+                removeBtn.onclick = async () => {
+                    if(!confirm("Êtes-vous sûr ?")) return;
+                    try {
+                        await deleteDoc(doc(db, 'friendships', friendshipId));
+                        showMessage(initialStatus === 'friends' ? "Ami retiré." : "Demande annulée.");
+                        renderActionButtons(otherUserId); 
+                    } catch (e) {
+                        console.error(e);
+                        showMessage("Erreur de l'opération.", true);
+                    }
+                };
+            }
+            
+            // Accepter une demande (si j'ai reçu)
+            const acceptBtn = document.getElementById('accept-btn');
+            if (acceptBtn) {
+                acceptBtn.onclick = async () => {
+                    try {
+                        await updateDoc(doc(db, 'friendships', friendshipId), { status: 'friends' });
+                        showMessage("Ami ajouté !");
+                        renderActionButtons(otherUserId);
+                    } catch (e) {
+                        console.error(e);
+                        showMessage("Erreur lors de l'acceptation.", true);
+                    }
+                };
+            }
+            
+            // Refuser une demande (si j'ai reçu)
+            const refuseBtn = document.getElementById('refuse-btn');
+            if (refuseBtn) {
+                refuseBtn.onclick = async () => {
+                    try {
+                        await deleteDoc(doc(db, 'friendships', friendshipId));
+                        showMessage("Demande refusée.");
+                        renderActionButtons(otherUserId);
+                    } catch (e) {
+                        console.error(e);
+                        showMessage("Erreur lors du refus.", true);
+                    }
+                };
+            }
+        }
+
+        function renderBadgesDisplay() {
+            ui.badges.innerHTML = '';
+            let badgesFound = false;
+
+            // Simule l'affichage des badges (dans une vraie app, on chargerait la liste débloquée par 'profileId')
+            Object.entries(allBadges).forEach(([id, badge]) => {
+                // Pour la démo, on affiche 2 badges débloqués sur 3
+                if (badge.unlocked) {
+                    badgesFound = true;
+                    const el = document.createElement('div');
+                    el.className = `badge-item flex flex-col items-center gap-2`;
+                    el.innerHTML = `
+                        <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 bg-gray-800 border-yellow-500/50 ${badge.color}">
+                            <i class="fas ${badge.icon}"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide truncate w-full text-center">${badge.title}</span>
+                    `;
+                    ui.badges.appendChild(el);
+                }
+            });
+
+            ui.noBadges.classList.toggle('hidden', badgesFound);
         }
 
         async function loadProfile() {
@@ -219,66 +419,18 @@
                 ui.avatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
                 ui.school.textContent = data.school || 'École non renseignée';
 
-                // Badges (simulé via localStorage ou champ unlockedBadges dans une vraie implémentation)
-                // Pour l'instant, on affiche rien ou des placeholders si pas de données
-                ui.badges.innerHTML = '';
-                ui.noBadges.classList.remove('hidden'); // Par défaut
-
-                // Gestion des boutons d'action
-                if (currentUserId) {
-                    const { status, requestedTo } = await checkFriendshipStatus(profileId);
-                    
-                    ui.actions.innerHTML = '';
-
-                    if (status === 'self') {
-                        ui.actions.innerHTML = `<a href="profile.html" class="px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors">Modifier mon profil</a>`;
-                    } else if (status === 'friends') {
-                        ui.actions.innerHTML = `
-                            <button class="px-4 py-2 bg-green-600/20 text-green-400 font-bold rounded-xl border border-green-600/30 cursor-default"><i class="fas fa-check mr-2"></i>Amis</button>
-                            <a href="chat.html?with=${profileId}" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors"><i class="fas fa-comment-alt mr-2"></i>Message</a>
-                        `;
-                    } else if (status === 'pending') {
-                        if (requestedTo === currentUserId) {
-                            ui.actions.innerHTML = `<button class="px-6 py-2 bg-yellow-600/20 text-yellow-400 font-bold rounded-xl border border-yellow-600/30 cursor-default">Demande reçue</button>`; 
-                            // Idéalement ajouter boutons accepter/refuser ici
-                        } else {
-                            ui.actions.innerHTML = `<button class="px-6 py-2 bg-gray-800 text-gray-400 font-bold rounded-xl cursor-default"><i class="fas fa-clock mr-2"></i>Demande envoyée</button>`;
-                        }
-                    } else {
-                        const addBtn = document.createElement('button');
-                        addBtn.className = "px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-indigo-900/20";
-                        addBtn.innerHTML = `<i class="fas fa-user-plus mr-2"></i>Ajouter`;
-                        addBtn.onclick = async () => {
-                            addBtn.disabled = true;
-                            addBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                            try {
-                                await addDoc(collection(db, 'friendships'), {
-                                    users: [currentUserId, profileId],
-                                    status: 'pending',
-                                    requestedBy: currentUserId,
-                                    requestedTo: profileId,
-                                    createdAt: serverTimestamp()
-                                });
-                                showMessage("Demande envoyée !");
-                                addBtn.innerHTML = '<i class="fas fa-clock mr-2"></i>Envoyée';
-                                addBtn.className = "px-6 py-2 bg-gray-800 text-gray-400 font-bold rounded-xl cursor-default";
-                            } catch (e) {
-                                console.error(e);
-                                showMessage("Erreur lors de l'envoi.");
-                                addBtn.disabled = false;
-                                addBtn.innerHTML = `<i class="fas fa-user-plus mr-2"></i>Ajouter`;
-                            }
-                        };
-                        ui.actions.appendChild(addBtn);
-                    }
-                }
+                // Rendre les boutons d'action
+                await renderActionButtons(profileId);
+                
+                // Rendre les badges (simulé pour l'instant)
+                renderBadgesDisplay();
 
                 ui.loading.classList.add('hidden');
                 ui.content.classList.remove('hidden');
 
             } catch (error) {
                 console.error("Erreur chargement profil:", error);
-                ui.loading.innerHTML = '<p class="text-red-400">Erreur de chargement.</p>';
+                ui.loading.innerHTML = '<p class="text-red-400">Erreur de chargement du profil.</p>';
             }
         }
 
@@ -290,9 +442,16 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
+                
+                // On charge le profil utilisateur courant (pour les checks)
+                const userSnap = await getDoc(doc(db, 'users', currentUserId));
+                if (userSnap.exists()) {
+                    currentUserProfile = userSnap.data();
+                }
+
                 loadProfile();
             } else {
-                // Mode visiteur possible ? Pour l'instant redirection
+                // Mode visiteur non autorisé, redirection
                 window.location.href = '../auth/login.html';
             }
         });

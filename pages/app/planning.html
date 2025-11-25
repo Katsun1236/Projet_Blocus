@@ -38,6 +38,7 @@
             aspect-ratio: 1;
             transition: all 0.2s ease;
             position: relative;
+            user-select: none;
         }
         .calendar-day:hover:not(.empty) {
             background: rgba(255, 255, 255, 0.05);
@@ -58,7 +59,7 @@
         }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -93,9 +94,23 @@
                 <span class="font-medium">Planning</span>
             </a>
 
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
@@ -121,7 +136,7 @@
     <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
         
-        <!-- Header Mobile -->
+        <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4 md:hidden">
                 <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -217,7 +232,7 @@
                         
                         <div id="events-list" class="space-y-3 flex-grow overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
                             <!-- Events injectés ici -->
-                            <p class="text-gray-500 text-sm text-center py-4">Aucun événement pour ce jour.</p>
+                            <p class="text-gray-500 text-sm text-center py-4" id="no-events-msg">Aucun événement pour ce jour.</p>
                         </div>
 
                         <button id="add-event-btn" class="w-full mt-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2">
@@ -262,7 +277,7 @@
 
                 <div class="flex justify-end gap-3 mt-6">
                     <button type="button" id="cancel-event-btn" class="px-4 py-2 text-gray-400 hover:text-white font-bold transition-colors">Annuler</button>
-                    <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors">Ajouter</button>
+                    <button type="submit" id="submit-event-btn" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors">Ajouter</button>
                 </div>
             </form>
         </div>
@@ -275,12 +290,21 @@
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { doc, getDoc, collection, addDoc, query, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         let currentUserId = null;
-        let currentDate = new Date();
-        let selectedDate = new Date();
-        let events = [];
+        let currentDate = new Date(); // Date utilisée pour l'affichage du mois du calendrier
+        let selectedDate = new Date(); // Date sélectionnée pour afficher les événements
+        let events = []; // Cache local des événements
+
+        // Nettoyage de l'heure des dates pour comparaison (Date Only)
+        const normalizeDate = (date) => {
+            const d = new Date(date);
+            d.setHours(0, 0, 0, 0);
+            return d;
+        };
+        selectedDate = normalizeDate(selectedDate);
+        currentDate = normalizeDate(currentDate);
 
         const ui = {
             monthDisplay: document.getElementById('current-month-display'),
@@ -298,6 +322,8 @@
             connectNotionBtn: document.getElementById('connect-notion-btn'),
             gcalStatus: document.getElementById('gcal-status'),
             notionStatus: document.getElementById('notion-status'),
+            noEventsMsg: document.getElementById('no-events-msg'),
+            submitEventBtn: document.getElementById('submit-event-btn'),
         };
 
         function showMessage(message, isError = false) {
@@ -313,32 +339,32 @@
             ui.calendarGrid.innerHTML = '';
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
+            const todayNormalized = normalizeDate(new Date()).getTime();
+            const selectedNormalized = selectedDate.getTime();
             
             ui.monthDisplay.textContent = new Date(year, month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
             ui.monthDisplay.className = "text-2xl font-bold text-white capitalize";
 
-            const firstDayIndex = new Date(year, month, 1).getDay(); // 0 = Dimanche
-            const adjustedFirstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; // Lundi = 0
+            // 1. Calculer le jour de la semaine du 1er du mois (Lundi = 0, Dimanche = 6)
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            const adjustedFirstDayIndex = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1; 
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            // Empty slots
+            // 2. Slots vides (pour l'alignement)
             for (let i = 0; i < adjustedFirstDayIndex; i++) {
                 const div = document.createElement('div');
                 div.className = 'calendar-day empty rounded-lg';
                 ui.calendarGrid.appendChild(div);
             }
 
-            // Days
+            // 3. Jours du mois
             for (let i = 1; i <= daysInMonth; i++) {
-                const dayDate = new Date(year, month, i);
-                const isToday = new Date().toDateString() === dayDate.toDateString();
-                const isSelected = selectedDate.toDateString() === dayDate.toDateString();
+                const dayDate = normalizeDate(new Date(year, month, i));
+                const isToday = todayNormalized === dayDate.getTime();
+                const isSelected = selectedNormalized === dayDate.getTime();
                 
-                // Check events
-                const dayEvents = events.filter(e => {
-                    const eDate = e.date.toDate ? e.date.toDate() : new Date(e.date);
-                    return eDate.toDateString() === dayDate.toDateString();
-                });
+                // Vérifier s'il y a des événements pour ce jour
+                const dayHasEvents = events.some(e => normalizeDate(e.date.toDate ? e.date.toDate() : new Date(e.date)).getTime() === dayDate.getTime());
 
                 const div = document.createElement('div');
                 let classes = `calendar-day rounded-lg bg-gray-800/50 border border-gray-700/50 p-2 text-sm text-gray-300 flex flex-col items-center justify-center`;
@@ -348,9 +374,17 @@
                 div.className = classes;
                 div.innerHTML = `<span class="font-bold ${isToday ? 'text-indigo-400' : ''}">${i}</span>`;
                 
-                if (dayEvents.length > 0) {
-                    const color = dayEvents[0].color || 'indigo';
-                    div.innerHTML += `<span class="event-dot bg-${color}-500"></span>`;
+                if (dayHasEvents) {
+                    const firstEvent = events.find(e => normalizeDate(e.date.toDate ? e.date.toDate() : new Date(e.date)).getTime() === dayDate.getTime());
+                    const color = firstEvent.color || 'indigo';
+                    // S'assurer que les classes sont complètes pour Tailwind (pas de variables dynamiques dans le style)
+                    let colorClass;
+                    if (color === 'purple') colorClass = 'bg-purple-500';
+                    else if (color === 'emerald') colorClass = 'bg-emerald-500';
+                    else if (color === 'red') colorClass = 'bg-red-500';
+                    else colorClass = 'bg-indigo-500';
+                    
+                    div.innerHTML += `<span class="event-dot ${colorClass}"></span>`;
                 }
 
                 div.addEventListener('click', () => {
@@ -366,21 +400,31 @@
         function renderEvents() {
             ui.selectedDateDisplay.textContent = selectedDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
             ui.eventsList.innerHTML = '';
+            ui.noEventsMsg.classList.add('hidden');
             
             const dayEvents = events.filter(e => {
                 const eDate = e.date.toDate ? e.date.toDate() : new Date(e.date);
-                return eDate.toDateString() === selectedDate.toDateString();
+                return normalizeDate(eDate).getTime() === selectedDate.getTime();
             }).sort((a, b) => a.time.localeCompare(b.time));
 
             if (dayEvents.length === 0) {
-                ui.eventsList.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Aucun événement pour ce jour.</p>';
+                ui.noEventsMsg.classList.remove('hidden');
             } else {
                 dayEvents.forEach(event => {
-                    const el = document.createElement('div');
                     const color = event.color || 'indigo';
-                    el.className = `flex items-center gap-3 bg-gray-800/50 p-3 rounded-lg border border-gray-700 hover:border-${color}-500/50 transition-colors group`;
+                    
+                    let colorClassBorder;
+                    let colorClassText;
+                    if (color === 'purple') { colorClassBorder = 'border-l-purple-500'; colorClassText = 'text-purple-400'; }
+                    else if (color === 'emerald') { colorClassBorder = 'border-l-emerald-500'; colorClassText = 'text-emerald-400'; }
+                    else if (color === 'red') { colorClassBorder = 'border-l-red-500'; colorClassText = 'text-red-400'; }
+                    else { colorClassBorder = 'border-l-indigo-500'; colorClassText = 'text-indigo-400'; }
+
+                    const el = document.createElement('div');
+                    el.className = `flex items-center gap-3 bg-gray-800/50 p-3 rounded-lg border border-l-4 ${colorClassBorder} border-gray-700 hover:bg-gray-800 transition-colors group`;
+                    
                     el.innerHTML = `
-                        <div class="w-2 h-2 rounded-full bg-${color}-500 shadow-[0_0_8px] shadow-${color}-500/50"></div>
+                        <div class="w-2 h-2 rounded-full ${colorClassText}"><i class="fas fa-dot-circle text-xs"></i></div>
                         <span class="text-sm text-gray-300 font-medium truncate flex-grow">${event.title}</span>
                         <span class="text-xs text-gray-500 font-mono">${event.time}</span>
                         <button class="delete-event opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity" data-id="${event.id}"><i class="fas fa-trash"></i></button>
@@ -388,8 +432,9 @@
                     
                     el.querySelector('.delete-event').addEventListener('click', async (e) => {
                         e.stopPropagation();
-                        if(confirm('Supprimer ?')) {
+                        if(confirm('Supprimer cet événement ?')) {
                             await deleteDoc(doc(db, 'users', currentUserId, 'events', event.id));
+                            showMessage('Événement supprimé.');
                         }
                     });
 
@@ -398,44 +443,25 @@
             }
         }
 
-        // --- Integrations Logic ---
-        ui.connectGCalBtn.addEventListener('click', () => {
-            // Simulation
-            ui.connectGCalBtn.disabled = true;
-            ui.connectGCalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            setTimeout(() => {
-                ui.connectGCalBtn.innerHTML = 'Déconnecter';
-                ui.connectGCalBtn.disabled = false;
-                ui.connectGCalBtn.classList.replace('bg-gray-800', 'bg-red-900/30');
-                ui.connectGCalBtn.classList.replace('text-white', 'text-red-300');
-                ui.gcalStatus.textContent = 'Compte connecté';
-                ui.gcalStatus.className = 'text-xs text-green-400';
-                showMessage('Google Calendar synchronisé ! (Simulation)');
-            }, 1500);
-        });
-
-        ui.connectNotionBtn.addEventListener('click', () => {
-            const url = prompt("Entrez l'URL de votre page Notion :");
-            if (url) {
-                ui.notionStatus.textContent = 'Lien actif';
-                ui.notionStatus.className = 'text-xs text-green-400';
-                ui.connectNotionBtn.textContent = 'Ouvrir';
-                ui.connectNotionBtn.onclick = () => window.open(url, '_blank');
-                showMessage('Notion lié avec succès !');
-            }
-        });
-
         // --- Event Modal Logic ---
         ui.addEventBtn.addEventListener('click', () => {
-            // Pre-fill date
+            // Prépare le formulaire avec la date sélectionnée
             const y = selectedDate.getFullYear();
             const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
             const d = String(selectedDate.getDate()).padStart(2, '0');
             document.getElementById('event-date').value = `${y}-${m}-${d}`;
+            document.getElementById('event-time').value = '09:00'; // Default time
+            document.getElementById('event-color').value = 'indigo';
+            document.querySelectorAll('.color-option').forEach(o => o.classList.remove('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-900'));
+            document.querySelector('.color-option[data-color="indigo"]').classList.add('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-900');
+
             ui.eventModal.classList.remove('hidden');
         });
 
         ui.cancelEventBtn.addEventListener('click', () => ui.eventModal.classList.add('hidden'));
+        ui.eventModal.addEventListener('click', (e) => {
+            if(e.target === ui.eventModal) ui.eventModal.classList.add('hidden');
+        });
 
         // Color picker logic
         document.querySelectorAll('.color-option').forEach(opt => {
@@ -453,10 +479,13 @@
             const time = document.getElementById('event-time').value;
             const color = document.getElementById('event-color').value;
 
+            ui.submitEventBtn.disabled = true;
+            ui.submitEventBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
             try {
                 await addDoc(collection(db, 'users', currentUserId, 'events'), {
                     title,
-                    date: new Date(dateStr).toISOString(),
+                    date: normalizeDate(new Date(dateStr)), // Stocker la date normalisée comme objet Date Firestore
                     time,
                     color,
                     createdAt: serverTimestamp()
@@ -467,10 +496,29 @@
             } catch (error) {
                 console.error(error);
                 showMessage('Erreur lors de l\'ajout.', true);
+            } finally {
+                ui.submitEventBtn.disabled = false;
+                ui.submitEventBtn.textContent = 'Ajouter';
             }
         });
 
-        // --- Init ---
+        // --- Integrations Logic (Simulation) ---
+        ui.connectGCalBtn.addEventListener('click', () => {
+            // Simulation d'une connexion réussie
+            ui.connectGCalBtn.disabled = true;
+            ui.connectGCalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            setTimeout(() => {
+                ui.connectGCalBtn.innerHTML = 'Déconnecter';
+                ui.connectGCalBtn.disabled = false;
+                ui.connectGCalBtn.classList.replace('bg-gray-800', 'bg-red-900/30');
+                ui.connectGCalBtn.classList.replace('text-white', 'text-red-300');
+                ui.gcalStatus.textContent = 'Compte connecté';
+                ui.gcalStatus.className = 'text-xs text-green-400';
+                showMessage('Google Calendar synchronisé ! (Simulation)');
+            }, 1500);
+        });
+
+        // --- Navigation / Initialisation ---
         ui.prevMonthBtn.addEventListener('click', () => {
             currentDate.setMonth(currentDate.getMonth() - 1);
             renderCalendar();
@@ -489,23 +537,25 @@
             if (user) {
                 currentUserId = user.uid;
                 
-                // Load Profile
+                // Load Profile Info
                 const userRef = doc(db, 'users', user.uid);
                 const docSnap = await getDoc(userRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     document.getElementById('user-name-header').textContent = data.firstName;
                     document.getElementById('user-avatar-header').src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
-                    document.getElementById('nav-logged-in').classList.remove('hidden');
-                    document.getElementById('nav-logged-in').classList.add('flex');
                 }
 
-                // Load Events
+                // Load Events in real time
                 const eventsRef = collection(db, 'users', user.uid, 'events');
+                // Pas besoin d'orderBy si on filtre et trie en JS
                 onSnapshot(eventsRef, (snapshot) => {
                     events = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderCalendar();
-                    renderEvents();
+                    renderCalendar(); // Met à jour les points sur la grille
+                    renderEvents();   // Met à jour la liste du jour sélectionné
+                }, (error) => {
+                    console.error("Erreur de chargement des événements:", error);
+                    showMessage("Erreur de chargement du planning.", true);
                 });
             } else {
                 window.location.href = '../auth/login.html';

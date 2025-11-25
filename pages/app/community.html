@@ -45,7 +45,7 @@
         }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -80,9 +80,23 @@
                 <span class="font-medium">Planning</span>
             </a>
 
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
             <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
@@ -125,10 +139,12 @@
                         <p class="text-gray-400">Connecte-toi avec d'autres étudiants et partage tes connaissances.</p>
                     </div>
                     <div class="flex gap-3">
-                        <button id="find-friends-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2">
-                            <i class="fas fa-search"></i>
-                            <span>Chercher</span>
-                        </button>
+                        <!-- Search Bar -->
+                        <div class="relative hidden sm:block">
+                            <input type="text" id="search-input" placeholder="Chercher un nom, une école..." class="w-64 px-4 py-2.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 outline-none pr-10">
+                            <i class="fas fa-search absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                        </div>
+                        
                         <button id="create-group-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
                             <i class="fas fa-plus"></i>
                             <span>Créer un Clan</span>
@@ -161,56 +177,8 @@
                         <i class="fas fa-users text-purple-400"></i> Clans d'Étude Populaires
                     </h2>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Exemple de Clan (Statique pour l'instant, à dynamiser plus tard) -->
-                        <div class="content-glass p-6 rounded-2xl border border-gray-800 hover:border-purple-500/30 transition-all group">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-2xl">
-                                    <i class="fas fa-balance-scale"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-white group-hover:text-purple-300 transition-colors">Droit Civil L1</h3>
-                                    <p class="text-xs text-gray-500">128 membres</p>
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-400 mb-4 line-clamp-2">Groupe d'entraide pour les étudiants en première année de droit. Partage de fiches et quiz.</p>
-                            <div class="flex items-center justify-between mt-auto">
-                                <div class="flex -space-x-2">
-                                    <div class="w-8 h-8 rounded-full bg-gray-700 border-2 border-gray-900"></div>
-                                    <div class="w-8 h-8 rounded-full bg-gray-600 border-2 border-gray-900"></div>
-                                    <div class="w-8 h-8 rounded-full bg-gray-500 border-2 border-gray-900 flex items-center justify-center text-xs font-bold text-white">+5</div>
-                                </div>
-                                <button class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white text-xs font-bold rounded-lg transition-colors">Rejoindre</button>
-                            </div>
-                        </div>
-
-                        <div class="content-glass p-6 rounded-2xl border border-gray-800 hover:border-emerald-500/30 transition-all group">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-2xl">
-                                    <i class="fas fa-flask"></i>
-                                </div>
-                                <div>
-                                    <h3 class="font-bold text-white group-hover:text-emerald-300 transition-colors">BioMed Ultime</h3>
-                                    <p class="text-xs text-gray-500">85 membres</p>
-                                </div>
-                            </div>
-                            <p class="text-sm text-gray-400 mb-4 line-clamp-2">Pour tous ceux qui galèrent en biochimie et anatomie. On survit ensemble !</p>
-                            <div class="flex items-center justify-between mt-auto">
-                                <div class="flex -space-x-2">
-                                    <div class="w-8 h-8 rounded-full bg-gray-700 border-2 border-gray-900"></div>
-                                    <div class="w-8 h-8 rounded-full bg-gray-600 border-2 border-gray-900"></div>
-                                </div>
-                                <button class="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-bold rounded-lg transition-colors">Rejoindre</button>
-                            </div>
-                        </div>
-
-                        <div class="content-glass p-6 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group border-dashed flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-800/50">
-                            <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 mb-3 group-hover:text-white group-hover:bg-indigo-600 transition-colors">
-                                <i class="fas fa-plus text-xl"></i>
-                            </div>
-                            <h3 class="font-bold text-gray-300 group-hover:text-white transition-colors">Créer ton Clan</h3>
-                            <p class="text-xs text-gray-500 mt-1">Rassemble tes amis</p>
-                        </div>
+                    <div id="clans-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Les clans dynamiques seront injectés ici -->
                     </div>
                 </section>
 
@@ -219,6 +187,28 @@
         </main>
     </div>
 
+    <!-- MODAL CRÉATION CLAN -->
+    <div id="create-clan-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg shadow-2xl">
+            <h2 class="text-2xl font-bold text-white mb-6">Créer un nouveau Clan</h2>
+            <form id="clan-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-400 mb-1">Nom du Clan</label>
+                    <input type="text" id="clan-name" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ex: Bloc Math Appliquées 2025" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-400 mb-1">Description (max 150 car.)</label>
+                    <textarea id="clan-description" rows="3" maxlength="150" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Objectifs du groupe, matière principale..."></textarea>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="cancel-clan-btn" class="px-4 py-2 text-gray-400 hover:text-white font-bold transition-colors">Annuler</button>
+                    <button type="submit" id="submit-clan-btn" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors">Créer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <!-- Message Box -->
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
@@ -226,15 +216,24 @@
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, query, where, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         let currentUserId = null;
+        let currentUserProfile = null; // Utilisé pour le nom du créateur
 
         const ui = {
             loading: document.getElementById('suggestions-loading'),
             suggestionsList: document.getElementById('suggestions-list'),
             noSuggestions: document.getElementById('no-suggestions'),
             logoutButton: document.getElementById('logout-button'),
+            searchInput: document.getElementById('search-input'),
+            
+            // Clans
+            createGroupBtn: document.getElementById('create-group-btn'),
+            createClanModal: document.getElementById('create-clan-modal'),
+            cancelClanBtn: document.getElementById('cancel-clan-btn'),
+            clanForm: document.getElementById('clan-form'),
+            clansList: document.getElementById('clans-list')
         };
 
         function showMessage(message, isError = false) {
@@ -248,36 +247,61 @@
             requestAnimationFrame(() => { box.classList.remove('translate-y-10', 'opacity-0'); });
             setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
         }
+        
+        // --- LOGIQUE AMIS (Réutilisée depuis friends.html) ---
+        async function getExistingFriendships(userId) {
+            if (!userId) return new Set();
+            const q = query(collection(db, 'friendships'), where('users', 'array-contains', userId));
+            const snapshot = await getDocs(q);
+            const friendSet = new Set();
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const otherUserId = data.users.find(id => id !== userId);
+                friendSet.add(otherUserId);
+            });
+            return friendSet;
+        }
 
-        async function loadSuggestions() {
-            // Simple suggestion algorithm: get random users who are not current user
-            // In a real app, filter out existing friends
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, limit(6)); // Limit to 6 for demo
+        async function loadSuggestions(searchTerm = '') {
+            ui.loading.classList.remove('hidden');
+            ui.suggestionsList.innerHTML = '';
+            ui.noSuggestions.classList.add('hidden');
             
             try {
+                const usersRef = collection(db, 'users');
+                let q = query(usersRef, limit(100));
+                
                 const snapshot = await getDocs(q);
                 ui.loading.classList.add('hidden');
-                ui.suggestionsList.innerHTML = '';
                 
+                const existingFriends = await getExistingFriendships(currentUserId);
+
                 let count = 0;
-                snapshot.forEach(doc => {
+                snapshot.docs.forEach(doc => {
                     const user = {id: doc.id, ...doc.data()};
-                    if (user.id === currentUserId) return; // Skip self
+                    
+                    if (user.id === currentUserId || existingFriends.has(user.id)) return; 
+                    
+                    const fullName = `${user.firstName || ''} ${user.lastName || ''} ${user.school || ''}`.toLowerCase();
+                    if (searchTerm && !fullName.includes(searchTerm.toLowerCase())) return;
+
                     count++;
 
                     const el = document.createElement('div');
-                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group flex flex-col items-center text-center relative overflow-hidden';
+                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group flex flex-col items-center text-center relative overflow-hidden user-card';
                     el.innerHTML = `
                         <div class="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-800 to-transparent -z-10 opacity-50"></div>
-                        <img src="${user.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-20 h-20 rounded-full object-cover border-4 border-gray-900 shadow-lg mb-3">
+                        <a href="view-profile.html?id=${user.id}">
+                            <img src="${user.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-20 h-20 rounded-full object-cover border-4 border-gray-900 shadow-lg mb-3 bg-gray-800">
+                        </a>
                         <h3 class="font-bold text-white text-lg mb-1 truncate w-full">${user.firstName} ${user.lastName}</h3>
                         <p class="text-xs text-gray-400 mb-4 flex items-center gap-1">
                             <i class="fas fa-university"></i> ${user.school || 'École inconnue'}
                         </p>
                         <div class="flex gap-2 w-full">
                             <a href="view-profile.html?id=${user.id}" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold rounded-lg transition-colors">Profil</a>
-                            <button data-id="${user.id}" class="add-friend-btn flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1">
+                            <button data-id="${user.id}" data-name="${user.firstName}" class="add-friend-btn flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1">
                                 <i class="fas fa-user-plus"></i> Ajouter
                             </button>
                         </div>
@@ -285,14 +309,32 @@
                     
                     el.querySelector('.add-friend-btn').addEventListener('click', async (e) => {
                         const btn = e.currentTarget;
+                        const targetUserId = btn.dataset.id;
+                        const targetUserName = btn.dataset.name;
+
                         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
                         btn.disabled = true;
-                        // Simulate friend request logic
-                        await new Promise(r => setTimeout(r, 1000)); 
-                        // In real app: await addDoc(collection(db, 'friend_requests'), { from: currentUserId, to: user.id, status: 'pending' });
-                        btn.innerHTML = '<i class="fas fa-check"></i> Envoyé';
-                        btn.className = "flex-1 py-2 bg-green-600/20 text-green-400 text-xs font-bold rounded-lg cursor-default border border-green-600/30";
-                        showMessage(`Demande envoyée à ${user.firstName} !`);
+
+                        try {
+                            await addDoc(collection(db, 'friendships'), {
+                                users: [currentUserId, targetUserId],
+                                status: 'pending',
+                                requestedBy: currentUserId,
+                                requestedTo: targetUserId,
+                                createdAt: serverTimestamp()
+                            });
+                            
+                            showMessage(`Demande envoyée à ${targetUserName} !`);
+                            
+                            btn.innerHTML = '<i class="fas fa-check"></i> Envoyé';
+                            btn.className = "flex-1 py-2 bg-green-600/20 text-green-400 text-xs font-bold rounded-lg cursor-default border border-green-600/30";
+                            
+                        } catch (e) {
+                            console.error("Erreur envoi demande:", e);
+                            showMessage("Erreur lors de l'envoi de la demande.", true);
+                            btn.innerHTML = '<i class="fas fa-user-plus"></i> Ajouter';
+                            btn.disabled = false;
+                        }
                     });
 
                     ui.suggestionsList.appendChild(el);
@@ -307,17 +349,166 @@
             }
         }
 
-        // --- Handlers ---
+        // --- LOGIQUE CLANS ---
+
+        async function createClan(e) {
+            e.preventDefault();
+            const name = document.getElementById('clan-name').value.trim();
+            const description = document.getElementById('clan-description').value.trim();
+
+            if (!name || !currentUserId || !currentUserProfile) {
+                showMessage("Erreur de profil ou de nom de clan.", true);
+                return;
+            }
+
+            const btn = ui.clanForm.querySelector('#submit-clan-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
+
+            try {
+                // Collection simple 'clans' (pour le public/global)
+                await addDoc(collection(db, 'clans'), {
+                    name,
+                    description,
+                    creatorId: currentUserId,
+                    creatorName: currentUserProfile.firstName,
+                    members: [currentUserId], // Le créateur est le premier membre
+                    memberCount: 1,
+                    createdAt: serverTimestamp()
+                });
+
+                showMessage(`Clan "${name}" créé avec succès !`);
+                ui.createClanModal.classList.add('hidden');
+                ui.clanForm.reset();
+            } catch (error) {
+                console.error("Erreur création clan:", error);
+                showMessage("Erreur lors de la création du Clan.", true);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Créer';
+            }
+        }
+
+        function renderClans(clans) {
+            ui.clansList.innerHTML = '';
+            
+            clans.forEach(clan => {
+                const isMember = clan.members.includes(currentUserId);
+                
+                const el = document.createElement('div');
+                el.className = 'content-glass p-6 rounded-2xl border border-gray-800 hover:border-purple-500/30 transition-all group';
+                el.innerHTML = `
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-2xl">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white group-hover:text-purple-300 transition-colors">${clan.name}</h3>
+                            <p class="text-xs text-gray-500">${clan.memberCount} membres</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4 line-clamp-2">${clan.description || 'Pas de description.'}</p>
+                    <div class="flex items-center justify-between mt-auto">
+                        <p class="text-xs text-gray-500">Créé par ${clan.creatorName}</p>
+                        <button data-id="${clan.id}" class="join-clan-btn px-4 py-2 ${isMember ? 'bg-green-600/20 text-green-300 cursor-default' : 'bg-purple-600 hover:bg-purple-500 text-white'} text-xs font-bold rounded-lg transition-colors">
+                            ${isMember ? 'Membre' : 'Rejoindre'}
+                        </button>
+                    </div>
+                `;
+                
+                // Si l'utilisateur n'est pas déjà membre, on ajoute l'écouteur
+                if (!isMember) {
+                    el.querySelector('.join-clan-btn').addEventListener('click', async (e) => {
+                        await joinClan(e.currentTarget.dataset.id, e.currentTarget);
+                    });
+                }
+
+                ui.clansList.appendChild(el);
+            });
+
+            // Ajouter la carte 'Créer ton Clan' statique si la liste n'est pas trop longue
+            if (clans.length < 5) {
+                ui.clansList.innerHTML += `
+                    <div id="open-clan-modal" class="content-glass p-6 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group border-dashed flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-800/50">
+                        <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 mb-3 group-hover:text-white group-hover:bg-indigo-600 transition-colors">
+                            <i class="fas fa-plus text-xl"></i>
+                        </div>
+                        <h3 class="font-bold text-gray-300 group-hover:text-white transition-colors">Créer ton Clan</h3>
+                        <p class="text-xs text-gray-500 mt-1">Rassemble tes amis</p>
+                    </div>
+                `;
+                document.getElementById('open-clan-modal').addEventListener('click', () => ui.createClanModal.classList.remove('hidden'));
+            }
+        }
+
+        async function joinClan(clanId, button) {
+            if (!currentUserId) return;
+
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const clanRef = doc(db, 'clans', clanId);
+                // Utilisation d'une transaction ou de Cloud Functions serait plus sûr, mais on simule l'update directe pour la V1.
+                await updateDoc(clanRef, {
+                    members: [...(button.textContent !== 'Membre' ? [currentUserId] : []), ...(button.textContent === 'Membre' ? [] : [])] ,
+                    memberCount: increment(1)
+                });
+                
+                showMessage("Clan rejoint avec succès !");
+            } catch (error) {
+                console.error("Erreur de jointure:", error);
+                showMessage("Erreur lors de l'adhésion au Clan.", true);
+            } finally {
+                // Le onSnapshot va mettre à jour le bouton de toute façon
+                button.disabled = false;
+                button.textContent = originalText; 
+            }
+        }
+        
+        // --- Handlers & Events ---
+        ui.createGroupBtn.addEventListener('click', () => ui.createClanModal.classList.remove('hidden'));
+        ui.cancelClanBtn.addEventListener('click', () => ui.createClanModal.classList.add('hidden'));
+        ui.clanForm.addEventListener('submit', createClan);
+        ui.createClanModal.addEventListener('click', (e) => {
+            if(e.target === ui.createClanModal) ui.createClanModal.classList.add('hidden');
+        });
+
         document.getElementById('logout-button').addEventListener('click', async () => { 
             await signOut(auth); 
             window.location.href = '../../index.html'; 
+        });
+
+        let searchTimeout;
+        ui.searchInput.addEventListener('input', () => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                loadSuggestions(ui.searchInput.value);
+            }, 300);
         });
 
         // --- Auth & Init ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                loadSuggestions();
+                
+                // Charger le profil pour le nom du créateur de clan
+                const userSnap = await getDoc(doc(db, 'users', user.uid));
+                if (userSnap.exists()) {
+                    currentUserProfile = userSnap.data();
+                }
+
+                loadSuggestions(); // Chargement initial des amis
+
+                // Écouteur en temps réel pour les Clans
+                const clansQuery = query(collection(db, 'clans'), limit(6));
+                onSnapshot(clansQuery, (snapshot) => {
+                    const clans = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    renderClans(clans);
+                }, (error) => {
+                    console.error("Erreur chargement clans:", error);
+                });
             } else {
                 window.location.href = '../auth/login.html';
             }

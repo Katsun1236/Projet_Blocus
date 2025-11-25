@@ -43,9 +43,15 @@
         /* Animation barre de progression */
         @keyframes progress { from { width: 0; } }
         .animate-progress { animation: progress 1s ease-out forwards; }
+
+        /* Styles spécifiques pour le graphique Chart.js */
+        canvas {
+            max-width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -80,6 +86,30 @@
                 <span class="font-medium">Planning</span>
             </a>
 
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
+            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+            
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
             <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -122,8 +152,8 @@
                     <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
                         <div class="relative group">
                             <div class="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
-                            <img id="profile-picture-display" src="" class="relative w-32 h-32 rounded-full border-4 border-gray-900 object-cover shadow-2xl">
-                            <div class="absolute bottom-0 right-0 bg-gray-900 text-indigo-400 p-2 rounded-full border border-gray-800 shadow-lg">
+                            <img id="profile-picture-display" src="" class="relative w-32 h-32 rounded-full border-4 border-gray-900 object-cover shadow-2xl bg-gray-800">
+                            <div class="absolute bottom-0 right-0 bg-gray-900 text-indigo-400 p-2 rounded-full border border-gray-800 shadow-lg" title="Statut: Actif">
                                 <i class="fas fa-check-circle"></i>
                             </div>
                         </div>
@@ -136,13 +166,13 @@
                                 <span class="flex items-center gap-2"><i class="fas fa-envelope text-indigo-400"></i> <span id="user-email"></span></span>
                             </div>
                             <div class="flex flex-wrap justify-center md:justify-start gap-3">
+                                <!-- Les badges de rôle peuvent être ajoutés ici -->
                                 <span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-bold border border-indigo-500/20">Étudiant Pro</span>
-                                <span class="px-3 py-1 rounded-full bg-purple-500/10 text-purple-400 text-xs font-bold border border-purple-500/20">Membre Beta</span>
                             </div>
                         </div>
 
-                        <button onclick="window.location.href='../../onboarding.html'" class="px-6 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-bold transition-all flex items-center gap-2">
-                            <i class="fas fa-pen"></i> Modifier
+                        <button onclick="window.location.href='onboarding.html'" class="px-6 py-3 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white text-sm font-bold transition-all flex items-center gap-2">
+                            <i class="fas fa-pen"></i> Modifier Profil
                         </button>
                     </div>
                 </div>
@@ -189,7 +219,7 @@
                             <p class="text-xs text-gray-500 uppercase font-bold mb-1">Progression Globale</p>
                             <div class="flex items-center gap-2">
                                 <div class="w-32 h-2 bg-gray-800 rounded-full overflow-hidden">
-                                    <div id="global-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 transition-all duration-1000"></div>
+                                    <div id="global-progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 animate-progress"></div>
                                 </div>
                                 <span id="global-progress-text" class="text-xs font-bold text-indigo-400">0%</span>
                             </div>
@@ -225,8 +255,8 @@
                             </div>
                             <div class="w-px bg-gray-700 my-1"></div>
                             <div id="chart-period-filters" class="flex gap-1">
-                                <button data-period="7" class="filter-btn active px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-gray-700 text-white">7j</button>
-                                <button data-period="30" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all">30j</button>
+                                <button data-period="7" class="filter-btn px-3 py-1.5 rounded-lg text-xs font-bold text-gray-400 hover:text-white hover:bg-white/5 transition-all">7j</button>
+                                <button data-period="30" class="filter-btn active px-3 py-1.5 rounded-lg text-xs font-bold transition-all bg-gray-700 text-white">30j</button>
                             </div>
                         </div>
                     </div>
@@ -276,11 +306,11 @@
         const allBadges = {
             'course1': { title: 'Premiers Pas', desc: 'Uploader son premier cours.', icon: 'fa-graduation-cap', goal: 1, type: 'courses' },
             'course5': { title: 'Bibliothécaire', desc: 'Uploader 5 cours.', icon: 'fa-book-reader', goal: 5, type: 'courses' },
-            'course10': { title: 'Archiviste', desc: 'Uploader 10 cours.', icon: 'fa-archive', goal: 10, type: 'courses' },
-            'folder1': { title: 'Organisé', desc: 'Créer un dossier.', icon: 'fa-folder-plus', goal: 1, type: 'folders' },
             'quiz1': { title: 'Quizzeur', desc: 'Créer un quiz.', icon: 'fa-brain', goal: 1, type: 'quizzes' },
-            'legend': { title: 'Légende', desc: 'Tout débloquer.', icon: 'fa-crown', goal: 10, type: 'unlocked' },
-            // ... Tu peux ajouter tous tes autres badges ici
+            'quiz5': { title: 'Expert Quiz', desc: 'Créer 5 quiz.', icon: 'fa-microscope', goal: 5, type: 'quizzes' },
+            'synthesize1': { title: 'Magicien IA', desc: 'Générer une synthèse.', icon: 'fa-magic', goal: 1, type: 'syntheses' },
+            'social1': { title: 'Connecté', desc: 'Avoir 1 ami.', icon: 'fa-user-friends', goal: 1, type: 'friends' },
+            // ... Ajoutez plus de badges ici
         };
 
         const ui = {
@@ -292,14 +322,15 @@
             chartCanvas: document.getElementById('activity-chart'),
         };
 
-        let allData = {};
+        let allData = { courses: [], folders: [], quizzes: [], syntheses: [], friendships: [] };
         let myChart = null;
+        let currentUserId = null;
 
         // --- Toast Function ---
         function showSuccessToast(badge) {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.className = 'bg-gray-900 border border-yellow-500/30 text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto';
+            toast.className = 'p-4 rounded-xl shadow-2xl text-white flex items-center gap-4 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto bg-gray-900 border border-yellow-500/30';
             toast.innerHTML = `
                 <div class="w-10 h-10 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-xl"><i class="fas ${badge.icon}"></i></div>
                 <div>
@@ -323,25 +354,37 @@
             await signOut(auth); 
             window.location.href = '../../index.html'; 
         });
+        
+        document.querySelector('button[onclick="window.location.href=\'onboarding.html\'"]').addEventListener('click', (e) => {
+             e.preventDefault();
+             window.location.href = 'onboarding.html';
+        });
 
         ui.toggleBadgesBtn.addEventListener('click', () => {
             const wrapper = ui.badgesWrapper;
             const gradient = document.getElementById('badges-gradient');
             
-            if (wrapper.style.maxHeight === 'none') {
-                wrapper.style.maxHeight = '160px'; // ~2 lignes
+            if (wrapper.style.maxHeight === 'none' || wrapper.style.maxHeight === '400px') { // Check explicit large height
+                wrapper.style.maxHeight = '160px'; // ~2 lignes (valeur initiale)
                 gradient.classList.remove('hidden');
                 ui.toggleBadgesBtn.innerHTML = 'Voir toute la collection <i class="fas fa-chevron-down ml-1"></i>';
             } else {
-                wrapper.style.maxHeight = 'none';
+                wrapper.style.maxHeight = '400px'; // Une grande valeur pour tout afficher
                 gradient.classList.add('hidden');
                 ui.toggleBadgesBtn.innerHTML = 'Réduire <i class="fas fa-chevron-up ml-1"></i>';
             }
         });
 
+
         function showBadgeModal(badgeId, stats) {
             const badge = allBadges[badgeId];
-            const count = stats[badge.type] || 0;
+            let count = 0;
+            if (badge.type === 'friends') {
+                count = stats.friends; // Compteur d'amis confirmé
+            } else {
+                count = stats[badge.type]?.length || 0;
+            }
+            
             const isUnlocked = count >= badge.goal;
             
             const iconContainer = document.getElementById('badge-modal-icon');
@@ -372,11 +415,18 @@
             const totalBadges = Object.keys(allBadges).length;
 
             // On récupère l'historique local pour les toasts
-            const localUnlocked = JSON.parse(localStorage.getItem('unlockedBadges')) || [];
+            const localUnlocked = JSON.parse(localStorage.getItem('unlockedBadges') || '[]') || [];
             const newUnlocked = [];
 
             Object.entries(allBadges).forEach(([id, badge]) => {
-                const count = stats[badge.type] || 0;
+                let count = 0;
+                if (badge.type === 'friends') {
+                    // Les amitiés sont stockées dans la collection 'friendships' avec un status 'friends'
+                    count = stats.friendships.filter(f => f.status === 'friends').length;
+                } else {
+                    count = stats[badge.type]?.length || 0;
+                }
+                
                 const isUnlocked = count >= badge.goal;
                 if (isUnlocked) unlockedCount++;
 
@@ -388,7 +438,7 @@
 
                 const badgeEl = document.createElement('div');
                 badgeEl.className = `badge-item flex flex-col items-center gap-2 ${!isUnlocked ? 'locked' : ''}`;
-                badgeEl.onclick = () => showBadgeModal(id, stats);
+                badgeEl.onclick = () => showBadgeModal(id, { ...stats, friends: count }); // Passer le compteur d'amis pour la modale
                 badgeEl.innerHTML = `
                     <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 ${isUnlocked ? 'bg-gray-800 border-yellow-500/50 text-yellow-400' : 'bg-gray-800 border-gray-700 text-gray-600'}">
                         <i class="fas ${badge.icon}"></i>
@@ -409,16 +459,16 @@
             }
         }
 
-        function renderChart(type = 'courses', period = 7) {
+        function renderChart(type = 'courses', period = 30) {
             const ctx = ui.chartCanvas.getContext('2d');
             const dataSet = allData[type] || [];
             const labels = [];
             const data = [];
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const periodDays = parseInt(period);
+            const today = normalizeDate(new Date());
 
-            // Génération des dates
-            for (let i = period - 1; i >= 0; i--) {
+            // Génération des dates et initialisation à 0
+            for (let i = periodDays - 1; i >= 0; i--) {
                 const d = new Date(today);
                 d.setDate(today.getDate() - i);
                 labels.push(d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
@@ -427,17 +477,17 @@
 
             // Remplissage des données
             dataSet.forEach(item => {
+                // Utiliser createdAt ou uploadedAt
                 const dateField = item.createdAt || item.uploadedAt;
                 if (!dateField) return;
                 
-                const itemDate = dateField.toDate ? dateField.toDate() : new Date(dateField); // Support Firestore Timestamp
-                itemDate.setHours(0, 0, 0, 0);
+                const itemDate = dateField.toDate ? normalizeDate(dateField.toDate()) : normalizeDate(new Date(dateField)); 
                 
                 const diffTime = today - itemDate;
                 const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
                 
-                if (diffDays >= 0 && diffDays < period) {
-                    data[(period - 1) - diffDays]++;
+                if (diffDays >= 0 && diffDays < periodDays) {
+                    data[(periodDays - 1) - diffDays]++;
                 }
             });
 
@@ -486,7 +536,7 @@
                         y: {
                             beginAtZero: true,
                             grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#6b7280', stepSize: 1 }
+                            ticks: { color: '#6b7280', stepSize: 1, precision: 0 }
                         },
                         x: {
                             grid: { display: false },
@@ -500,7 +550,7 @@
         // --- Gestion des filtres graphiques ---
         document.querySelectorAll('#activity-type-filters button').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Update UI classes
+                // Update UI classes (Type)
                 document.querySelectorAll('#activity-type-filters button').forEach(b => {
                     b.classList.remove('bg-indigo-600', 'text-white', 'shadow-lg');
                     b.classList.add('text-gray-400', 'hover:text-white', 'hover:bg-white/5');
@@ -509,16 +559,15 @@
                 e.target.classList.add('bg-indigo-600', 'text-white', 'shadow-lg');
                 
                 // Re-render
-                const periodBtn = document.querySelector('#chart-period-filters button.bg-gray-700'); // Cherche le bouton actif période (classe spécifique)
-                // Simplification : on regarde juste l'attribut active custom ou on stocke l'état
-                const period = document.querySelector('#chart-period-filters button.text-white').dataset.period; // Hack rapide basé sur la classe active visuelle
-                renderChart(e.target.dataset.type, parseInt(period));
+                const periodBtn = document.querySelector('#chart-period-filters button.bg-gray-700'); 
+                const period = periodBtn ? parseInt(periodBtn.dataset.period) : 30; 
+                renderChart(e.target.dataset.type, period);
             });
         });
 
         document.querySelectorAll('#chart-period-filters button').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                // Update UI
+                // Update UI (Period)
                 document.querySelectorAll('#chart-period-filters button').forEach(b => {
                     b.classList.remove('bg-gray-700', 'text-white');
                     b.classList.add('text-gray-400');
@@ -527,7 +576,8 @@
                 e.target.classList.add('bg-gray-700', 'text-white');
 
                 // Re-render
-                const type = document.querySelector('#activity-type-filters button.bg-indigo-600').dataset.type;
+                const typeBtn = document.querySelector('#activity-type-filters button.bg-indigo-600');
+                const type = typeBtn ? typeBtn.dataset.type : 'courses';
                 renderChart(type, parseInt(e.target.dataset.period));
             });
         });
@@ -537,25 +587,37 @@
             try {
                 // 1. User Info
                 const userSnap = await getDoc(doc(db, 'users', userId));
-                if (!userSnap.exists()) { window.location.href = '../auth/login.html'; return; }
+                if (!userSnap.exists()) { 
+                    window.location.href = '../auth/login.html'; 
+                    return; 
+                }
                 const userData = userSnap.data();
 
                 document.getElementById('user-name').textContent = `${userData.firstName} ${userData.lastName}`;
+                // Correction de la redirection vers Onboarding
+                document.querySelector('button[onclick="window.location.href=\'onboarding.html\'"]').onclick = (e) => {
+                    e.preventDefault();
+                    window.location.href = '../auth/onboarding.html';
+                };
                 document.getElementById('user-school').textContent = userData.school || 'École non renseignée';
                 document.getElementById('user-email').textContent = userEmail;
                 document.getElementById('profile-picture-display').src = userData.photoURL || 'https://ui-avatars.com/api/?background=random';
 
-                // 2. Collections Data (Optimisé : pas de queries complexes pour l'instant)
-                const [coursesSnap, foldersSnap, quizzesSnap] = await Promise.all([
+                // 2. Collections Data (Récupération des données pour stats et graphique)
+                const [coursesSnap, foldersSnap, quizzesSnap, synthesesSnap, friendshipsSnap] = await Promise.all([
                     getDocs(collection(db, 'users', userId, 'courses')),
                     getDocs(collection(db, 'users', userId, 'folders')),
-                    getDocs(collection(db, 'users', userId, 'quizzes')) // Si la collection existe
+                    getDocs(collection(db, 'users', userId, 'quizzes')),
+                    getDocs(collection(db, 'users', userId, 'syntheses')),
+                    getDocs(collection(db, 'friendships').where('users', 'array-contains', userId)) // Requête complexe pour les amis
                 ]);
 
                 allData = {
-                    courses: coursesSnap.docs.map(d => d.data()),
-                    folders: foldersSnap.docs.map(d => d.data()),
-                    quizzes: quizzesSnap.docs.map(d => d.data())
+                    courses: coursesSnap.docs.map(d => ({...d.data(), id: d.id})),
+                    folders: foldersSnap.docs.map(d => ({...d.data(), id: d.id})),
+                    quizzes: quizzesSnap.docs.map(d => ({...d.data(), id: d.id})),
+                    syntheses: synthesesSnap.docs.map(d => ({...d.data(), id: d.id})),
+                    friendships: friendshipsSnap.docs.map(d => ({...d.data(), id: d.id}))
                 };
 
                 // 3. Update Stats UI
@@ -563,15 +625,17 @@
                 document.getElementById('stats-folders').textContent = allData.folders.length;
                 document.getElementById('stats-quizzes').textContent = allData.quizzes.length;
 
-                // 4. Calcul Stats pour Badges
+                // 4. Calcul Stats pour Badges (Utilisation de allData directement)
                 const stats = {
-                    courses: allData.courses.length,
-                    folders: allData.folders.length,
-                    quizzes: allData.quizzes.length
+                    courses: allData.courses,
+                    folders: allData.folders,
+                    quizzes: allData.quizzes,
+                    syntheses: allData.syntheses,
+                    friendships: allData.friendships
                 };
 
                 renderBadges(stats);
-                renderChart('courses', 7); // Default view
+                renderChart('courses', 30); // Default view: Cours sur 30 jours
 
                 // Show Content
                 ui.loading.classList.add('hidden');
@@ -579,11 +643,14 @@
 
             } catch (error) {
                 console.error("Erreur chargement profil:", error);
+                // Si la requête Firestore échoue (règles de sécu, etc.), on affiche l'erreur
+                ui.loading.innerHTML = '<p class="text-red-400">Erreur de chargement. Vérifiez la console (règles Firestore?).</p>';
             }
         }
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
+                currentUserId = user.uid;
                 fetchProfileData(user.uid, user.email);
             } else {
                 window.location.href = '../auth/login.html';

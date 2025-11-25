@@ -45,7 +45,7 @@
         }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -80,9 +80,23 @@
                 <span class="font-medium">Planning</span>
             </a>
 
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
@@ -177,7 +191,7 @@
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, query, where, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, query, where, updateDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         let currentUserId = null;
 
@@ -222,9 +236,11 @@
                     if (!profile) continue;
                     
                     const el = document.createElement('div');
-                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:bg-gray-800/50 transition-all flex flex-col items-center text-center';
+                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:bg-gray-800/50 transition-all flex flex-col items-center text-center friend-card';
                     el.innerHTML = `
-                        <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700 mb-3">
+                        <a href="view-profile.html?id=${profile.id}" class="cursor-pointer">
+                            <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700 mb-3">
+                        </a>
                         <h3 class="font-bold text-white text-lg mb-1 truncate w-full">${profile.firstName} ${profile.lastName}</h3>
                         <p class="text-xs text-gray-400 mb-4">${profile.school || 'École inconnue'}</p>
                         <div class="flex gap-2 w-full">
@@ -252,19 +268,24 @@
                     if (!profile) continue;
                     
                     const el = document.createElement('div');
-                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group flex items-center gap-4';
+                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group flex items-center gap-4 friend-card';
                     el.innerHTML = `
-                        <div class="relative">
-                            <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 group-hover:border-indigo-500 transition-colors">
-                            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></div>
-                        </div>
+                        <a href="view-profile.html?id=${profile.id}" class="cursor-pointer flex-shrink-0">
+                            <div class="relative">
+                                <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 group-hover:border-indigo-500 transition-colors bg-gray-800">
+                                <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full" title="En ligne"></div>
+                            </div>
+                        </a>
                         <div class="flex-grow min-w-0">
-                            <h3 class="font-bold text-white text-lg truncate">${profile.firstName} ${profile.lastName}</h3>
+                            <a href="view-profile.html?id=${profile.id}"><h3 class="font-bold text-white text-lg truncate hover:text-indigo-400">${profile.firstName} ${profile.lastName}</h3></a>
                             <p class="text-xs text-gray-400 truncate">${profile.school || 'École inconnue'}</p>
                         </div>
-                        <a href="chat.html?with=${friend.otherUserId}" class="p-3 bg-gray-800 hover:bg-indigo-600 text-gray-400 hover:text-white rounded-xl transition-colors shadow-lg">
+                        <a href="chat.html?with=${friend.otherUserId}" class="p-3 bg-gray-800 hover:bg-indigo-600 text-gray-400 hover:text-white rounded-xl transition-colors shadow-lg flex-shrink-0" title="Envoyer un message">
                             <i class="fas fa-comment-alt"></i>
                         </a>
+                        <button class="remove-friend-btn p-3 bg-gray-800 hover:bg-red-600 text-gray-400 hover:text-white rounded-xl transition-colors shadow-lg flex-shrink-0" data-id="${friend.id}" title="Retirer des amis">
+                            <i class="fas fa-user-minus"></i>
+                        </button>
                     `;
                     ui.friendsList.appendChild(el);
                 }
@@ -273,19 +294,53 @@
 
         // --- Handlers ---
         ui.requestsList.addEventListener('click', async e => {
-            const friendshipId = e.target.dataset.id;
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            
+            const friendshipId = btn.dataset.id;
             if (!friendshipId) return;
 
-            if (e.target.classList.contains('accept-btn')) {
-                e.target.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                await updateDoc(doc(db, 'friendships', friendshipId), { status: 'friends' });
-                showMessage("Ami ajouté !");
-            } else if (e.target.classList.contains('decline-btn')) {
-                e.target.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                await deleteDoc(doc(db, 'friendships', friendshipId));
-                showMessage("Demande refusée.", true);
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                if (btn.classList.contains('accept-btn')) {
+                    await updateDoc(doc(db, 'friendships', friendshipId), { status: 'friends' });
+                    showMessage("Ami ajouté !");
+                } else if (btn.classList.contains('decline-btn')) {
+                    await deleteDoc(doc(db, 'friendships', friendshipId));
+                    showMessage("Demande refusée.");
+                }
+            } catch (error) {
+                console.error("Erreur action ami:", error);
+                showMessage("Erreur lors de l'action.", true);
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
             }
         });
+
+        ui.friendsList.addEventListener('click', async e => {
+            const btn = e.target.closest('.remove-friend-btn');
+            if (!btn) return;
+            
+            const friendshipId = btn.dataset.id;
+            if (!friendshipId || !confirm("Retirer cette personne de vos amis ?")) return;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                await deleteDoc(doc(db, 'friendships', friendshipId));
+                showMessage("Ami retiré.");
+            } catch (error) {
+                console.error("Erreur suppression ami:", error);
+                showMessage("Erreur lors de la suppression.", true);
+                btn.innerHTML = '<i class="fas fa-user-minus"></i>';
+                btn.disabled = false;
+            }
+        });
+
 
         document.getElementById('logout-button').addEventListener('click', async () => { 
             await signOut(auth); 
@@ -294,10 +349,11 @@
 
         // --- Auth & Init ---
         onAuthStateChanged(auth, async (user) => {
-            if (user) {
+            if (user && !user.isAnonymous) {
                 currentUserId = user.uid;
                 
                 const friendshipsRef = collection(db, 'friendships');
+                // Query pour trouver toutes les relations où l'utilisateur est impliqué
                 const q = query(friendshipsRef, where('users', 'array-contains', currentUserId));
 
                 onSnapshot(q, async (snapshot) => {
@@ -309,14 +365,19 @@
                         const otherUserId = data.users.find(id => id !== currentUserId);
                         
                         if (data.status === 'pending' && data.requestedTo === currentUserId) {
+                            // C'est une demande que j'ai reçue
                             requests.push({ ...data, otherUserId });
                         } else if (data.status === 'friends') {
+                            // C'est un ami confirmé
                             friends.push({ ...data, otherUserId });
                         }
                     });
 
                     await renderRequests(requests);
                     await renderFriends(friends);
+                }, (error) => {
+                    console.error("Erreur de l'écouteur d'amitié:", error);
+                    showMessage("Erreur de connexion aux données sociales.", true);
                 });
             } else {
                 window.location.href = '../auth/login.html';
