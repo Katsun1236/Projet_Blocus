@@ -72,7 +72,7 @@
         .quiz-option.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -107,15 +107,15 @@
                 <span class="font-medium">Planning</span>
             </a>
 
-            <!-- NOUVELLE SECTION : OUTILS -->
+            <!-- AJOUT DE LA SECTION OUTILS -->
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
             <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Synthétiseur</span>
             </a>
 
-            <!-- SECTION : COMMUNAUTÉ COMPLÉTÉE -->
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <!-- CORRECTION/AJOUT DE LA SECTION SOCIAL -->
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
             <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Mes Amis</span>
@@ -125,14 +125,14 @@
                 <span class="font-medium">Discussions</span>
             </a>
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
             </a>
-            
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
             <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -214,7 +214,6 @@
 
                         <div>
                             <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2. Sources (Cours)</label>
-                            <!-- IMPORTANT: Notez que le "multiple" n'est pas supporté si le JS injecte une option "disabled" -->
                             <select id="course-select" multiple class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 custom-select" required></select>
                             <p class="text-xs text-gray-500 mt-2 text-right">Ctrl+Clic pour sélection multiple</p>
                         </div>
@@ -264,7 +263,7 @@
                             <textarea id="custom-instruction" rows="2" class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Focus sur les dates historiques..."></textarea>
                         </div>
 
-                        <button type="submit" id="generate-content-btn" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
+                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
                             <i class="fas fa-magic"></i>
                             <span>Générer</span>
                         </button>
@@ -350,11 +349,11 @@
                     <div class="flex justify-center gap-8 mb-8">
                         <div class="text-center">
                             <p class="text-sm text-gray-500 uppercase font-bold">Score</p>
-                            <p id="score-text" class="text-3xl font-bold text-white">0/0</p>
+                            <p id="score-text" class="text-3xl font-bold text-white">8/10</p>
                         </div>
                         <div class="text-center">
                             <p class="text-sm text-gray-500 uppercase font-bold">Précision</p>
-                            <p id="score-percentage" class="text-3xl font-bold text-emerald-400">0%</p>
+                            <p id="score-percentage" class="text-3xl font-bold text-emerald-400">80%</p>
                         </div>
                     </div>
 
@@ -399,17 +398,12 @@
 
     <!-- JAVASCRIPT -->
     <script type="module">
-        // Mise à jour de l'import pour inclure 'functions' et 'httpsCallable'
-        import { auth, db, functions } from '../../assets/js/config.js';
+        import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-        import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
         let userCourses = [], currentContent = null, currentContentId = null, timerInterval = null, currentItemIndex = 0, userAnswers = [], wrongAnswers = [];
         
-        // Référence à la Cloud Function (doit être implémentée sur ton serveur !)
-        const generateContentFunction = httpsCallable(functions, 'generateContent');
-
         const ui = { 
             list: document.getElementById('quiz-list-section'),
             setup: document.getElementById('quiz-setup-section'),
@@ -421,31 +415,38 @@
             courseSelect: document.getElementById('course-select'),
             questionCount: document.getElementById('question-count'),
             questionCountValue: document.getElementById('question-count-value'),
-            quizTitleInput: document.getElementById('quiz-title-input'), // Renommé pour plus de clarté
+            quizTitle: document.getElementById('quiz-title'),
             questionsContainer: document.getElementById('quiz-questions-container'),
             submitQuizBtn: document.getElementById('submit-quiz-btn'),
+            resultsSubtitle: document.getElementById('results-subtitle'),
             scoreText: document.getElementById('score-text'),
             scorePercentage: document.getElementById('score-percentage'),
             resultsSummary: document.getElementById('results-summary'),
+            restartQuizBtn: document.getElementById('restart-quiz-btn'),
+            navLoggedIn: document.getElementById('nav-logged-in'),
             logoutButton: document.getElementById('logout-button'),
             goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
             backToListBtn: document.getElementById('back-to-list-btn'),
             savedQuizzesList: document.getElementById('saved-quizzes-list'),
             loadingQuizzes: document.getElementById('loading-quizzes'),
             noQuizzes: document.getElementById('no-quizzes'),
+            timerDisplay: document.getElementById('timer-display'),
             prevQuestionBtn: document.getElementById('prev-question-btn'),
             nextQuestionBtn: document.getElementById('next-question-btn'),
+            quitQuizBtn: document.getElementById('quit-quiz-btn'),
             questionProgress: document.getElementById('question-progress'),
-            flashcard: document.getElementById('flashcard'),
+            reviewErrorsBtn: document.getElementById('review-errors-btn'),
+            flashcardTitle: document.getElementById('flashcard-title'),
             flipCardBtn: document.getElementById('flip-card-btn'),
             prevCardBtn: document.getElementById('prev-card-btn'),
             nextCardBtn: document.getElementById('next-card-btn'),
             cardProgress: document.getElementById('card-progress'),
+            backToListFromFlashcardsBtn: document.getElementById('back-to-list-from-flashcards-btn'),
             contentChoiceModal: document.getElementById('content-choice-modal'),
+            cancelChoiceBtn: document.getElementById('cancel-choice-btn'),
             quizTypeContainer: document.getElementById('quiz-specific-options'),
             generatorTitle: document.getElementById('generator-title'),
             contentTypeHidden: document.getElementById('content-type-hidden'),
-            generateContentBtn: document.getElementById('generate-content-btn'),
         };
         
         function showMessage(message, isError = false) {
@@ -477,43 +478,49 @@
             }
         }
 
+        // CORRECTION APPLIQUÉE ICI
         async function populateCourses() {
             if(!auth.currentUser) return;
             const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
-            const coursesSnap = await getDocs(coursesRef);
-            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            ui.courseSelect.innerHTML = '';
-            if (userCourses.length === 0) {
-                ui.courseSelect.innerHTML = '<option value="" disabled>Veuillez d\'abord uploader un cours</option>';
-            } else {
-                userCourses.forEach(course => {
+            try {
+                const coursesSnap = await getDocs(coursesRef);
+                userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                ui.courseSelect.innerHTML = '';
+                if (userCourses.length === 0) {
+                    // Afficher un message si aucun cours n'est disponible
                     const option = document.createElement('option');
-                    option.value = course.id;
-                    option.textContent = course.title || course.name || course.fileName;
+                    option.value = '';
+                    option.textContent = 'Veuillez d\'abord uploader un cours';
+                    option.disabled = true;
                     ui.courseSelect.appendChild(option);
-                });
+                } else {
+                    userCourses.forEach(course => {
+                        const option = document.createElement('option');
+                        option.value = course.id;
+                        // Rendu plus robuste : utilise title, name ou le nom du fichier
+                        option.textContent = course.title || course.name || course.fileName; 
+                        ui.courseSelect.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error("Erreur de chargement des cours:", e);
+                showMessage("Erreur de chargement des cours. Vérifiez votre connexion.", true);
             }
         }
+        // FIN CORRECTION
 
         async function extractTextFromPdf(url) {
-            if (!url) return '';
-            try {
-                // PDF.js Worker config is assumed to be done in <head>
-                const loadingTask = pdfjsLib.getDocument(url);
-                const pdf = await loadingTask.promise;
-                let fullText = '';
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-                }
-                return fullText;
-            } catch (error) {
-                console.error("Erreur d'extraction PDF:", error);
-                showMessage("Erreur lors de la lecture d'un PDF. Fichier invalide ou trop volumineux.", true);
-                return '';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
+            const pdf = await pdfjsLib.getDocument(url).promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += textContent.items.map(item => item.str).join(' ') + '\n';
             }
+            return fullText;
         }
 
         async function generateContent(e) {
@@ -524,55 +531,125 @@
                 return;
             }
             showSection('loading');
-            
-            const originalButtonContent = ui.generateContentBtn.innerHTML;
-            ui.generateContentBtn.disabled = true;
-            ui.generateContentBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Génération...';
 
             try {
-                // 1. Collecter le texte de toutes les sources
                 let combinedText = '';
                 for (const option of selectedOptions) {
                     const course = userCourses.find(c => c.id === option.value);
                     if (course) {
-                        const url = course.fileURL || course.url;
-                        const text = await extractTextFromPdf(url);
-                        combinedText += `--- ${course.title || course.name || course.fileName} ---\n${text}\n\n`;
+                        const url = course.url || course.fileURL;
+                        combinedText += `--- ${course.title || course.name} ---\n${await extractTextFromPdf(url)}\n\n`;
                     }
                 }
+
+                const count = ui.questionCount.value;
+                const type = ui.contentTypeHidden.value;
+                const difficulty = document.getElementById('difficulty-select').value;
+                const instruction = document.getElementById('custom-instruction').value.trim();
                 
-                if (combinedText.length === 0) {
-                    throw new Error("Impossible d'extraire le texte des documents.");
+                let schema, instructionPrompt;
+
+                if (type === 'Flashcards') {
+                    schema = {
+                        type: "OBJECT",
+                        properties: {
+                            flashcards: {
+                                type: "ARRAY",
+                                items: { type: "OBJECT", properties: { term: { type: "STRING" }, definition: { type: "STRING" } }, required: ["term", "definition"] }
+                            }
+                        }
+                    };
+                    instructionPrompt = `Génère ${count} flashcards de difficulté "${difficulty}". ${instruction}`;
+                } else {
+                    const qType = document.querySelector('input[name="qtype"]:checked').value;
+                    schema = {
+                        type: "OBJECT",
+                        properties: {
+                            quiz: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        question: { type: "STRING" },
+                                        options: { type: "ARRAY", items: { type: "STRING" } },
+                                        answer: { type: "STRING" },
+                                        explanation: { type: "STRING" }
+                                    },
+                                    required: ["question", "answer"]
+                                }
+                            }
+                        }
+                    };
+                    instructionPrompt = `Génère un quiz de type "${qType}" avec ${count} questions de difficulté "${difficulty}". Fournis 4 options pour les QCM. ${instruction}`;
                 }
                 
-                // Limiter la taille du contexte pour éviter les erreurs (max 30k tokens ~ 150k caractères)
-                const promptContent = combinedText.substring(0, 150000); 
+                const finalPrompt = `Voici le contenu d'un ou plusieurs cours:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nÀ partir de ce contenu, suis cette instruction: ${instructionPrompt}`;
 
-                const type = ui.contentTypeHidden.value;
-                const data = {
-                    promptContent,
-                    count: ui.questionCount.value,
-                    difficulty: document.getElementById('difficulty-select').value,
-                    type,
-                    instruction: document.getElementById('custom-instruction').value.trim(),
-                    qType: type === 'Quiz' ? document.querySelector('input[name="qtype"]:checked').value : null,
+                // Utilisation de la clé API fournie par l'utilisateur
+                const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                
+                const payload = { 
+                    contents: [{ parts: [{ text: finalPrompt }] }], 
+                    generationConfig: { 
+                        responseMimeType: "application/json",
+                        responseSchema: schema
+                    } 
                 };
                 
-                // 2. Appel à la Cloud Function (Sécurité !)
-                // IMPORTANT: Cette fonction 'generateContent' DOIT être implémentée dans Firebase Cloud Functions
-                // pour appeler l'API Gemini de manière sécurisée (sans exposer la clé).
-                const result = await generateContentFunction(data);
-                let generatedContent = result.data.content;
-                
-                if (!generatedContent || typeof generatedContent !== 'object') {
-                    throw new Error("Réponse IA invalide ou vide.");
+                // Utilisation d'une boucle pour la gestion des erreurs d'API (Backoff Exponentiel)
+                let response = null;
+                const maxRetries = 3;
+                let delay = 1000;
+
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        response = await fetch(apiUrl, { 
+                            method: 'POST', 
+                            headers: { 'Content-Type': 'application/json' }, 
+                            body: JSON.stringify(payload) 
+                        });
+
+                        if (response.ok) break; 
+                        
+                        // Si la réponse n'est pas OK, attend et réessaie
+                        if (i < maxRetries - 1) {
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            delay *= 2; 
+                        } else {
+                            const errorBody = await response.json().catch(() => response.text());
+                            console.error("API Error Body:", errorBody);
+                            throw new Error(`Erreur de l'API Gemini après ${maxRetries} tentatives: ${response.status} ${response.statusText}`);
+                        }
+
+                    } catch (fetchError) {
+                        if (i < maxRetries - 1) {
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            delay *= 2; 
+                        } else {
+                            throw fetchError;
+                        }
+                    }
                 }
 
-                currentContent = generatedContent;
-                const title = ui.quizTitleInput.value;
+                if (!response || !response.ok) {
+                    throw new Error("Échec de la connexion ou de l'API après toutes les tentatives.");
+                }
+                
+                const result = await response.json();
+                
+                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    console.error("Invalid API response structure:", result);
+                    throw new Error("Réponse de l'API invalide ou vide.");
+                }
+
+                let responseText = result.candidates[0].content.parts[0].text;
+                
+                currentContent = JSON.parse(responseText);
+
+                const title = document.getElementById('quiz-title-input').value;
                 const contentData = type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz;
                 
-                // 3. Sauvegarde dans Firestore
                 const docRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
                     title: title,
                     type: type,
@@ -584,30 +661,23 @@
                 if (type === 'Flashcards') displayFlashcards(title, contentData);
                 else displayQuiz(title, contentData);
 
-                ui.form.reset(); // Vider le formulaire après succès
-
             } catch (error) {
-                console.error("Erreur de génération:", error);
-                showMessage(`Erreur: ${error.message || "Problème lors de l'appel IA. Vérifiez vos documents/connexion."}`, true);
+                console.error("Erreur:", error);
+                showMessage("Erreur lors de la génération (vérifiez la console).", true);
                 showSection('setup');
-            } finally {
-                ui.generateContentBtn.disabled = false;
-                ui.generateContentBtn.innerHTML = originalButtonContent;
             }
         }
 
-        // --- Quiz Display & Logic ---
         function displayQuiz(title, questions) {
             currentContent = { quiz: questions, title: title };
             userAnswers = new Array(questions.length).fill(null);
             currentItemIndex = 0;
+            ui.quizTitle.textContent = title;
             showQuestion(currentItemIndex);
             showSection('taking');
         }
         
         function showQuestion(index) {
-            if (!currentContent || !currentContent.quiz || index < 0 || index >= currentContent.quiz.length) return;
-            
             ui.questionsContainer.innerHTML = '';
             const q = currentContent.quiz[index];
             
@@ -615,16 +685,12 @@
             el.innerHTML = `
                 <h3 class="text-xl font-bold mb-6 text-white">${index + 1}. ${q.question}</h3>
                 <div class="space-y-3">
-                    ${q.options ? q.options.map(opt => {
-                        const isSelected = userAnswers[index] === opt;
-                        // On doit vérifier si la question a été complétée pour afficher les couleurs (facultatif ici, souvent fait au review)
-                        return `
-                            <label class="quiz-option block bg-gray-800 border border-gray-700 p-4 rounded-xl cursor-pointer transition-all ${isSelected ? 'selected' : ''}">
-                                <input type="radio" name="q" value="${opt}" class="hidden" ${isSelected ? 'checked' : ''}>
-                                <span class="text-gray-300 font-medium">${opt}</span>
-                            </label>
-                        `;
-                    }).join('') : `<input type="text" class="w-full p-4 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-indigo-500" placeholder="Votre réponse...">`}
+                    ${q.options ? q.options.map(opt => `
+                        <label class="quiz-option block bg-gray-800 border border-gray-700 p-4 rounded-xl cursor-pointer transition-all">
+                            <input type="radio" name="q" value="${opt}" class="hidden" ${userAnswers[index] === opt ? 'checked' : ''}>
+                            <span class="text-gray-300 font-medium">${opt}</span>
+                        </label>
+                    `).join('') : `<input type="text" class="w-full p-4 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-indigo-500" placeholder="Votre réponse...">`}
                 </div>
             `;
             
@@ -651,10 +717,9 @@
             ui.resultsSummary.innerHTML = '';
 
             currentContent.quiz.forEach((q, index) => {
-                // Simplification: on compare la réponse sélectionnée à la bonne réponse stockée (q.answer)
-                const isCorrect = (userAnswers[index] || "").toLowerCase().trim() === q.answer.toLowerCase().trim();
+                const isCorrect = (userAnswers[index] || "").toLowerCase() === q.answer.toLowerCase();
                 if (isCorrect) score++;
-                else wrongAnswers.push({ question: q, userAnswer: userAnswers[index] || 'Non répondu' });
+                else wrongAnswers.push(q);
 
                 const resEl = document.createElement('div');
                 resEl.className = `p-4 rounded-lg border ${isCorrect ? 'bg-green-900/20 border-green-500/30' : 'bg-red-900/20 border-red-500/30'}`;
@@ -662,33 +727,27 @@
                     <p class="font-bold text-white mb-2">${index + 1}. ${q.question}</p>
                     <p class="text-sm text-gray-400">Vous: <span class="${isCorrect ? 'text-green-400' : 'text-red-400'}">${userAnswers[index] || 'Vide'}</span></p>
                     ${!isCorrect ? `<p class="text-sm text-green-400">Réponse: ${q.answer}</p>` : ''}
-                    <p class="text-xs text-gray-500 mt-2 italic">${q.explanation || 'Aucune explication fournie.'}</p>
+                    <p class="text-xs text-gray-500 mt-2 italic">${q.explanation || ''}</p>
                 `;
                 ui.resultsSummary.appendChild(resEl);
             });
 
             const total = currentContent.quiz.length;
-            const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+            const pct = Math.round((score / total) * 100);
             
             ui.scoreText.textContent = `${score}/${total}`;
             ui.scorePercentage.textContent = `${pct}%`;
-            ui.scorePercentage.classList.remove('text-emerald-400', 'text-yellow-400', 'text-red-400');
-            if (pct >= 80) ui.scorePercentage.classList.add('text-emerald-400');
-            else if (pct >= 50) ui.scorePercentage.classList.add('text-yellow-400');
-            else ui.scorePercentage.classList.add('text-red-400');
-
             ui.reviewErrorsBtn.classList.toggle('hidden', wrongAnswers.length === 0);
             
             if(currentContentId) {
                 updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentContentId), {
-                    lastResult: { score, total, percentage: pct, date: serverTimestamp() }
+                    lastResult: { score, total, percentage: pct, date: new Date().toISOString() }
                 });
             }
             
             showSection('results');
         }
 
-        // --- Flashcard Display & Logic ---
         function displayFlashcards(title, cards) {
             currentContent = { flashcards: cards, title: title };
             currentItemIndex = 0;
@@ -697,10 +756,8 @@
         }
 
         function showFlashcard(index) {
-            if (!currentContent || !currentContent.flashcards || index < 0 || index >= currentContent.flashcards.length) return;
-            
             const card = currentContent.flashcards[index];
-            ui.flashcard.classList.remove('is-flipped');
+            document.getElementById('flashcard').classList.remove('is-flipped');
             document.getElementById('flashcard-front').textContent = card.term;
             document.getElementById('flashcard-back').textContent = card.definition;
             ui.cardProgress.textContent = `Carte ${index + 1}/${currentContent.flashcards.length}`;
@@ -708,19 +765,18 @@
             ui.nextCardBtn.disabled = index === currentContent.flashcards.length - 1;
         }
 
-        // --- Renderer List ---
         function renderSavedQuizzes(quizzes) {
-            ui.loadingQuizzes.classList.add('hidden');
+            document.getElementById('loading-quizzes').classList.add('hidden');
             ui.savedQuizzesList.innerHTML = '';
             
             if (quizzes.length === 0) {
-                ui.noQuizzes.classList.remove('hidden');
+                document.getElementById('no-quizzes').classList.remove('hidden');
             } else {
-                ui.noQuizzes.classList.add('hidden');
+                document.getElementById('no-quizzes').classList.add('hidden');
                 quizzes.forEach(q => {
                     const el = document.createElement('div');
                     const isFlash = q.type === 'Flashcards';
-                    const lastScore = q.lastResult ? `${q.lastResult.percentage}% (${q.lastResult.score}/${q.lastResult.total})` : 'Non fait';
+                    const lastScore = q.lastResult ? `${q.lastResult.percentage}%` : 'Non fait';
                     
                     el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group';
                     el.innerHTML = `
@@ -728,12 +784,12 @@
                             <div class="w-12 h-12 rounded-xl ${isFlash ? 'bg-purple-500/10 text-purple-400' : 'bg-indigo-500/10 text-indigo-400'} flex items-center justify-center text-xl">
                                 <i class="fas ${isFlash ? 'fa-clone' : 'fa-question'}"></i>
                             </div>
-                            <button class="delete-btn text-gray-600 hover:text-red-400 transition-colors" data-id="${q.id}"><i class="fas fa-trash"></i></button>
+                            <button class="delete-btn text-gray-600 hover:text-red-400 transition-colors"><i class="fas fa-trash"></i></button>
                         </div>
                         <h3 class="font-bold text-white mb-1 truncate">${q.title}</h3>
                         <div class="flex justify-between text-xs text-gray-500">
                             <span>${isFlash ? q.content.length + ' cartes' : q.content.length + ' questions'}</span>
-                            <span>${isFlash ? 'Révision' : 'Score: ' + lastScore}</span>
+                            <span>${isFlash ? '' : 'Score: ' + lastScore}</span>
                         </div>
                         <button class="play-btn w-full mt-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold transition-colors">
                             ${isFlash ? 'Réviser' : 'Lancer'}
@@ -747,9 +803,9 @@
                     
                     el.querySelector('.delete-btn').addEventListener('click', async (e) => {
                         e.stopPropagation();
-                        if(confirm('Supprimer ce contenu ?')) {
+                        if(confirm('Supprimer ?')) {
                             await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', q.id));
-                            showMessage('Contenu supprimé.');
+                            showMessage('Supprimé.');
                         }
                     });
                     
@@ -759,11 +815,30 @@
         }
 
         // --- Init & Listeners ---
-        document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Load Header info (simplified)
+                const uDoc = await getDoc(doc(db, 'users', user.uid));
+                if(uDoc.exists()) {
+                    document.getElementById('nav-logged-in').classList.remove('hidden');
+                    document.getElementById('nav-logged-in').classList.add('flex');
+                }
+                
+                // Correction: on appelle populateCourses ici après l'authentification
+                await populateCourses(); 
+                
+                // Listener sur les quiz sauvegardés
+                onSnapshot(collection(db, 'users', user.uid, 'quizzes'), (snap) => {
+                    renderSavedQuizzes(snap.docs.map(d => ({id: d.id, ...d.data()})));
+                });
+            } else {
+                window.location.href = '../auth/login.html';
+            }
+        });
 
         ui.questionCount.addEventListener('input', (e) => ui.questionCountValue.textContent = e.target.value);
         ui.goToGeneratorBtn.addEventListener('click', () => ui.contentChoiceModal.classList.remove('hidden'));
-        document.getElementById('cancel-choice-btn').addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
+        ui.cancelChoiceBtn.addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
         document.querySelectorAll('.content-choice-btn').forEach(btn => btn.addEventListener('click', () => {
             ui.contentChoiceModal.classList.add('hidden');
             openGenerator(btn.dataset.type);
@@ -772,41 +847,19 @@
         ui.form.addEventListener('submit', generateContent);
         ui.backToListBtn.addEventListener('click', () => showSection('list'));
         ui.quitQuizBtn.addEventListener('click', () => showSection('list'));
-        document.getElementById('back-to-list-from-flashcards-btn').addEventListener('click', () => showSection('list'));
-        
+        ui.backToListFromFlashcardsBtn.addEventListener('click', () => showSection('list'));
         ui.nextQuestionBtn.addEventListener('click', () => showQuestion(++currentItemIndex));
         ui.prevQuestionBtn.addEventListener('click', () => showQuestion(--currentItemIndex));
         ui.submitQuizBtn.addEventListener('click', submitQuiz);
-        document.getElementById('restart-quiz-btn').addEventListener('click', () => showSection('list'));
-        
-        ui.flipCardBtn.addEventListener('click', () => ui.flashcard.classList.toggle('is-flipped'));
+        ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
+        ui.flipCardBtn.addEventListener('click', () => document.getElementById('flashcard').classList.toggle('is-flipped'));
         ui.nextCardBtn.addEventListener('click', () => showFlashcard(++currentItemIndex));
         ui.prevCardBtn.addEventListener('click', () => showFlashcard(--currentItemIndex));
+        document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
         
         // Gestion du clic sur une flashcard pour la retourner
-        ui.flashcard.addEventListener('click', function() {
+        document.getElementById('flashcard').addEventListener('click', function() {
             this.classList.toggle('is-flipped');
-        });
-
-        // --- Auth & Init ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // S'assurer que le worker PDF est bien chargé
-                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-
-                populateCourses();
-                
-                // Ecoute en temps réel des quizzes
-                onSnapshot(collection(db, 'users', user.uid, 'quizzes'), (snap) => {
-                    const quizzes = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderSavedQuizzes(quizzes);
-                }, (error) => {
-                    console.error("Erreur de chargement des quizzes:", error);
-                    showMessage("Erreur de chargement des données. Veuillez recharger la page.", true);
-                });
-            } else {
-                window.location.href = '../auth/login.html';
-            }
         });
     </script>
 </body>
