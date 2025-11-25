@@ -64,7 +64,7 @@
         }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -239,15 +239,14 @@
 
     <!-- Message Box -->
     <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
-        <div id="message-icon"></div>
-        <span id="message-text"></span>
+        <!-- Icone et Texte gérés par JS -->
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script type="module">
         import { auth, db, storage } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, setDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { doc, setDoc, collection, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
         let currentUserId = null;
@@ -264,30 +263,34 @@
             previewContainer: document.getElementById('preview-container'),
             canvas: document.getElementById('pdf-preview-canvas'),
             fallbackIcon: document.getElementById('pdf-icon-fallback'),
-            messageBox: document.getElementById('message-box'),
             removeFileBtn: document.getElementById('remove-file-btn'),
             courseNameInput: document.getElementById('courseName')
         };
 
-        // --- UI Helpers ---
+        // --- UI Helpers (Adapted for this file) ---
         function showMessage(message, isError = false) {
-            const box = ui.messageBox;
-            const text = document.getElementById('message-text');
-            const icon = document.getElementById('message-icon');
+            const container = document.getElementById('message-box');
+            if (!container) return;
             
-            text.textContent = message;
-            icon.className = isError ? 'text-red-400' : 'text-green-400';
-            icon.innerHTML = isError ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
-            
-            box.className = `fixed bottom-6 right-6 bg-gray-900 border ${isError ? 'border-red-500/30' : 'border-green-500/30'} text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float`;
+            const iconHTML = isError 
+                ? '<i class="fas fa-exclamation-circle text-red-400"></i>' 
+                : '<i class="fas fa-check-circle text-green-400"></i>';
 
-            box.classList.remove('hidden');
-            setTimeout(() => box.classList.add('hidden'), 4000);
+            container.innerHTML = `
+                <div class="text-xl">${iconHTML}</div>
+                <span class="text-sm font-medium">${message}</span>
+            `;
+
+            container.className = `fixed bottom-6 right-6 bg-gray-900 border ${isError ? 'border-red-500/30' : 'border-green-500/30'} text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float`;
+
+            container.classList.remove('hidden');
+            setTimeout(() => container.classList.add('hidden'), 4000);
         }
 
         function resetUploadState() {
             ui.submitButton.disabled = false;
             ui.submitButton.innerHTML = '<span>Uploader le fichier</span><i class="fas fa-cloud-upload-alt"></i>';
+            ui.submitButton.classList.remove('disabled:opacity-50', 'disabled:cursor-not-allowed');
             ui.progressContainer.classList.add('hidden');
             ui.progressBar.style.width = '0%';
         }
@@ -301,7 +304,7 @@
             }
         });
 
-        // --- Sidebar Logic ---
+        // --- Sidebar Logout ---
         document.getElementById('logout-button').addEventListener('click', async () => { 
             await signOut(auth); 
             window.location.href = '../../index.html'; 
@@ -312,8 +315,8 @@
             const reader = new FileReader();
             reader.onload = async function(event) {
                 try {
-                    // Essayer de rendre le PDF
-                    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(event.target.result) });
+                    const data = new Uint8Array(event.target.result);
+                    const loadingTask = pdfjsLib.getDocument({ data: data });
                     const pdf = await loadingTask.promise;
                     const page = await pdf.getPage(1);
                     
@@ -327,17 +330,14 @@
 
                     await page.render({ canvasContext: ui.canvas.getContext('2d'), viewport: scaledViewport }).promise;
                     
-                    // Si succès :
                     ui.canvas.classList.remove('hidden');
                     ui.fallbackIcon.classList.add('hidden');
                 } catch (error) {
                     console.warn("Erreur rendu PDF (fichier valide mais preview impossible) :", error);
-                    // Fallback propre
                     ui.canvas.classList.add('hidden');
                     ui.fallbackIcon.classList.remove('hidden');
                 }
                 
-                // Dans tous les cas, on affiche le conteneur de preview
                 ui.previewContainer.classList.remove('hidden');
                 ui.previewContainer.classList.add('flex');
                 ui.dropZone.classList.add('hidden');
@@ -346,28 +346,30 @@
         }
 
         function handleFile(file) {
-            if (file && file.type === "application/pdf") {
+            if (!file) return;
+
+            if (file.type === "application/pdf") {
                 selectedFile = file;
                 document.getElementById('file-name-preview').textContent = file.name;
                 document.getElementById('file-size-preview').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
                 
                 // Pré-remplir le nom du cours si vide
                 if (!ui.courseNameInput.value) {
-                    ui.courseNameInput.value = file.name.replace('.pdf', '');
+                    ui.courseNameInput.value = file.name.replace(/\.pdf$/i, '').trim();
                 }
 
                 renderPdfPreview(file);
                 ui.submitButton.disabled = false;
                 ui.submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
-                if(file) showMessage("Veuillez sélectionner un fichier PDF.", true);
+                showMessage("Veuillez sélectionner un fichier PDF.", true);
+                // Reset l'input file pour permettre une nouvelle sélection du même fichier (si l'utilisateur se trompe)
+                ui.fileInput.value = '';
+                selectedFile = null;
             }
         }
 
         // --- Event Listeners ---
-        
-        // L'input est désormais une overlay transparente, pas besoin de relier le click manuellement
-        // Cela évite les conflits d'événements
         
         // Changement de l'input file
         ui.fileInput.addEventListener('change', () => {
@@ -376,13 +378,14 @@
             }
         });
         
-        // Drag & Drop Visuals (pour le style uniquement, l'input gère le drop réel)
-        ui.fileInput.addEventListener('dragenter', () => ui.dropZone.classList.add('active'));
-        ui.fileInput.addEventListener('dragleave', () => ui.dropZone.classList.remove('active'));
-        ui.fileInput.addEventListener('drop', () => ui.dropZone.classList.remove('active'));
-        
+        // Drag & Drop Visuals
+        ui.dropZone.addEventListener('dragenter', (e) => { e.preventDefault(); ui.dropZone.classList.add('active'); });
+        ui.dropZone.addEventListener('dragleave', (e) => { e.preventDefault(); ui.dropZone.classList.remove('active'); });
+        ui.dropZone.addEventListener('drop', (e) => { e.preventDefault(); ui.dropZone.classList.remove('active'); });
+
+        // Retirer le fichier
         ui.removeFileBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // Empêche le rechargement
+            e.preventDefault();
             selectedFile = null;
             ui.fileInput.value = ''; // Reset input
             ui.previewContainer.classList.add('hidden');
@@ -407,39 +410,48 @@
             ui.submitButton.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div> Upload en cours...';
             ui.progressContainer.classList.remove('hidden');
 
+            // 1. Créer une référence Firestore AVANT l'upload pour obtenir un ID unique
             const newCourseRef = doc(collection(db, 'users', currentUserId, 'courses'));
             const courseId = newCourseRef.id;
             
+            // 2. Créer la référence Storage avec l'ID unique
             const storageRef = ref(storage, `users/${currentUserId}/courses/${courseId}/${selectedFile.name}`);
             const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
             uploadTask.on('state_changed', 
                 (snapshot) => {
+                    // Calcul de la progression
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     ui.progressBar.style.width = progress + '%';
                     ui.progressText.textContent = Math.round(progress) + '%';
                 }, 
                 (error) => {
+                    // Échec de l'upload
                     console.error("Erreur d'upload:", error);
                     showMessage("Une erreur est survenue lors de l'upload.", true);
                     resetUploadState();
                 }, 
                 async () => {
+                    // Succès de l'upload
                     try {
                         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                         
+                        // 3. Sauvegarder les métadonnées dans Firestore
                         await setDoc(newCourseRef, {
                             title: courseName,
                             fileName: selectedFile.name,
                             fileURL: downloadURL,
-                            createdAt: new Date().toISOString(),
+                            uploadedAt: serverTimestamp(), // Utilisation de serverTimestamp pour l'ordre
                             status: 'uploaded',
                             type: selectedFile.type,
                             size: selectedFile.size,
-                            folderId: null 
+                            folderId: null, // Par défaut à la racine
+                            isProcessing: true, // Peut être utilisé par une Cloud Function pour lancer l'IA
                         });
 
                         showMessage("Upload terminé ! Redirection...", false);
+                        
+                        // 4. Redirection
                         setTimeout(() => window.location.href = 'dashboard.html', 1500);
                     } catch (dbError) {
                         console.error("Erreur de sauvegarde:", dbError);
