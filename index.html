@@ -38,7 +38,6 @@
                     <a href="#features" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Concept</a>
                     <a href="#community" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Communauté</a>
                     <div class="flex items-center gap-4 pl-4 border-l border-gray-800">
-                        <!-- Liens corrigés vers pages/auth/... -->
                         <a href="pages/auth/login.html" class="text-sm font-medium text-white hover:text-indigo-400 transition-colors">Connexion</a>
                         <a href="pages/auth/register.html" class="group px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-all flex items-center gap-2">
                             <span>S'inscrire</span>
@@ -67,7 +66,7 @@
         </div>
     </nav>
 
-    <!-- HERO SECTION (Asymétrique et Immersif) -->
+    <!-- HERO SECTION -->
     <main class="relative pt-32 lg:pt-48 px-6 overflow-hidden">
         <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             
@@ -111,16 +110,15 @@
                         <div class="w-8 h-8 rounded-full bg-gray-600 border border-black"></div>
                         <div class="w-8 h-8 rounded-full bg-gray-500 border border-black"></div>
                     </div>
-                    <p>Rejoint par +1000 étudiants</p>
+                    <!-- ID ajouté ici pour le JS -->
+                    <p id="user-count-display">Rejoint par +1000 étudiants</p>
                 </div>
             </div>
 
-            <!-- Right: Visuals (Floating UI) -->
+            <!-- Right: Visuals -->
             <div class="relative h-[500px] w-full hidden lg:block perspective-1000">
-                <!-- Background Blob -->
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 rounded-full blur-[100px] -z-10"></div>
                 
-                <!-- Floating Card 1 (Main) -->
                 <div class="absolute top-10 left-10 w-80 bg-gray-900/80 backdrop-blur-xl border border-gray-700 rounded-2xl p-6 shadow-2xl animate-float z-20">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400"><i class="fas fa-file-alt"></i></div>
@@ -130,7 +128,6 @@
                     <div class="h-2 w-1/2 bg-gray-800 rounded"></div>
                 </div>
 
-                <!-- Floating Card 2 (Quiz) -->
                 <div class="absolute bottom-20 right-10 w-64 bg-gray-900/80 backdrop-blur-xl border border-gray-700 rounded-2xl p-6 shadow-2xl animate-float-delayed z-30">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold">Q</div>
@@ -141,34 +138,11 @@
                     </div>
                     <p class="text-right text-xs text-gray-400 mt-2">Score: 85%</p>
                 </div>
-
-                <!-- Floating Card 3 (Stats) -->
-                <div class="absolute top-40 right-0 w-48 bg-gray-800/90 backdrop-blur border border-gray-600 rounded-xl p-4 shadow-xl z-10 transform rotate-6 opacity-80">
-                    <p class="text-xs text-gray-400 mb-1">Temps d'étude</p>
-                    <p class="text-2xl font-bold font-mono">4h 12m</p>
-                </div>
             </div>
         </div>
     </main>
 
-    <!-- INFINITE MARQUEE -->
-    <div class="w-full bg-black border-y border-gray-900 py-8 overflow-hidden">
-        <div class="flex whitespace-nowrap gap-16 animate-[scroll_20s_linear_infinite] opacity-30 grayscale hover:grayscale-0 transition-all duration-500">
-            <!-- Répétition de logos fictifs -->
-            <span class="text-2xl font-display font-bold">UNIVERSITÉ DE LIÈGE</span>
-            <span class="text-2xl font-display font-bold">UCLOUVAIN</span>
-            <span class="text-2xl font-display font-bold">ULB</span>
-            <span class="text-2xl font-display font-bold">POLYTECHNIQUE</span>
-            <span class="text-2xl font-display font-bold">SCIENCES PO</span>
-            <span class="text-2xl font-display font-bold">SOLVAY</span>
-             <!-- Duplicate pour l'effet infini -->
-            <span class="text-2xl font-display font-bold">UNIVERSITÉ DE LIÈGE</span>
-            <span class="text-2xl font-display font-bold">UCLOUVAIN</span>
-            <span class="text-2xl font-display font-bold">ULB</span>
-        </div>
-    </div>
-
-    <!-- FEATURES (Bento Grid Style) -->
+    <!-- FEATURES -->
     <section id="features" class="py-32 px-6">
         <div class="max-w-7xl mx-auto">
             <h2 class="text-3xl md:text-5xl font-display font-bold text-center mb-20">
@@ -177,7 +151,6 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Card 1 -->
                 <div class="feature-card rounded-3xl p-8 md:col-span-2 group">
                     <div class="flex flex-col md:flex-row justify-between items-start gap-6">
                         <div class="flex-1">
@@ -185,39 +158,27 @@
                                 <i class="fas fa-magic"></i>
                             </div>
                             <h3 class="text-2xl font-bold mb-3">Synthèse Intelligente</h3>
-                            <p class="text-gray-400 leading-relaxed">Notre IA lit tes PDF (même les scans moches) et génère des fiches de révision structurées. Définitions, dates clés, concepts : tout est trié.</p>
-                        </div>
-                        <!-- Fake UI Element -->
-                        <div class="w-full md:w-64 bg-gray-900 rounded-lg border border-gray-700 p-4 opacity-80 group-hover:opacity-100 transition-opacity transform group-hover:scale-105 duration-500">
-                            <div class="h-2 w-1/3 bg-gray-700 rounded mb-3"></div>
-                            <div class="space-y-2">
-                                <div class="h-1.5 w-full bg-gray-800 rounded"></div>
-                                <div class="h-1.5 w-5/6 bg-gray-800 rounded"></div>
-                                <div class="h-1.5 w-4/6 bg-gray-800 rounded"></div>
-                            </div>
+                            <p class="text-gray-400 leading-relaxed">Notre IA lit tes PDF (même les scans moches) et génère des fiches de révision structurées.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Card 2 -->
                 <div class="feature-card rounded-3xl p-8 group">
                     <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center text-purple-400 text-xl mb-6">
                         <i class="fas fa-brain"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Quiz Générés</h3>
-                    <p class="text-gray-400 text-sm">Transforme n'importe quel cours en un test interactif pour vérifier tes connaissances.</p>
+                    <p class="text-gray-400 text-sm">Transforme n'importe quel cours en un test interactif.</p>
                 </div>
 
-                <!-- Card 3 -->
                 <div class="feature-card rounded-3xl p-8 group">
                     <div class="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400 text-xl mb-6">
                         <i class="fas fa-users"></i>
                     </div>
                     <h3 class="text-xl font-bold mb-3">Mode Clan</h3>
-                    <p class="text-gray-400 text-sm">Crée un groupe avec tes potes, partagez vos fiches et motivez-vous (ou pleurez ensemble).</p>
+                    <p class="text-gray-400 text-sm">Crée un groupe avec tes potes et partagez vos fiches.</p>
                 </div>
 
-                <!-- Card 4 (CTA) -->
                 <div class="feature-card rounded-3xl p-8 md:col-span-2 bg-gradient-to-r from-gray-900 to-indigo-900/20 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div>
                         <h3 class="text-2xl font-bold mb-2">Prêt à changer la donne ?</h3>
@@ -235,14 +196,7 @@
         <p class="text-sm font-mono">&copy; 2025 PROJET BLOCUS. SYSTEME ACTIF.</p>
     </footer>
 
+    <!-- Script de gestion d'état -->
     <script type="module" src="assets/js/home.js"></script>
-
-    <style>
-        /* Animation scroll pour le marquee */
-        @keyframes scroll {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-        }
-    </style>
 </body>
 </html>
