@@ -13,25 +13,31 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
+        /* Ajustements spécifiques au dashboard */
         .sidebar-glass {
             background: rgba(5, 5, 5, 0.6);
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
+        
         .content-glass {
             background: rgba(20, 20, 20, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .nav-item.active {
             background: rgba(99, 102, 241, 0.15);
             color: #fff;
             border-left: 3px solid #6366f1;
         }
+
         .nav-item:hover:not(.active) {
             background: rgba(255, 255, 255, 0.03);
             color: #e5e7eb;
         }
+
+        /* Animation Dropdown */
         .dropdown-enter {
             animation: slideDown 0.2s ease-out forwards;
         }
@@ -64,32 +70,39 @@
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Tableau de Bord</span>
             </a>
+            
             <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mes Cours</span>
             </a>
+            
             <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Quiz IA</span>
             </a>
+            
             <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
                 <span class="font-medium">Planning</span>
             </a>
 
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
+            
             <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Mes Amis</span>
             </a>
+
             <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
                 <span class="font-medium">Discussions</span>
             </a>
+
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
+            
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
@@ -174,7 +187,7 @@
                     <p class="text-gray-400 text-sm font-medium mb-1">Total Cours</p>
                     <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-courses-count">0</h3>
                     <div class="flex items-center text-xs text-green-400 bg-green-400/10 w-fit px-2 py-1 rounded">
-                        <i class="fas fa-arrow-up mr-1"></i> Actif
+                        <i class="fas fa-arrow-up mr-1"></i> +2 cette semaine
                     </div>
                 </div>
 
@@ -190,7 +203,7 @@
                     </div>
                 </div>
 
-                <!-- Card: Action Rapide -->
+                <!-- Card: Action Rapide (Ouvre Modale) -->
                 <div id="trigger-add-content" class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-center flex flex-col justify-center items-center shadow-lg shadow-indigo-900/20 group cursor-pointer hover:scale-[1.02] transition-transform">
                     <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3 text-white group-hover:rotate-90 transition-transform">
                         <i class="fas fa-plus text-xl"></i>
@@ -233,6 +246,10 @@
             <div class="content-glass rounded-2xl border border-gray-800 overflow-hidden">
                 <div class="p-6 border-b border-gray-800 flex justify-between items-center">
                     <h3 id="courses-title" class="font-display font-bold text-lg text-white">Fichiers & Synthèses</h3>
+                    <div class="flex gap-2">
+                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-filter"></i></button>
+                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-sort"></i></button>
+                    </div>
                 </div>
                 
                 <div id="courses-list" class="divide-y divide-gray-800">
@@ -296,7 +313,7 @@
         </div>
     </div>
 
-    <!-- Modals Container -->
+    <!-- Modals Container (Vide pour l'instant, rempli par JS si besoin) -->
     <div id="modal-container"></div>
 
     <!-- Message Box -->
@@ -306,6 +323,7 @@
 
     <!-- Scripts -->
     <script>
+        // Simple script pour afficher la date du jour
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         document.getElementById('date-display').textContent = new Date().toLocaleDateString('fr-FR', options);
 
@@ -318,6 +336,7 @@
             notifDropdown.classList.toggle('hidden');
         });
 
+        // Fermer dropdown au clic ailleurs
         window.addEventListener('click', (e) => {
             if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
                 notifDropdown.classList.add('hidden');
@@ -342,18 +361,21 @@
             });
         }
         
+        // Fermer la modale en cliquant en dehors
         addModal.addEventListener('click', (e) => {
             if(e.target === addModal) addModal.classList.add('hidden');
         });
 
+        // Connecter le bouton Dossier de la modale au vrai bouton du script courses.js
         if(btnFolderModal) {
             btnFolderModal.addEventListener('click', () => {
                 addModal.classList.add('hidden');
+                // Simule le clic sur le bouton "Nouveau Dossier" géré par courses.js
                 document.getElementById('new-folder-button').click();
             });
         }
+
     </script>
-    
     <!-- Import du module logique -->
     <script type="module" src="../../assets/js/courses.js"></script>
 
