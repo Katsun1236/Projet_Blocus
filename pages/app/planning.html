@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planning - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <style>
+        .sidebar-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #fff;
+            border-left: 3px solid #6366f1;
+        }
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e5e7eb;
+        }
+        /* Calendar specific styles */
+        .calendar-day {
+            aspect-ratio: 1;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .calendar-day:hover:not(.empty) {
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+        }
+        .calendar-day.today {
+            border: 1px solid #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .event-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+
+    <!-- FOND ANIMÉ -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
+        <div class="p-6 flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+                B.
+            </div>
+            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
+        </div>
+
+        <nav class="flex-grow px-4 space-y-2">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Tableau de Bord</span>
+            </a>
+            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
+            </a>
+            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800">
+            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
+                <span class="font-medium">Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+        
+        <!-- Header Mobile -->
+        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
+            <div class="flex items-center gap-4 md:hidden">
+                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <span class="font-bold text-lg text-white">Planning</span>
+            </div>
+            
+            <div class="hidden md:block">
+                <h1 class="text-xl font-display font-bold text-white">Mon Agenda</h1>
+                <p class="text-sm text-gray-400">Organise ton temps et synchronise tes outils.</p>
+            </div>
+
+            <div id="nav-logged-in" class="flex items-center gap-6">
+                <button class="relative text-gray-400 hover:text-white transition-colors" id="sync-btn" title="Synchronisation">
+                    <i class="fas fa-sync-alt text-xl"></i>
+                </button>
+                
+                <div class="h-8 w-px bg-gray-800"></div>
+
+                <a href="profile.html" class="flex items-center gap-3 group cursor-pointer">
+                    <div class="text-right hidden sm:block">
+                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">Étudiant</p>
+                        <p class="text-xs text-gray-500">Voir mon profil</p>
+                    </div>
+                    <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
+                </a>
+            </div>
+        </header>
+
+        <!-- SCROLLABLE CONTENT -->
+        <main class="flex-grow p-8 overflow-y-auto">
+            
+            <!-- Bandeau Intégrations -->
+            <div class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="content-glass p-6 rounded-2xl border border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" class="w-8 h-8">
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white">Google Calendar</h3>
+                            <p id="gcal-status" class="text-xs text-gray-500">Non connecté</p>
+                        </div>
+                    </div>
+                    <button id="connect-gcal-btn" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-lg border border-gray-700 transition-colors">
+                        Connecter
+                    </button>
+                </div>
+
+                <div class="content-glass p-6 rounded-2xl border border-gray-800 flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-lg">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/e/e9/Notion-logo.svg" class="w-8 h-8">
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white">Notion</h3>
+                            <p id="notion-status" class="text-xs text-gray-500">Non connecté</p>
+                        </div>
+                    </div>
+                    <button id="connect-notion-btn" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-lg border border-gray-700 transition-colors">
+                        Connecter
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
+                <!-- Colonne Calendrier -->
+                <div class="lg:col-span-2 flex flex-col">
+                    <div class="content-glass rounded-2xl p-6 mb-6 flex items-center justify-between">
+                        <h2 class="text-2xl font-bold text-white" id="current-month-display">Chargement...</h2>
+                        <div class="flex gap-2">
+                            <button id="prev-month-btn" class="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors"><i class="fas fa-chevron-left"></i></button>
+                            <button id="next-month-btn" class="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg text-white transition-colors"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    
+                    <div class="content-glass rounded-2xl p-6 flex-grow flex flex-col">
+                        <div class="grid grid-cols-7 gap-2 text-center mb-4 text-gray-400 font-bold text-sm uppercase tracking-wider">
+                            <div>Lun</div><div>Mar</div><div>Mer</div><div>Jeu</div><div>Ven</div><div>Sam</div><div>Dim</div>
+                        </div>
+                        <div class="grid grid-cols-7 gap-2 flex-grow" id="calendar-grid">
+                            <!-- Jours générés par JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colonne Tâches / Events -->
+                <div class="flex flex-col gap-6">
+                    <div class="content-glass rounded-2xl p-6 border-l-4 border-l-indigo-500 h-full flex flex-col">
+                        <h3 class="font-bold text-white text-lg mb-4 flex justify-between items-center">
+                            <span>Agenda du jour</span>
+                            <span id="selected-date-display" class="text-xs text-indigo-400 font-mono">Aujourd'hui</span>
+                        </h3>
+                        
+                        <div id="events-list" class="space-y-3 flex-grow overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                            <!-- Events injectés ici -->
+                            <p class="text-gray-500 text-sm text-center py-4">Aucun événement pour ce jour.</p>
+                        </div>
+
+                        <button id="add-event-btn" class="w-full mt-4 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-indigo-900/20 flex items-center justify-center gap-2">
+                            <i class="fas fa-plus"></i> Nouvel événement
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL AJOUT EVENEMENT -->
+    <div id="event-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-md shadow-2xl">
+            <h2 class="text-2xl font-bold text-white mb-6">Nouvel Événement</h2>
+            <form id="event-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-bold text-gray-400 mb-1">Titre</label>
+                    <input type="text" id="event-title" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ex: Examen Math" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 mb-1">Date</label>
+                        <input type="date" id="event-date" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-400 mb-1">Heure</label>
+                        <input type="time" id="event-time" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-bold text-gray-400 mb-1">Couleur</label>
+                    <div class="flex gap-3 mt-2">
+                        <div class="color-option w-8 h-8 rounded-full bg-indigo-500 cursor-pointer ring-2 ring-white ring-offset-2 ring-offset-gray-900" data-color="indigo"></div>
+                        <div class="color-option w-8 h-8 rounded-full bg-purple-500 cursor-pointer" data-color="purple"></div>
+                        <div class="color-option w-8 h-8 rounded-full bg-emerald-500 cursor-pointer" data-color="emerald"></div>
+                        <div class="color-option w-8 h-8 rounded-full bg-red-500 cursor-pointer" data-color="red"></div>
+                    </div>
+                    <input type="hidden" id="event-color" value="indigo">
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" id="cancel-event-btn" class="px-4 py-2 text-gray-400 hover:text-white font-bold transition-colors">Annuler</button>
+                    <button type="submit" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl transition-colors">Ajouter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Scripts -->
+    <script type="module">
+        import { auth, db } from '../../assets/js/config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, collection, addDoc, query, where, onSnapshot, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        let currentUserId = null;
+        let currentDate = new Date();
+        let selectedDate = new Date();
+        let events = [];
+
+        const ui = {
+            monthDisplay: document.getElementById('current-month-display'),
+            calendarGrid: document.getElementById('calendar-grid'),
+            prevMonthBtn: document.getElementById('prev-month-btn'),
+            nextMonthBtn: document.getElementById('next-month-btn'),
+            eventsList: document.getElementById('events-list'),
+            selectedDateDisplay: document.getElementById('selected-date-display'),
+            addEventBtn: document.getElementById('add-event-btn'),
+            eventModal: document.getElementById('event-modal'),
+            eventForm: document.getElementById('event-form'),
+            cancelEventBtn: document.getElementById('cancel-event-btn'),
+            logoutButton: document.getElementById('logout-button'),
+            connectGCalBtn: document.getElementById('connect-gcal-btn'),
+            connectNotionBtn: document.getElementById('connect-notion-btn'),
+            gcalStatus: document.getElementById('gcal-status'),
+            notionStatus: document.getElementById('notion-status'),
+        };
+
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
+            box.innerHTML = `<p class="font-medium text-sm">${message}</p>`;
+            document.getElementById('message-box').appendChild(box);
+            requestAnimationFrame(() => box.classList.remove('translate-y-10', 'opacity-0'));
+            setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
+        }
+
+        function renderCalendar() {
+            ui.calendarGrid.innerHTML = '';
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            ui.monthDisplay.textContent = new Date(year, month).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            ui.monthDisplay.className = "text-2xl font-bold text-white capitalize";
+
+            const firstDayIndex = new Date(year, month, 1).getDay(); // 0 = Dimanche
+            const adjustedFirstDayIndex = firstDayIndex === 0 ? 6 : firstDayIndex - 1; // Lundi = 0
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Empty slots
+            for (let i = 0; i < adjustedFirstDayIndex; i++) {
+                const div = document.createElement('div');
+                div.className = 'calendar-day empty rounded-lg';
+                ui.calendarGrid.appendChild(div);
+            }
+
+            // Days
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayDate = new Date(year, month, i);
+                const isToday = new Date().toDateString() === dayDate.toDateString();
+                const isSelected = selectedDate.toDateString() === dayDate.toDateString();
+                
+                // Check events
+                const dayEvents = events.filter(e => {
+                    const eDate = e.date.toDate ? e.date.toDate() : new Date(e.date);
+                    return eDate.toDateString() === dayDate.toDateString();
+                });
+
+                const div = document.createElement('div');
+                let classes = `calendar-day rounded-lg bg-gray-800/50 border border-gray-700/50 p-2 text-sm text-gray-300 flex flex-col items-center justify-center`;
+                if (isToday) classes += ' today';
+                if (isSelected) classes += ' ring-2 ring-indigo-500 bg-indigo-500/20';
+                
+                div.className = classes;
+                div.innerHTML = `<span class="font-bold ${isToday ? 'text-indigo-400' : ''}">${i}</span>`;
+                
+                if (dayEvents.length > 0) {
+                    const color = dayEvents[0].color || 'indigo';
+                    div.innerHTML += `<span class="event-dot bg-${color}-500"></span>`;
+                }
+
+                div.addEventListener('click', () => {
+                    selectedDate = dayDate;
+                    renderCalendar();
+                    renderEvents();
+                });
+
+                ui.calendarGrid.appendChild(div);
+            }
+        }
+
+        function renderEvents() {
+            ui.selectedDateDisplay.textContent = selectedDate.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+            ui.eventsList.innerHTML = '';
+            
+            const dayEvents = events.filter(e => {
+                const eDate = e.date.toDate ? e.date.toDate() : new Date(e.date);
+                return eDate.toDateString() === selectedDate.toDateString();
+            }).sort((a, b) => a.time.localeCompare(b.time));
+
+            if (dayEvents.length === 0) {
+                ui.eventsList.innerHTML = '<p class="text-gray-500 text-sm text-center py-4">Aucun événement pour ce jour.</p>';
+            } else {
+                dayEvents.forEach(event => {
+                    const el = document.createElement('div');
+                    const color = event.color || 'indigo';
+                    el.className = `flex items-center gap-3 bg-gray-800/50 p-3 rounded-lg border border-gray-700 hover:border-${color}-500/50 transition-colors group`;
+                    el.innerHTML = `
+                        <div class="w-2 h-2 rounded-full bg-${color}-500 shadow-[0_0_8px] shadow-${color}-500/50"></div>
+                        <span class="text-sm text-gray-300 font-medium truncate flex-grow">${event.title}</span>
+                        <span class="text-xs text-gray-500 font-mono">${event.time}</span>
+                        <button class="delete-event opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 transition-opacity" data-id="${event.id}"><i class="fas fa-trash"></i></button>
+                    `;
+                    
+                    el.querySelector('.delete-event').addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if(confirm('Supprimer ?')) {
+                            await deleteDoc(doc(db, 'users', currentUserId, 'events', event.id));
+                        }
+                    });
+
+                    ui.eventsList.appendChild(el);
+                });
+            }
+        }
+
+        // --- Integrations Logic ---
+        ui.connectGCalBtn.addEventListener('click', () => {
+            // Simulation
+            ui.connectGCalBtn.disabled = true;
+            ui.connectGCalBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            setTimeout(() => {
+                ui.connectGCalBtn.innerHTML = 'Déconnecter';
+                ui.connectGCalBtn.disabled = false;
+                ui.connectGCalBtn.classList.replace('bg-gray-800', 'bg-red-900/30');
+                ui.connectGCalBtn.classList.replace('text-white', 'text-red-300');
+                ui.gcalStatus.textContent = 'Compte connecté';
+                ui.gcalStatus.className = 'text-xs text-green-400';
+                showMessage('Google Calendar synchronisé ! (Simulation)');
+            }, 1500);
+        });
+
+        ui.connectNotionBtn.addEventListener('click', () => {
+            const url = prompt("Entrez l'URL de votre page Notion :");
+            if (url) {
+                ui.notionStatus.textContent = 'Lien actif';
+                ui.notionStatus.className = 'text-xs text-green-400';
+                ui.connectNotionBtn.textContent = 'Ouvrir';
+                ui.connectNotionBtn.onclick = () => window.open(url, '_blank');
+                showMessage('Notion lié avec succès !');
+            }
+        });
+
+        // --- Event Modal Logic ---
+        ui.addEventBtn.addEventListener('click', () => {
+            // Pre-fill date
+            const y = selectedDate.getFullYear();
+            const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+            const d = String(selectedDate.getDate()).padStart(2, '0');
+            document.getElementById('event-date').value = `${y}-${m}-${d}`;
+            ui.eventModal.classList.remove('hidden');
+        });
+
+        ui.cancelEventBtn.addEventListener('click', () => ui.eventModal.classList.add('hidden'));
+
+        // Color picker logic
+        document.querySelectorAll('.color-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                document.querySelectorAll('.color-option').forEach(o => o.classList.remove('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-900'));
+                e.target.classList.add('ring-2', 'ring-white', 'ring-offset-2', 'ring-offset-gray-900');
+                document.getElementById('event-color').value = e.target.dataset.color;
+            });
+        });
+
+        ui.eventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('event-title').value;
+            const dateStr = document.getElementById('event-date').value;
+            const time = document.getElementById('event-time').value;
+            const color = document.getElementById('event-color').value;
+
+            try {
+                await addDoc(collection(db, 'users', currentUserId, 'events'), {
+                    title,
+                    date: new Date(dateStr).toISOString(),
+                    time,
+                    color,
+                    createdAt: serverTimestamp()
+                });
+                ui.eventModal.classList.add('hidden');
+                ui.eventForm.reset();
+                showMessage('Événement ajouté !');
+            } catch (error) {
+                console.error(error);
+                showMessage('Erreur lors de l\'ajout.', true);
+            }
+        });
+
+        // --- Init ---
+        ui.prevMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            renderCalendar();
+        });
+        ui.nextMonthBtn.addEventListener('click', () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            renderCalendar();
+        });
+
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = '../../index.html';
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                
+                // Load Profile
+                const userRef = doc(db, 'users', user.uid);
+                const docSnap = await getDoc(userRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('user-name-header').textContent = data.firstName;
+                    document.getElementById('user-avatar-header').src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+                    document.getElementById('nav-logged-in').classList.remove('hidden');
+                    document.getElementById('nav-logged-in').classList.add('flex');
+                }
+
+                // Load Events
+                const eventsRef = collection(db, 'users', user.uid, 'events');
+                onSnapshot(eventsRef, (snapshot) => {
+                    events = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
+                    renderCalendar();
+                    renderEvents();
+                });
+            } else {
+                window.location.href = '../auth/login.html';
+            }
+        });
+    </script>
+</body>
+</html>
