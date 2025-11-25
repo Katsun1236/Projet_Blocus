@@ -1,6 +1,6 @@
 import { auth, db, storage } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc, serverTimestamp, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 // --- State Management ---
@@ -59,10 +59,7 @@ function showMessage(message, isError = false) {
 
 function timeAgo(date) {
     if (!date) return 'récemment';
-    // Si c'est un Timestamp Firestore, on le convertit
-    const d = date.toDate ? date.toDate() : new Date(date);
-    const seconds = Math.floor((new Date() - d) / 1000);
-    
+    const seconds = Math.floor((new Date() - date) / 1000);
     if (seconds < 60) return "à l'instant";
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `il y a ${minutes} min`;
@@ -85,7 +82,7 @@ function render() {
 
 function updateStats() {
     if(ui.statsCoursesCount) ui.statsCoursesCount.textContent = allCourses.length;
-    if(ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; // À connecter aux quiz plus tard
+    if(ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; 
 }
 
 async function renderHeader() {
@@ -123,14 +120,11 @@ function renderBreadcrumbs() {
 
 function renderFolders() {
     if (!ui.foldersGrid) return;
-    
-    // Si on est DANS un dossier, on cache la grille des dossiers (car pas de sous-dossiers pour l'instant)
     if (currentFolderId) {
         ui.foldersGrid.innerHTML = '';
         ui.foldersGrid.parentElement.classList.add('hidden');
         return; 
     } else {
-        // Si on est à la racine, on montre la grille
         if(ui.foldersGrid.parentElement) ui.foldersGrid.parentElement.classList.remove('hidden');
     }
 
@@ -154,10 +148,6 @@ function renderFolders() {
 
 function renderCourses() {
     if (!ui.coursesList) return;
-    
-    // Filtrage : 
-    // - Si on est dans un dossier, on montre les cours qui ont ce folderId
-    // - Si on est à l'accueil (currentFolderId == null), on montre les cours SANS folderId (null ou undefined)
     const coursesToShow = currentFolderId 
         ? allCourses.filter(c => c.folderId === currentFolderId)
         : allCourses.filter(c => !c.folderId);
@@ -167,12 +157,9 @@ function renderCourses() {
         ui.coursesList.innerHTML = '';
     } else {
         if(ui.noContent) ui.noContent.classList.add('hidden');
-        
         ui.coursesList.innerHTML = coursesToShow.map(course => {
             let iconClass = "fa-file-alt";
             let colorClass = "text-blue-400 bg-blue-400/10";
-            
-            // Détection du type de fichier pour l'icône
             if (course.fileName && course.fileName.toLowerCase().endsWith('.pdf')) {
                 iconClass = "fa-file-pdf";
                 colorClass = "text-red-400 bg-red-400/10";
@@ -180,15 +167,17 @@ function renderCourses() {
                 iconClass = "fa-file-image";
                 colorClass = "text-purple-400 bg-purple-400/10";
             }
-
-            // Gestion de la date
+            
+            // Conversion sécurisée de la date
             let dateStr = 'Récemment';
             if (course.createdAt) {
+                // Si c'est un Timestamp Firestore (avec .toDate()), sinon Date standard, sinon string ISO
                 const d = course.createdAt.toDate ? course.createdAt.toDate() : new Date(course.createdAt);
-                dateStr = d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+                if (!isNaN(d.getTime())) {
+                    dateStr = d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+                }
             }
 
-            // Titre du cours (fallback sur le nom du fichier si pas de titre)
             const displayTitle = course.title || course.name || course.fileName || 'Sans titre';
 
             return `
@@ -206,7 +195,6 @@ function renderCourses() {
                         </div>
                     </div>
                 </div>
-                
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Télécharger" onclick="event.stopPropagation(); window.open('${course.fileURL || course.url}', '_blank')">
                         <i class="fas fa-download"></i>
@@ -251,9 +239,9 @@ function renderNotifications(notifications) {
         let color = 'text-gray-400 bg-gray-800';
         
         if (notif.type === 'friend_request') { icon = 'fa-user-plus'; color = 'text-indigo-400 bg-indigo-400/20'; }
+        if (notif.type === 'message') { icon = 'fa-comment-alt'; color = 'text-blue-400 bg-blue-400/20'; }
         if (notif.type === 'success') { icon = 'fa-trophy'; color = 'text-yellow-400 bg-yellow-400/20'; }
 
-        // Gestion de la date pour la notif
         const dateNotif = notif.createdAt ? (notif.createdAt.toDate ? notif.createdAt.toDate() : new Date(notif.createdAt)) : new Date();
 
         return `
@@ -279,7 +267,16 @@ window.deleteNotification = async (id) => {
     await deleteDoc(doc(db, 'users', currentUserId, 'notifications', id));
 };
 
-// --- Global Functions (exposed for HTML onClick) ---
+if (ui.markAllReadBtn) {
+    ui.markAllReadBtn.addEventListener('click', async () => {
+        if (!currentUserId) return;
+        const notifRef = collection(db, 'users', currentUserId, 'notifications');
+        const snapshot = await getDocs(notifRef);
+        snapshot.forEach(async (d) => await deleteDoc(doc(db, 'users', currentUserId, 'notifications', d.id)));
+    });
+}
+
+// --- Global Functions ---
 window.openFolder = (id, name) => {
     currentFolderId = id;
     currentFolderName = name;
@@ -292,11 +289,8 @@ window.resetView = () => {
     render();
 };
 
-// Création de dossier
 if(ui.newFolderBtn) {
     ui.newFolderBtn.addEventListener('click', async () => {
-        // Utilisation d'un prompt simple pour l'instant
-        // Idéalement, on ferait une modale custom
         const folderName = prompt("Nom du nouveau dossier :");
         if (folderName && currentUserId) {
             try {
@@ -345,29 +339,28 @@ onAuthStateChanged(auth, (user) => {
         renderHeader();
         setupNotifications(currentUserId);
 
-        // Écouteur Dossiers
+        // Ecouteurs Dossiers
         const foldersQuery = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
         onSnapshot(foldersQuery, (snapshot) => {
             allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             render();
         }, (error) => {
             if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
-            console.log("Pas de dossiers ou erreur:", error);
+            console.log("Info: Pas encore de dossiers.");
         });
 
-        // Écouteur Cours
+        // Ecouteurs Cours
         const coursesQuery = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
         onSnapshot(coursesQuery, (snapshot) => {
             allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             render();
         }, (error) => {
             if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
-            console.log("Pas de cours ou erreur:", error);
+            console.log("Info: Pas encore de cours.");
         });
 
     } else {
-        // Redirection si pas connecté
-        // On vérifie où on est pour faire le bon chemin relatif
+        // Gestion redirection selon où on est
         if (window.location.pathname.includes('/app/')) {
              window.location.href = '../auth/login.html';
         }
@@ -378,7 +371,7 @@ if (ui.logoutButton) {
     ui.logoutButton.addEventListener('click', async () => {
         try {
             await signOut(auth);
-            window.location.href = '../auth/login.html'; // Chemin relatif depuis /app/
+            window.location.href = '../auth/login.html';
         } catch (error) {
             console.error('Erreur déconnexion:', error);
         }
