@@ -2,14 +2,14 @@
 // Version optimisée pour Projet Blocus
 // Stack : Auth, Firestore, Storage, Functions
 
+// 1. Importations CORRIGÉES
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-import { getFunctions } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
+import { getFunctions } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js"; // Ajouté
 
 // Configuration Firebase
-// ⚠️ Note : Pour la prod, assure-toi que ces clés sont sécurisées via les règles Firestore/Storage
 const firebaseConfig = {
   apiKey: "AIzaSyDmC7x4_bwR3epzhzYkC9xdpkEHO6_E2kY", // Ta clé actuelle
   authDomain: "projet-blocus-v2.firebaseapp.com",
@@ -26,7 +26,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
-const functions = getFunctions(app, 'europe-west1'); // On force une région proche (ex: Belgique/Paris) pour la latence
+// On force une région proche (ex: Belgique/Paris) pour la latence.
+// Si aucune région n'est spécifiée, le default est 'us-central1'.
+const functions = getFunctions(app, 'europe-west1'); 
 
 // 3. Persistance Offline (Optionnel mais recommandé pour l'UX étudiante)
 // Permet à l'app de charger le cache si le wifi de l'unif saute
