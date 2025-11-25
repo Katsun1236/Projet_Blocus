@@ -1,7 +1,6 @@
-import { auth, db, storage } from './config.js';
+import { auth, db } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // --- State Management ---
 let currentUserId = null;
@@ -12,23 +11,18 @@ let allFolders = [];
 
 // --- DOM Elements ---
 const ui = {
-    navLoggedIn: document.getElementById('nav-logged-in'),
-    userMenuButton: document.getElementById('user-menu-button'),
+    userAvatar: document.getElementById('user-avatar-header'),
+    userName: document.getElementById('user-name-header'),
     logoutButton: document.getElementById('logout-button'),
     loadingIndicator: document.getElementById('loading-indicator'),
     foldersGrid: document.getElementById('folders-grid'),
+    foldersGridWrapper: document.getElementById('folders-grid-wrapper'), // Pour masquer/afficher
     coursesList: document.getElementById('courses-list'),
     breadcrumbs: document.getElementById('breadcrumbs'),
     mainTitle: document.getElementById('main-title'),
     coursesTitle: document.getElementById('courses-title'),
     noContent: document.getElementById('no-content'),
     newFolderBtn: document.getElementById('new-folder-button'),
-    statsCoursesCount: document.getElementById('stats-courses-count'),
-    statsQuizCount: document.getElementById('stats-quiz-count'),
-    notifBadge: document.getElementById('notif-badge'),
-    notifList: document.getElementById('notifications-list'),
-    noNotifMsg: document.getElementById('no-notif-msg'),
-    markAllReadBtn: document.getElementById('mark-all-read'),
 };
 
 // --- Helper Functions ---
@@ -36,67 +30,37 @@ function showMessage(message, isError = false) {
     const box = document.getElementById('message-box');
     if (!box) return;
     
-    box.innerHTML = '';
-    const icon = document.createElement('div');
-    icon.className = isError ? 'text-red-400' : 'text-indigo-400';
-    icon.innerHTML = isError ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
+    // Simple toast logic adapted for generic use
+    const toast = document.createElement('div');
+    toast.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
+    toast.innerHTML = `
+        <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl"><i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i></div>
+        <p class="font-medium text-sm">${message}</p>
+    `;
+    document.getElementById('message-box').appendChild(toast);
     
-    const text = document.createElement('span');
-    text.textContent = message;
-    
-    box.appendChild(icon);
-    box.appendChild(text);
-    
-    if (isError) {
-        box.className = "fixed bottom-6 right-6 bg-gray-900 border border-red-500/30 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float";
-    } else {
-        box.className = "fixed bottom-6 right-6 bg-gray-900 border border-green-500/30 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float";
-    }
-
-    box.classList.remove('hidden');
-    setTimeout(() => { box.classList.add('hidden'); }, 3000);
-}
-
-function timeAgo(date) {
-    if (!date) return 'récemment';
-    const seconds = Math.floor((new Date() - date) / 1000);
-    if (seconds < 60) return "à l'instant";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `il y a ${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `il y a ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `il y a ${days} j`;
+    requestAnimationFrame(() => { toast.classList.remove('translate-y-10', 'opacity-0'); });
+    setTimeout(() => { toast.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => toast.remove(), 500); }, 4000);
 }
 
 // --- Render Functions ---
 function render() {
     if (!currentUserId) return;
-    renderHeader();
+    if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
+
     renderBreadcrumbs();
     renderFolders();
     renderCourses();
-    updateStats();
-    if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
 }
 
-function updateStats() {
-    if(ui.statsCoursesCount) ui.statsCoursesCount.textContent = allCourses.length;
-    if(ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; 
-}
-
-async function renderHeader() {
+async function renderHeader(user) {
     try {
-        const userRef = doc(db, 'users', currentUserId);
+        const userRef = doc(db, 'users', user.uid);
         const docSnap = await getDoc(userRef);
         if (docSnap.exists()) {
             const profileData = docSnap.data();
-            const nameEl = document.getElementById('user-name-header');
-            const avatarEl = document.getElementById('user-avatar-header');
-            
-            if (nameEl) nameEl.textContent = profileData.firstName;
-            if (avatarEl) avatarEl.src = profileData.photoURL || 'https://ui-avatars.com/api/?background=random';
-            if (ui.navLoggedIn) ui.navLoggedIn.classList.remove('hidden');
+            if (ui.userName) ui.userName.textContent = profileData.firstName;
+            if (ui.userAvatar) ui.userAvatar.src = profileData.photoURL || 'https://ui-avatars.com/api/?background=random';
         }
     } catch (e) {
         console.error("Erreur chargement header:", e);
@@ -110,7 +74,7 @@ function renderBreadcrumbs() {
         if(ui.mainTitle) ui.mainTitle.textContent = "Mes Dossiers";
     } else {
         ui.breadcrumbs.innerHTML = `
-            <span class="cursor-pointer hover:text-white transition-colors" onclick="resetView()">Accueil</span>
+            <span class="cursor-pointer hover:text-white transition-colors" onclick="window.resetView()">Accueil</span>
             <i class="fas fa-chevron-right text-xs mx-2"></i>
             <span class="text-indigo-400 font-medium">${currentFolderName}</span>
         `;
@@ -120,22 +84,24 @@ function renderBreadcrumbs() {
 
 function renderFolders() {
     if (!ui.foldersGrid) return;
+
     if (currentFolderId) {
-        ui.foldersGrid.innerHTML = '';
-        ui.foldersGrid.parentElement.classList.add('hidden');
+        // En mode dossier, on cache la grille des dossiers
+        ui.foldersGridWrapper.classList.add('hidden');
         return; 
     } else {
-        if(ui.foldersGrid.parentElement) ui.foldersGrid.parentElement.classList.remove('hidden');
+        // En mode racine, on affiche tous les dossiers
+        ui.foldersGridWrapper.classList.remove('hidden');
     }
 
     ui.foldersGrid.innerHTML = allFolders.map(folder => `
         <div class="content-glass p-5 rounded-xl cursor-pointer hover:bg-white/5 transition-all duration-300 group border border-white/5 hover:border-indigo-500/30 relative" 
-             onclick="openFolder('${folder.id}', '${folder.name}')">
+             onclick="window.openFolder('${folder.id}', '${folder.name}')">
             <div class="flex justify-between items-start mb-4">
                 <div class="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform duration-300">
                     <i class="fas fa-folder text-xl"></i>
                 </div>
-                <button class="text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity p-1" onclick="event.stopPropagation(); deleteFolder('${folder.id}')">
+                <button class="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1" onclick="event.stopPropagation(); window.deleteFolder('${folder.id}')" title="Supprimer le dossier">
                     <i class="fas fa-trash-alt text-sm"></i>
                 </button>
             </div>
@@ -148,58 +114,67 @@ function renderFolders() {
 
 function renderCourses() {
     if (!ui.coursesList) return;
+    
+    // Filtrer les cours : soit ceux sans folderId (racine), soit ceux avec le folderId actuel
     const coursesToShow = currentFolderId 
         ? allCourses.filter(c => c.folderId === currentFolderId)
         : allCourses.filter(c => !c.folderId);
 
-    if (coursesToShow.length === 0) {
+    ui.coursesList.innerHTML = '';
+    
+    if (coursesToShow.length === 0 && allFolders.length === 0) {
         if(ui.noContent) ui.noContent.classList.remove('hidden');
-        ui.coursesList.innerHTML = '';
+        ui.coursesTitle.textContent = "Fichiers & Synthèses"; // Retour au titre générique
+    } else if (coursesToShow.length === 0 && currentFolderId) {
+        // Dossier vide
+        if(ui.noContent) ui.noContent.classList.remove('hidden');
+        ui.coursesTitle.textContent = `Contenu du dossier: ${currentFolderName}`;
     } else {
         if(ui.noContent) ui.noContent.classList.add('hidden');
-        ui.coursesList.innerHTML = coursesToShow.map(course => {
+        ui.coursesTitle.textContent = currentFolderId ? `Contenu du dossier: ${currentFolderName}` : "Fichiers & Synthèses (Hors Dossier)";
+        
+        // Trie par date de création inverse (plus récent en premier)
+        const sortedCourses = coursesToShow.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+        ui.coursesList.innerHTML = sortedCourses.map(course => {
             let iconClass = "fa-file-alt";
             let colorClass = "text-blue-400 bg-blue-400/10";
-            if (course.fileName && course.fileName.toLowerCase().endsWith('.pdf')) {
+            
+            // Déterminer l'icône/couleur par type
+            if (course.type === 'synthesis') { // Hypothèse: les synthèses ont un champ 'type'
+                iconClass = "fa-magic";
+                colorClass = "text-pink-400 bg-pink-400/10";
+            } else if (course.fileName && course.fileName.toLowerCase().endsWith('.pdf')) {
                 iconClass = "fa-file-pdf";
                 colorClass = "text-red-400 bg-red-400/10";
-            } else if (course.type && course.type.startsWith('image/')) {
-                iconClass = "fa-file-image";
-                colorClass = "text-purple-400 bg-purple-400/10";
             }
             
-            // Conversion sécurisée de la date
+            const displayTitle = course.title || course.name || course.fileName || 'Sans titre';
             let dateStr = 'Récemment';
-            if (course.createdAt) {
-                // Si c'est un Timestamp Firestore (avec .toDate()), sinon Date standard, sinon string ISO
-                const d = course.createdAt.toDate ? course.createdAt.toDate() : new Date(course.createdAt);
-                if (!isNaN(d.getTime())) {
-                    dateStr = d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
-                }
+            if (course.createdAt && course.createdAt.toDate) {
+                dateStr = course.createdAt.toDate().toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
             }
 
-            const displayTitle = course.title || course.name || course.fileName || 'Sans titre';
-
             return `
-            <div class="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group animate-fade-in-up border-b border-gray-800/50 cursor-pointer" onclick="window.open('${course.fileURL || course.url}', '_blank')">
+            <div class="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group animate-fade-in-up border-b border-gray-800/50 cursor-pointer">
                 <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center">
+                    <div class="w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center flex-shrink-0">
                         <i class="fas ${iconClass}"></i>
                     </div>
-                    <div>
-                        <h4 class="font-medium text-white group-hover:text-indigo-300 transition-colors">${displayTitle}</h4>
+                    <div class="min-w-0">
+                        <h4 class="font-medium text-white truncate group-hover:text-indigo-300 transition-colors" onclick="event.stopPropagation(); window.open('${course.fileURL || course.url || 'synthesize.html?id=' + course.id}', '_blank')">${displayTitle}</h4>
                         <div class="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                            <span>${course.fileName || 'Document'}</span>
+                            <span>${course.fileName || 'Document IA'}</span>
                             <span class="w-1 h-1 rounded-full bg-gray-600"></span>
                             <span>${dateStr}</span>
                         </div>
                     </div>
                 </div>
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Télécharger" onclick="event.stopPropagation(); window.open('${course.fileURL || course.url}', '_blank')">
-                        <i class="fas fa-download"></i>
+                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Déplacer" onclick="event.stopPropagation(); window.promptMove('${course.id}')">
+                        <i class="fas fa-folder-open"></i>
                     </button>
-                    <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="event.stopPropagation(); deleteCourse('${course.id}', '${course.fileName}')">
+                    <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="event.stopPropagation(); window.deleteCourse('${course.id}')">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
@@ -208,120 +183,81 @@ function renderCourses() {
     }
 }
 
-// --- Notification Logic ---
-function setupNotifications(userId) {
-    const notifRef = collection(db, 'users', userId, 'notifications');
-    const q = query(notifRef, orderBy('createdAt', 'desc'), limit(10));
+// --- Global Actions (exposed to the window for onclick events) ---
 
-    onSnapshot(q, (snapshot) => {
-        const notifications = [];
-        snapshot.forEach(doc => notifications.push({ id: doc.id, ...doc.data() }));
-        renderNotifications(notifications);
-    });
-}
-
-function renderNotifications(notifications) {
-    if (!ui.notifList) return;
-    
-    if (notifications.length > 0) {
-        ui.notifBadge.textContent = notifications.length;
-        ui.notifBadge.classList.remove('hidden');
-        if(ui.noNotifMsg) ui.noNotifMsg.classList.add('hidden');
-    } else {
-        ui.notifBadge.classList.add('hidden');
-        ui.notifList.innerHTML = '';
-        if(ui.noNotifMsg) ui.noNotifMsg.classList.remove('hidden');
-        return;
-    }
-
-    ui.notifList.innerHTML = notifications.map(notif => {
-        let icon = 'fa-bell';
-        let color = 'text-gray-400 bg-gray-800';
-        
-        if (notif.type === 'friend_request') { icon = 'fa-user-plus'; color = 'text-indigo-400 bg-indigo-400/20'; }
-        if (notif.type === 'message') { icon = 'fa-comment-alt'; color = 'text-blue-400 bg-blue-400/20'; }
-        if (notif.type === 'success') { icon = 'fa-trophy'; color = 'text-yellow-400 bg-yellow-400/20'; }
-
-        const dateNotif = notif.createdAt ? (notif.createdAt.toDate ? notif.createdAt.toDate() : new Date(notif.createdAt)) : new Date();
-
-        return `
-        <div class="p-4 border-b border-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer flex justify-between items-start group">
-            <div class="flex gap-3">
-                <div class="w-8 h-8 rounded-full ${color} flex items-center justify-center flex-shrink-0">
-                    <i class="fas ${icon} text-xs"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-300">${notif.message}</p>
-                    <p class="text-xs text-gray-500 mt-1">${timeAgo(dateNotif)}</p>
-                </div>
-            </div>
-            <button onclick="deleteNotification('${notif.id}')" class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>`;
-    }).join('');
-}
-
-window.deleteNotification = async (id) => {
-    if (!currentUserId) return;
-    await deleteDoc(doc(db, 'users', currentUserId, 'notifications', id));
-};
-
-if (ui.markAllReadBtn) {
-    ui.markAllReadBtn.addEventListener('click', async () => {
-        if (!currentUserId) return;
-        const notifRef = collection(db, 'users', currentUserId, 'notifications');
-        const snapshot = await getDocs(notifRef);
-        snapshot.forEach(async (d) => await deleteDoc(doc(db, 'users', currentUserId, 'notifications', d.id)));
-    });
-}
-
-// --- Global Functions ---
 window.openFolder = (id, name) => {
+    // Mise à jour de l'URL pour un lien partagé/actualisable
+    const url = new URL(window.location.href);
+    url.searchParams.set('folder', id);
+    history.pushState(null, '', url.toString());
+
     currentFolderId = id;
     currentFolderName = name;
     render();
 };
 
 window.resetView = () => {
+    // Mise à jour de l'URL pour un lien partagé/actualisable
+    const url = new URL(window.location.href);
+    url.searchParams.delete('folder');
+    history.pushState(null, '', url.toString());
+
     currentFolderId = null;
     currentFolderName = "Mes Cours";
     render();
 };
 
+// Logique de création de dossier
 if(ui.newFolderBtn) {
     ui.newFolderBtn.addEventListener('click', async () => {
         const folderName = prompt("Nom du nouveau dossier :");
         if (folderName && currentUserId) {
             try {
-                await addDoc(collection(db, 'users', currentUserId, 'folders'), {
+                // Création du dossier
+                const newFolderData = {
                     name: folderName,
                     createdAt: serverTimestamp(),
                     courseCount: 0
-                });
+                };
+                
+                await addDoc(collection(db, 'users', currentUserId, 'folders'), newFolderData);
                 showMessage("Dossier créé avec succès !");
             } catch (e) {
                 console.error(e);
-                showMessage("Erreur lors de la création.", true);
+                showMessage("Erreur lors de la création du dossier.", true);
             }
         }
     });
 }
 
+// Logique de suppression de dossier
 window.deleteFolder = async (folderId) => {
-    if(confirm("Supprimer ce dossier ?")) {
+    if(confirm("ATTENTION : Supprimer ce dossier va détacher tous les cours qu'il contient (ils reviendront à la racine). Confirmez-vous ?")) {
         try {
+            // 1. Détacher les cours (mettre folderId à null)
+            const coursesToUpdate = allCourses.filter(c => c.folderId === folderId);
+            const batch = db.batch();
+            coursesToUpdate.forEach(course => {
+                const courseRef = doc(db, 'users', currentUserId, 'courses', course.id);
+                // Utilisation de updateDoc car on ne veut pas écraser tout le document
+                updateDoc(courseRef, { folderId: null });
+            });
+            await batch.commit();
+
+            // 2. Supprimer le dossier lui-même
             await deleteDoc(doc(db, 'users', currentUserId, 'folders', folderId));
-            showMessage("Dossier supprimé.");
+
+            showMessage("Dossier supprimé et cours déplacés à la racine.");
         } catch (e) {
             console.error(e);
-            showMessage("Erreur suppression.", true);
+            showMessage("Erreur lors de la suppression du dossier.", true);
         }
     }
 };
 
-window.deleteCourse = async (courseId, fileName) => {
-    if(confirm("Voulez-vous vraiment supprimer ce fichier ?")) {
+// Logique de suppression de cours
+window.deleteCourse = async (courseId) => {
+    if(confirm("Voulez-vous vraiment supprimer ce fichier définitivement ?")) {
         try {
             await deleteDoc(doc(db, 'users', currentUserId, 'courses', courseId));
             showMessage("Fichier supprimé.");
@@ -332,38 +268,112 @@ window.deleteCourse = async (courseId, fileName) => {
     }
 };
 
+// Logique de déplacement de cours (simple prompt pour l'instant)
+window.promptMove = async (courseId) => {
+    if (allFolders.length === 0) {
+        showMessage("Créez d'abord un dossier pour pouvoir déplacer des fichiers.", true);
+        return;
+    }
+
+    const course = allCourses.find(c => c.id === courseId);
+    if (!course) return;
+
+    let promptMessage = "Déplacer le cours '" + (course.title || course.fileName) + "' vers :\n\n";
+    let folderMap = {};
+    allFolders.forEach((f, index) => {
+        promptMessage += `${index + 1}: ${f.name}\n`;
+        folderMap[index + 1] = f.id;
+    });
+    promptMessage += "\nEntrez le numéro du dossier (ou '0' pour la racine) :";
+
+    const input = prompt(promptMessage);
+    if (input === null) return; 
+
+    const choice = parseInt(input);
+    let newFolderId = null;
+
+    if (choice === 0) {
+        newFolderId = null; // Racine
+    } else if (folderMap[choice]) {
+        newFolderId = folderMap[choice];
+    } else {
+        showMessage("Choix invalide.", true);
+        return;
+    }
+
+    try {
+        const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
+        await updateDoc(courseRef, { folderId: newFolderId });
+        showMessage("Cours déplacé !");
+    } catch (e) {
+        console.error(e);
+        showMessage("Erreur lors du déplacement.", true);
+    }
+};
+
+
 // --- Initialization ---
 onAuthStateChanged(auth, (user) => {
     if (user && !user.isAnonymous) {
         currentUserId = user.uid;
-        renderHeader();
-        setupNotifications(currentUserId);
+        
+        // Récupérer le folderId depuis l'URL au chargement initial
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlFolderId = urlParams.get('folder');
+        
+        if (urlFolderId) {
+            currentFolderId = urlFolderId;
+            // On aura besoin de set currentFolderName plus tard si on ne l'a pas en cache
+        }
+        
+        renderHeader(user);
 
-        // Ecouteurs Dossiers
+        // Ecouteur pour la collection de Dossiers (nécessaire pour le comptage de cours)
         const foldersQuery = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
         onSnapshot(foldersQuery, (snapshot) => {
             allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Si on est dans un dossier spécifique, met à jour son nom
+            if (currentFolderId) {
+                const currentFolder = allFolders.find(f => f.id === currentFolderId);
+                if (currentFolder) {
+                    currentFolderName = currentFolder.name;
+                } else {
+                    // Si le dossier a été supprimé, on reset la vue
+                    window.resetView();
+                    return;
+                }
+            }
             render();
         }, (error) => {
-            if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
-            console.log("Info: Pas encore de dossiers.");
+            console.warn("Info: Pas encore de dossiers.", error);
         });
 
-        // Ecouteurs Cours
+        // Ecouteur pour la collection de Cours (Toutes les données)
         const coursesQuery = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
         onSnapshot(coursesQuery, (snapshot) => {
             allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // Mise à jour du compteur de cours pour chaque dossier
+            allFolders.forEach(folder => {
+                const count = allCourses.filter(c => c.folderId === folder.id).length;
+                if (folder.courseCount !== count) {
+                    // Mettre à jour le compteur dans Firestore (peut être coûteux en écritures!)
+                    // OPTIMISATION: Ceci pourrait être fait via une Cloud Function après chaque upload/déplacement
+                    // Mais pour le frontend démo, on le met à jour pour l'affichage :
+                    const folderRef = doc(db, 'users', currentUserId, 'folders', folder.id);
+                    updateDoc(folderRef, { courseCount: count }).catch(e => console.error("Erreur update count:", e));
+                }
+            });
+
             render();
         }, (error) => {
-            if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
-            console.log("Info: Pas encore de cours.");
+            console.warn("Info: Pas encore de cours.", error);
         });
 
     } else {
-        // Gestion redirection selon où on est
-        if (window.location.pathname.includes('/app/')) {
-             window.location.href = '../auth/login.html';
-        }
+        // Redirection si déconnecté
+        window.location.href = '../auth/login.html';
     }
 });
 
@@ -371,7 +381,7 @@ if (ui.logoutButton) {
     ui.logoutButton.addEventListener('click', async () => {
         try {
             await signOut(auth);
-            window.location.href = '../auth/login.html';
+            window.location.href = '../../index.html';
         } catch (error) {
             console.error('Erreur déconnexion:', error);
         }
