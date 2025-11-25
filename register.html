@@ -76,10 +76,9 @@
     <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
 
     <script type="module">
-        // Import depuis la config locale (qui est maintenant corrigée avec la v11.0.1)
         import { auth } from './firebase-config.js';
-        // CORRECTION ICI : Remplacement de 12.0.0 par 11.0.1
-        import { createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        // MODIFICATION : Ajout de signInWithRedirect et getRedirectResult
+        import { createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         
         function showMessage(message) {
             const box = document.getElementById('message-box');
@@ -88,10 +87,26 @@
             setTimeout(() => box.classList.add('hidden'), 3000);
         }
 
+        // Vérifier si l'utilisateur revient d'une redirection Google (Gestion des erreurs de redirection)
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result) {
+                    showMessage("Connexion Google réussie !");
+                    // La redirection vers /onboarding sera gérée par onAuthStateChanged ci-dessous
+                }
+            })
+            .catch((error) => {
+                console.error("Erreur redirection Google:", error);
+                showMessage("Erreur lors de la connexion Google: " + error.message);
+            });
+
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
-                // Redirection vers l'onboarding si l'utilisateur est connecté
-                window.location.href = '/onboarding.html'; 
+                console.log("Utilisateur connecté:", user.email);
+                // Petit délai pour laisser l'utilisateur voir le message de succès s'il y en a un
+                setTimeout(() => {
+                   window.location.href = '/onboarding.html';
+                }, 1000);
             }
         });
 
@@ -125,8 +140,7 @@
             
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
-                showMessage("Inscription réussie ! Redirection...");
-                // La redirection sera gérée par onAuthStateChanged
+                showMessage("Inscription réussie !");
             } catch (error) {
                 console.error(error);
                 let msg = "Erreur lors de l'inscription.";
@@ -138,14 +152,15 @@
             }
         });
         
+        // MODIFICATION : Utilisation de signInWithRedirect au lieu de signInWithPopup
         document.getElementById('google-signup-button').addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
-                await signInWithPopup(auth, provider);
-                showMessage("Inscription avec Google réussie !");
+                // Cette méthode va recharger la page et envoyer l'utilisateur chez Google
+                await signInWithRedirect(auth, provider);
             } catch (error) {
-                console.error("Erreur d'inscription Google:", error);
-                showMessage("Erreur lors de l'inscription avec Google.");
+                console.error("Erreur démarrage Google:", error);
+                showMessage("Impossible de lancer Google : " + error.message);
             }
         });
     </script>
