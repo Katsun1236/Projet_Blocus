@@ -157,12 +157,13 @@
         </footer>
     </div>
 
-    <!-- SCRIPT MIS À JOUR -->
+    <!-- SCRIPT CORRIGÉ (Version 11.0.1) -->
     <script type="module">
         // Importation depuis le fichier centralisé
         import { auth, db } from './firebase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        // REMPLACEMENT 12.0.0 PAR 11.0.1
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         // Le reste du code de la page reste identique
         const navLoggedIn = document.getElementById('nav-logged-in');
@@ -192,12 +193,16 @@
                 featureSynthesize.href = '/synthesize.html';
                 featureProfile.href = '/profile.html';
 
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = profileData.firstName;
-                    document.getElementById('user-avatar-header').src = profileData.photoURL;
+                try {
+                    const userRef = doc(db, 'users', user.uid);
+                    const docSnap = await getDoc(userRef);
+                    if (docSnap.exists()) {
+                        const profileData = docSnap.data();
+                        document.getElementById('user-name-header').textContent = profileData.firstName || 'Étudiant';
+                        document.getElementById('user-avatar-header').src = profileData.photoURL || 'https://placehold.co/32x32/4b5563/ffffff?text=👤';
+                    }
+                } catch (e) {
+                    console.error("Erreur header:", e);
                 }
 
             } else {
