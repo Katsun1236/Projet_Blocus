@@ -8,14 +8,12 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-s
 
 // 2. Objet de configuration Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyDz8qDCTZIkrIVBTw58nSgEG_xXCG_mXxw",
-    authDomain: "projetblocus1.firebaseapp.com",
-    projectId: "projetblocus1",
-    // LA CORRECTION FINALE EST ICI, AVEC LA VALEUR DE TA CAPTURE D'ÉCRAN :
-    storageBucket: "projetblocus1.firebasestorage.app",
-    messagingSenderId: "536093956243",
-    appId: "1:536093956243:web:4fa7310f49cbf8db1f5566",
-    measurementId: "G-W5WZXDHNTC"
+  apiKey: "AIzaSyDmC7x4_bwR3epzhzYkC9xdpkEHO6_E2kY",
+  authDomain: "projet-blocus-v2.firebaseapp.com",
+  projectId: "projet-blocus-v2",
+  storageBucket: "projet-blocus-v2.firebasestorage.app",
+  messagingSenderId: "12006785680",
+  appId: "1:12006785680:web:d1b649979fe0a76b628e15"
 };
 
 // 3. Initialisation des services Firebase
