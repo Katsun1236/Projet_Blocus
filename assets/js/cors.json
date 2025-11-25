@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://projetblocus.netlify.app", "http://localhost:3000", "http://127.0.0.1:5500"],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Authorization", "x-custom-header"]
+  }
+]
