@@ -82,6 +82,16 @@
                 <span class="font-medium">Planning</span>
             </a>
 
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
             <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -140,11 +150,12 @@
                         <div id="drop-zone" class="drop-zone rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-800/30 transition-all group relative overflow-hidden">
                             <input type="file" id="file-input" class="hidden" accept=".pdf">
                             
-                            <div class="relative z-10">
+                            <div class="relative z-10 pointer-events-none"> <!-- Important: pointer-events-none pour que le clic traverse -->
                                 <i class="fas fa-file-pdf text-5xl text-gray-600 group-hover:text-indigo-400 transition-colors mb-4"></i>
                                 <p class="text-lg font-medium text-white mb-1">Glisse ton fichier ici</p>
                                 <p class="text-sm text-gray-500 mb-6">ou clique pour parcourir tes dossiers</p>
-                                <span class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors">Choisir un fichier</span>
+                                <!-- Le bouton est décoratif, c'est la zone entière qui est cliquable -->
+                                <span class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors inline-block">Choisir un fichier</span>
                             </div>
                         </div>
 
@@ -154,7 +165,7 @@
                             <div class="flex-1 text-center md:text-left">
                                 <p id="file-name-preview" class="text-lg font-bold text-white truncate mb-1"></p>
                                 <p id="file-size-preview" class="text-sm text-gray-500 font-mono"></p>
-                                <button type="button" id="remove-file-btn" class="mt-3 text-xs text-red-400 hover:text-red-300 flex items-center gap-2 md:justify-start justify-center">
+                                <button type="button" id="remove-file-btn" class="mt-3 text-xs text-red-400 hover:text-red-300 flex items-center gap-2 md:justify-start justify-center cursor-pointer">
                                     <i class="fas fa-trash"></i> Supprimer
                                 </button>
                             </div>
@@ -173,8 +184,8 @@
 
                         <!-- Bouton Submit -->
                         <button type="submit" id="submit-button" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
-                            <span>Lancer l'analyse IA</span>
-                            <i class="fas fa-magic"></i>
+                            <span>Uploader le fichier</span>
+                            <i class="fas fa-cloud-upload-alt"></i>
                         </button>
 
                     </form>
@@ -211,7 +222,8 @@
             previewContainer: document.getElementById('preview-container'),
             canvas: document.getElementById('pdf-preview-canvas'),
             messageBox: document.getElementById('message-box'),
-            removeFileBtn: document.getElementById('remove-file-btn')
+            removeFileBtn: document.getElementById('remove-file-btn'),
+            courseNameInput: document.getElementById('courseName')
         };
 
         // --- UI Helpers ---
@@ -232,7 +244,7 @@
 
         function resetUploadState() {
             ui.submitButton.disabled = false;
-            ui.submitButton.innerHTML = '<span>Lancer l\'analyse IA</span><i class="fas fa-magic"></i>';
+            ui.submitButton.innerHTML = '<span>Uploader le fichier</span><i class="fas fa-cloud-upload-alt"></i>';
             ui.progressContainer.classList.add('hidden');
             ui.progressBar.style.width = '0%';
         }
@@ -263,7 +275,6 @@
                     const pdf = await loadingTask.promise;
                     const page = await pdf.getPage(1);
                     
-                    // Adapter l'échelle pour que ça rentre dans le canvas (hauteur max 128px ~ h-32)
                     const desiredHeight = 300; 
                     const viewport = page.getViewport({ scale: 1 });
                     const scale = desiredHeight / viewport.height;
@@ -280,7 +291,6 @@
                 } catch (error) {
                     console.error(error);
                     showMessage("Impossible de prévisualiser ce PDF.", true);
-                    // On garde le fichier même si la preview échoue
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -293,21 +303,29 @@
                 document.getElementById('file-size-preview').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
                 
                 // Pré-remplir le nom du cours si vide
-                const courseInput = document.getElementById('courseName');
-                if (!courseInput.value) {
-                    courseInput.value = file.name.replace('.pdf', '');
+                if (!ui.courseNameInput.value) {
+                    ui.courseNameInput.value = file.name.replace('.pdf', '');
                 }
 
                 renderPdfPreview(file);
                 ui.submitButton.disabled = false;
+                ui.submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
                 if(file) showMessage("Veuillez sélectionner un fichier PDF.", true);
             }
         }
 
         // --- Event Listeners ---
+        
+        // Click sur la zone déclenche l'input file
         ui.dropZone.addEventListener('click', () => ui.fileInput.click());
-        ui.fileInput.addEventListener('change', () => handleFile(ui.fileInput.files[0]));
+        
+        // Changement de l'input file
+        ui.fileInput.addEventListener('change', () => {
+            if (ui.fileInput.files.length > 0) {
+                handleFile(ui.fileInput.files[0]);
+            }
+        });
         
         // Drag & Drop Visuals
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -316,7 +334,13 @@
         ['dragenter', 'dragover'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.add('active')));
         ['dragleave', 'drop'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.remove('active')));
         
-        ui.dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
+        ui.dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
 
         ui.removeFileBtn.addEventListener('click', () => {
             selectedFile = null;
@@ -325,6 +349,7 @@
             ui.previewContainer.classList.remove('flex');
             ui.dropZone.classList.remove('hidden');
             ui.submitButton.disabled = true;
+            ui.submitButton.classList.add('opacity-50', 'cursor-not-allowed');
         });
 
         // --- Upload Logic ---
@@ -332,7 +357,7 @@
             e.preventDefault();
             if (!selectedFile || !currentUserId) return;
             
-            const courseName = document.getElementById('courseName').value.trim();
+            const courseName = ui.courseNameInput.value.trim();
             if (!courseName) {
                 showMessage("Veuillez donner un nom à votre cours.", true);
                 return;
@@ -342,11 +367,9 @@
             ui.submitButton.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div> Upload en cours...';
             ui.progressContainer.classList.remove('hidden');
 
-            // Création ref Firestore
             const newCourseRef = doc(collection(db, 'users', currentUserId, 'courses'));
             const courseId = newCourseRef.id;
             
-            // Upload Storage
             const storageRef = ref(storage, `users/${currentUserId}/courses/${courseId}/${selectedFile.name}`);
             const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
@@ -365,19 +388,18 @@
                     try {
                         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                         
-                        // Sauvegarde Firestore
                         await setDoc(newCourseRef, {
-                            title: courseName, // Changé 'name' en 'title' pour matcher courses.js
+                            title: courseName,
                             fileName: selectedFile.name,
-                            fileURL: downloadURL, // Changé 'url' en 'fileURL' pour matcher courses.js
-                            createdAt: new Date().toISOString(), // Changé 'uploadedAt' en 'createdAt'
+                            fileURL: downloadURL,
+                            createdAt: new Date().toISOString(),
                             status: 'uploaded',
                             type: selectedFile.type,
                             size: selectedFile.size,
-                            folderId: null // Par défaut à la racine
+                            folderId: null 
                         });
 
-                        showMessage("Upload terminé ! L'IA analyse ton cours...", false);
+                        showMessage("Upload terminé ! Redirection...", false);
                         setTimeout(() => window.location.href = 'dashboard.html', 1500);
                     } catch (dbError) {
                         console.error("Erreur de sauvegarde:", dbError);
