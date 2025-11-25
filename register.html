@@ -77,35 +77,24 @@
 
     <script type="module">
         import { auth } from './firebase-config.js';
-        // MODIFICATION : Ajout de signInWithRedirect et getRedirectResult
-        import { createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         
         function showMessage(message) {
             const box = document.getElementById('message-box');
             box.textContent = message;
             box.classList.remove('hidden');
-            setTimeout(() => box.classList.add('hidden'), 3000);
+            setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
-        // Vérifier si l'utilisateur revient d'une redirection Google (Gestion des erreurs de redirection)
-        getRedirectResult(auth)
-            .then((result) => {
-                if (result) {
-                    showMessage("Connexion Google réussie !");
-                    // La redirection vers /onboarding sera gérée par onAuthStateChanged ci-dessous
-                }
-            })
-            .catch((error) => {
-                console.error("Erreur redirection Google:", error);
-                showMessage("Erreur lors de la connexion Google: " + error.message);
-            });
-
+        // Écouteur d'état de connexion : Redirige dès qu'un utilisateur est détecté
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
-                console.log("Utilisateur connecté:", user.email);
-                // Petit délai pour laisser l'utilisateur voir le message de succès s'il y en a un
+                console.log("Utilisateur connecté :", user.email);
+                showMessage("Connexion réussie ! Direction l'onboarding...");
+                
+                // Petit délai pour laisser lire le message, puis redirection vers ONBOARDING
                 setTimeout(() => {
-                   window.location.href = '/onboarding.html';
+                    window.location.href = '/onboarding.html'; 
                 }, 1000);
             }
         });
@@ -123,6 +112,7 @@
         togglePassword.addEventListener('click', () => togglePasswordVisibility('password', togglePassword));
         toggleConfirmPassword.addEventListener('click', () => togglePasswordVisibility('confirm-password', toggleConfirmPassword));
 
+        // Inscription classique par Email/Mot de passe
         document.getElementById('signup-form').addEventListener('submit', async function(event) {
             event.preventDefault();
             const email = document.getElementById('email').value;
@@ -140,9 +130,10 @@
             
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
-                showMessage("Inscription réussie !");
+                showMessage("Compte créé avec succès !");
+                // La redirection est gérée par onAuthStateChanged
             } catch (error) {
-                console.error(error);
+                console.error("Erreur inscription:", error);
                 let msg = "Erreur lors de l'inscription.";
                 if (error.code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
                 else if (error.code === 'auth/weak-password') msg = "Mot de passe trop faible (6 caractères min).";
@@ -152,15 +143,23 @@
             }
         });
         
-        // MODIFICATION : Utilisation de signInWithRedirect au lieu de signInWithPopup
+        // Connexion avec Google via POPUP
         document.getElementById('google-signup-button').addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
+            showMessage("Ouverture de Google...");
+            
             try {
-                // Cette méthode va recharger la page et envoyer l'utilisateur chez Google
-                await signInWithRedirect(auth, provider);
+                await signInWithPopup(auth, provider);
+                // Si succès, onAuthStateChanged prend le relais pour la redirection
             } catch (error) {
-                console.error("Erreur démarrage Google:", error);
-                showMessage("Impossible de lancer Google : " + error.message);
+                console.error("Erreur Google:", error);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showMessage("Connexion annulée (fenêtre fermée).");
+                } else if (error.code === 'auth/popup-blocked') {
+                    showMessage("Popup bloqué. Autorisez les popups pour ce site.");
+                } else {
+                    showMessage("Erreur de connexion : " + error.code);
+                }
             }
         });
     </script>
