@@ -3,162 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premiers pas - Projet Blocus</title>
+    <title>Bienvenue - Projet Blocus</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
 
-    <div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl border border-gray-700">
-        <h2 class="text-3xl font-bold text-center mb-6">Bienvenue !</h2>
-        <p class="text-center text-gray-400 mb-8">Pour commencer, dis-nous en un peu plus sur toi.</p>
-        
-        <form id="onboarding-form">
-            <div class="mb-6 flex flex-col items-center">
-                <label class="block text-gray-300 font-bold mb-2">Photo de profil</label>
-                <div id="profile-picture-container" class="relative w-24 h-24 mb-2 rounded-full border-4 border-indigo-500 overflow-hidden cursor-pointer group hover:border-indigo-400 transition-colors duration-300">
-                    <img id="profile-picture-preview" src="" alt="Aperçu de la photo de profil" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <i class="fas fa-camera text-white text-2xl"></i>
-                    </div>
-                </div>
-                <input type="file" id="profilePicture" name="profilePicture" accept="image/*" class="hidden">
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label for="firstName" class="block text-gray-300 font-bold mb-2">Prénom</label>
-                    <input type="text" id="firstName" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Ton prénom" required>
-                </div>
-                <div>
-                    <label for="lastName" class="block text-gray-300 font-bold mb-2">Nom</label>
-                    <input type="text" id="lastName" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Ton nom" required>
-                </div>
-            </div>
-
-            <div class="mb-6">
-                <label for="school" class="block text-gray-300 font-bold mb-2">École / Université</label>
-                <input type="text" id="school" class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Ton école" required>
-            </div>
-
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 transform hover:scale-105">
-                C'est parti !
-            </button>
-        </form>
+    <!-- Indicateur de chargement (visible par défaut) -->
+    <div id="loading" class="text-center">
+        <i class="fas fa-spinner fa-spin text-4xl text-indigo-500 mb-4"></i>
+        <p class="text-xl">Vérification de ton compte...</p>
     </div>
 
-    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
+    <!-- Contenu principal (caché par défaut) -->
+    <div id="content" class="hidden bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-2xl border border-gray-700 text-center">
+        <h1 class="text-4xl font-bold mb-6 text-indigo-400">Bienvenue sur Projet Blocus ! 🎓</h1>
+        <p class="text-gray-300 text-lg mb-8">
+            Ton compte est prêt. Tu peux maintenant accéder à toutes les fonctionnalités pour réussir tes examens.
+        </p>
 
-    <!-- SCRIPT MIS À JOUR -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="/dashboard.html" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg transition duration-300">
+                Accéder au Tableau de Bord
+            </a>
+            <button id="logout-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-4 px-6 rounded-lg transition duration-300">
+                Se déconnecter
+            </button>
+        </div>
+    </div>
+
     <script type="module">
-        import { auth, db, storage } from './firebase-config.js';
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { auth } from './firebase-config.js';
+        // CORRECTION IMPORTANTE : Version 11.0.1
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        let currentUserId;
-        const emojiList = ['😊', '📚', '🚀', '✨', '💡', '🎓', '🤓', '🧠', '✍️'];
+        // Vérification de l'état de connexion
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                // L'utilisateur est connecté, on affiche le contenu
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('content').classList.remove('hidden');
+            } else {
+                // L'utilisateur n'est pas connecté, retour à la case départ
+                window.location.href = '/login.html';
+            }
+        });
 
-        function showMessage(message) {
-            const box = document.getElementById('message-box');
-            box.textContent = message;
-            box.classList.remove('hidden');
-            setTimeout(() => box.classList.add('hidden'), 3000);
-        }
-
-        function setRandomEmoji() {
-            const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
-            document.getElementById('profile-picture-preview').src = `https://placehold.co/96x96/4b5563/ffffff?text=${encodeURIComponent(randomEmoji)}`;
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setRandomEmoji();
-
-            onAuthStateChanged(auth, async (user) => {
-                if (user && !user.isAnonymous) {
-                    currentUserId = user.uid;
-                    
-                    // Vérifier si un profil existe déjà pour ne pas écraser les données
-                    const userRefCheck = doc(db, 'users', user.uid);
-                    const docSnap = await getDoc(userRefCheck);
-                    if (docSnap.exists()) {
-                        // Si l'utilisateur a un profil mais atterrit ici, on le redirige
-                        window.location.href = '/dashboard.html';
-                        return;
-                    }
-
-                    if (user.displayName) {
-                        const nameParts = user.displayName.split(' ');
-                        document.getElementById('firstName').value = nameParts[0] || '';
-                        document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
-                    }
-                    if (user.photoURL) {
-                        document.getElementById('profile-picture-preview').src = user.photoURL;
-                    }
-                } else {
-                    window.location.href = '/login.html';
-                }
-            });
-
-            document.getElementById('profile-picture-container').addEventListener('click', () => document.getElementById('profilePicture').click());
-
-            document.getElementById('profilePicture').addEventListener('change', function(event) {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => document.getElementById('profile-picture-preview').src = e.target.result;
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            document.getElementById('onboarding-form').addEventListener('submit', async function(event) {
-                event.preventDefault();
-                if (!currentUserId) {
-                    showMessage("Erreur d'authentification.");
-                    return;
-                }
-
-                const button = this.querySelector('button[type="submit"]');
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enregistrement...';
-
-                const profilePictureFile = document.getElementById('profilePicture').files[0];
-                let photoURL = document.getElementById('profile-picture-preview').src;
-
-                try {
-                    if (profilePictureFile) {
-                        const storageRef = ref(storage, `users/${currentUserId}/profilePicture.jpg`);
-                        const snapshot = await uploadBytes(storageRef, profilePictureFile);
-                        photoURL = await getDownloadURL(snapshot.ref);
-                    }
-
-                    const userProfile = {
-                        firstName: document.getElementById('firstName').value,
-                        lastName: document.getElementById('lastName').value,
-                        school: document.getElementById('school').value,
-                        photoURL: photoURL,
-                        createdAt: new Date().toISOString()
-                    };
-                    
-                    const userRef = doc(db, 'users', currentUserId);
-                    await setDoc(userRef, userProfile);
-
-                    showMessage("Profil créé avec succès !");
-                    window.location.href = '/dashboard.html';
-
-                } catch (error) {
-                    console.error("Erreur lors de l'enregistrement:", error);
-                    showMessage("Erreur lors de l'enregistrement. Veuillez réessayer.");
-                } finally {
-                    button.disabled = false;
-                    button.innerHTML = "C'est parti !";
-                }
+        // Gestion de la déconnexion
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            signOut(auth).then(() => {
+                window.location.href = '/login.html';
+            }).catch((error) => {
+                console.error("Erreur déconnexion:", error);
             });
         });
     </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </body>
 </html>
