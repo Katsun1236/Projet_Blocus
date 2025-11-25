@@ -3,244 +3,381 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Quiz & Flashcards - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <title>Quiz & Flashcards - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- PDF.js worker -->
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <style> 
-        body { font-family: 'Inter', sans-serif; }
-        .option-label:has(input:checked) { background-color: #4f46e5; border-color: #6366f1; }
-        #course-select { height: 150px; }
-        #course-select option { padding: 8px; }
-        #course-select option:checked { background-color: #4f46e5; color: white; }
-        #timer-progress-bar, #question-timer-bar { transition: width 1s linear; }
-        details > summary { list-style: none; }
-        details > summary::-webkit-details-marker { display: none; }
-        .flashcard-container { perspective: 1000px; }
-        .flashcard { width: 100%; height: 300px; position: relative; transform-style: preserve-3d; transition: transform 0.6s; }
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <style>
+        .sidebar-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #fff;
+            border-left: 3px solid #6366f1;
+        }
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e5e7eb;
+        }
+        
+        /* Flashcard 3D Effect */
+        .flashcard-scene { perspective: 1000px; }
+        .flashcard {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            cursor: pointer;
+        }
         .flashcard.is-flipped { transform: rotateY(180deg); }
-        .flashcard-face { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; padding: 2rem; border-radius: 0.75rem; border: 1px solid #4b5563; }
-        .flashcard-front { background-color: #374151; }
-        .flashcard-back { background-color: #4f46e5; transform: rotateY(180deg); }
+        .flashcard-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .flashcard-front { z-index: 2; }
+        .flashcard-back { transform: rotateY(180deg); background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; }
+
+        /* Quiz Options */
+        .quiz-option:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
+        .quiz-option.selected { border-color: #6366f1; background: rgba(99, 102, 241, 0.2); box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
+        .quiz-option.correct { border-color: #10b981; background: rgba(16, 185, 129, 0.2); }
+        .quiz-option.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
-        <a href="/dashboard.html" class="flex items-center space-x-2">
-            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
-        </a>
-        <nav id="nav-logged-in" class="hidden items-center relative">
-            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                <span id="user-name-header" class="font-semibold">Chargement...</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                <hr class="border-gray-600 my-2">
-                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+    <!-- FOND ANIMÉ -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
+        <div class="p-6 flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+                B.
             </div>
+            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
+        </div>
+
+        <nav class="flex-grow px-4 space-y-2">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Tableau de Bord</span>
+            </a>
+            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
+            </a>
+            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
         </nav>
-    </header>
 
-    <main class="w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="p-4 border-t border-gray-800">
+            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
+                <span class="font-medium">Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10">
         
-        <section id="quiz-list-section">
-             <div class="flex justify-between items-center mb-8">
-                <h1 class="text-4xl font-bold">Mes Quiz & Flashcards</h1>
-                <button id="go-to-generator-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg flex items-center space-x-2">
-                    <i class="fas fa-plus-circle"></i>
-                    <span>Nouveau Contenu</span>
-                </button>
+        <!-- Header Mobile -->
+        <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
+            <div class="flex items-center gap-4">
+                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <span class="font-bold text-lg text-white">Quiz & Cards</span>
             </div>
-            <div id="saved-quizzes-list" class="space-y-4"></div>
-            <div id="loading-quizzes" class="text-center py-12"><i class="fas fa-spinner fa-spin text-4xl text-indigo-400"></i></div>
-            <div id="no-quizzes" class="hidden text-center py-12 bg-gray-800 rounded-lg"><i class="fas fa-clipboard-question text-5xl text-gray-500 mb-4"></i><h3 class="text-2xl font-bold">Aucun contenu sauvegardé</h3><p class="mt-2 text-gray-400">Créez votre premier quiz ou jeu de flashcards pour le voir apparaître ici.</p></div>
-        </section>
+        </header>
 
-        <section id="quiz-setup-section" class="hidden">
-            <button id="back-to-list-btn" class="text-indigo-400 hover:text-indigo-300 mb-6 inline-block"><i class="fas fa-arrow-left mr-2"></i>Retour à la liste</button>
-            <h1 id="generator-title" class="text-4xl font-bold mb-2">Générateur de Contenu IA</h1>
-            <p class="text-gray-400 mb-8">Configurez votre contenu sur mesure.</p>
+        <main class="flex-grow p-6 md:p-10 overflow-y-auto">
             
-            <form id="quiz-generator-form" class="bg-gray-800 p-8 rounded-xl border border-gray-700 space-y-6">
-                <input type="hidden" id="content-type-hidden">
-                <div>
-                    <label for="quiz-title-input" class="block text-lg font-bold mb-2">1. Titre</label>
-                    <input type="text" id="quiz-title-input" class="w-full px-4 py-3 rounded-lg bg-gray-700" placeholder="Ex: Quiz de révision Chapitre 1" required>
-                </div>
-                <div>
-                    <label for="course-select" class="block text-lg font-bold mb-2">2. Choisir un ou plusieurs cours (Ctrl+Clic)</label>
-                    <select id="course-select" multiple class="w-full p-2 rounded-lg bg-gray-700" required></select>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- SECTION: LISTE -->
+            <section id="quiz-list-section" class="max-w-6xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
-                        <label for="question-count" class="block text-lg font-bold mb-2">3. Nombre d'éléments</label>
-                        <div class="flex items-center space-x-4">
-                            <input type="range" id="question-count" min="5" max="50" value="10" class="w-full">
-                            <span id="question-count-value" class="font-bold text-indigo-400 text-xl w-16 text-center">10</span>
-                        </div>
+                        <h1 class="text-3xl font-display font-bold text-white mb-2">Centre d'Entraînement</h1>
+                        <p class="text-gray-400">Teste tes connaissances et ancre le savoir.</p>
                     </div>
-                    <div>
-                        <label for="difficulty-select" class="block text-lg font-bold mb-2">4. Difficulté</label>
-                        <select id="difficulty-select" class="w-full px-4 py-3 rounded-lg bg-gray-700">
-                            <option value="Facile">Facile</option>
-                            <option value="Moyen" selected>Moyen</option>
-                            <option value="Difficile">Difficile</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="quiz-type-container">
-                    <label for="quiz-type" class="block text-lg font-bold mb-2">5. Type de questions</label>
-                    <select id="quiz-type" class="w-full px-4 py-3 rounded-lg bg-gray-700">
-                        <option value="QCM">QCM (Choix multiples)</option>
-                        <option value="Vrai/Faux">Vrai / Faux</option>
-                        <option value="Réponse Courte">Réponse Courte</option>
-                    </select>
-                </div>
-                <div id="timer-config-container" class="bg-gray-900 p-4 rounded-lg">
-                    <p class="text-lg font-bold mb-3">Options du minuteur</p>
-                    <div class="flex items-center justify-between mb-4">
-                        <label for="timer-toggle" class="font-semibold">Activer le minuteur</label>
-                        <input type="checkbox" id="timer-toggle" class="form-checkbox h-6 w-6 text-indigo-600 bg-gray-700 border-gray-600 rounded focus:ring-indigo-500">
-                    </div>
-                    <div id="timer-options" class="hidden space-y-4">
-                        <div class="flex items-center">
-                            <input type="radio" id="timer-global" name="timer-type" value="global" class="h-4 w-4 text-indigo-600" checked>
-                            <label for="timer-global" class="ml-3 block text-sm font-medium">Temps total pour le quiz (minutes)</label>
-                        </div>
-                        <input type="number" id="timer-global-value" min="1" value="10" class="w-full p-2 bg-gray-700 rounded-lg">
-                        
-                        <div class="flex items-center">
-                            <input type="radio" id="timer-per-question" name="timer-type" value="per-question" class="h-4 w-4 text-indigo-600">
-                            <label for="timer-per-question" class="ml-3 block text-sm font-medium">Temps par question (secondes)</label>
-                        </div>
-                        <input type="number" id="timer-per-question-value" min="10" value="30" class="w-full p-2 bg-gray-700 rounded-lg">
-                    </div>
-                </div>
-                <div>
-                    <label for="custom-instruction" class="block text-lg font-bold mb-2">Instruction pour l'IA (optionnel)</label>
-                    <textarea id="custom-instruction" rows="2" class="w-full p-3 bg-gray-700 rounded-lg" placeholder="Ex: Concentre-toi sur les dates importantes..."></textarea>
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-lg text-xl flex items-center justify-center">
-                    <i class="fas fa-magic-sparkles mr-3"></i>
-                    Générer
-                </button>
-            </form>
-        </section>
-
-        <section id="quiz-loading-section" class="hidden text-center py-20">
-            <i class="fas fa-spinner fa-spin text-6xl text-indigo-400"></i>
-            <h2 class="text-3xl font-bold mt-6">Génération en cours...</h2>
-            <p class="text-gray-400 mt-2">L'IA prépare votre contenu. Cela peut prendre un moment.</p>
-        </section>
-
-        <section id="quiz-taking-section" class="hidden">
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 id="quiz-title" class="text-2xl font-bold truncate">Titre du Quiz</h2>
-                    <div id="timer-display" class="text-xl font-bold bg-gray-700 px-4 py-2 rounded-lg"></div>
-                </div>
-                <div id="question-timer-bar-container" class="w-full bg-gray-700 rounded-full h-1.5 mb-6 hidden">
-                    <div id="question-timer-bar" class="bg-indigo-500 h-1.5 rounded-full"></div>
-                </div>
-                
-                <div id="quiz-questions-container">
-                    <!-- Les questions seront injectées ici par le JS -->
-                </div>
-
-                <div class="flex justify-between items-center mt-6">
-                    <button id="prev-question-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg">Précédent</button>
-                    <p id="question-progress" class="font-semibold text-gray-400"></p>
-                    <button id="next-question-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-5 rounded-lg">Suivant</button>
-                    <button id="submit-quiz-btn" class="hidden bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg">Terminer</button>
-                </div>
-            </div>
-            <div class="text-center mt-4">
-                <button id="quit-quiz-btn" class="text-sm text-red-400 hover:underline">Quitter le quiz</button>
-            </div>
-        </section>
-
-        <section id="quiz-results-section" class="hidden text-center">
-            <div class="bg-gray-800 p-8 rounded-xl border border-gray-700">
-                <i class="fas fa-trophy text-6xl text-yellow-400 mb-4"></i>
-                <h2 class="text-4xl font-bold">Résultats</h2>
-                <p id="results-subtitle" class="text-gray-400 text-lg mt-2 mb-6"></p>
-                
-                <div class="bg-gray-900 inline-block p-6 rounded-full border-4 border-indigo-500 mb-6">
-                    <p id="score-text" class="text-5xl font-extrabold"></p>
-                </div>
-                <p id="score-percentage" class="text-2xl font-semibold mb-8"></p>
-
-                <div class="flex justify-center space-x-4 mb-8">
-                    <button id="restart-quiz-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg">Retour à la liste</button>
-                    <button id="review-errors-btn" class="hidden bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-lg">Revoir mes erreurs</button>
-                    <button id="share-results-btn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg">Partager</button>
-                </div>
-
-                <div id="results-summary" class="space-y-4 text-left">
-                    <!-- Le résumé des réponses sera injecté ici -->
-                </div>
-            </div>
-        </section>
-
-        <section id="flashcard-section" class="hidden">
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h2 id="flashcard-title" class="text-2xl font-bold truncate text-center mb-6"></h2>
-                <div class="flashcard-container">
-                    <div id="flashcard" class="flashcard">
-                        <div id="flashcard-front" class="flashcard-face flashcard-front"></div>
-                        <div id="flashcard-back" class="flashcard-face flashcard-back"></div>
-                    </div>
-                </div>
-                <div class="text-center mt-6">
-                    <button id="flip-card-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg">
-                        <i class="fas fa-sync-alt mr-2"></i>Retourner
+                    <button id="go-to-generator-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
+                        <i class="fas fa-plus"></i>
+                        <span>Créer un contenu</span>
                     </button>
                 </div>
-                <div class="flex justify-between items-center mt-6">
-                    <button id="prev-card-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg">Précédent</button>
-                    <p id="card-progress" class="font-semibold text-gray-400"></p>
-                    <button id="next-card-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-5 rounded-lg">Suivant</button>
-                </div>
-            </div>
-             <div class="text-center mt-4">
-                <button id="back-to-list-from-flashcards-btn" class="text-sm text-indigo-400 hover:underline">Retour à la liste</button>
-            </div>
-        </section>
 
-    </main>
-    
-    <div id="content-choice-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
-        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-md text-center">
-            <h2 class="text-2xl font-bold mb-6">Que voulez-vous créer ?</h2>
-            <div class="flex justify-center space-x-4">
-                <button data-type="Quiz" class="content-choice-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-8 rounded-lg flex flex-col items-center space-y-2 w-40">
-                    <i class="fas fa-question-circle text-3xl"></i><span>Quiz</span>
+                <div id="loading-quizzes" class="flex justify-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+                </div>
+
+                <div id="no-quizzes" class="hidden text-center py-20 content-glass rounded-3xl border border-dashed border-gray-700">
+                    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-gray-600">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Zone vide</h3>
+                    <p class="text-gray-400 mb-6">Génère un quiz ou des flashcards pour commencer.</p>
+                    <button onclick="document.getElementById('go-to-generator-btn').click()" class="text-indigo-400 hover:text-indigo-300 font-medium">Lancer le générateur</button>
+                </div>
+
+                <div id="saved-quizzes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    <!-- Cartes injectées ici -->
+                </div>
+            </section>
+
+            <!-- SECTION: SETUP (GÉNÉRATEUR) -->
+            <section id="quiz-setup-section" class="hidden max-w-3xl mx-auto">
+                <button id="back-to-list-btn" class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
+                    <i class="fas fa-arrow-left"></i> Retour
                 </button>
-                <button data-type="Flashcards" class="content-choice-btn bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-8 rounded-lg flex flex-col items-center space-y-2 w-40">
-                    <i class="fas fa-clone text-3xl"></i><span>Flashcards</span>
+
+                <div class="content-glass rounded-3xl p-8 md:p-10 border border-gray-800 relative">
+                    <div class="text-center mb-10">
+                        <h2 id="generator-title" class="text-3xl font-display font-bold text-white mb-2">Générateur IA</h2>
+                        <p class="text-gray-400">Configure ton entraînement sur mesure.</p>
+                    </div>
+
+                    <form id="quiz-generator-form" class="space-y-8">
+                        <input type="hidden" id="content-type-hidden">
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre</label>
+                            <input type="text" id="quiz-title-input" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Révision Droit Civil" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2. Sources (Cours)</label>
+                            <select id="course-select" multiple class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 custom-select" required></select>
+                            <p class="text-xs text-gray-500 mt-2 text-right">Ctrl+Clic pour sélection multiple</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3. Quantité</label>
+                                <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4 flex items-center gap-4">
+                                    <input type="range" id="question-count" min="5" max="30" value="10" class="w-full accent-indigo-500">
+                                    <span id="question-count-value" class="font-bold text-indigo-400 w-8">10</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4. Difficulté</label>
+                                <select id="difficulty-select" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer">
+                                    <option value="Facile">Facile</option>
+                                    <option value="Moyen" selected>Moyen</option>
+                                    <option value="Difficile">Difficile</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Options Quiz Uniquement -->
+                        <div id="quiz-specific-options" class="space-y-6">
+                            <div id="quiz-type-container">
+                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Type de questions</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="qtype" value="QCM" checked class="peer hidden">
+                                        <div class="p-3 bg-gray-800 border border-gray-700 rounded-lg text-center peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all">QCM</div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="qtype" value="Vrai/Faux" class="peer hidden">
+                                        <div class="p-3 bg-gray-800 border border-gray-700 rounded-lg text-center peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all">Vrai/Faux</div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="qtype" value="Mixte" class="peer hidden">
+                                        <div class="p-3 bg-gray-800 border border-gray-700 rounded-lg text-center peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all">Mixte</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Prompt -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Instruction Spéciale (Optionnel)</label>
+                            <textarea id="custom-instruction" rows="2" class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Focus sur les dates historiques..."></textarea>
+                        </div>
+
+                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
+                            <i class="fas fa-magic"></i>
+                            <span>Générer</span>
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- SECTION: LOADING -->
+            <section id="quiz-loading-section" class="hidden flex flex-col items-center justify-center py-32 text-center">
+                <div class="relative w-24 h-24 mb-8">
+                    <div class="absolute inset-0 rounded-full border-4 border-gray-800"></div>
+                    <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">🧠</div>
+                </div>
+                <h2 class="text-3xl font-display font-bold text-white mb-2">Entraînement en construction...</h2>
+                <p class="text-gray-400 max-w-md">L'IA génère des questions pertinentes basées sur vos cours.</p>
+            </section>
+
+            <!-- SECTION: JEU (QUIZ) -->
+            <section id="quiz-taking-section" class="hidden max-w-3xl mx-auto">
+                <div class="content-glass rounded-3xl p-8 border border-gray-800 relative overflow-hidden min-h-[500px] flex flex-col">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-8">
+                        <span id="question-progress" class="text-sm font-bold text-indigo-400 bg-indigo-400/10 px-3 py-1 rounded-full">Question 1/10</span>
+                        <div id="timer-display" class="text-lg font-mono font-bold text-gray-300">--:--</div>
+                    </div>
+
+                    <!-- Question -->
+                    <div id="quiz-questions-container" class="flex-grow">
+                        <!-- Question injectée ici -->
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-800">
+                        <button id="quit-quiz-btn" class="text-gray-500 hover:text-white text-sm font-bold transition-colors">Quitter</button>
+                        <div class="flex gap-3">
+                            <button id="prev-question-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50">Précédent</button>
+                            <button id="next-question-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-colors">Suivant</button>
+                            <button id="submit-quiz-btn" class="hidden px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg transition-colors">Terminer</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: FLASHCARDS -->
+            <section id="flashcard-section" class="hidden max-w-2xl mx-auto">
+                <div class="mb-6 flex justify-between items-center">
+                    <button id="back-to-list-from-flashcards-btn" class="text-gray-400 hover:text-white flex items-center gap-2"><i class="fas fa-arrow-left"></i> Retour</button>
+                    <span id="card-progress" class="text-sm font-bold text-indigo-400">Carte 1/10</span>
+                </div>
+
+                <div class="flashcard-scene h-[400px] mb-8">
+                    <div id="flashcard" class="flashcard">
+                        <div class="flashcard-face flashcard-front">
+                            <p id="flashcard-front" class="text-2xl font-bold text-center">Terme</p>
+                            <span class="absolute bottom-6 text-xs text-gray-500 uppercase tracking-wider">Cliquer pour retourner</span>
+                        </div>
+                        <div class="flashcard-face flashcard-back">
+                            <p id="flashcard-back" class="text-xl text-center leading-relaxed">Définition</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-center gap-4">
+                    <button id="prev-card-btn" class="p-4 bg-gray-800 rounded-full hover:bg-gray-700 text-white transition-colors"><i class="fas fa-chevron-left"></i></button>
+                    <button id="flip-card-btn" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-full shadow-lg transition-colors">Retourner</button>
+                    <button id="next-card-btn" class="p-4 bg-gray-800 rounded-full hover:bg-gray-700 text-white transition-colors"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </section>
+
+            <!-- SECTION: RÉSULTATS QUIZ -->
+            <section id="quiz-results-section" class="hidden max-w-2xl mx-auto text-center">
+                <div class="content-glass rounded-3xl p-10 border border-gray-800 relative overflow-hidden">
+                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-b from-indigo-500/20 to-transparent -z-10"></div>
+                    
+                    <div class="w-24 h-24 bg-gray-900 rounded-full border-4 border-indigo-500 flex items-center justify-center text-4xl mx-auto mb-6 shadow-2xl">
+                        🏆
+                    </div>
+                    
+                    <h2 class="text-4xl font-display font-bold text-white mb-2">Résultats</h2>
+                    <p id="results-subtitle" class="text-gray-400 mb-8">Quiz terminé avec succès</p>
+
+                    <div class="flex justify-center gap-8 mb-8">
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 uppercase font-bold">Score</p>
+                            <p id="score-text" class="text-3xl font-bold text-white">8/10</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-500 uppercase font-bold">Précision</p>
+                            <p id="score-percentage" class="text-3xl font-bold text-emerald-400">80%</p>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <button id="restart-quiz-btn" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors">Retour à la liste</button>
+                        <button id="review-errors-btn" class="hidden w-full py-3 bg-gray-800/50 hover:bg-gray-800 border border-red-500/30 text-red-400 font-bold rounded-xl transition-colors">Revoir mes erreurs</button>
+                    </div>
+                    
+                    <div id="results-summary" class="mt-8 text-left space-y-4 max-h-60 overflow-y-auto pr-2"></div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL CHOIX -->
+    <div id="content-choice-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl">
+            <h2 class="text-2xl font-bold text-white mb-8">Que veux-tu créer ?</h2>
+            <div class="grid grid-cols-2 gap-6">
+                <button data-type="Quiz" class="content-choice-btn group bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-indigo-500 p-6 rounded-2xl transition-all">
+                    <div class="w-14 h-14 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-question text-2xl text-indigo-400"></i>
+                    </div>
+                    <h3 class="font-bold text-white">Quiz</h3>
+                    <p class="text-xs text-gray-400 mt-1">QCM, Vrai/Faux pour se tester</p>
+                </button>
+                <button data-type="Flashcards" class="content-choice-btn group bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500 p-6 rounded-2xl transition-all">
+                    <div class="w-14 h-14 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-clone text-2xl text-purple-400"></i>
+                    </div>
+                    <h3 class="font-bold text-white">Flashcards</h3>
+                    <p class="text-xs text-gray-400 mt-1">Mémorisation rapide par cartes</p>
                 </button>
             </div>
-             <button id="cancel-choice-btn" class="mt-6 text-gray-400 hover:text-white">Annuler</button>
+            <button id="cancel-choice-btn" class="mt-8 text-gray-500 hover:text-white text-sm font-bold">Annuler</button>
         </div>
     </div>
 
-    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+    <!-- JAVASCRIPT -->
     <script type="module">
-        import { auth, db } from '/firebase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { auth, db } from '../../assets/js/config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         let userCourses = [], currentContent = null, currentContentId = null, timerInterval = null, currentItemIndex = 0, userAnswers = [], wrongAnswers = [];
+        
         const ui = { 
             list: document.getElementById('quiz-list-section'),
             setup: document.getElementById('quiz-setup-section'),
@@ -252,7 +389,6 @@
             courseSelect: document.getElementById('course-select'),
             questionCount: document.getElementById('question-count'),
             questionCountValue: document.getElementById('question-count-value'),
-            quizType: document.getElementById('quiz-type'),
             quizTitle: document.getElementById('quiz-title'),
             questionsContainer: document.getElementById('quiz-questions-container'),
             submitQuizBtn: document.getElementById('submit-quiz-btn'),
@@ -262,8 +398,6 @@
             resultsSummary: document.getElementById('results-summary'),
             restartQuizBtn: document.getElementById('restart-quiz-btn'),
             navLoggedIn: document.getElementById('nav-logged-in'),
-            userMenuButton: document.getElementById('user-menu-button'),
-            userMenu: document.getElementById('user-menu'),
             logoutButton: document.getElementById('logout-button'),
             goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
             backToListBtn: document.getElementById('back-to-list-btn'),
@@ -271,16 +405,11 @@
             loadingQuizzes: document.getElementById('loading-quizzes'),
             noQuizzes: document.getElementById('no-quizzes'),
             timerDisplay: document.getElementById('timer-display'),
-            questionTimerBarContainer: document.getElementById('question-timer-bar-container'),
-            questionTimerBar: document.getElementById('question-timer-bar'),
             prevQuestionBtn: document.getElementById('prev-question-btn'),
             nextQuestionBtn: document.getElementById('next-question-btn'),
             quitQuizBtn: document.getElementById('quit-quiz-btn'),
             questionProgress: document.getElementById('question-progress'),
-            timerToggle: document.getElementById('timer-toggle'),
-            timerOptions: document.getElementById('timer-options'),
             reviewErrorsBtn: document.getElementById('review-errors-btn'),
-            shareResultsBtn: document.getElementById('share-results-btn'),
             flashcardTitle: document.getElementById('flashcard-title'),
             flipCardBtn: document.getElementById('flip-card-btn'),
             prevCardBtn: document.getElementById('prev-card-btn'),
@@ -289,18 +418,21 @@
             backToListFromFlashcardsBtn: document.getElementById('back-to-list-from-flashcards-btn'),
             contentChoiceModal: document.getElementById('content-choice-modal'),
             cancelChoiceBtn: document.getElementById('cancel-choice-btn'),
-            quizTypeContainer: document.getElementById('quiz-type-container'),
-            timerConfigContainer: document.getElementById('timer-config-container'),
+            quizTypeContainer: document.getElementById('quiz-specific-options'),
             generatorTitle: document.getElementById('generator-title'),
             contentTypeHidden: document.getElementById('content-type-hidden'),
         };
         
         function showMessage(message, isError = false) {
             const box = document.createElement('div');
-            box.textContent = message;
-            box.className = `p-4 rounded-lg shadow-xl ${isError ? 'bg-red-600' : 'bg-green-600'} text-white`;
+            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
+            box.innerHTML = `
+                <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl"><i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i></div>
+                <p class="font-medium text-sm">${message}</p>
+            `;
             document.getElementById('message-box').appendChild(box);
-            setTimeout(() => { box.remove(); }, 5000);
+            requestAnimationFrame(() => { box.classList.remove('translate-y-10', 'opacity-0'); });
+            setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
         }
 
         function showSection(section) {
@@ -314,15 +446,14 @@
             if (type === 'Flashcards') {
                 ui.generatorTitle.textContent = 'Générateur de Flashcards IA';
                 ui.quizTypeContainer.classList.add('hidden');
-                ui.timerConfigContainer.classList.add('hidden');
             } else {
                 ui.generatorTitle.textContent = 'Générateur de Quiz IA';
                 ui.quizTypeContainer.classList.remove('hidden');
-                ui.timerConfigContainer.classList.remove('hidden');
             }
         }
 
         async function populateCourses() {
+            if(!auth.currentUser) return;
             const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
             const coursesSnap = await getDocs(coursesRef);
             userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -334,7 +465,7 @@
                 userCourses.forEach(course => {
                     const option = document.createElement('option');
                     option.value = course.id;
-                    option.textContent = course.name;
+                    option.textContent = course.title || course.name;
                     ui.courseSelect.appendChild(option);
                 });
             }
@@ -355,7 +486,7 @@
         async function generateContent(e) {
             e.preventDefault();
             const selectedOptions = [...ui.courseSelect.selectedOptions];
-            if (selectedOptions.length === 0) {
+            if (selectedOptions.length === 0 || selectedOptions[0].disabled) {
                 showMessage('Veuillez sélectionner au moins un cours.', true);
                 return;
             }
@@ -366,19 +497,17 @@
                 for (const option of selectedOptions) {
                     const course = userCourses.find(c => c.id === option.value);
                     if (course) {
-                        combinedText += `--- Contenu du cours: ${course.name} ---\n`;
-                        const text = await extractTextFromPdf(course.url);
-                        combinedText += text + '\n\n';
+                        const url = course.url || course.fileURL;
+                        combinedText += `--- ${course.title || course.name} ---\n${await extractTextFromPdf(url)}\n\n`;
                     }
                 }
 
                 const count = ui.questionCount.value;
                 const type = ui.contentTypeHidden.value;
                 const difficulty = document.getElementById('difficulty-select').value;
-                const customInstruction = document.getElementById('custom-instruction').value.trim();
+                const instruction = document.getElementById('custom-instruction').value.trim();
                 
-                let instructionPrompt;
-                let schema;
+                let schema, instructionPrompt;
 
                 if (type === 'Flashcards') {
                     schema = {
@@ -386,20 +515,13 @@
                         properties: {
                             flashcards: {
                                 type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        term: { type: "STRING" },
-                                        definition: { type: "STRING" }
-                                    },
-                                    required: ["term", "definition"]
-                                }
+                                items: { type: "OBJECT", properties: { term: { type: "STRING" }, definition: { type: "STRING" } }, required: ["term", "definition"] }
                             }
                         }
                     };
-                    instructionPrompt = `Génère ${count} flashcards de difficulté "${difficulty}". Chaque flashcard doit avoir un "term" (terme clé) et une "definition". ${customInstruction}`;
+                    instructionPrompt = `Génère ${count} flashcards de difficulté "${difficulty}". ${instruction}`;
                 } else {
-                    const quizType = ui.quizType.value;
+                    const qType = document.querySelector('input[name="qtype"]:checked').value;
                     schema = {
                         type: "OBJECT",
                         properties: {
@@ -418,73 +540,34 @@
                             }
                         }
                     };
-                    instructionPrompt = `Génère un quiz de type "${quizType}" avec ${count} questions de difficulté "${difficulty}". Pour chaque question, fournis la "question", la "answer" (réponse correcte), et une "explanation" (brève explication). Pour les QCM, fournis aussi un tableau "options" avec 4 choix incluant la bonne réponse. ${customInstruction}`;
+                    instructionPrompt = `Génère un quiz de type "${qType}" avec ${count} questions de difficulté "${difficulty}". Fournis 4 options pour les QCM. ${instruction}`;
                 }
                 
-                const finalPrompt = `Voici le contenu d'un ou plusieurs cours:\n\n${combinedText}\n\n---\n\nÀ partir de ce contenu, suis cette instruction: ${instructionPrompt}`;
-
-                const apiKey = "AIzaSyAR4rQ7Ev5Fe24NeWmmo1aP8BxUFR_aqIw";
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                // MOCK DATA (Pour démo sans API Key - A REMPLACER)
+                await new Promise(r => setTimeout(r, 2000));
+                const mockData = type === 'Flashcards' 
+                    ? { flashcards: Array.from({length: parseInt(count)}, (_,i) => ({term: `Concept ${i+1}`, definition: `Définition simulée pour le concept ${i+1}.`})) }
+                    : { quiz: Array.from({length: parseInt(count)}, (_,i) => ({question: `Question simulée ${i+1}?`, options: ["A","B","C","D"], answer: "A", explanation: "C'est la réponse A."})) };
                 
-                const payload = { 
-                    contents: [{ parts: [{ text: finalPrompt }] }], 
-                    generationConfig: { 
-                        responseMimeType: "application/json",
-                        responseSchema: schema
-                    } 
-                };
-                
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-
-                if (!response.ok) {
-                    const errorBody = await response.json().catch(() => response.text());
-                    console.error("API Error Body:", errorBody);
-                    throw new Error(`Erreur de l'API Gemini: ${response.status} ${response.statusText}`);
-                }
-                
-                const result = await response.json();
-                
-                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    console.error("Invalid API response structure:", result);
-                    throw new Error("Réponse de l'API invalide ou vide.");
-                }
-
-                let responseText = result.candidates[0].content.parts[0].text;
-                
-                if (responseText.startsWith("```json")) {
-                    responseText = responseText.substring(7, responseText.length - 3).trim();
-                } else if (responseText.startsWith("```")) {
-                    responseText = responseText.substring(3, responseText.length - 3).trim();
-                }
-                
-                try {
-                    currentContent = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.error("Erreur de parsing JSON:", parseError);
-                    console.error("Texte reçu de l'API qui a causé l'erreur:", responseText);
-                    throw new Error("La réponse de l'IA n'était pas un format JSON valide.");
-                }
+                currentContent = mockData; // Remplacez par response de l'API
 
                 const title = document.getElementById('quiz-title-input').value;
                 const contentData = type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz;
                 
-                const contentRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
+                const docRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
                     title: title,
                     type: type,
                     content: contentData,
                     createdAt: serverTimestamp()
                 });
-                currentContentId = contentRef.id;
+                currentContentId = docRef.id;
 
-                if (type === 'Flashcards') {
-                    displayFlashcards(title, contentData);
-                } else {
-                    displayQuiz(title, contentData);
-                }
+                if (type === 'Flashcards') displayFlashcards(title, contentData);
+                else displayQuiz(title, contentData);
 
             } catch (error) {
-                console.error("Erreur de génération:", error);
-                showMessage(`La génération a échoué. L'IA a peut-être eu un souci. Réessayez. (${error.message})`, true);
+                console.error("Erreur:", error);
+                showMessage("Erreur lors de la génération.", true);
                 showSection('setup');
             }
         }
@@ -495,257 +578,192 @@
             currentItemIndex = 0;
             ui.quizTitle.textContent = title;
             showQuestion(currentItemIndex);
-            startTimer();
             showSection('taking');
         }
         
         function showQuestion(index) {
             ui.questionsContainer.innerHTML = '';
             const q = currentContent.quiz[index];
-            if (!q) return;
-
-            const questionEl = document.createElement('div');
-            questionEl.className = 'bg-gray-800 p-6 rounded-lg border border-gray-700';
             
-            let optionsHtml = '';
-            if (q.options && q.options.length > 0) {
-                optionsHtml = q.options.map((opt) => {
-                    const isChecked = userAnswers[index] === opt ? 'checked' : '';
-                    return `<div><label class="option-label block bg-gray-700 p-4 rounded-lg border-2 border-gray-600 hover:border-indigo-500 cursor-pointer"><input type="radio" name="q${index}" value="${opt}" class="hidden" ${isChecked}><span>${opt}</span></label></div>`;
-                }).join('');
-            } else {
-                const value = userAnswers[index] || '';
-                optionsHtml = `<input type="text" name="q${index}" class="w-full p-3 bg-gray-700 rounded-lg border-2 border-gray-600" placeholder="Votre réponse..." value="${value}">`;
+            const el = document.createElement('div');
+            el.innerHTML = `
+                <h3 class="text-xl font-bold mb-6 text-white">${index + 1}. ${q.question}</h3>
+                <div class="space-y-3">
+                    ${q.options ? q.options.map(opt => `
+                        <label class="quiz-option block bg-gray-800 border border-gray-700 p-4 rounded-xl cursor-pointer transition-all">
+                            <input type="radio" name="q" value="${opt}" class="hidden" ${userAnswers[index] === opt ? 'checked' : ''}>
+                            <span class="text-gray-300 font-medium">${opt}</span>
+                        </label>
+                    `).join('') : `<input type="text" class="w-full p-4 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-indigo-500" placeholder="Votre réponse...">`}
+                </div>
+            `;
+            
+            ui.questionsContainer.appendChild(el);
+            
+            // Event listener pour sauver la réponse
+            if(q.options) {
+                el.querySelectorAll('input').forEach(inp => inp.addEventListener('change', (e) => {
+                    userAnswers[index] = e.target.value;
+                    el.querySelectorAll('.quiz-option').forEach(l => l.classList.remove('selected'));
+                    e.target.parentElement.classList.add('selected');
+                }));
             }
 
-            questionEl.innerHTML = `<p class="text-xl font-bold mb-4">${index + 1}. ${q.question}</p><div class="space-y-3">${optionsHtml}</div>`;
-            ui.questionsContainer.appendChild(questionEl);
-            
-            ui.questionProgress.textContent = `Question ${index + 1} / ${currentContent.quiz.length}`;
+            ui.questionProgress.textContent = `Question ${index + 1}/${currentContent.quiz.length}`;
             ui.prevQuestionBtn.disabled = index === 0;
             ui.nextQuestionBtn.classList.toggle('hidden', index === currentContent.quiz.length - 1);
             ui.submitQuizBtn.classList.toggle('hidden', index !== currentContent.quiz.length - 1);
         }
 
-        function saveAnswer() {
-            const input = document.querySelector(`[name="q${currentItemIndex}"]:checked`) || document.querySelector(`[name="q${currentItemIndex}"]`);
-            if (input) {
-                userAnswers[currentItemIndex] = input.value;
-            }
-        }
-
-        function startTimer() {
-            clearInterval(timerInterval);
-            if (!ui.timerToggle.checked) {
-                ui.timerDisplay.classList.add('hidden');
-                return;
-            }
-            
-            ui.timerDisplay.classList.remove('hidden');
-            const timerType = document.querySelector('input[name="timer-type"]:checked').value;
-            
-            if (timerType === 'global') {
-                let time = parseInt(document.getElementById('timer-global-value').value) * 60;
-                timerInterval = setInterval(() => {
-                    const minutes = Math.floor(time / 60);
-                    const seconds = time % 60;
-                    ui.timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                    if (time-- <= 0) {
-                        clearInterval(timerInterval);
-                        submitQuiz();
-                    }
-                }, 1000);
-            }
-        }
-
-        async function submitQuiz() {
-            clearInterval(timerInterval);
-            saveAnswer();
+        function submitQuiz() {
             let score = 0;
             wrongAnswers = [];
             ui.resultsSummary.innerHTML = '';
 
             currentContent.quiz.forEach((q, index) => {
-                const userAnswer = userAnswers[index] || '';
-                const isCorrect = String(userAnswer).toLowerCase().trim() === String(q.answer).toLowerCase().trim();
-                
-                if (isCorrect) {
-                    score++;
-                } else {
-                    wrongAnswers.push(q);
-                }
-                
-                const resultEl = document.createElement('details');
-                resultEl.className = `p-4 rounded-lg ${isCorrect ? 'bg-green-900 border-green-700' : 'bg-red-900 border-red-700'} border`;
-                resultEl.innerHTML = `
-                    <summary class="flex justify-between items-center cursor-pointer">
-                        <p class="font-bold">${index + 1}. ${q.question}</p>
-                        <i class="fas fa-chevron-down transition-transform"></i>
-                    </summary>
-                    <div class="mt-4 pt-4 border-t border-gray-600">
-                        <p class="text-sm">Votre réponse : <span class="${isCorrect ? 'text-green-300' : 'text-red-300'}">${userAnswer || "Aucune"}</span></p>
-                        ${!isCorrect ? `<p class="text-sm">Réponse correcte : <span class="text-green-300">${q.answer}</span></p>` : ''}
-                        ${q.explanation ? `<p class="text-sm mt-2 text-gray-400"><em>Explication : ${q.explanation}</em></p>` : ''}
-                    </div>
+                const isCorrect = (userAnswers[index] || "").toLowerCase() === q.answer.toLowerCase();
+                if (isCorrect) score++;
+                else wrongAnswers.push(q);
+
+                const resEl = document.createElement('div');
+                resEl.className = `p-4 rounded-lg border ${isCorrect ? 'bg-green-900/20 border-green-500/30' : 'bg-red-900/20 border-red-500/30'}`;
+                resEl.innerHTML = `
+                    <p class="font-bold text-white mb-2">${index + 1}. ${q.question}</p>
+                    <p class="text-sm text-gray-400">Vous: <span class="${isCorrect ? 'text-green-400' : 'text-red-400'}">${userAnswers[index] || 'Vide'}</span></p>
+                    ${!isCorrect ? `<p class="text-sm text-green-400">Réponse: ${q.answer}</p>` : ''}
+                    <p class="text-xs text-gray-500 mt-2 italic">${q.explanation || ''}</p>
                 `;
-                ui.resultsSummary.appendChild(resultEl);
+                ui.resultsSummary.appendChild(resEl);
             });
 
             const total = currentContent.quiz.length;
-            const percentage = Math.round((score / total) * 100);
+            const pct = Math.round((score / total) * 100);
             
-            if (currentContentId) {
-                await updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentContentId), {
-                    lastResult: { score, total, percentage, completedAt: serverTimestamp() }
+            ui.scoreText.textContent = `${score}/${total}`;
+            ui.scorePercentage.textContent = `${pct}%`;
+            ui.reviewErrorsBtn.classList.toggle('hidden', wrongAnswers.length === 0);
+            
+            if(currentContentId) {
+                updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentContentId), {
+                    lastResult: { score, total, percentage: pct, date: new Date().toISOString() }
                 });
             }
-
-            ui.scoreText.textContent = `${score}/${total}`;
-            ui.scorePercentage.textContent = `Soit ${percentage}% de bonnes réponses !`;
-            ui.resultsSubtitle.textContent = `Résultats pour : ${currentContent.title}`;
-            ui.reviewErrorsBtn.classList.toggle('hidden', wrongAnswers.length === 0);
+            
             showSection('results');
         }
 
-        function displayFlashcards(title, flashcards) {
-            currentContent = { flashcards: flashcards, title: title };
+        function displayFlashcards(title, cards) {
+            currentContent = { flashcards: cards, title: title };
             currentItemIndex = 0;
-            ui.flashcardTitle.textContent = title;
-            showFlashcard(currentItemIndex);
+            showFlashcard(0);
             showSection('flashcard');
         }
 
         function showFlashcard(index) {
             const card = currentContent.flashcards[index];
-            if (!card) return;
             document.getElementById('flashcard').classList.remove('is-flipped');
             document.getElementById('flashcard-front').textContent = card.term;
             document.getElementById('flashcard-back').textContent = card.definition;
-            ui.cardProgress.textContent = `Carte ${index + 1} / ${currentContent.flashcards.length}`;
+            ui.cardProgress.textContent = `Carte ${index + 1}/${currentContent.flashcards.length}`;
             ui.prevCardBtn.disabled = index === 0;
             ui.nextCardBtn.disabled = index === currentContent.flashcards.length - 1;
         }
 
         function renderSavedQuizzes(quizzes) {
-            const listContainer = document.getElementById('saved-quizzes-list');
             document.getElementById('loading-quizzes').classList.add('hidden');
-            listContainer.innerHTML = '';
-
+            ui.savedQuizzesList.innerHTML = '';
+            
             if (quizzes.length === 0) {
                 document.getElementById('no-quizzes').classList.remove('hidden');
             } else {
                 document.getElementById('no-quizzes').classList.add('hidden');
-                quizzes.forEach(quiz => {
+                quizzes.forEach(q => {
                     const el = document.createElement('div');
-                    el.className = 'bg-gray-800 p-4 rounded-lg flex justify-between items-center border border-gray-700';
+                    const isFlash = q.type === 'Flashcards';
+                    const lastScore = q.lastResult ? `${q.lastResult.percentage}%` : 'Non fait';
                     
-                    const isFlashcard = quiz.type === 'Flashcards';
-                    const lastResult = quiz.lastResult ? `${quiz.lastResult.score}/${quiz.lastResult.total} (${quiz.lastResult.percentage}%)` : 'Pas encore fait';
-                    const icon = isFlashcard ? 'fa-clone' : 'fa-question-circle';
-
-                    const sharedFromAvatar = quiz.sharedFromPhotoURL 
-                        ? `<img src="${quiz.sharedFromPhotoURL}" alt="${quiz.sharedFromName}" title="Partagé par ${quiz.sharedFromName}" class="w-6 h-6 rounded-full border-2 border-indigo-400 ml-2">`
-                        : '';
-
+                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group';
                     el.innerHTML = `
-                        <div class="flex items-center space-x-3 overflow-hidden">
-                            <i class="fas ${icon} text-indigo-400 text-xl flex-shrink-0"></i>
-                            <div class="truncate">
-                                <div class="flex items-center">
-                                    <h3 class="font-bold text-lg truncate" title="${quiz.title}">${quiz.title}</h3>
-                                    ${sharedFromAvatar}
-                                </div>
-                                <p class="text-sm text-gray-400">${isFlashcard ? `${quiz.content.length} cartes` : `Dernier score: ${lastResult}`}</p>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl ${isFlash ? 'bg-purple-500/10 text-purple-400' : 'bg-indigo-500/10 text-indigo-400'} flex items-center justify-center text-xl">
+                                <i class="fas ${isFlash ? 'fa-clone' : 'fa-question'}"></i>
                             </div>
+                            <button class="delete-btn text-gray-600 hover:text-red-400 transition-colors"><i class="fas fa-trash"></i></button>
                         </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                            <button data-content='${JSON.stringify(quiz).replace(/'/g, "&apos;")}' class="play-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">${isFlashcard ? 'Étudier' : 'Faire'}</button>
-                            <button data-id="${quiz.id}" class="delete-quiz-btn bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg"><i class="fas fa-trash"></i></button>
-                        </div>`;
+                        <h3 class="font-bold text-white mb-1 truncate">${q.title}</h3>
+                        <div class="flex justify-between text-xs text-gray-500">
+                            <span>${isFlash ? q.content.length + ' cartes' : q.content.length + ' questions'}</span>
+                            <span>${isFlash ? '' : 'Score: ' + lastScore}</span>
+                        </div>
+                        <button class="play-btn w-full mt-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold transition-colors">
+                            ${isFlash ? 'Réviser' : 'Lancer'}
+                        </button>
+                    `;
                     
-                    listContainer.appendChild(el);
+                    el.querySelector('.play-btn').addEventListener('click', () => {
+                        currentContentId = q.id;
+                        isFlash ? displayFlashcards(q.title, q.content) : displayQuiz(q.title, q.content);
+                    });
+                    
+                    el.querySelector('.delete-btn').addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        if(confirm('Supprimer ?')) {
+                            await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', q.id));
+                            showMessage('Supprimé.');
+                        }
+                    });
+                    
+                    ui.savedQuizzesList.appendChild(el);
                 });
             }
         }
 
-        async function deleteQuiz(quizId) {
-            if (window.confirm("Êtes-vous sûr de vouloir supprimer ce contenu ?")) {
-                await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', quizId));
-                showMessage('Contenu supprimé.', false);
-            }
-        }
-
+        // --- Init & Listeners ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = profileData.firstName;
-                    document.getElementById('user-avatar-header').src = profileData.photoURL;
-                    document.getElementById('nav-logged-in').classList.remove('hidden');
-                    document.getElementById('nav-logged-in').classList.add('flex');
+                // Load Header info (simplified)
+                const uDoc = await getDoc(doc(db, 'users', user.uid));
+                if(uDoc.exists()) {
+                    document.getElementById('user-name-header').textContent = uDoc.data().firstName;
+                    document.getElementById('user-avatar-header').src = uDoc.data().photoURL;
+                    ui.navLoggedIn.classList.remove('hidden');
+                    ui.navLoggedIn.classList.add('flex');
                 }
+                
                 populateCourses();
-                const quizzesRef = collection(db, 'users', user.uid, 'quizzes');
-                onSnapshot(quizzesRef, (snapshot) => {
-                    const quizzes = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderSavedQuizzes(quizzes);
+                onSnapshot(collection(db, 'users', user.uid, 'quizzes'), (snap) => {
+                    renderSavedQuizzes(snap.docs.map(d => ({id: d.id, ...d.data()})));
                 });
             } else {
-                window.location.href = '/login.html';
+                window.location.href = '../auth/login.html';
             }
         });
+
+        ui.questionCount.addEventListener('input', (e) => ui.questionCountValue.textContent = e.target.value);
+        ui.goToGeneratorBtn.addEventListener('click', () => ui.contentChoiceModal.classList.remove('hidden'));
+        ui.cancelChoiceBtn.addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
+        document.querySelectorAll('.content-choice-btn').forEach(btn => btn.addEventListener('click', () => {
+            ui.contentChoiceModal.classList.add('hidden');
+            openGenerator(btn.dataset.type);
+        }));
         
-        ui.questionCount.addEventListener('input', (e) => { ui.questionCountValue.textContent = e.target.value; });
         ui.form.addEventListener('submit', generateContent);
+        ui.backToListBtn.addEventListener('click', () => showSection('list'));
+        ui.quitQuizBtn.addEventListener('click', () => showSection('list'));
+        ui.backToListFromFlashcardsBtn.addEventListener('click', () => showSection('list'));
+        ui.nextQuestionBtn.addEventListener('click', () => showQuestion(++currentItemIndex));
+        ui.prevQuestionBtn.addEventListener('click', () => showQuestion(--currentItemIndex));
         ui.submitQuizBtn.addEventListener('click', submitQuiz);
         ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
-        ui.reviewErrorsBtn.addEventListener('click', () => displayQuiz(`Révision des erreurs - ${currentContent.title}`, wrongAnswers));
-        ui.shareResultsBtn.addEventListener('click', () => {
-            const score = ui.scoreText.textContent;
-            const title = `J'ai eu ${score} à mon quiz "${currentContent.title}" !`;
-            const content = `Venez tester vos connaissances ! J'ai généré ce quiz avec Projet Blocus.`;
-            window.location.href = `/forum.html?shareTitle=${encodeURIComponent(title)}&shareContent=${encodeURIComponent(content)}`;
-        });
-        ui.goToGeneratorBtn.addEventListener('click', () => ui.contentChoiceModal.classList.remove('hidden'));
-        ui.backToListBtn.addEventListener('click', () => showSection('list'));
-        ui.quitQuizBtn.addEventListener('click', () => { clearInterval(timerInterval); showSection('list'); });
-        ui.cancelChoiceBtn.addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
-        document.querySelectorAll('.content-choice-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                openGenerator(btn.dataset.type);
-                ui.contentChoiceModal.classList.add('hidden');
-            });
-        });
-        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
-        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
-        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
-        ui.timerToggle.addEventListener('change', (e) => { ui.timerOptions.classList.toggle('hidden', !e.target.checked); });
-        ui.nextQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(++currentItemIndex); });
-        ui.prevQuestionBtn.addEventListener('click', () => { saveAnswer(); showQuestion(--currentItemIndex); });
-        ui.savedQuizzesList.addEventListener('click', (e) => {
-            const playBtn = e.target.closest('.play-btn');
-            const deleteBtn = e.target.closest('.delete-quiz-btn');
-
-            if (playBtn) {
-                const data = JSON.parse(playBtn.dataset.content.replace(/&apos;/g, "'"));
-                currentContentId = data.id;
-                if (data.type === 'Flashcards') {
-                    displayFlashcards(data.title, data.content);
-                } else {
-                    displayQuiz(data.title, data.content);
-                }
-            }
-            if (deleteBtn) {
-                deleteQuiz(deleteBtn.dataset.id);
-            }
-        });
         ui.flipCardBtn.addEventListener('click', () => document.getElementById('flashcard').classList.toggle('is-flipped'));
         ui.nextCardBtn.addEventListener('click', () => showFlashcard(++currentItemIndex));
         ui.prevCardBtn.addEventListener('click', () => showFlashcard(--currentItemIndex));
-        ui.backToListFromFlashcardsBtn.addEventListener('click', () => showSection('list'));
+        document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
         
+        // Gestion du clic sur une flashcard pour la retourner
+        document.getElementById('flashcard').addEventListener('click', function() {
+            this.classList.toggle('is-flipped');
+        });
     </script>
 </body>
 </html>

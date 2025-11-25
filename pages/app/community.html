@@ -4,271 +4,324 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Communauté - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <style>
+        .sidebar-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #fff;
+            border-left: 3px solid #6366f1;
+        }
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e5e7eb;
+        }
+        /* Styles spécifiques Communauté */
+        .user-card {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .user-card:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
-        <a href="/dashboard.html" class="flex items-center space-x-2">
-            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
-        </a>
-        <nav id="nav-logged-in" class="hidden items-center space-x-6">
-            <a href="/community.html" class="text-indigo-400 font-bold">Communauté</a>
-            <a href="/friends.html" class="text-gray-300 hover:text-white font-semibold transition-colors">Amis</a>
-            <div class="relative">
-                <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                    <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                    <span id="user-name-header" class="font-semibold">Chargement...</span>
-                    <i class="fas fa-chevron-down text-xs"></i>
-                </button>
-                <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                    <a href="/index.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Accueil</a>
-                    <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                    <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                    <hr class="border-gray-600 my-2">
-                    <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <!-- FOND ANIMÉ -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <main class="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        <!-- Colonne principale : Fil d'actualité -->
-        <div class="lg:col-span-2">
-            <h1 class="text-4xl font-bold mb-8">Fil d'actualité</h1>
-            <div id="feed-container" class="space-y-8">
-                <!-- Les publications du fil d'actualité seront injectées ici -->
+    <!-- SIDEBAR -->
+    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
+        <div class="p-6 flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+                B.
             </div>
-            <div id="loading-feed" class="text-center py-12">
-                <i class="fas fa-spinner fa-spin text-indigo-400 text-4xl"></i>
-            </div>
-            <div id="empty-feed" class="hidden text-center py-12 bg-gray-800 rounded-lg">
-                <i class="fas fa-user-friends text-5xl text-gray-500 mb-4"></i>
-                <h3 class="text-2xl font-bold">Votre fil est vide</h3>
-                <p class="mt-2 text-gray-400">Ajoutez des amis pour voir leurs publications ici, ou explorez le forum pour trouver de nouvelles personnes !</p>
-            </div>
+            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
         </div>
 
-        <!-- Colonne latérale : Social Hub -->
-        <aside class="space-y-8">
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <div id="profile-card-loader" class="text-center"><i class="fas fa-spinner fa-spin"></i></div>
-                <div id="profile-card" class="hidden">
-                    <div class="flex items-center space-x-4 mb-4">
-                        <img id="profile-card-avatar" src="" class="w-16 h-16 rounded-full object-cover">
-                        <div>
-                            <h3 id="profile-card-name" class="text-xl font-bold"></h3>
-                            <a href="/profile.html" class="text-sm text-indigo-400 hover:underline">Voir mon profil</a>
-                        </div>
+        <nav class="flex-grow px-4 space-y-2">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Tableau de Bord</span>
+            </a>
+            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
+            </a>
+            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+            
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800">
+            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
+                <span class="font-medium">Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+        
+        <!-- Header Mobile -->
+        <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
+            <div class="flex items-center gap-4">
+                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <span class="font-bold text-lg text-white">Communauté</span>
+            </div>
+        </header>
+
+        <main class="flex-grow p-6 md:p-10 overflow-y-auto">
+            
+            <div class="max-w-6xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+                    <div>
+                        <h1 class="text-3xl font-display font-bold text-white mb-2">Espace Communautaire</h1>
+                        <p class="text-gray-400">Connecte-toi avec d'autres étudiants et partage tes connaissances.</p>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <a href="/friends.html" class="bg-gray-700 hover:bg-gray-600 text-center p-3 rounded-lg">
-                            <p class="font-bold text-lg" id="friends-count">0</p>
-                            <p class="text-sm text-gray-400">Amis</p>
-                        </a>
-                        <a href="/friends.html" class="bg-gray-700 hover:bg-gray-600 text-center p-3 rounded-lg">
-                            <p class="font-bold text-lg" id="requests-count">0</p>
-                            <p class="text-sm text-gray-400">Demandes</p>
-                        </a>
+                    <div class="flex gap-3">
+                        <button id="find-friends-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors flex items-center gap-2">
+                            <i class="fas fa-search"></i>
+                            <span>Chercher</span>
+                        </button>
+                        <button id="create-group-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
+                            <i class="fas fa-plus"></i>
+                            <span>Créer un Clan</span>
+                        </button>
                     </div>
                 </div>
+
+                <!-- SECTION: SUGGESTIONS D'AMIS -->
+                <section class="mb-12">
+                    <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                        <i class="fas fa-user-plus text-indigo-400"></i> Suggestions pour toi
+                    </h2>
+                    
+                    <div id="suggestions-loading" class="flex justify-center py-10">
+                        <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500"></div>
+                    </div>
+
+                    <div id="suggestions-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Cartes utilisateurs injectées ici -->
+                    </div>
+                    
+                    <div id="no-suggestions" class="hidden text-center py-10 content-glass rounded-2xl border border-dashed border-gray-700">
+                        <p class="text-gray-400">Aucune nouvelle suggestion pour le moment.</p>
+                    </div>
+                </section>
+
+                <!-- SECTION: GROUPES / CLANS -->
+                <section>
+                    <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                        <i class="fas fa-users text-purple-400"></i> Clans d'Étude Populaires
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Exemple de Clan (Statique pour l'instant, à dynamiser plus tard) -->
+                        <div class="content-glass p-6 rounded-2xl border border-gray-800 hover:border-purple-500/30 transition-all group">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-2xl">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white group-hover:text-purple-300 transition-colors">Droit Civil L1</h3>
+                                    <p class="text-xs text-gray-500">128 membres</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-4 line-clamp-2">Groupe d'entraide pour les étudiants en première année de droit. Partage de fiches et quiz.</p>
+                            <div class="flex items-center justify-between mt-auto">
+                                <div class="flex -space-x-2">
+                                    <div class="w-8 h-8 rounded-full bg-gray-700 border-2 border-gray-900"></div>
+                                    <div class="w-8 h-8 rounded-full bg-gray-600 border-2 border-gray-900"></div>
+                                    <div class="w-8 h-8 rounded-full bg-gray-500 border-2 border-gray-900 flex items-center justify-center text-xs font-bold text-white">+5</div>
+                                </div>
+                                <button class="px-4 py-2 bg-purple-600/20 hover:bg-purple-600 text-purple-300 hover:text-white text-xs font-bold rounded-lg transition-colors">Rejoindre</button>
+                            </div>
+                        </div>
+
+                        <div class="content-glass p-6 rounded-2xl border border-gray-800 hover:border-emerald-500/30 transition-all group">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-2xl">
+                                    <i class="fas fa-flask"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white group-hover:text-emerald-300 transition-colors">BioMed Ultime</h3>
+                                    <p class="text-xs text-gray-500">85 membres</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-400 mb-4 line-clamp-2">Pour tous ceux qui galèrent en biochimie et anatomie. On survit ensemble !</p>
+                            <div class="flex items-center justify-between mt-auto">
+                                <div class="flex -space-x-2">
+                                    <div class="w-8 h-8 rounded-full bg-gray-700 border-2 border-gray-900"></div>
+                                    <div class="w-8 h-8 rounded-full bg-gray-600 border-2 border-gray-900"></div>
+                                </div>
+                                <button class="px-4 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white text-xs font-bold rounded-lg transition-colors">Rejoindre</button>
+                            </div>
+                        </div>
+
+                        <div class="content-glass p-6 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group border-dashed flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-800/50">
+                            <div class="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center text-gray-500 mb-3 group-hover:text-white group-hover:bg-indigo-600 transition-colors">
+                                <i class="fas fa-plus text-xl"></i>
+                            </div>
+                            <h3 class="font-bold text-gray-300 group-hover:text-white transition-colors">Créer ton Clan</h3>
+                            <p class="text-xs text-gray-500 mt-1">Rassemble tes amis</p>
+                        </div>
+                    </div>
+                </section>
+
             </div>
 
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700">
-                <h3 class="text-xl font-bold mb-4">Suggestions d'amis</h3>
-                <div id="suggestions-list" class="space-y-4"></div>
-                <p id="no-suggestions" class="hidden text-gray-400 text-sm">Aucune suggestion pour le moment.</p>
-            </div>
-        </aside>
-    </main>
-    
-    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+        </main>
+    </div>
 
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JAVASCRIPT -->
     <script type="module">
-        import { auth, db } from '/firebase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, onSnapshot, addDoc, serverTimestamp, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+        import { auth, db } from '../../assets/js/config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, query, where, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         let currentUserId = null;
 
         const ui = {
-            navLoggedIn: document.getElementById('nav-logged-in'),
-            userMenuButton: document.getElementById('user-menu-button'),
-            userMenu: document.getElementById('user-menu'),
-            logoutButton: document.getElementById('logout-button'),
-            userNameHeader: document.getElementById('user-name-header'),
-            userAvatarHeader: document.getElementById('user-avatar-header'),
-            feedContainer: document.getElementById('feed-container'),
-            loadingFeed: document.getElementById('loading-feed'),
-            emptyFeed: document.getElementById('empty-feed'),
-            profileCard: document.getElementById('profile-card'),
-            profileCardLoader: document.getElementById('profile-card-loader'),
-            profileCardAvatar: document.getElementById('profile-card-avatar'),
-            profileCardName: document.getElementById('profile-card-name'),
-            friendsCount: document.getElementById('friends-count'),
-            requestsCount: document.getElementById('requests-count'),
+            loading: document.getElementById('suggestions-loading'),
             suggestionsList: document.getElementById('suggestions-list'),
             noSuggestions: document.getElementById('no-suggestions'),
+            logoutButton: document.getElementById('logout-button'),
         };
 
-        function timeAgo(date) { /* ... */ }
-        function showMessage(message, isError = false) { /* ... */ }
-
-        function createPostElement(post) {
-            const el = document.createElement('div');
-            el.className = 'bg-gray-800 rounded-xl border border-gray-700 overflow-hidden shadow-lg';
-            
-            let contentHtml = '';
-            let icon = 'fa-pen-alt'; // Default for text post
-            let typeLabel = 'a publié';
-            let contentTitle = post.title;
-
-            if (post.sharedContentId) {
-                switch (post.sharedContentType) {
-                    case 'course': icon = 'fa-book'; typeLabel = 'a partagé un cours'; contentTitle = post.sharedContentTitle; break;
-                    case 'quiz': icon = 'fa-question-circle'; typeLabel = 'a partagé un quiz'; contentTitle = post.sharedContentTitle; break;
-                    case 'synthesis': icon = 'fa-file-alt'; typeLabel = 'a partagé une synthèse'; contentTitle = post.sharedContentTitle; break;
-                }
-                contentHtml = `
-                    <div class="p-6">
-                        <div class="flex items-center text-gray-400 text-sm mb-2">
-                            <i class="fas ${icon} mr-2"></i>
-                            <span>${typeLabel}</span>
-                        </div>
-                        <p class="font-bold text-xl text-white">${contentTitle}</p>
-                    </div>`;
-            } else {
-                contentHtml = `<div class="p-6 text-gray-300">${post.content.replace(/\n/g, '<br>')}</div>`;
-            }
-
-            el.innerHTML = `
-                <div class="p-4 flex items-center space-x-3 border-b border-gray-700">
-                    <a href="/view-profile.html?id=${post.authorId}">
-                        <img src="${post.authorPhotoURL}" class="w-10 h-10 rounded-full object-cover hover:ring-2 ring-indigo-400">
-                    </a>
-                    <div>
-                        <a href="/view-profile.html?id=${post.authorId}" class="font-bold hover:underline">${post.authorName}</a>
-                        <p class="text-xs text-gray-400">${timeAgo(post.createdAt?.toDate())}</p>
-                    </div>
-                </div>
-                <div class="hover:bg-gray-700/50 transition-colors">
-                    <a href="/discussion.html?id=${post.id}" class="block">
-                        ${contentHtml}
-                    </a>
-                </div>
-                <div class="p-4 border-t border-gray-700 flex justify-between">
-                    <a href="/discussion.html?id=${post.id}" class="text-indigo-400 hover:text-indigo-300 font-semibold text-sm">
-                        <i class="fas fa-comment-alt mr-2"></i>Voir la discussion (${post.replyCount || 0})
-                    </a>
-                </div>
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
+            box.innerHTML = `
+                <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl"><i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i></div>
+                <p class="font-medium text-sm">${message}</p>
             `;
-            return el;
+            document.getElementById('message-box').appendChild(box);
+            requestAnimationFrame(() => { box.classList.remove('translate-y-10', 'opacity-0'); });
+            setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
         }
 
         async function loadSuggestions() {
-            // This is a simple suggestion algorithm: get 3 random users who are not the current user.
-            // A real-world app would have a more complex algorithm (friends of friends, etc.)
+            // Simple suggestion algorithm: get random users who are not current user
+            // In a real app, filter out existing friends
             const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('__name__', '!=', currentUserId), limit(3));
-            const snapshot = await getDocs(q);
+            const q = query(usersRef, limit(6)); // Limit to 6 for demo
+            
+            try {
+                const snapshot = await getDocs(q);
+                ui.loading.classList.add('hidden');
+                ui.suggestionsList.innerHTML = '';
+                
+                let count = 0;
+                snapshot.forEach(doc => {
+                    const user = {id: doc.id, ...doc.data()};
+                    if (user.id === currentUserId) return; // Skip self
+                    count++;
 
-            ui.suggestionsList.innerHTML = '';
-            if (snapshot.empty) {
-                ui.noSuggestions.classList.remove('hidden');
-                return;
-            }
-
-            snapshot.forEach(doc => {
-                const user = {id: doc.id, ...doc.data()};
-                const el = document.createElement('div');
-                el.className = 'flex items-center justify-between';
-                el.innerHTML = `
-                    <a href="/view-profile.html?id=${user.id}" class="flex items-center space-x-3">
-                        <img src="${user.photoURL}" class="w-10 h-10 rounded-full object-cover">
-                        <div>
-                            <p class="font-semibold">${user.firstName}</p>
-                            <p class="text-xs text-gray-400">${user.school}</p>
+                    const el = document.createElement('div');
+                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group flex flex-col items-center text-center relative overflow-hidden';
+                    el.innerHTML = `
+                        <div class="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-gray-800 to-transparent -z-10 opacity-50"></div>
+                        <img src="${user.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-20 h-20 rounded-full object-cover border-4 border-gray-900 shadow-lg mb-3">
+                        <h3 class="font-bold text-white text-lg mb-1 truncate w-full">${user.firstName} ${user.lastName}</h3>
+                        <p class="text-xs text-gray-400 mb-4 flex items-center gap-1">
+                            <i class="fas fa-university"></i> ${user.school || 'École inconnue'}
+                        </p>
+                        <div class="flex gap-2 w-full">
+                            <a href="view-profile.html?id=${user.id}" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold rounded-lg transition-colors">Profil</a>
+                            <button data-id="${user.id}" class="add-friend-btn flex-1 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1">
+                                <i class="fas fa-user-plus"></i> Ajouter
+                            </button>
                         </div>
-                    </a>
-                    <a href="/view-profile.html?id=${user.id}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg text-sm">Voir</a>
-                `;
-                ui.suggestionsList.appendChild(el);
-            });
+                    `;
+                    
+                    el.querySelector('.add-friend-btn').addEventListener('click', async (e) => {
+                        const btn = e.currentTarget;
+                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        btn.disabled = true;
+                        // Simulate friend request logic
+                        await new Promise(r => setTimeout(r, 1000)); 
+                        // In real app: await addDoc(collection(db, 'friend_requests'), { from: currentUserId, to: user.id, status: 'pending' });
+                        btn.innerHTML = '<i class="fas fa-check"></i> Envoyé';
+                        btn.className = "flex-1 py-2 bg-green-600/20 text-green-400 text-xs font-bold rounded-lg cursor-default border border-green-600/30";
+                        showMessage(`Demande envoyée à ${user.firstName} !`);
+                    });
+
+                    ui.suggestionsList.appendChild(el);
+                });
+
+                if (count === 0) {
+                    ui.noSuggestions.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Erreur chargement suggestions:", error);
+                ui.loading.innerHTML = '<p class="text-red-400">Erreur de chargement.</p>';
+            }
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = '/login.html'; return; }
-            currentUserId = user.uid;
-
-            const currentUserRef = doc(db, 'users', currentUserId);
-            const currentUserSnap = await getDoc(currentUserRef);
-            if (currentUserSnap.exists()) {
-                const data = currentUserSnap.data();
-                ui.userNameHeader.textContent = data.firstName;
-                ui.userAvatarHeader.src = data.photoURL;
-                ui.profileCardName.textContent = `${data.firstName} ${data.lastName}`;
-                ui.profileCardAvatar.src = data.photoURL;
-                ui.profileCardLoader.classList.add('hidden');
-                ui.profileCard.classList.remove('hidden');
-                ui.navLoggedIn.classList.remove('hidden');
-                ui.navLoggedIn.classList.add('flex');
-            }
-
-            const friendshipsRef = collection(db, 'friendships');
-            const qFriends = query(friendshipsRef, where('users', 'array-contains', currentUserId));
-            onSnapshot(qFriends, (snapshot) => {
-                let friendsCount = 0;
-                let requestsCount = 0;
-                const friendIds = [];
-
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if (data.status === 'friends') {
-                        friendsCount++;
-                        friendIds.push(data.users.find(id => id !== currentUserId));
-                    } else if (data.status === 'pending' && data.requestedTo === currentUserId) {
-                        requestsCount++;
-                    }
-                });
-                ui.friendsCount.textContent = friendsCount;
-                ui.requestsCount.textContent = requestsCount;
-
-                if (friendIds.length === 0) {
-                    ui.loadingFeed.classList.add('hidden');
-                    ui.emptyFeed.classList.remove('hidden');
-                    return;
-                }
-
-                const postsRef = collection(db, 'forum');
-                const qPosts = query(postsRef, where('authorId', 'in', friendIds), orderBy('createdAt', 'desc'), limit(50));
-                
-                onSnapshot(qPosts, (postSnapshot) => {
-                    ui.loadingFeed.classList.add('hidden');
-                    ui.feedContainer.innerHTML = '';
-                    if (postSnapshot.empty) {
-                        ui.emptyFeed.classList.remove('hidden');
-                    } else {
-                        ui.emptyFeed.classList.add('hidden');
-                        postSnapshot.forEach(doc => {
-                            ui.feedContainer.appendChild(createPostElement({ id: doc.id, ...doc.data() }));
-                        });
-                    }
-                });
-            });
-
-            loadSuggestions();
+        // --- Handlers ---
+        document.getElementById('logout-button').addEventListener('click', async () => { 
+            await signOut(auth); 
+            window.location.href = '../../index.html'; 
         });
-        
-        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
-        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
-        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
+
+        // --- Auth & Init ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                loadSuggestions();
+            } else {
+                window.location.href = '../auth/login.html';
+            }
+        });
     </script>
 </body>
 </html>

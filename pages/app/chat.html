@@ -4,63 +4,176 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conversation - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> 
-        body { font-family: 'Inter', sans-serif; } 
-        #chat-messages { height: calc(100vh - 250px); }
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <style>
+        .sidebar-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        /* Chat Bubbles */
+        .message-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        .message-sent {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+            margin-left: auto;
+        }
+        .message-received {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+            color: #e5e7eb;
+            border-bottom-left-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Custom Scrollbar for Chat */
+        #chat-messages::-webkit-scrollbar { width: 6px; }
+        #chat-messages::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 3px; }
+        #chat-messages::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col h-screen">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <header class="flex justify-between items-center p-4 bg-gray-800 shadow-lg w-full z-20">
-        <a href="/friends.html" class="text-white"><i class="fas fa-arrow-left text-xl"></i></a>
-        <div id="chat-header-info" class="flex items-center space-x-3">
-            <img id="recipient-avatar" src="https://placehold.co/40x40" class="w-10 h-10 rounded-full object-cover">
-            <span id="recipient-name" class="font-bold text-lg">Chargement...</span>
-        </div>
-        <div></div>
-    </header>
+    <!-- FOND ANIMÉ -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <main id="chat-messages" class="flex-grow p-4 overflow-y-auto space-y-4">
-        <!-- Les messages seront injectés ici -->
-    </main>
-
-    <footer class="p-4 bg-gray-800">
-        <form id="message-form" class="flex items-center space-x-2">
-            <button type="button" id="attachment-btn" class="bg-gray-600 hover:bg-gray-500 text-white font-bold p-3 rounded-full">
-                <i class="fas fa-plus"></i>
-            </button>
-            <input type="file" id="file-input" class="hidden">
-            <input type="text" id="message-input" class="w-full px-4 py-3 rounded-full bg-gray-700 text-white focus:outline-none" placeholder="Écrivez un message..." autocomplete="off">
-            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-full">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </form>
-    </footer>
-
-    <!-- Modale de partage de contenu -->
-    <div id="share-modal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-40">
-        <div class="bg-gray-800 rounded-lg p-8 shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-            <h2 class="text-2xl font-bold mb-6">Partager un contenu</h2>
-            <div id="share-content-list" class="overflow-y-auto space-y-3">
-                <!-- Le contenu à partager sera listé ici -->
+    <!-- SIDEBAR (Visible sur grand écran uniquement pour garder focus sur chat) -->
+    <aside class="w-72 sidebar-glass flex-shrink-0 hidden lg:flex flex-col z-20 relative">
+        <div class="p-6 flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+                B.
             </div>
-            <button id="cancel-share-btn" class="mt-6 bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-6 rounded-lg self-center">Annuler</button>
+            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
+        </div>
+
+        <nav class="flex-grow px-4 space-y-2">
+            <a href="friends.html" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-white/5 transition-all mb-6 group">
+                <i class="fas fa-arrow-left w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Retour aux amis</span>
+            </a>
+            
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Tableau de Bord</span>
+            </a>
+            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10 h-full">
+        
+        <!-- Chat Header -->
+        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/50 backdrop-blur-md z-20">
+            <div class="flex items-center gap-4">
+                <a href="friends.html" class="lg:hidden text-gray-400 hover:text-white"><i class="fas fa-arrow-left text-xl"></i></a>
+                
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <img id="recipient-avatar" src="" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                    </div>
+                    <div>
+                        <h1 id="recipient-name" class="font-bold text-white leading-tight">Chargement...</h1>
+                        <p class="text-xs text-gray-400">En ligne</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/5 transition-colors">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+        </header>
+
+        <!-- Chat Messages Area -->
+        <main id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col">
+            <!-- Les messages seront injectés ici -->
+            <div class="flex-grow"></div> <!-- Spacer to push messages to bottom initially if needed, or js handles scroll -->
+        </main>
+
+        <!-- Chat Input Area -->
+        <footer class="p-4 md:p-6 bg-gray-900/50 backdrop-blur-md border-t border-gray-800 z-20">
+            <form id="message-form" class="max-w-4xl mx-auto relative flex items-end gap-3">
+                
+                <!-- Attachment Button -->
+                <button type="button" id="attachment-btn" class="p-3 text-gray-400 hover:text-indigo-400 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all flex-shrink-0">
+                    <i class="fas fa-plus"></i>
+                </button>
+                
+                <!-- Input Field -->
+                <div class="flex-grow relative">
+                    <textarea id="message-input" rows="1" class="w-full pl-4 pr-12 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 resize-none" placeholder="Écris un message..." style="min-height: 48px; max-height: 120px;"></textarea>
+                    <button type="button" class="absolute right-3 bottom-3 text-gray-400 hover:text-white">
+                        <i class="far fa-smile"></i>
+                    </button>
+                </div>
+
+                <!-- Send Button -->
+                <button type="submit" class="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:scale-105 flex-shrink-0">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+
+                <input type="file" id="file-input" class="hidden">
+            </form>
+        </footer>
+    </div>
+
+    <!-- MODAL PARTAGE -->
+    <div id="share-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-900 border border-gray-700 rounded-3xl w-full max-w-md flex flex-col max-h-[80vh] shadow-2xl">
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                <h2 class="text-xl font-bold text-white">Partager du contenu</h2>
+                <button id="close-share-modal" class="text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div id="share-content-list" class="p-4 overflow-y-auto flex-grow space-y-2 custom-scrollbar">
+                <!-- Liste injectée par JS -->
+            </div>
+            
+            <div class="p-4 border-t border-gray-800 bg-gray-900/50 rounded-b-3xl text-center">
+                <button id="cancel-share-btn" class="text-sm text-gray-400 hover:text-white font-medium">Annuler</button>
+            </div>
         </div>
     </div>
 
-    <div id="message-box" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
+    <!-- JAVASCRIPT -->
     <script type="module">
-        import { auth, db, storage } from '/firebase-config.js';
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { auth, db, storage } from '../../assets/js/config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
         const recipientId = new URLSearchParams(window.location.search).get('with');
         let currentUserId = null;
@@ -78,14 +191,26 @@
             shareModal: document.getElementById('share-modal'),
             shareContentList: document.getElementById('share-content-list'),
             cancelShareBtn: document.getElementById('cancel-share-btn'),
+            closeShareModal: document.getElementById('close-share-modal'),
         };
+
+        function showMessage(message, isError = false) {
+            const box = document.createElement('div');
+            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
+            box.innerHTML = `
+                <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl"><i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i></div>
+                <p class="font-medium text-sm">${message}</p>
+            `;
+            document.getElementById('message-box').appendChild(box);
+            requestAnimationFrame(() => { box.classList.remove('translate-y-10', 'opacity-0'); });
+            setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
+        }
 
         function createChatId(user1, user2) {
             return [user1, user2].sort().join('_');
         }
 
-        function showMessage(message, isError = false) { /* ... */ }
-
+        // --- Content Loading ---
         async function loadSharableContent() {
             userSharableContent = [];
             const collectionsToFetch = ['courses', 'quizzes', 'syntheses'];
@@ -100,15 +225,30 @@
         function populateShareModal() {
             ui.shareContentList.innerHTML = '';
             if (userSharableContent.length === 0) {
-                ui.shareContentList.innerHTML = '<p class="text-gray-400">Vous n\'avez aucun contenu à partager.</p>';
+                ui.shareContentList.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-600"><i class="fas fa-folder-open"></i></div>
+                        <p class="text-gray-400">Aucun contenu à partager.</p>
+                    </div>`;
                 return;
             }
+            
             userSharableContent.forEach(item => {
+                let icon = 'fa-file-alt';
+                let color = 'text-gray-400';
+                if (item.collection === 'courses') { icon = 'fa-book'; color = 'text-blue-400'; }
+                if (item.collection === 'quizzes') { icon = 'fa-brain'; color = 'text-purple-400'; }
+                
                 const el = document.createElement('div');
-                el.className = 'bg-gray-700 p-3 rounded-lg flex justify-between items-center';
+                el.className = 'bg-gray-800 hover:bg-gray-700/50 border border-gray-700 p-3 rounded-xl flex justify-between items-center transition-colors group cursor-pointer';
+                el.onclick = () => shareContent(item.id, item.collection);
+                
                 el.innerHTML = `
-                    <p>${item.title || item.name}</p>
-                    <button data-id="${item.id}" data-collection="${item.collection}" class="share-item-btn bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-1 px-3 rounded-lg">Partager</button>
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center ${color}"><i class="fas ${icon}"></i></div>
+                        <p class="font-medium text-white truncate text-sm">${item.title || item.name}</p>
+                    </div>
+                    <button class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-share"></i></button>
                 `;
                 ui.shareContentList.appendChild(el);
             });
@@ -118,6 +258,7 @@
             const originalContent = userSharableContent.find(item => item.id === contentId);
             if (!originalContent) return;
 
+            // Create shared copy (simplified logic)
             const publicContentRef = await addDoc(collection(db, 'sharedContent'), {
                 ...originalContent,
                 originalAuthorId: currentUserId,
@@ -134,72 +275,67 @@
             ui.shareModal.classList.add('hidden');
         }
 
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) { window.location.href = '/login.html'; return; }
-            currentUserId = user.uid;
-            
-            if (!recipientId) {
-                ui.messagesContainer.innerHTML = '<p class="text-center text-gray-400">Aucun destinataire sélectionné.</p>';
-                return;
-            }
-            chatId = createChatId(currentUserId, recipientId);
-            loadSharableContent();
-
-            const recipientRef = doc(db, 'users', recipientId);
-            const recipientSnap = await getDoc(recipientRef);
-            if (recipientSnap.exists()) {
-                const data = recipientSnap.data();
-                ui.recipientName.textContent = `${data.firstName} ${data.lastName}`;
-                ui.recipientAvatar.src = data.photoURL;
-            }
-
-            const messagesRef = collection(db, 'chats', chatId, 'messages');
-            const q = query(messagesRef, orderBy('createdAt', 'asc'));
-
-            onSnapshot(q, (snapshot) => {
-                ui.messagesContainer.innerHTML = '';
-                snapshot.forEach(doc => {
-                    renderMessage(doc.data());
-                });
-                ui.messagesContainer.scrollTop = ui.messagesContainer.scrollHeight;
-            });
-        });
-
+        // --- Rendering ---
         function renderMessage(data) {
             const isSender = data.senderId === currentUserId;
             const messageEl = document.createElement('div');
-            messageEl.className = `flex items-end space-x-2 ${isSender ? 'justify-end' : ''}`;
+            messageEl.className = `flex items-end gap-2 mb-4 ${isSender ? 'justify-end' : 'justify-start'}`;
             
-            const bubbleClass = isSender ? 'bg-indigo-600 rounded-br-none' : 'bg-gray-700 rounded-bl-none';
             let contentHtml = '';
 
             switch(data.type) {
                 case 'file':
                     if (data.fileType.startsWith('image/')) {
-                        contentHtml = `<img src="${data.fileURL}" class="max-w-xs rounded-lg">`;
+                        contentHtml = `<img src="${data.fileURL}" class="max-w-xs rounded-2xl border border-gray-700 cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${data.fileURL}', '_blank')">`;
                     } else {
-                        contentHtml = `<a href="${data.fileURL}" target="_blank" class="flex items-center space-x-2 p-3 bg-gray-600 rounded-lg"><i class="fas fa-file"></i><span>${data.fileName}</span></a>`;
+                        contentHtml = `
+                            <a href="${data.fileURL}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
+                                <div class="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center text-indigo-400 group-hover:text-white transition-colors"><i class="fas fa-file-download"></i></div>
+                                <div class="text-left">
+                                    <p class="text-sm font-bold text-white truncate max-w-[150px]">${data.fileName}</p>
+                                    <p class="text-xs text-gray-500 uppercase">Fichier</p>
+                                </div>
+                            </a>`;
                     }
                     break;
                 case 'sharedContent':
-                    contentHtml = `<div class="p-3 bg-gray-600 rounded-lg w-64">
-                                     <p class="text-sm text-gray-300">Contenu partagé :</p>
-                                     <p class="font-bold">${data.contentTitle}</p>
-                                     <button data-content-id="${data.contentId}" class="add-content-btn mt-2 w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-1 px-3 rounded-lg">Ajouter</button>
-                                   </div>`;
+                    let typeIcon = 'fa-file-alt';
+                    let typeColor = 'text-gray-400';
+                    if (data.contentType === 'courses') { typeIcon = 'fa-book'; typeColor = 'text-blue-400'; }
+                    if (data.contentType === 'quizzes') { typeIcon = 'fa-brain'; typeColor = 'text-purple-400'; }
+
+                    contentHtml = `
+                        <div class="p-4 bg-gray-800 border border-gray-700 rounded-xl w-64">
+                            <div class="flex items-center gap-2 mb-2 text-xs text-gray-400 uppercase font-bold">
+                                <i class="fas fa-share-alt"></i> Partage
+                            </div>
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center ${typeColor} text-lg"><i class="fas ${typeIcon}"></i></div>
+                                <p class="font-bold text-white text-sm line-clamp-2">${data.contentTitle}</p>
+                            </div>
+                            <button data-content-id="${data.contentId}" class="add-content-btn w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors">
+                                Ajouter à ma bibliothèque
+                            </button>
+                        </div>`;
                     break;
-                default: // text message
-                    contentHtml = `<div class="max-w-xs md:max-w-md p-3 rounded-lg ${bubbleClass}"><p>${data.text}</p></div>`;
+                default: // text
+                    const bubbleClass = isSender ? 'message-sent' : 'message-received';
+                    contentHtml = `<div class="message-bubble ${bubbleClass} text-sm md:text-base">${data.text}</div>`;
             }
-            messageEl.innerHTML = contentHtml;
+            
+            messageEl.innerHTML = isSender ? contentHtml : 
+                `<img src="${ui.recipientAvatar.src}" class="w-6 h-6 rounded-full object-cover mb-1 border border-gray-700"> ${contentHtml}`;
+            
             ui.messagesContainer.appendChild(messageEl);
         }
 
+        // --- Handlers ---
         ui.messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = ui.messageInput.value.trim();
             if (text && chatId) {
                 ui.messageInput.value = '';
+                ui.messageInput.style.height = 'auto'; // Reset height
                 await addDoc(collection(db, 'chats', chatId, 'messages'), {
                     type: 'text',
                     text: text,
@@ -209,14 +345,30 @@
             }
         });
 
+        // Auto-resize textarea
+        ui.messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Enter to send (Shift+Enter for newline)
+        ui.messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                ui.messageForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
         ui.attachmentBtn.addEventListener('click', () => {
-            // Simple menu for now, could be a modal
-            const choice = prompt("Que voulez-vous envoyer ? (fichier / contenu)");
-            if (choice === 'fichier') {
-                ui.fileInput.click();
-            } else if (choice === 'contenu') {
+            // Simple menu logic using browser native or custom dropdown
+            // For now, defaulting to file picker if clicked directly, 
+            // but showing share modal via a long press or secondary click could be an option.
+            // Let's stick to a simple toggle for now:
+            if (confirm("Partager un contenu de la bibliothèque ? (Annuler pour uploader un fichier)")) {
                 populateShareModal();
                 ui.shareModal.classList.remove('hidden');
+            } else {
+                ui.fileInput.click();
             }
         });
 
@@ -228,7 +380,7 @@
             const uploadTask = uploadBytesResumable(storageRef, file);
 
             uploadTask.on('state_changed', null, 
-                (error) => { showMessage("Erreur d'envoi du fichier.", true); }, 
+                (error) => { showMessage("Erreur d'envoi.", true); }, 
                 async () => {
                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                     await addDoc(collection(db, 'chats', chatId, 'messages'), {
@@ -243,29 +395,70 @@
             );
         });
 
+        // Share Modal Logic
         ui.cancelShareBtn.addEventListener('click', () => ui.shareModal.classList.add('hidden'));
-        ui.shareContentList.addEventListener('click', e => {
-            if (e.target.classList.contains('share-item-btn')) {
-                const { id, collection } = e.target.dataset;
-                shareContent(id, collection);
+        ui.closeShareModal.addEventListener('click', () => ui.shareModal.classList.add('hidden'));
+
+        // Add Content Logic (delegated)
+        ui.messagesContainer.addEventListener('click', async e => {
+            if (e.target.closest('.add-content-btn')) {
+                const btn = e.target.closest('.add-content-btn');
+                const contentId = btn.dataset.contentId;
+                
+                const sharedRef = doc(db, 'sharedContent', contentId);
+                const sharedSnap = await getDoc(sharedRef);
+                
+                if (sharedSnap.exists()) {
+                    const data = sharedSnap.data();
+                    const destination = data.collection; // 'courses', 'quizzes', etc.
+                    // Copy to user's collection
+                    await addDoc(collection(db, 'users', currentUserId, destination), data);
+                    showMessage("Contenu ajouté à votre bibliothèque !", false);
+                    
+                    btn.textContent = 'Ajouté ✔';
+                    btn.className = "w-full py-2 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg cursor-default";
+                    btn.disabled = true;
+                }
             }
         });
 
-        ui.messagesContainer.addEventListener('click', async e => {
-            if (e.target.classList.contains('add-content-btn')) {
-                const contentId = e.target.dataset.contentId;
-                // Logic to copy from sharedContent to user's private collection
-                const sharedRef = doc(db, 'sharedContent', contentId);
-                const sharedSnap = await getDoc(sharedRef);
-                if (sharedSnap.exists()) {
-                    const data = sharedSnap.data();
-                    const destination = data.collection; // 'courses', 'quizzes', 'syntheses'
-                    await addDoc(collection(db, 'users', currentUserId, destination), data);
-                    showMessage("Contenu ajouté à votre collection !");
-                    e.target.textContent = 'Ajouté ✔';
-                    e.target.disabled = true;
-                }
+        // --- Auth & Init ---
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) { window.location.href = '../auth/login.html'; return; }
+            currentUserId = user.uid;
+            
+            if (!recipientId) {
+                ui.messagesContainer.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                        <i class="fas fa-comment-slash text-4xl mb-3"></i>
+                        <p>Aucune conversation sélectionnée.</p>
+                        <a href="friends.html" class="mt-4 text-indigo-400 hover:text-white font-bold">Retourner aux amis</a>
+                    </div>`;
+                return;
             }
+            
+            chatId = createChatId(currentUserId, recipientId);
+            loadSharableContent();
+
+            // Load Recipient Info
+            const recipientRef = doc(db, 'users', recipientId);
+            const recipientSnap = await getDoc(recipientRef);
+            if (recipientSnap.exists()) {
+                const data = recipientSnap.data();
+                ui.recipientName.textContent = `${data.firstName} ${data.lastName}`;
+                ui.recipientAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+            }
+
+            // Listen for Messages
+            const messagesRef = collection(db, 'chats', chatId, 'messages');
+            const q = query(messagesRef, orderBy('createdAt', 'asc'));
+
+            onSnapshot(q, (snapshot) => {
+                ui.messagesContainer.innerHTML = '';
+                snapshot.forEach(doc => renderMessage(doc.data()));
+                // Scroll to bottom
+                ui.messagesContainer.scrollTo({ top: ui.messagesContainer.scrollHeight, behavior: 'smooth' });
+            });
         });
     </script>
 </body>
