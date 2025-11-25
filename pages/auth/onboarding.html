@@ -167,7 +167,7 @@
                     try {
                         const docSnap = await getDoc(userRefCheck);
                         if (docSnap.exists()) {
-                            // Redirection vers le dashboard (../app/dashboard.html car on est dans pages/auth)
+                            // Redirection vers le dashboard (chemin relatif vers pages/app/)
                             window.location.href = '../app/dashboard.html';
                             return;
                         }
