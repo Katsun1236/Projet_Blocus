@@ -3,159 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projet Blocus - Uploader un cours</title>
-    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.href='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <title>Uploader un cours - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
-    <style> 
-        body { font-family: 'Inter', sans-serif; }
-        .drop-zone-active { border-color: #6366f1; background-color: rgba(99, 102, 241, 0.1); }
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <style>
+        .sidebar-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #fff;
+            border-left: 3px solid #6366f1;
+        }
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e5e7eb;
+        }
+        /* Zone de Drop */
+        .drop-zone {
+            transition: all 0.3s ease;
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%234B5563FF' stroke-width='2' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+        }
+        .drop-zone.active {
+            background-color: rgba(99, 102, 241, 0.1);
+            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%236366F1FF' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+            transform: scale(1.01);
+        }
     </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
-        <a href="/dashboard.html" class="flex items-center space-x-2">
-            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
-        </a>
-        <nav id="nav-logged-in" class="hidden items-center relative">
-            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                <span id="user-name-header" class="font-semibold">Chargement...</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                <hr class="border-gray-600 my-2">
-                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
+    <!-- FOND ANIMÉ -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
+        <div class="p-6 flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+                B.
             </div>
+            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
+        </div>
+
+        <nav class="flex-grow px-4 space-y-2">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Tableau de Bord</span>
+            </a>
+            <a href="courses.html" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
+            </a>
+            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
         </nav>
-    </header>
 
-    <main class="w-full max-w-3xl mx-auto p-4 sm:p-6 lg:p-8">
-        <div class="text-center mb-8">
-            <h1 class="text-4xl font-bold">Uploader un cours</h1>
-            <p class="text-gray-400 mt-2">Ajoute un fichier PDF pour que l'IA puisse le transformer en matériel d'étude.</p>
+        <div class="p-4 border-t border-gray-800">
+            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
+                <span class="font-medium">Déconnexion</span>
+            </button>
         </div>
+    </aside>
 
-        <div id="upload-form-container" class="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
-            <form id="upload-form">
-                <div class="mb-6">
-                    <label for="courseName" class="block text-lg font-bold mb-2">Nom du cours</label>
-                    <input type="text" id="courseName" class="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border-2 border-gray-600 focus:outline-none focus:border-indigo-500" placeholder="Ex: Histoire de la psychologie" required>
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+        
+        <!-- Header Mobile -->
+        <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
+            <div class="flex items-center gap-4">
+                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <span class="font-bold text-lg text-white">Upload</span>
+            </div>
+        </header>
+
+        <main class="flex-grow p-6 md:p-10 overflow-y-auto flex flex-col items-center justify-center">
+            
+            <div class="w-full max-w-3xl">
+                <!-- Fil d'ariane -->
+                <div class="mb-6 flex items-center text-sm text-gray-500">
+                    <a href="dashboard.html" class="hover:text-white transition-colors">Accueil</a>
+                    <i class="fas fa-chevron-right text-xs mx-3"></i>
+                    <span class="text-indigo-400">Ajouter un cours</span>
                 </div>
 
-                <div id="preview-container" class="hidden mb-4 p-4 bg-gray-900 rounded-lg text-center">
-                    <canvas id="pdf-preview-canvas" class="mx-auto rounded-md shadow-lg"></canvas>
-                    <p id="file-name-preview" class="mt-2 text-lg font-semibold text-indigo-400"></p>
-                    <p id="file-size-preview" class="text-sm text-gray-500"></p>
+                <div class="content-glass rounded-3xl p-8 md:p-12 border border-gray-800 shadow-2xl">
+                    
+                    <div class="text-center mb-10">
+                        <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-indigo-400"></i>
+                        </div>
+                        <h1 class="text-3xl font-display font-bold text-white mb-2">Importer un fichier</h1>
+                        <p class="text-gray-400">PDF uniquement. L'IA analysera le contenu pour générer des résumés.</p>
+                    </div>
+
+                    <form id="upload-form" class="space-y-8">
+                        
+                        <!-- Nom du cours -->
+                        <div>
+                            <label for="courseName" class="block text-sm font-medium text-gray-300 mb-2 ml-1">Nom du cours</label>
+                            <input type="text" id="courseName" class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: Histoire de l'Art - Chapitre 1" required>
+                        </div>
+
+                        <!-- Zone de Drop -->
+                        <div id="drop-zone" class="drop-zone rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-800/30 transition-all group relative overflow-hidden">
+                            <input type="file" id="file-input" class="hidden" accept=".pdf">
+                            
+                            <div class="relative z-10">
+                                <i class="fas fa-file-pdf text-5xl text-gray-600 group-hover:text-indigo-400 transition-colors mb-4"></i>
+                                <p class="text-lg font-medium text-white mb-1">Glisse ton fichier ici</p>
+                                <p class="text-sm text-gray-500 mb-6">ou clique pour parcourir tes dossiers</p>
+                                <span class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors">Choisir un fichier</span>
+                            </div>
+                        </div>
+
+                        <!-- Prévisualisation (Caché par défaut) -->
+                        <div id="preview-container" class="hidden bg-gray-900/50 rounded-xl p-6 border border-gray-800 flex flex-col md:flex-row items-center gap-6 animate-fade-in-up">
+                            <canvas id="pdf-preview-canvas" class="h-32 w-auto rounded-lg shadow-lg border border-gray-700"></canvas>
+                            <div class="flex-1 text-center md:text-left">
+                                <p id="file-name-preview" class="text-lg font-bold text-white truncate mb-1"></p>
+                                <p id="file-size-preview" class="text-sm text-gray-500 font-mono"></p>
+                                <button type="button" id="remove-file-btn" class="mt-3 text-xs text-red-400 hover:text-red-300 flex items-center gap-2 md:justify-start justify-center">
+                                    <i class="fas fa-trash"></i> Supprimer
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Barre de progression -->
+                        <div id="progress-container" class="hidden">
+                            <div class="flex justify-between text-xs text-gray-400 mb-2">
+                                <span>Upload en cours...</span>
+                                <span id="progress-text">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                                <div id="progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-300 w-0 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+                            </div>
+                        </div>
+
+                        <!-- Bouton Submit -->
+                        <button type="submit" id="submit-button" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
+                            <span>Lancer l'analyse IA</span>
+                            <i class="fas fa-magic"></i>
+                        </button>
+
+                    </form>
                 </div>
+            </div>
 
-                <div id="drop-zone" class="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center cursor-pointer hover:border-indigo-500 transition-colors duration-300">
-                    <i class="fas fa-file-pdf text-5xl text-gray-500 mb-4"></i>
-                    <p class="text-gray-400">Glisse et dépose ton fichier PDF ici</p>
-                    <p class="text-gray-500 text-sm my-2">ou</p>
-                    <button type="button" id="browse-button" class="bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">Choisir un fichier</button>
-                    <input type="file" id="file-input" class="hidden" accept=".pdf">
-                </div>
+        </main>
+    </div>
 
-                <div id="progress-container" class="hidden w-full bg-gray-700 rounded-full h-2.5 mt-4">
-                    <div id="progress-bar" class="bg-indigo-600 h-2.5 rounded-full" style="width: 0%"></div>
-                </div>
+    <!-- Message Box -->
+    <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
+        <div id="message-icon"></div>
+        <span id="message-text"></span>
+    </div>
 
-                <button type="submit" id="submit-button" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-colors duration-300 mt-6 disabled:bg-gray-500 disabled:cursor-not-allowed" disabled>
-                    Uploader et Analyser
-                </button>
-            </form>
-        </div>
-    </main>
-
-    <div id="message-box" class="fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl hidden z-50"></div>
-
+    <!-- JAVASCRIPT LOGIC -->
     <script type="module">
-        import { auth, db, storage } from './firebase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc, setDoc, collection } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
-        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { auth, db, storage } from '../../assets/js/config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, setDoc, collection } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
         let currentUserId = null;
         let selectedFile = null;
 
         const ui = {
             dropZone: document.getElementById('drop-zone'),
-            browseButton: document.getElementById('browse-button'),
             fileInput: document.getElementById('file-input'),
             submitButton: document.getElementById('submit-button'),
             uploadForm: document.getElementById('upload-form'),
             progressBar: document.getElementById('progress-bar'),
+            progressText: document.getElementById('progress-text'),
             progressContainer: document.getElementById('progress-container'),
             previewContainer: document.getElementById('preview-container'),
             canvas: document.getElementById('pdf-preview-canvas'),
-            navLoggedIn: document.getElementById('nav-logged-in'),
-            userMenuButton: document.getElementById('user-menu-button'),
-            userMenu: document.getElementById('user-menu'),
-            logoutButton: document.getElementById('logout-button'),
             messageBox: document.getElementById('message-box'),
+            removeFileBtn: document.getElementById('remove-file-btn')
         };
 
+        // --- UI Helpers ---
         function showMessage(message, isError = false) {
-            ui.messageBox.textContent = message;
-            ui.messageBox.classList.remove('hidden');
-            ui.messageBox.classList.toggle('bg-red-600', isError);
-            ui.messageBox.classList.toggle('bg-gray-700', !isError);
-            setTimeout(() => { ui.messageBox.classList.add('hidden'); }, 4000);
+            const box = ui.messageBox;
+            const text = document.getElementById('message-text');
+            const icon = document.getElementById('message-icon');
+            
+            text.textContent = message;
+            icon.className = isError ? 'text-red-400' : 'text-green-400';
+            icon.innerHTML = isError ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
+            
+            box.className = `fixed bottom-6 right-6 bg-gray-900 border ${isError ? 'border-red-500/30' : 'border-green-500/30'} text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float`;
+
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 4000);
         }
 
         function resetUploadState() {
             ui.submitButton.disabled = false;
-            ui.submitButton.innerHTML = 'Uploader et Analyser';
+            ui.submitButton.innerHTML = '<span>Lancer l\'analyse IA</span><i class="fas fa-magic"></i>';
             ui.progressContainer.classList.add('hidden');
             ui.progressBar.style.width = '0%';
         }
-        
+
+        // --- Auth Check ---
         onAuthStateChanged(auth, async (user) => {
             if (user && !user.isAnonymous) {
                 currentUserId = user.uid;
-                ui.navLoggedIn.classList.remove('hidden');
-                ui.navLoggedIn.classList.add('flex');
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-                if (docSnap.exists()) {
-                    const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = profileData.firstName;
-                    document.getElementById('user-avatar-header').src = profileData.photoURL;
-                }
             } else {
-                window.location.href = '/login.html';
+                window.location.href = '../auth/login.html';
             }
         });
 
-        ui.userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); ui.userMenu.classList.toggle('hidden'); });
-        window.addEventListener('click', (e) => { if (ui.navLoggedIn && !ui.navLoggedIn.contains(e.target)) ui.userMenu.classList.add('hidden'); });
-        ui.logoutButton.addEventListener('click', async () => { await signOut(auth); window.location.href = '/index.html'; });
+        // --- Sidebar Logic ---
+        document.getElementById('logout-button').addEventListener('click', async () => { 
+            await signOut(auth); 
+            window.location.href = '../../index.html'; 
+        });
 
+        // --- PDF Logic ---
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
 
         async function renderPdfPreview(file) {
             const reader = new FileReader();
             reader.onload = async function(event) {
                 try {
-                    const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(event.target.result) }).promise;
+                    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(event.target.result) });
+                    const pdf = await loadingTask.promise;
                     const page = await pdf.getPage(1);
-                    const viewport = page.getViewport({ scale: 0.5 });
-                    ui.canvas.height = viewport.height;
-                    ui.canvas.width = viewport.width;
-                    await page.render({ canvasContext: ui.canvas.getContext('2d'), viewport: viewport }).promise;
+                    
+                    // Adapter l'échelle pour que ça rentre dans le canvas (hauteur max 128px ~ h-32)
+                    const desiredHeight = 300; 
+                    const viewport = page.getViewport({ scale: 1 });
+                    const scale = desiredHeight / viewport.height;
+                    const scaledViewport = page.getViewport({ scale: scale });
+
+                    ui.canvas.height = scaledViewport.height;
+                    ui.canvas.width = scaledViewport.width;
+
+                    await page.render({ canvasContext: ui.canvas.getContext('2d'), viewport: scaledViewport }).promise;
+                    
                     ui.previewContainer.classList.remove('hidden');
+                    ui.previewContainer.classList.add('flex');
                     ui.dropZone.classList.add('hidden');
                 } catch (error) {
+                    console.error(error);
                     showMessage("Impossible de prévisualiser ce PDF.", true);
-                    handleFile(null);
+                    // On garde le fichier même si la preview échoue
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -166,28 +291,47 @@
                 selectedFile = file;
                 document.getElementById('file-name-preview').textContent = file.name;
                 document.getElementById('file-size-preview').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                
+                // Pré-remplir le nom du cours si vide
+                const courseInput = document.getElementById('courseName');
+                if (!courseInput.value) {
+                    courseInput.value = file.name.replace('.pdf', '');
+                }
+
                 renderPdfPreview(file);
                 ui.submitButton.disabled = false;
             } else {
                 if(file) showMessage("Veuillez sélectionner un fichier PDF.", true);
-                selectedFile = null;
-                ui.previewContainer.classList.add('hidden');
-                ui.dropZone.classList.remove('hidden');
-                ui.submitButton.disabled = true;
-                ui.fileInput.value = '';
             }
         }
 
-        ui.browseButton.addEventListener('click', () => ui.fileInput.click());
+        // --- Event Listeners ---
+        ui.dropZone.addEventListener('click', () => ui.fileInput.click());
         ui.fileInput.addEventListener('change', () => handleFile(ui.fileInput.files[0]));
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => ui.dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }));
-        ['dragenter', 'dragover'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.add('drop-zone-active')));
-        ['dragleave', 'drop'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.remove('drop-zone-active')));
+        
+        // Drag & Drop Visuals
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            ui.dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); });
+        });
+        ['dragenter', 'dragover'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.add('active')));
+        ['dragleave', 'drop'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.remove('active')));
+        
         ui.dropZone.addEventListener('drop', (e) => handleFile(e.dataTransfer.files[0]));
 
+        ui.removeFileBtn.addEventListener('click', () => {
+            selectedFile = null;
+            ui.fileInput.value = '';
+            ui.previewContainer.classList.add('hidden');
+            ui.previewContainer.classList.remove('flex');
+            ui.dropZone.classList.remove('hidden');
+            ui.submitButton.disabled = true;
+        });
+
+        // --- Upload Logic ---
         ui.uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!selectedFile || !currentUserId) return;
+            
             const courseName = document.getElementById('courseName').value.trim();
             if (!courseName) {
                 showMessage("Veuillez donner un nom à votre cours.", true);
@@ -195,13 +339,14 @@
             }
 
             ui.submitButton.disabled = true;
-            ui.submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Upload en cours...';
+            ui.submitButton.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div> Upload en cours...';
             ui.progressContainer.classList.remove('hidden');
 
-            // **CORRECTION**: Générer un ID de manière sécurisée avant l'upload
+            // Création ref Firestore
             const newCourseRef = doc(collection(db, 'users', currentUserId, 'courses'));
             const courseId = newCourseRef.id;
             
+            // Upload Storage
             const storageRef = ref(storage, `users/${currentUserId}/courses/${courseId}/${selectedFile.name}`);
             const uploadTask = uploadBytesResumable(storageRef, selectedFile);
 
@@ -209,6 +354,7 @@
                 (snapshot) => {
                     const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
                     ui.progressBar.style.width = progress + '%';
+                    ui.progressText.textContent = Math.round(progress) + '%';
                 }, 
                 (error) => {
                     console.error("Erreur d'upload:", error);
@@ -218,18 +364,23 @@
                 async () => {
                     try {
                         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                        
+                        // Sauvegarde Firestore
                         await setDoc(newCourseRef, {
-                            name: courseName,
+                            title: courseName, // Changé 'name' en 'title' pour matcher courses.js
                             fileName: selectedFile.name,
-                            url: downloadURL,
-                            uploadedAt: new Date().toISOString(),
+                            fileURL: downloadURL, // Changé 'url' en 'fileURL' pour matcher courses.js
+                            createdAt: new Date().toISOString(), // Changé 'uploadedAt' en 'createdAt'
                             status: 'uploaded',
-                            folderId: null // Ajout du champ pour les dossiers
+                            type: selectedFile.type,
+                            size: selectedFile.size,
+                            folderId: null // Par défaut à la racine
                         });
-                        showMessage("Upload terminé ! Redirection...");
-                        setTimeout(() => window.location.href = '/courses.html', 2000);
+
+                        showMessage("Upload terminé ! L'IA analyse ton cours...", false);
+                        setTimeout(() => window.location.href = 'dashboard.html', 1500);
                     } catch (dbError) {
-                        console.error("Erreur de sauvegarde Firestore:", dbError);
+                        console.error("Erreur de sauvegarde:", dbError);
                         showMessage("Erreur lors de la sauvegarde des informations.", true);
                         resetUploadState();
                     }
