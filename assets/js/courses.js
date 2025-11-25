@@ -59,7 +59,10 @@ function showMessage(message, isError = false) {
 
 function timeAgo(date) {
     if (!date) return 'récemment';
-    const seconds = Math.floor((new Date() - date) / 1000);
+    // Si c'est un Timestamp Firestore, on le convertit
+    const d = date.toDate ? date.toDate() : new Date(date);
+    const seconds = Math.floor((new Date() - d) / 1000);
+    
     if (seconds < 60) return "à l'instant";
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `il y a ${minutes} min`;
@@ -82,7 +85,7 @@ function render() {
 
 function updateStats() {
     if(ui.statsCoursesCount) ui.statsCoursesCount.textContent = allCourses.length;
-    if(ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; 
+    if(ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; // À connecter aux quiz plus tard
 }
 
 async function renderHeader() {
@@ -120,11 +123,14 @@ function renderBreadcrumbs() {
 
 function renderFolders() {
     if (!ui.foldersGrid) return;
+    
+    // Si on est DANS un dossier, on cache la grille des dossiers (car pas de sous-dossiers pour l'instant)
     if (currentFolderId) {
         ui.foldersGrid.innerHTML = '';
         ui.foldersGrid.parentElement.classList.add('hidden');
         return; 
     } else {
+        // Si on est à la racine, on montre la grille
         if(ui.foldersGrid.parentElement) ui.foldersGrid.parentElement.classList.remove('hidden');
     }
 
@@ -148,6 +154,10 @@ function renderFolders() {
 
 function renderCourses() {
     if (!ui.coursesList) return;
+    
+    // Filtrage : 
+    // - Si on est dans un dossier, on montre les cours qui ont ce folderId
+    // - Si on est à l'accueil (currentFolderId == null), on montre les cours SANS folderId (null ou undefined)
     const coursesToShow = currentFolderId 
         ? allCourses.filter(c => c.folderId === currentFolderId)
         : allCourses.filter(c => !c.folderId);
@@ -157,26 +167,38 @@ function renderCourses() {
         ui.coursesList.innerHTML = '';
     } else {
         if(ui.noContent) ui.noContent.classList.add('hidden');
+        
         ui.coursesList.innerHTML = coursesToShow.map(course => {
             let iconClass = "fa-file-alt";
             let colorClass = "text-blue-400 bg-blue-400/10";
-            if (course.fileName && course.fileName.endsWith('.pdf')) {
+            
+            // Détection du type de fichier pour l'icône
+            if (course.fileName && course.fileName.toLowerCase().endsWith('.pdf')) {
                 iconClass = "fa-file-pdf";
                 colorClass = "text-red-400 bg-red-400/10";
             } else if (course.type && course.type.startsWith('image/')) {
                 iconClass = "fa-file-image";
                 colorClass = "text-purple-400 bg-purple-400/10";
             }
-            const dateStr = course.createdAt ? new Date(course.createdAt.toDate()).toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'}) : 'Récemment';
+
+            // Gestion de la date
+            let dateStr = 'Récemment';
+            if (course.createdAt) {
+                const d = course.createdAt.toDate ? course.createdAt.toDate() : new Date(course.createdAt);
+                dateStr = d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+            }
+
+            // Titre du cours (fallback sur le nom du fichier si pas de titre)
+            const displayTitle = course.title || course.name || course.fileName || 'Sans titre';
 
             return `
-            <div class="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group animate-fade-in-up border-b border-gray-800/50">
+            <div class="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group animate-fade-in-up border-b border-gray-800/50 cursor-pointer" onclick="window.open('${course.fileURL || course.url}', '_blank')">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center">
                         <i class="fas ${iconClass}"></i>
                     </div>
                     <div>
-                        <h4 class="font-medium text-white group-hover:text-indigo-300 transition-colors cursor-pointer" onclick="window.open('${course.fileURL}', '_blank')">${course.title}</h4>
+                        <h4 class="font-medium text-white group-hover:text-indigo-300 transition-colors">${displayTitle}</h4>
                         <div class="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
                             <span>${course.fileName || 'Document'}</span>
                             <span class="w-1 h-1 rounded-full bg-gray-600"></span>
@@ -184,11 +206,12 @@ function renderCourses() {
                         </div>
                     </div>
                 </div>
+                
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Télécharger" onclick="window.open('${course.fileURL}', '_blank')">
+                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Télécharger" onclick="event.stopPropagation(); window.open('${course.fileURL || course.url}', '_blank')">
                         <i class="fas fa-download"></i>
                     </button>
-                    <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="deleteCourse('${course.id}', '${course.fileName}')">
+                    <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="event.stopPropagation(); deleteCourse('${course.id}', '${course.fileName}')">
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
@@ -212,15 +235,14 @@ function setupNotifications(userId) {
 function renderNotifications(notifications) {
     if (!ui.notifList) return;
     
-    // Badge count
     if (notifications.length > 0) {
         ui.notifBadge.textContent = notifications.length;
         ui.notifBadge.classList.remove('hidden');
-        ui.noNotifMsg.classList.add('hidden');
+        if(ui.noNotifMsg) ui.noNotifMsg.classList.add('hidden');
     } else {
         ui.notifBadge.classList.add('hidden');
         ui.notifList.innerHTML = '';
-        ui.noNotifMsg.classList.remove('hidden');
+        if(ui.noNotifMsg) ui.noNotifMsg.classList.remove('hidden');
         return;
     }
 
@@ -231,6 +253,9 @@ function renderNotifications(notifications) {
         if (notif.type === 'friend_request') { icon = 'fa-user-plus'; color = 'text-indigo-400 bg-indigo-400/20'; }
         if (notif.type === 'success') { icon = 'fa-trophy'; color = 'text-yellow-400 bg-yellow-400/20'; }
 
+        // Gestion de la date pour la notif
+        const dateNotif = notif.createdAt ? (notif.createdAt.toDate ? notif.createdAt.toDate() : new Date(notif.createdAt)) : new Date();
+
         return `
         <div class="p-4 border-b border-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer flex justify-between items-start group">
             <div class="flex gap-3">
@@ -239,7 +264,7 @@ function renderNotifications(notifications) {
                 </div>
                 <div>
                     <p class="text-sm text-gray-300">${notif.message}</p>
-                    <p class="text-xs text-gray-500 mt-1">${timeAgo(notif.createdAt?.toDate())}</p>
+                    <p class="text-xs text-gray-500 mt-1">${timeAgo(dateNotif)}</p>
                 </div>
             </div>
             <button onclick="deleteNotification('${notif.id}')" class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -254,17 +279,7 @@ window.deleteNotification = async (id) => {
     await deleteDoc(doc(db, 'users', currentUserId, 'notifications', id));
 };
 
-if (ui.markAllReadBtn) {
-    ui.markAllReadBtn.addEventListener('click', async () => {
-        if (!currentUserId) return;
-        const notifRef = collection(db, 'users', currentUserId, 'notifications');
-        const snapshot = await getDocs(query(notifRef)); // Correction: Use getDocs here instead of snapshot listener
-        // Note: In real app, use batch delete. Here simple loop.
-        snapshot.forEach(async (d) => await deleteDoc(doc(db, 'users', currentUserId, 'notifications', d.id)));
-    });
-}
-
-// --- Global Functions ---
+// --- Global Functions (exposed for HTML onClick) ---
 window.openFolder = (id, name) => {
     currentFolderId = id;
     currentFolderName = name;
@@ -277,8 +292,11 @@ window.resetView = () => {
     render();
 };
 
+// Création de dossier
 if(ui.newFolderBtn) {
     ui.newFolderBtn.addEventListener('click', async () => {
+        // Utilisation d'un prompt simple pour l'instant
+        // Idéalement, on ferait une modale custom
         const folderName = prompt("Nom du nouveau dossier :");
         if (folderName && currentUserId) {
             try {
@@ -325,24 +343,34 @@ onAuthStateChanged(auth, (user) => {
     if (user && !user.isAnonymous) {
         currentUserId = user.uid;
         renderHeader();
-        setupNotifications(currentUserId); // Start listening to notifications
+        setupNotifications(currentUserId);
 
-        onSnapshot(query(collection(db, 'users', currentUserId, 'folders')), (snapshot) => {
+        // Écouteur Dossiers
+        const foldersQuery = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
+        onSnapshot(foldersQuery, (snapshot) => {
             allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             render();
         }, (error) => {
             if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
+            console.log("Pas de dossiers ou erreur:", error);
         });
 
-        onSnapshot(query(collection(db, 'users', currentUserId, 'courses')), (snapshot) => {
+        // Écouteur Cours
+        const coursesQuery = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
+        onSnapshot(coursesQuery, (snapshot) => {
             allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             render();
         }, (error) => {
             if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
+            console.log("Pas de cours ou erreur:", error);
         });
 
     } else {
-        window.location.href = '../auth/login.html';
+        // Redirection si pas connecté
+        // On vérifie où on est pour faire le bon chemin relatif
+        if (window.location.pathname.includes('/app/')) {
+             window.location.href = '../auth/login.html';
+        }
     }
 });
 
@@ -350,7 +378,7 @@ if (ui.logoutButton) {
     ui.logoutButton.addEventListener('click', async () => {
         try {
             await signOut(auth);
-            window.location.href = '../auth/login.html';
+            window.location.href = '../auth/login.html'; // Chemin relatif depuis /app/
         } catch (error) {
             console.error('Erreur déconnexion:', error);
         }
