@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
+    
     <style>
         /* Ajustements spécifiques au dashboard */
         .sidebar-glass {
@@ -40,14 +41,20 @@
         /* Animation Dropdown */
         .dropdown-enter {
             animation: slideDown 0.2s ease-out forwards;
+            transform-origin: top right;
         }
         @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Notification Item Hover */
+        .notif-item:hover .delete-notif {
+            opacity: 1;
         }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -86,30 +93,25 @@
                 <span class="font-medium">Planning</span>
             </a>
 
-            <!-- AJOUT DE LA SECTION OUTILS AVEC SYNTHETISEUR -->
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
             <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Synthétiseur</span>
             </a>
 
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
-            
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
             <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Mes Amis</span>
             </a>
-
             <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
                 <span class="font-medium">Discussions</span>
             </a>
-
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
-            
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
@@ -136,44 +138,47 @@
         <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 relative">
             <div class="flex items-center gap-4 md:hidden">
-                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Dashboard</span>
             </div>
             
             <div class="hidden md:block">
-                <h1 class="text-xl font-display font-bold text-white">Bon retour ! 👋</h1>
+                <h1 class="text-xl font-display font-bold text-white">Bon retour, <span id="user-first-name" class="text-indigo-400">...</span> 👋</h1>
                 <p class="text-sm text-gray-400" id="date-display">Chargement...</p>
             </div>
 
             <div id="nav-logged-in" class="flex items-center gap-6">
                 <!-- Notification Bell -->
                 <div class="relative">
-                    <button id="notif-btn" class="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5">
+                    <button id="notif-btn" class="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 outline-none">
                         <i class="fas fa-bell text-xl"></i>
-                        <span class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900 hidden" id="notif-badge"></span>
+                        <!-- Badge -->
+                        <span id="notif-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900 hidden transform scale-100 transition-transform"></span>
                     </button>
 
                     <!-- Notification Dropdown -->
-                    <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden z-50 dropdown-enter">
-                        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/90 backdrop-blur">
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 sm:w-96 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden z-50 dropdown-enter origin-top-right">
+                        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/95 backdrop-blur sticky top-0 z-10">
                             <h3 class="font-bold text-white text-sm">Notifications</h3>
-                            <button id="mark-all-read" class="text-xs text-indigo-400 hover:text-white transition-colors">Tout effacer</button>
+                            <button id="mark-all-read" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium">Tout marquer comme lu</button>
                         </div>
-                        <div id="notifications-list" class="max-h-64 overflow-y-auto custom-scrollbar">
+                        <div id="notifications-list" class="max-h-[400px] overflow-y-auto custom-scrollbar">
                             <!-- Les notifications seront injectées ici par JS -->
-                            <div class="p-8 text-center text-gray-500 text-sm" id="no-notif-msg">
-                                <i class="far fa-bell-slash text-2xl mb-2 opacity-50"></i>
+                            <div class="p-8 text-center text-gray-500 text-sm flex flex-col items-center" id="no-notif-msg">
+                                <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 text-gray-600">
+                                    <i class="far fa-bell-slash text-xl"></i>
+                                </div>
                                 <p>Aucune nouvelle notification</p>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="h-8 w-px bg-gray-800"></div>
+                <div class="h-8 w-px bg-gray-800 hidden sm:block"></div>
 
                 <a href="profile.html" class="flex items-center gap-3 group cursor-pointer">
                     <div class="text-right hidden sm:block">
-                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">Étudiant</p>
+                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">...</p>
                         <p class="text-xs text-gray-500">Voir mon profil</p>
                     </div>
                     <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
@@ -182,7 +187,7 @@
         </header>
 
         <!-- SCROLLABLE CONTENT -->
-        <main class="flex-grow p-8 overflow-y-auto">
+        <main class="flex-grow p-8 overflow-y-auto custom-scrollbar">
             
             <!-- Stats / Quick Actions Row -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
@@ -192,9 +197,9 @@
                         <i class="fas fa-book text-6xl text-indigo-500"></i>
                     </div>
                     <p class="text-gray-400 text-sm font-medium mb-1">Total Cours</p>
-                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-courses-count">0</h3>
+                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-courses-count">--</h3>
                     <div class="flex items-center text-xs text-green-400 bg-green-400/10 w-fit px-2 py-1 rounded">
-                        <i class="fas fa-arrow-up mr-1"></i> Actif
+                        <i class="fas fa-arrow-up mr-1"></i> <span id="stats-folders-count">0 dossiers</span>
                     </div>
                 </div>
 
@@ -203,72 +208,54 @@
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <i class="fas fa-check-circle text-6xl text-purple-500"></i>
                     </div>
-                    <p class="text-gray-400 text-sm font-medium mb-1">Quiz Complétés</p>
-                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-quiz-count">0</h3>
+                    <p class="text-gray-400 text-sm font-medium mb-1">Quiz Créés</p>
+                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-quiz-count">--</h3>
                     <div class="flex items-center text-xs text-purple-400 bg-purple-400/10 w-fit px-2 py-1 rounded">
                         <i class="fas fa-fire mr-1"></i> En feu !
                     </div>
                 </div>
 
                 <!-- Card: Action Rapide -->
-                <div id="trigger-add-content" class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-center flex flex-col justify-center items-center shadow-lg shadow-indigo-900/20 group cursor-pointer hover:scale-[1.02] transition-transform">
+                <button id="trigger-add-content" class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-center flex flex-col justify-center items-center shadow-lg shadow-indigo-900/20 group cursor-pointer hover:scale-[1.02] transition-transform w-full">
                     <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3 text-white group-hover:rotate-90 transition-transform">
                         <i class="fas fa-plus text-xl"></i>
                     </div>
                     <h3 class="font-bold text-white text-lg">Ajouter un contenu</h3>
                     <p class="text-indigo-200 text-xs mt-1">Fichier, Dossier ou Quiz</p>
-                </div>
+                </button>
             </div>
 
-            <!-- Breadcrumbs & Actions -->
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                <div>
-                    <div id="breadcrumbs" class="flex items-center text-sm text-gray-500 mb-1">
-                        <span class="hover:text-white cursor-pointer transition-colors">Accueil</span>
+            <!-- Recent Folders -->
+            <div class="mb-8">
+                <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-xl font-display font-bold text-white">Dossiers Récents</h2>
+                    <a href="courses.html" class="text-sm text-indigo-400 hover:text-indigo-300">Tout voir</a>
+                </div>
+                <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <!-- Squelette de chargement -->
+                    <div class="content-glass p-4 rounded-xl h-32 animate-pulse flex flex-col justify-between">
+                        <div class="w-8 h-8 bg-gray-700 rounded"></div>
+                        <div class="w-2/3 h-4 bg-gray-700 rounded"></div>
                     </div>
-                    <h2 id="main-title" class="text-2xl font-display font-bold text-white">Mes Dossiers</h2>
-                </div>
-                
-                <div class="flex gap-3">
-                    <a href="upload.html" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-lg border border-gray-700 transition-colors flex items-center gap-2">
-                        <i class="fas fa-cloud-upload-alt"></i> Upload
-                    </a>
-                    <button id="new-folder-button" class="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
-                        <i class="fas fa-folder-plus"></i> Nouveau Dossier
-                    </button>
+                    <div class="content-glass p-4 rounded-xl h-32 animate-pulse flex flex-col justify-between hidden sm:flex">
+                        <div class="w-8 h-8 bg-gray-700 rounded"></div>
+                        <div class="w-2/3 h-4 bg-gray-700 rounded"></div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Loading -->
-            <div id="loading-indicator" class="flex justify-center items-center py-20">
-                <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-            </div>
-
-            <!-- Folders Grid -->
-            <div id="folders-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
-                <!-- Les dossiers seront injectés ici par JS -->
-            </div>
-
-            <!-- Courses List Section -->
+            <!-- Recent Files -->
             <div class="content-glass rounded-2xl border border-gray-800 overflow-hidden">
                 <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                    <h3 id="courses-title" class="font-display font-bold text-lg text-white">Fichiers & Synthèses</h3>
-                    <div class="flex gap-2">
-                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-filter"></i></button>
-                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-sort"></i></button>
-                    </div>
+                    <h3 class="font-display font-bold text-lg text-white">Fichiers Récents</h3>
+                    <a href="courses.html" class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-arrow-right"></i></a>
                 </div>
                 
                 <div id="courses-list" class="divide-y divide-gray-800">
-                    <!-- Les cours seront injectés ici -->
-                </div>
-                
-                <div id="no-content" class="hidden text-center py-16">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800/50 text-gray-600 mb-4">
-                        <i class="fas fa-box-open text-3xl"></i>
+                    <!-- Liste vide par défaut -->
+                    <div class="p-8 text-center text-gray-500 text-sm">
+                        <p>Chargement des fichiers...</p>
                     </div>
-                    <p class="text-gray-400 font-medium">Ce dossier est vide.</p>
-                    <p class="text-gray-600 text-sm mt-1">Commence par ajouter un fichier !</p>
                 </div>
             </div>
 
@@ -276,8 +263,8 @@
     </div>
 
     <!-- MODAL D'AJOUT DE CONTENU -->
-    <div id="add-content-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl relative">
+    <div id="add-content-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl relative transform transition-all scale-100">
             <button id="close-add-content" class="absolute top-4 right-4 text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors">
                 <i class="fas fa-times"></i>
             </button>
@@ -293,19 +280,19 @@
                     <p class="text-xs text-gray-400 mt-1">PDF, Image, Note</p>
                 </a>
                 
-                <button id="btn-create-folder-modal" class="group p-5 rounded-2xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-emerald-500 transition-all text-center flex flex-col items-center">
+                <a href="courses.html" class="group p-5 rounded-2xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-emerald-500 transition-all text-center flex flex-col items-center">
                     <div class="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center mb-3 text-emerald-400 group-hover:scale-110 transition-transform group-hover:bg-emerald-500 group-hover:text-white">
                         <i class="fas fa-folder-plus text-xl"></i>
                     </div>
                     <h3 class="font-bold text-white">Dossier</h3>
                     <p class="text-xs text-gray-400 mt-1">Organiser mes cours</p>
-                </button>
+                </a>
                 
                 <a href="quiz.html" class="group p-5 rounded-2xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500 transition-all text-center flex flex-col items-center">
                     <div class="w-14 h-14 bg-purple-500/20 rounded-full flex items-center justify-center mb-3 text-purple-400 group-hover:scale-110 transition-transform group-hover:bg-purple-500 group-hover:text-white">
                         <i class="fas fa-brain text-xl"></i>
                     </div>
-                    <h3 class="font-bold text-white">Quiz / Flashcard</h3>
+                    <h3 class="font-bold text-white">Quiz IA</h3>
                     <p class="text-xs text-gray-400 mt-1">Générer via IA</p>
                 </a>
                 
@@ -320,71 +307,287 @@
         </div>
     </div>
 
-    <!-- Modals Container -->
-    <div id="modal-container"></div>
-
-    <!-- Message Box -->
+    <!-- Message Box (Toast) -->
     <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
-        <!-- Icone gérée par JS -->
+        <div id="message-icon" class="text-indigo-400"></div>
+        <span id="message-text"></span>
     </div>
 
-    <!-- Scripts -->
-    <script>
-        // Simple script pour afficher la date du jour
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('date-display').textContent = new Date().toLocaleDateString('fr-FR', options);
+    <!-- LOGIQUE PRINCIPALE -->
+    <script type="module">
+        import { auth, db } from '../../assets/js/config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, collection, query, orderBy, limit, onSnapshot, where, getDocs, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // Gestion Notification Dropdown
-        const notifBtn = document.getElementById('notif-btn');
-        const notifDropdown = document.getElementById('notif-dropdown');
-        
-        notifBtn.addEventListener('click', (e) => {
+        // --- DOM Elements ---
+        const ui = {
+            userName: document.getElementById('user-name-header'),
+            userFirstName: document.getElementById('user-first-name'),
+            userAvatar: document.getElementById('user-avatar-header'),
+            dateDisplay: document.getElementById('date-display'),
+            statsCourses: document.getElementById('stats-courses-count'),
+            statsQuiz: document.getElementById('stats-quiz-count'),
+            statsFolders: document.getElementById('stats-folders-count'),
+            foldersGrid: document.getElementById('folders-grid'),
+            coursesList: document.getElementById('courses-list'),
+            notifBtn: document.getElementById('notif-btn'),
+            notifBadge: document.getElementById('notif-badge'),
+            notifDropdown: document.getElementById('notif-dropdown'),
+            notifList: document.getElementById('notifications-list'),
+            noNotifMsg: document.getElementById('no-notif-msg'),
+            markAllReadBtn: document.getElementById('mark-all-read'),
+            addContentModal: document.getElementById('add-content-modal'),
+            triggerAddContent: document.getElementById('trigger-add-content'),
+            closeAddContent: document.getElementById('close-add-content')
+        };
+
+        let currentUserId = null;
+
+        // --- Date Display ---
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        ui.dateDisplay.textContent = new Date().toLocaleDateString('fr-FR', options);
+
+        // --- Notifications Logic ---
+        function setupNotifications(userId) {
+            // Ecoute en temps réel des notifications
+            const q = query(
+                collection(db, 'users', userId, 'notifications'),
+                orderBy('createdAt', 'desc'),
+                limit(10)
+            );
+
+            onSnapshot(q, (snapshot) => {
+                const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateNotificationUI(notifications);
+            });
+        }
+
+        function updateNotificationUI(notifications) {
+            // Filtrer les non-lues pour le badge
+            const unreadCount = notifications.filter(n => !n.read).length;
+            
+            // Mise à jour du badge
+            if (unreadCount > 0) {
+                ui.notifBadge.classList.remove('hidden');
+                // ui.notifBadge.textContent = unreadCount; // Optionnel: afficher le nombre
+            } else {
+                ui.notifBadge.classList.add('hidden');
+            }
+
+            // Mise à jour de la liste
+            ui.notifList.innerHTML = '';
+            
+            if (notifications.length === 0) {
+                ui.noNotifMsg.classList.remove('hidden');
+            } else {
+                ui.noNotifMsg.classList.add('hidden');
+                
+                notifications.forEach(n => {
+                    // Style selon le type
+                    let icon = 'fa-info-circle';
+                    let iconColor = 'text-blue-400';
+                    let bgIcon = 'bg-blue-400/10';
+
+                    if (n.type === 'success') { icon = 'fa-check-circle'; iconColor = 'text-green-400'; bgIcon = 'bg-green-400/10'; }
+                    if (n.type === 'warning') { icon = 'fa-exclamation-triangle'; iconColor = 'text-yellow-400'; bgIcon = 'bg-yellow-400/10'; }
+                    if (n.type === 'message') { icon = 'fa-comment-alt'; iconColor = 'text-indigo-400'; bgIcon = 'bg-indigo-400/10'; }
+
+                    const isUnread = !n.read ? 'bg-gray-800/50 border-l-2 border-indigo-500' : 'opacity-75';
+                    const timeStr = n.createdAt ? new Date(n.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+
+                    const el = document.createElement('div');
+                    el.className = `notif-item p-4 border-b border-gray-800 hover:bg-gray-800 transition-colors cursor-pointer relative group ${isUnread}`;
+                    el.innerHTML = `
+                        <div class="flex gap-3">
+                            <div class="w-8 h-8 rounded-full ${bgIcon} flex items-center justify-center flex-shrink-0 mt-1">
+                                <i class="fas ${icon} ${iconColor} text-xs"></i>
+                            </div>
+                            <div class="flex-grow pr-6">
+                                <p class="text-sm text-gray-200 leading-snug">${n.message}</p>
+                                <p class="text-xs text-gray-500 mt-1">${timeStr}</p>
+                            </div>
+                        </div>
+                        <button class="delete-notif absolute top-2 right-2 text-gray-600 hover:text-red-400 opacity-0 transition-opacity p-1" title="Supprimer">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+
+                    // Action de suppression
+                    el.querySelector('.delete-notif').addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        await deleteDoc(doc(db, 'users', currentUserId, 'notifications', n.id));
+                    });
+
+                    // Marquer comme lu au clic
+                    el.addEventListener('click', async () => {
+                        if (!n.read) {
+                            await updateDoc(doc(db, 'users', currentUserId, 'notifications', n.id), { read: true });
+                        }
+                        // Optionnel: rediriger si lien attaché
+                        if (n.link) window.location.href = n.link;
+                    });
+
+                    ui.notifList.appendChild(el);
+                });
+            }
+        }
+
+        // Tout marquer comme lu
+        ui.markAllReadBtn.addEventListener('click', async () => {
+            const batch = writeBatch(db);
+            const q = query(collection(db, 'users', currentUserId, 'notifications'), where('read', '==', false));
+            const snapshot = await getDocs(q);
+            
+            if (snapshot.empty) return;
+
+            snapshot.forEach(doc => {
+                batch.update(doc.ref, { read: true });
+            });
+            await batch.commit();
+        });
+
+        // Toggle Dropdown Notification
+        ui.notifBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            notifDropdown.classList.toggle('hidden');
+            ui.notifDropdown.classList.toggle('hidden');
         });
 
         // Fermer dropdown au clic ailleurs
         window.addEventListener('click', (e) => {
-            if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
-                notifDropdown.classList.add('hidden');
+            if (!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) {
+                ui.notifDropdown.classList.add('hidden');
             }
         });
 
-        // Gestion Modale Ajout Contenu
-        const triggerAdd = document.getElementById('trigger-add-content');
-        const addModal = document.getElementById('add-content-modal');
-        const closeAdd = document.getElementById('close-add-content');
-        const btnFolderModal = document.getElementById('btn-create-folder-modal');
+        // --- Stats & Data Loading ---
+        async function loadDashboardData(userId) {
+            // 1. Stats Counts (Snapshot unique pour perf)
+            const coursesSnap = await getDocs(collection(db, 'users', userId, 'courses'));
+            const quizSnap = await getDocs(collection(db, 'users', userId, 'quizzes')); // Assure-toi que la collection s'appelle 'quizzes'
+            const foldersSnap = await getDocs(collection(db, 'users', userId, 'folders'));
 
-        if(triggerAdd) {
-            triggerAdd.addEventListener('click', () => {
-                addModal.classList.remove('hidden');
+            ui.statsCourses.textContent = coursesSnap.size;
+            ui.statsQuiz.textContent = quizSnap.size;
+            ui.statsFolders.textContent = `${foldersSnap.size} dossiers`;
+
+            // 2. Dossiers Récents (Limit 5)
+            const foldersList = foldersSnap.docs
+                .map(doc => ({id: doc.id, ...doc.data()}))
+                .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                .slice(0, 5);
+
+            renderFolders(foldersList);
+
+            // 3. Fichiers Récents (Limit 5)
+            const coursesList = coursesSnap.docs
+                .map(doc => ({id: doc.id, ...doc.data()}))
+                .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
+                .slice(0, 5);
+
+            renderCourses(coursesList);
+        }
+
+        function renderFolders(folders) {
+            ui.foldersGrid.innerHTML = '';
+            
+            // Bouton "Nouveau Dossier" toujours présent
+            const addBtn = document.createElement('div');
+            addBtn.className = 'bg-indigo-600/20 border border-indigo-500/30 p-4 rounded-xl h-32 flex flex-col items-center justify-center text-indigo-400 cursor-pointer hover:bg-indigo-600 hover:text-white transition-all group';
+            addBtn.innerHTML = `<i class="fas fa-plus text-2xl mb-2 group-hover:scale-110 transition-transform"></i><span class="text-xs font-bold">Nouveau</span>`;
+            addBtn.onclick = () => window.location.href = 'courses.html'; // Ou modale création
+            ui.foldersGrid.appendChild(addBtn);
+
+            folders.forEach(f => {
+                const el = document.createElement('div');
+                el.className = 'content-glass p-4 rounded-xl h-32 flex flex-col justify-between cursor-pointer hover:bg-gray-800 transition-colors group relative';
+                el.onclick = () => window.location.href = `courses.html?folder=${f.id}`;
+                el.innerHTML = `
+                    <div class="text-indigo-400 group-hover:text-white transition-colors"><i class="fas fa-folder text-3xl"></i></div>
+                    <div>
+                        <h4 class="font-bold text-white truncate text-sm">${f.name}</h4>
+                        <p class="text-xs text-gray-500">${f.courseCount || 0} fichiers</p>
+                    </div>
+                `;
+                ui.foldersGrid.appendChild(el);
             });
         }
 
-        if(closeAdd) {
-            closeAdd.addEventListener('click', () => {
-                addModal.classList.add('hidden');
+        function renderCourses(courses) {
+            ui.coursesList.innerHTML = '';
+            if (courses.length === 0) {
+                ui.coursesList.innerHTML = `
+                    <div class="p-8 text-center text-gray-500 text-sm">
+                        <i class="fas fa-file-pdf text-2xl mb-2 opacity-50"></i>
+                        <p>Aucun fichier récent.</p>
+                    </div>`;
+                return;
+            }
+
+            courses.forEach(c => {
+                let icon = 'fa-file-alt';
+                let color = 'text-gray-400';
+                if (c.fileName?.endsWith('.pdf')) { icon = 'fa-file-pdf'; color = 'text-red-400'; }
+                
+                const dateStr = c.createdAt ? new Date(c.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : '';
+
+                const el = document.createElement('div');
+                el.className = 'p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors cursor-pointer group';
+                el.onclick = () => window.open(c.fileURL || c.url, '_blank');
+                el.innerHTML = `
+                    <div class="flex items-center gap-4 overflow-hidden">
+                        <div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center ${color} text-lg flex-shrink-0">
+                            <i class="fas ${icon}"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="font-medium text-white truncate group-hover:text-indigo-400 transition-colors">${c.title || c.fileName}</h4>
+                            <p class="text-xs text-gray-500">${dateStr} • ${(c.size / 1024 / 1024).toFixed(1)} MB</p>
+                        </div>
+                    </div>
+                    <button class="p-2 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-download"></i></button>
+                `;
+                ui.coursesList.appendChild(el);
             });
         }
-        
-        // Fermer la modale en cliquant en dehors
-        addModal.addEventListener('click', (e) => {
-            if(e.target === addModal) addModal.classList.add('hidden');
+
+        // --- Modal Logic ---
+        ui.triggerAddContent.addEventListener('click', () => ui.addContentModal.classList.remove('hidden'));
+        ui.closeAddContent.addEventListener('click', () => ui.addContentModal.classList.add('hidden'));
+        ui.addContentModal.addEventListener('click', (e) => {
+            if(e.target === ui.addContentModal) ui.addContentModal.classList.add('hidden');
         });
 
-        // Connecter le bouton Dossier de la modale au vrai bouton du script courses.js
-        if(btnFolderModal) {
-            btnFolderModal.addEventListener('click', () => {
-                addModal.classList.add('hidden');
-                // Simule le clic sur le bouton "Nouveau Dossier" géré par courses.js
-                document.getElementById('new-folder-button').click();
-            });
-        }
+        // --- Logout ---
+        document.getElementById('logout-button').addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = '../../index.html';
+        });
+
+        // --- Auth & Initialization ---
+        onAuthStateChanged(auth, async (user) => {
+            if (user && !user.isAnonymous) {
+                currentUserId = user.uid;
+                
+                // Charger infos user
+                const userSnap = await getDoc(doc(db, 'users', currentUserId));
+                if (userSnap.exists()) {
+                    const data = userSnap.data();
+                    ui.userName.textContent = data.firstName;
+                    ui.userFirstName.textContent = data.firstName;
+                    ui.userAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+                } else {
+                    // Fallback si pas de profil (rare car onboarding forcé)
+                    ui.userName.textContent = "Étudiant";
+                }
+
+                // Lancer les écouteurs
+                setupNotifications(currentUserId);
+                loadDashboardData(currentUserId);
+
+            } else {
+                window.location.href = '../auth/login.html';
+            }
+        });
 
     </script>
-    <!-- Import du module logique -->
-    <script type="module" src="../../assets/js/courses.js"></script>
-
 </body>
 </html>
