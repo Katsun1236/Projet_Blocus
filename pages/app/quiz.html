@@ -478,9 +478,12 @@
             }
         }
 
-        // CORRECTION APPLIQUÉE ICI
         async function populateCourses() {
-            if(!auth.currentUser) return;
+            if(!auth.currentUser) {
+                // Si l'utilisateur n'est pas encore authentifié (cas peu probable ici mais plus sûr)
+                return;
+            }
+            
             const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
             
             try {
@@ -489,7 +492,6 @@
                 
                 ui.courseSelect.innerHTML = '';
                 if (userCourses.length === 0) {
-                    // Afficher un message si aucun cours n'est disponible
                     const option = document.createElement('option');
                     option.value = '';
                     option.textContent = 'Veuillez d\'abord uploader un cours';
@@ -499,7 +501,6 @@
                     userCourses.forEach(course => {
                         const option = document.createElement('option');
                         option.value = course.id;
-                        // Rendu plus robuste : utilise title, name ou le nom du fichier
                         option.textContent = course.title || course.name || course.fileName; 
                         ui.courseSelect.appendChild(option);
                     });
@@ -509,7 +510,6 @@
                 showMessage("Erreur de chargement des cours. Vérifiez votre connexion.", true);
             }
         }
-        // FIN CORRECTION
 
         async function extractTextFromPdf(url) {
             pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
