@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discussions - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <style>
+        .sidebar-glass {
+            background: rgba(5, 5, 5, 0.6);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .nav-item.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #fff;
+            border-left: 3px solid #6366f1;
+        }
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e5e7eb;
+        }
+    </style>
+</head>
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+
+    <!-- FOND ANIMÉ -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
+        <div class="p-6 flex items-center gap-3 mb-6">
+            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+                B.
+            </div>
+            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
+        </div>
+
+        <nav class="flex-grow px-4 space-y-2">
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Tableau de Bord</span>
+            </a>
+            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mes Cours</span>
+            </a>
+            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
+            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800">
+            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
+                <span class="font-medium">Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+        
+        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
+            <h1 class="text-xl font-display font-bold text-white">Mes Conversations</h1>
+            <a href="friends.html" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-900/20 transition-all flex items-center gap-2">
+                <i class="fas fa-user-plus"></i> Nouveau Chat
+            </a>
+        </header>
+
+        <main class="flex-grow p-6 md:p-10 overflow-y-auto">
+            
+            <div class="max-w-4xl mx-auto">
+                <div id="loading-chats" class="flex justify-center py-20">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+                </div>
+
+                <div id="chats-list" class="space-y-4">
+                    <!-- Conversations injectées ici -->
+                </div>
+                
+                <div id="no-chats" class="hidden text-center py-20 content-glass rounded-3xl border border-dashed border-gray-700">
+                    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-gray-600">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">Aucune conversation</h3>
+                    <p class="text-gray-400 mb-6">Ajoute des amis pour commencer à discuter !</p>
+                    <a href="friends.html" class="text-indigo-400 hover:text-indigo-300 font-medium">Voir mes amis</a>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- JAVASCRIPT -->
+    <script type="module">
+        import { auth, db } from '../../assets/js/config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, collection, onSnapshot, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        let currentUserId = null;
+        let friendsProfiles = {}; // Cache des profils d'amis
+
+        const ui = {
+            loading: document.getElementById('loading-chats'),
+            chatsList: document.getElementById('chats-list'),
+            noChats: document.getElementById('no-chats'),
+        };
+
+        function timeAgo(date) {
+            if (!date) return 'récemment';
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return "à l'instant";
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} min`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} h`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} j`;
+            return new Date(date).toLocaleDateString('fr-FR');
+        }
+        
+        function formatLastMessage(messageData) {
+            if (!messageData) return 'Commencez la conversation...';
+            
+            let prefix = '';
+            if (messageData.senderId === currentUserId) {
+                prefix = 'Vous: ';
+            }
+            
+            if (messageData.type === 'file') {
+                return `${prefix} [Fichier: ${messageData.fileName || 'Document'}]`;
+            }
+            if (messageData.type === 'sharedContent') {
+                return `${prefix} [Partage: ${messageData.contentTitle}]`;
+            }
+            
+            // Message texte
+            return prefix + messageData.text.substring(0, 50) + (messageData.text.length > 50 ? '...' : '');
+        }
+
+        async function fetchFriendProfiles(friendIds) {
+            // Récupère les profils des amis et les met en cache
+            const profilePromises = friendIds.map(id => getDoc(doc(db, 'users', id)));
+            const profileSnaps = await Promise.all(profilePromises);
+
+            profileSnaps.forEach(snap => {
+                if (snap.exists()) {
+                    friendsProfiles[snap.id] = snap.data();
+                }
+            });
+        }
+
+        function renderChats(friendships) {
+            ui.loading.classList.add('hidden');
+            ui.chatsList.innerHTML = '';
+
+            const friendIds = friendships.filter(f => f.status === 'friends').map(f => f.otherUserId);
+            
+            if (friendIds.length === 0) {
+                ui.noChats.classList.remove('hidden');
+                return;
+            }
+            ui.noChats.classList.add('hidden');
+
+
+            // 1. Pour chaque ami, écouter la sous-collection de messages pour obtenir le dernier
+            friendIds.forEach(friendId => {
+                const chatId = createChatId(currentUserId, friendId);
+                const messagesRef = collection(db, 'chats', chatId, 'messages');
+                const q = query(messagesRef, orderBy('createdAt', 'desc'), limit(1));
+                
+                onSnapshot(q, (snapshot) => {
+                    const lastMessage = snapshot.docs.length > 0 ? snapshot.docs[0].data() : null;
+                    const profile = friendsProfiles[friendId];
+
+                    if (!profile) return;
+
+                    // Créer/Mettre à jour l'élément de la liste
+                    const existingEl = document.getElementById(`chat-item-${friendId}`);
+                    const dateDisplay = lastMessage ? timeAgo(lastMessage.createdAt?.toDate ? lastMessage.createdAt.toDate() : new Date()) : '';
+
+                    const chatHtml = `
+                        <div class="flex items-center gap-4">
+                            <div class="relative flex-shrink-0">
+                                <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 bg-gray-800">
+                                <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                            </div>
+                            <div class="flex-grow min-w-0">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-bold text-white truncate">${profile.firstName} ${profile.lastName}</h3>
+                                    <span class="text-xs text-gray-500">${dateDisplay}</span>
+                                </div>
+                                <p class="text-sm text-gray-400 truncate mt-1">
+                                    ${formatLastMessage(lastMessage)}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+
+                    if (existingEl) {
+                        existingEl.innerHTML = chatHtml;
+                    } else {
+                        const newEl = document.createElement('a');
+                        newEl.href = `chat.html?with=${friendId}`;
+                        newEl.id = `chat-item-${friendId}`;
+                        newEl.className = 'content-glass p-4 rounded-xl cursor-pointer hover:bg-gray-800/50 transition-colors block';
+                        newEl.innerHTML = chatHtml;
+                        ui.chatsList.appendChild(newEl);
+                    }
+                });
+            });
+        }
+
+
+        // --- Initialization ---
+        document.getElementById('logout-button').addEventListener('click', async () => { 
+            await signOut(auth); 
+            window.location.href = '../../index.html'; 
+        });
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                
+                const friendshipsRef = collection(db, 'friendships');
+                // Écouter toutes les amitiés impliquant l'utilisateur courant
+                const q = query(friendshipsRef, where('users', 'array-contains', currentUserId));
+
+                onSnapshot(q, async (snapshot) => {
+                    const friends = [];
+                    
+                    snapshot.forEach(doc => {
+                        const data = { id: doc.id, ...doc.data() };
+                        const otherUserId = data.users.find(id => id !== currentUserId);
+                        
+                        if (data.status === 'friends') {
+                            friends.push({ ...data, otherUserId });
+                        }
+                    });
+
+                    const friendIds = friends.map(f => f.otherUserId);
+                    await fetchFriendProfiles(friendIds);
+                    renderChats(friends);
+                });
+            } else {
+                window.location.href = '../auth/login.html';
+            }
+        });
+    </script>
+</body>
+</html>

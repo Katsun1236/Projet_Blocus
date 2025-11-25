@@ -31,6 +31,7 @@
             border-radius: 16px;
             position: relative;
             animation: fadeIn 0.3s ease-out;
+            word-wrap: break-word; /* Important pour les longs messages */
         }
         .message-sent {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
@@ -55,7 +56,7 @@
         #chat-messages::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
@@ -72,9 +73,10 @@
         </div>
 
         <nav class="flex-grow px-4 space-y-2">
-            <a href="friends.html" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-white/5 transition-all mb-6 group">
+            <!-- LIEN CORRIGÉ -->
+            <a href="chat-list.html" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-white/5 transition-all mb-6 group">
                 <i class="fas fa-arrow-left w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Retour aux amis</span>
+                <span class="font-medium">Retour aux Chats</span>
             </a>
             
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
@@ -86,6 +88,45 @@
                 <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mes Cours</span>
             </a>
+            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
+            
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
+            
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <!-- LIEN CORRIGÉ -->
+            <a href="chat-list.html" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
+            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+            
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
         </nav>
     </aside>
 
@@ -95,12 +136,13 @@
         <!-- Chat Header -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/50 backdrop-blur-md z-20">
             <div class="flex items-center gap-4">
-                <a href="friends.html" class="lg:hidden text-gray-400 hover:text-white"><i class="fas fa-arrow-left text-xl"></i></a>
+                <!-- LIEN CORRIGÉ -->
+                <a href="chat-list.html" class="lg:hidden text-gray-400 hover:text-white"><i class="fas fa-arrow-left text-xl"></i></a>
                 
                 <div class="flex items-center gap-3">
                     <div class="relative">
-                        <img id="recipient-avatar" src="" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
-                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                        <img id="recipient-avatar" src="https://ui-avatars.com/api/?background=random" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700 bg-gray-800">
+                        <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full" title="En ligne"></span>
                     </div>
                     <div>
                         <h1 id="recipient-name" class="font-bold text-white leading-tight">Chargement...</h1>
@@ -115,9 +157,9 @@
         </header>
 
         <!-- Chat Messages Area -->
-        <main id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col">
-            <!-- Les messages seront injectés ici -->
-            <div class="flex-grow"></div> <!-- Spacer to push messages to bottom initially if needed, or js handles scroll -->
+        <main id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col custom-scrollbar">
+            <!-- Messages will be injected here -->
+            <div class="flex-grow min-h-[1px]"></div> <!-- Spacer to push messages to bottom -->
         </main>
 
         <!-- Chat Input Area -->
@@ -125,7 +167,7 @@
             <form id="message-form" class="max-w-4xl mx-auto relative flex items-end gap-3">
                 
                 <!-- Attachment Button -->
-                <button type="button" id="attachment-btn" class="p-3 text-gray-400 hover:text-indigo-400 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all flex-shrink-0">
+                <button type="button" id="attachment-btn" class="p-3 text-gray-400 hover:text-indigo-400 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all flex-shrink-0" title="Envoyer fichier / Partager contenu">
                     <i class="fas fa-plus"></i>
                 </button>
                 
@@ -138,7 +180,7 @@
                 </div>
 
                 <!-- Send Button -->
-                <button type="submit" class="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:scale-105 flex-shrink-0">
+                <button type="submit" id="send-btn" class="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:scale-105 flex-shrink-0">
                     <i class="fas fa-paper-plane"></i>
                 </button>
 
@@ -156,7 +198,7 @@
             </div>
             
             <div id="share-content-list" class="p-4 overflow-y-auto flex-grow space-y-2 custom-scrollbar">
-                <!-- Liste injectée par JS -->
+                <div class="text-center py-8 text-gray-500">Chargement de votre bibliothèque...</div>
             </div>
             
             <div class="p-4 border-t border-gray-800 bg-gray-900/50 rounded-b-3xl text-center">
@@ -172,13 +214,16 @@
     <script type="module">
         import { auth, db, storage } from '../../assets/js/config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, addDoc, serverTimestamp, query, orderBy, getDocs, updateDoc, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
         const recipientId = new URLSearchParams(window.location.search).get('with');
         let currentUserId = null;
         let chatId = null;
         let userSharableContent = [];
+        let recipientProfile = null;
+        let currentUserProfile = null;
+        let lastMessageScrollHeight = 0; // Pour ne scroll qu'en cas de nouveau message
 
         const ui = {
             messagesContainer: document.getElementById('chat-messages'),
@@ -192,6 +237,7 @@
             shareContentList: document.getElementById('share-content-list'),
             cancelShareBtn: document.getElementById('cancel-share-btn'),
             closeShareModal: document.getElementById('close-share-modal'),
+            sendBtn: document.getElementById('send-btn'),
         };
 
         function showMessage(message, isError = false) {
@@ -207,17 +253,38 @@
         }
 
         function createChatId(user1, user2) {
+            // Crée un ID unique et ordonné pour le chat 1:1
             return [user1, user2].sort().join('_');
+        }
+
+        function scrollToBottom() {
+            // Scroll uniquement si un nouveau message arrive et que l'utilisateur n'est pas déjà en train de lire
+            const messages = ui.messagesContainer;
+            if (messages.scrollHeight > lastMessageScrollHeight) {
+                messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
+                lastMessageScrollHeight = messages.scrollHeight;
+            }
         }
 
         // --- Content Loading ---
         async function loadSharableContent() {
             userSharableContent = [];
-            const collectionsToFetch = ['courses', 'quizzes', 'syntheses'];
-            for (const coll of collectionsToFetch) {
-                const ref = collection(db, 'users', currentUserId, coll);
+            const collectionsToFetch = [
+                { name: 'courses', icon: 'fa-book', color: 'text-blue-400' }, 
+                { name: 'quizzes', icon: 'fa-brain', color: 'text-purple-400' }, 
+                { name: 'syntheses', icon: 'fa-magic', color: 'text-pink-400' }
+            ];
+            
+            for (const { name, icon, color } of collectionsToFetch) {
+                const ref = collection(db, 'users', currentUserId, name);
                 const snapshot = await getDocs(ref);
-                const items = snapshot.docs.map(doc => ({ id: doc.id, collection: coll, ...doc.data() }));
+                const items = snapshot.docs.map(doc => ({ 
+                    id: doc.id, 
+                    collection: name, 
+                    icon, 
+                    color,
+                    ...doc.data() 
+                }));
                 userSharableContent.push(...items);
             }
         }
@@ -229,24 +296,20 @@
                     <div class="text-center py-8">
                         <div class="w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-600"><i class="fas fa-folder-open"></i></div>
                         <p class="text-gray-400">Aucun contenu à partager.</p>
+                        <a href="upload.html" class="text-indigo-400 text-sm mt-2 block">Ajouter un cours</a>
                     </div>`;
                 return;
             }
             
             userSharableContent.forEach(item => {
-                let icon = 'fa-file-alt';
-                let color = 'text-gray-400';
-                if (item.collection === 'courses') { icon = 'fa-book'; color = 'text-blue-400'; }
-                if (item.collection === 'quizzes') { icon = 'fa-brain'; color = 'text-purple-400'; }
-                
                 const el = document.createElement('div');
                 el.className = 'bg-gray-800 hover:bg-gray-700/50 border border-gray-700 p-3 rounded-xl flex justify-between items-center transition-colors group cursor-pointer';
-                el.onclick = () => shareContent(item.id, item.collection);
+                el.onclick = () => shareContent(item);
                 
                 el.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center ${color}"><i class="fas ${icon}"></i></div>
-                        <p class="font-medium text-white truncate text-sm">${item.title || item.name}</p>
+                        <div class="w-8 h-8 rounded-lg bg-gray-700 flex items-center justify-center ${item.color}"><i class="fas ${item.icon}"></i></div>
+                        <p class="font-medium text-white truncate text-sm">${item.title || item.name || item.fileName || 'Sans titre'}</p>
                     </div>
                     <button class="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-share"></i></button>
                 `;
@@ -254,28 +317,30 @@
             });
         }
 
-        async function shareContent(contentId, contentCollection) {
-            const originalContent = userSharableContent.find(item => item.id === contentId);
-            if (!originalContent) return;
-
-            // Create shared copy (simplified logic)
+        async function shareContent(originalContent) {
+            // 1. Créer une référence publique pour le contenu partagé (dans une collection `sharedContent`)
+            // Ceci permet au destinataire d'ajouter une copie à sa librairie
             const publicContentRef = await addDoc(collection(db, 'sharedContent'), {
                 ...originalContent,
                 originalAuthorId: currentUserId,
+                originalAuthorName: currentUserProfile.firstName || 'Utilisateur',
+                sharedAt: serverTimestamp(),
             });
 
+            // 2. Envoyer le message de partage
             await addDoc(collection(db, 'chats', chatId, 'messages'), {
                 type: 'sharedContent',
-                contentId: publicContentRef.id,
-                contentTitle: originalContent.title || originalContent.name,
-                contentType: contentCollection,
+                contentRefId: publicContentRef.id,
+                contentTitle: originalContent.title || originalContent.name || originalContent.fileName,
+                contentType: originalContent.collection,
                 senderId: currentUserId,
                 createdAt: serverTimestamp()
             });
             ui.shareModal.classList.add('hidden');
+            showMessage("Contenu partagé !");
         }
 
-        // --- Rendering ---
+        // --- Rendering Messages ---
         function renderMessage(data) {
             const isSender = data.senderId === currentUserId;
             const messageEl = document.createElement('div');
@@ -285,8 +350,19 @@
 
             switch(data.type) {
                 case 'file':
-                    if (data.fileType.startsWith('image/')) {
+                    // Rendu de Fichier/Image
+                    const isImage = data.fileType && data.fileType.startsWith('image/');
+                    const isAudio = data.fileType && data.fileType.startsWith('audio/'); // Support Audio
+                    
+                    if (isImage) {
                         contentHtml = `<img src="${data.fileURL}" class="max-w-xs rounded-2xl border border-gray-700 cursor-pointer hover:opacity-90 transition-opacity" onclick="window.open('${data.fileURL}', '_blank')">`;
+                    } else if (isAudio) {
+                        contentHtml = `
+                            <div class="p-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group flex items-center gap-3">
+                                <i class="fas fa-volume-up text-indigo-400"></i>
+                                <audio controls src="${data.fileURL}" class="max-w-[200px]"></audio>
+                                <a href="${data.fileURL}" target="_blank" class="text-gray-500 hover:text-white" title="Télécharger"><i class="fas fa-download text-sm"></i></a>
+                            </div>`;
                     } else {
                         contentHtml = `
                             <a href="${data.fileURL}" target="_blank" class="flex items-center gap-3 p-3 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-colors group">
@@ -299,21 +375,23 @@
                     }
                     break;
                 case 'sharedContent':
+                    // Rendu de Contenu Partagé (Quiz, Cours, Synthèse)
                     let typeIcon = 'fa-file-alt';
                     let typeColor = 'text-gray-400';
                     if (data.contentType === 'courses') { typeIcon = 'fa-book'; typeColor = 'text-blue-400'; }
                     if (data.contentType === 'quizzes') { typeIcon = 'fa-brain'; typeColor = 'text-purple-400'; }
+                    if (data.contentType === 'syntheses') { typeIcon = 'fa-magic'; typeColor = 'text-pink-400'; }
 
                     contentHtml = `
                         <div class="p-4 bg-gray-800 border border-gray-700 rounded-xl w-64">
                             <div class="flex items-center gap-2 mb-2 text-xs text-gray-400 uppercase font-bold">
-                                <i class="fas fa-share-alt"></i> Partage
+                                <i class="fas fa-share-alt"></i> Contenu Partagé
                             </div>
                             <div class="flex items-center gap-3 mb-3">
                                 <div class="w-10 h-10 bg-gray-900 rounded-lg flex items-center justify-center ${typeColor} text-lg"><i class="fas ${typeIcon}"></i></div>
                                 <p class="font-bold text-white text-sm line-clamp-2">${data.contentTitle}</p>
                             </div>
-                            <button data-content-id="${data.contentId}" class="add-content-btn w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors">
+                            <button data-content-id="${data.contentRefId}" data-content-type="${data.contentType}" class="add-content-btn w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition-colors">
                                 Ajouter à ma bibliothèque
                             </button>
                         </div>`;
@@ -324,7 +402,7 @@
             }
             
             messageEl.innerHTML = isSender ? contentHtml : 
-                `<img src="${ui.recipientAvatar.src}" class="w-6 h-6 rounded-full object-cover mb-1 border border-gray-700"> ${contentHtml}`;
+                `<img src="${ui.recipientAvatar.src}" class="w-6 h-6 rounded-full object-cover mb-1 border border-gray-700 bg-gray-800 flex-shrink-0"> ${contentHtml}`;
             
             ui.messagesContainer.appendChild(messageEl);
         }
@@ -335,7 +413,11 @@
             const text = ui.messageInput.value.trim();
             if (text && chatId) {
                 ui.messageInput.value = '';
-                ui.messageInput.style.height = 'auto'; // Reset height
+                ui.messageInput.style.height = '48px'; // Reset height
+                
+                // Vider le focus pour éviter le spam et permettre l'envoi rapide
+                ui.messageInput.blur(); 
+
                 await addDoc(collection(db, 'chats', chatId, 'messages'), {
                     type: 'text',
                     text: text,
@@ -359,28 +441,40 @@
             }
         });
 
+        // Attachment / Share Logic
         ui.attachmentBtn.addEventListener('click', () => {
-            // Simple menu logic using browser native or custom dropdown
-            // For now, defaulting to file picker if clicked directly, 
-            // but showing share modal via a long press or secondary click could be an option.
-            // Let's stick to a simple toggle for now:
-            if (confirm("Partager un contenu de la bibliothèque ? (Annuler pour uploader un fichier)")) {
+            // Afficher la modale pour le partage de contenu de la bibliothèque
+            loadSharableContent().then(() => {
                 populateShareModal();
                 ui.shareModal.classList.remove('hidden');
-            } else {
-                ui.fileInput.click();
-            }
+            }).catch(e => {
+                console.error("Erreur chargement bibliothèque:", e);
+                showMessage("Erreur lors du chargement de la bibliothèque.", true);
+            });
         });
 
+        // File upload (via le bouton caché)
         ui.fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
+            if (file.size > 10 * 1024 * 1024) { // Limite de 10MB
+                showMessage("Fichier trop lourd (max 10MB).", true);
+                ui.fileInput.value = '';
+                return;
+            }
+
+            showMessage("Envoi du fichier en cours...");
+            
+            // Logique d'upload vers Firebase Storage
             const storageRef = ref(storage, `chats/${chatId}/${Date.now()}_${file.name}`);
             const uploadTask = uploadBytesResumable(storageRef, file);
 
-            uploadTask.on('state_changed', null, 
-                (error) => { showMessage("Erreur d'envoi.", true); }, 
+            uploadTask.on('state_changed', 
+                (snapshot) => {
+                    // Progression de l'upload (pourrait être affichée dans la modale)
+                }, 
+                (error) => { showMessage("Erreur d'envoi du fichier.", true); }, 
                 async () => {
                     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                     await addDoc(collection(db, 'chats', chatId, 'messages'), {
@@ -391,6 +485,7 @@
                         senderId: currentUserId,
                         createdAt: serverTimestamp()
                     });
+                    showMessage("Fichier envoyé !");
                 }
             );
         });
@@ -401,26 +496,48 @@
 
         // Add Content Logic (delegated)
         ui.messagesContainer.addEventListener('click', async e => {
-            if (e.target.closest('.add-content-btn')) {
-                const btn = e.target.closest('.add-content-btn');
-                const contentId = btn.dataset.contentId;
-                
+            const btn = e.target.closest('.add-content-btn');
+            if (!btn) return;
+            
+            const contentId = btn.dataset.contentId;
+            const destination = btn.dataset.contentType;
+            
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                // 1. Récupérer le contenu public partagé
                 const sharedRef = doc(db, 'sharedContent', contentId);
                 const sharedSnap = await getDoc(sharedRef);
                 
                 if (sharedSnap.exists()) {
                     const data = sharedSnap.data();
-                    const destination = data.collection; // 'courses', 'quizzes', etc.
-                    // Copy to user's collection
-                    await addDoc(collection(db, 'users', currentUserId, destination), data);
+                    // 2. Copier vers la collection de l'utilisateur courant
+                    const destCollection = collection(db, 'users', currentUserId, destination);
+                    
+                    // On retire les champs liés au partage avant la copie
+                    const { originalAuthorId, originalAuthorName, sharedAt, ...contentToCopy } = data;
+                    
+                    await addDoc(destCollection, {
+                        ...contentToCopy,
+                        addedFromShare: true,
+                        addedAt: serverTimestamp()
+                    });
+                    
                     showMessage("Contenu ajouté à votre bibliothèque !", false);
                     
                     btn.textContent = 'Ajouté ✔';
                     btn.className = "w-full py-2 bg-green-500/20 text-green-400 text-xs font-bold rounded-lg cursor-default";
-                    btn.disabled = true;
+                } else {
+                    throw new Error("Contenu partagé introuvable.");
                 }
+            } catch (e) {
+                console.error("Erreur lors de l'ajout du contenu partagé:", e);
+                showMessage("Erreur : Contenu non copié.", true);
+                btn.textContent = 'Erreur';
             }
         });
+
 
         // --- Auth & Init ---
         onAuthStateChanged(auth, async (user) => {
@@ -428,25 +545,26 @@
             currentUserId = user.uid;
             
             if (!recipientId) {
-                ui.messagesContainer.innerHTML = `
-                    <div class="flex flex-col items-center justify-center h-full text-gray-500">
-                        <i class="fas fa-comment-slash text-4xl mb-3"></i>
-                        <p>Aucune conversation sélectionnée.</p>
-                        <a href="friends.html" class="mt-4 text-indigo-400 hover:text-white font-bold">Retourner aux amis</a>
-                    </div>`;
+                // Redirection vers la liste si pas d'ID de destinataire
+                window.location.href = 'chat-list.html';
                 return;
             }
             
             chatId = createChatId(currentUserId, recipientId);
-            loadSharableContent();
 
-            // Load Recipient Info
-            const recipientRef = doc(db, 'users', recipientId);
-            const recipientSnap = await getDoc(recipientRef);
+            // Load User Profiles
+            const [recipientSnap, currentUserSnap] = await Promise.all([
+                getDoc(doc(db, 'users', recipientId)),
+                getDoc(doc(db, 'users', currentUserId))
+            ]);
+            
             if (recipientSnap.exists()) {
-                const data = recipientSnap.data();
-                ui.recipientName.textContent = `${data.firstName} ${data.lastName}`;
-                ui.recipientAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+                recipientProfile = recipientSnap.data();
+                ui.recipientName.textContent = `${recipientProfile.firstName} ${recipientProfile.lastName}`;
+                ui.recipientAvatar.src = recipientProfile.photoURL || 'https://ui-avatars.com/api/?background=random';
+            }
+            if (currentUserSnap.exists()) {
+                currentUserProfile = currentUserSnap.data();
             }
 
             // Listen for Messages
@@ -454,10 +572,20 @@
             const q = query(messagesRef, orderBy('createdAt', 'asc'));
 
             onSnapshot(q, (snapshot) => {
+                const isInitialLoad = ui.messagesContainer.children.length === 1; // 1 because of the flex-grow spacer
                 ui.messagesContainer.innerHTML = '';
+                
+                // Re-add spacer
+                const spacer = document.createElement('div');
+                spacer.className = "flex-grow min-h-[1px]";
+                ui.messagesContainer.appendChild(spacer);
+                
                 snapshot.forEach(doc => renderMessage(doc.data()));
-                // Scroll to bottom
-                ui.messagesContainer.scrollTo({ top: ui.messagesContainer.scrollHeight, behavior: 'smooth' });
+                
+                // Scroll to bottom only if it's the initial load OR a new message arrived
+                if (isInitialLoad || snapshot.docChanges().some(change => change.type === 'added')) {
+                    setTimeout(scrollToBottom, 50);
+                }
             });
         });
     </script>
