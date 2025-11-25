@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription - Projet Blocus</title>
+    <title>Connexion - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
     <!-- Tailwind CSS -->
@@ -41,13 +41,13 @@
             
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 mb-4">
-                    <i class="fas fa-user-plus text-2xl"></i>
+                    <i class="fas fa-user-circle text-2xl"></i>
                 </div>
-                <h2 class="text-3xl font-display font-bold text-white mb-2">Créer un compte</h2>
-                <p class="text-gray-400 text-sm">Rejoins la communauté et commence à réussir.</p>
+                <h2 class="text-3xl font-display font-bold text-white mb-2">Bon retour !</h2>
+                <p class="text-gray-400 text-sm">Connecte-toi pour reprendre tes révisions.</p>
             </div>
 
-            <form id="signup-form" class="space-y-5">
+            <form id="login-form" class="space-y-5">
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-400 mb-1">Adresse e-mail</label>
                     <div class="relative">
@@ -64,29 +64,16 @@
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-lock text-gray-500"></i>
                         </div>
-                        <input type="password" id="password" class="w-full pl-10 pr-10 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="6 caractères minimum" required>
+                        <input type="password" id="password" class="w-full pl-10 pr-10 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="••••••••" required>
                         <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-500 hover:text-white transition-colors" id="togglePassword">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <label for="confirm-password" class="block text-sm font-medium text-gray-400 mb-1">Confirmer le mot de passe</label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-500"></i>
-                        </div>
-                        <input type="password" id="confirm-password" class="w-full pl-10 pr-10 py-2.5 bg-gray-800 border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="**********" required>
-                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer text-gray-500 hover:text-white transition-colors" id="toggleConfirmPassword">
                             <i class="fas fa-eye"></i>
                         </div>
                     </div>
                 </div>
                 
                 <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 px-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2">
-                    <span>S'inscrire</span>
-                    <i class="fas fa-user-plus"></i>
+                    <span>Se connecter</span>
+                    <i class="fas fa-sign-in-alt"></i>
                 </button>
             </form>
 
@@ -96,13 +83,13 @@
                 <div class="flex-grow h-px bg-gray-800"></div>
             </div>
 
-            <button id="google-signup-button" class="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3">
+            <button id="google-login-button" class="w-full bg-white hover:bg-gray-100 text-gray-900 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
                 <span>Google</span>
             </button>
             
             <p class="text-center text-gray-400 text-sm mt-8">
-                Déjà un compte ? <a href="login.html" class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">Se connecter</a>
+                Pas encore de compte ? <a href="register.html" class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">S'inscrire gratuitement</a>
             </p>
         </div>
     </div>
@@ -115,7 +102,7 @@
 
     <script type="module">
         import { auth } from '../../assets/js/config.js';
-        import { createUserWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { signInWithEmailAndPassword, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         
         function showMessage(message, type = 'info') {
             const box = document.getElementById('message-box');
@@ -138,7 +125,8 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
-                window.location.href = '/onboarding.html'; // Redirection après inscription (à déplacer si onboarding est aussi dans /pages/auth/)
+                // Redirection vers le Dashboard (chemin relatif depuis pages/auth/)
+                window.location.href = '../app/dashboard.html';
             }
         });
 
@@ -158,49 +146,51 @@
         }
 
         const togglePasswordBtn = document.getElementById('togglePassword');
-        const toggleConfirmPasswordBtn = document.getElementById('toggleConfirmPassword');
-
         togglePasswordBtn.addEventListener('click', () => togglePasswordVisibility('password', togglePasswordBtn));
-        toggleConfirmPasswordBtn.addEventListener('click', () => togglePasswordVisibility('confirm-password', toggleConfirmPasswordBtn));
 
-        document.getElementById('signup-form').addEventListener('submit', async function(event) {
+        // Login Email/Password
+        document.getElementById('login-form').addEventListener('submit', async function(event) {
             event.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
-            
-            if (password !== confirmPassword) {
-                showMessage("Les mots de passe ne correspondent pas.", 'error');
-                return;
-            }
             
             const button = this.querySelector('button[type="submit"]');
             const originalText = button.innerHTML;
             button.disabled = true;
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
             
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                showMessage("Inscription réussie ! Redirection...", 'success');
+                await signInWithEmailAndPassword(auth, email, password);
+                showMessage("Connexion réussie ! Redirection...", 'success');
+                // La redirection est gérée par onAuthStateChanged
             } catch (error) {
-                let msg = "Erreur lors de l'inscription.";
-                if (error.code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
-                else if (error.code === 'auth/weak-password') msg = "Mot de passe trop faible (6 caractères min).";
+                console.error("Erreur de connexion:", error);
+                let msg = "Erreur lors de la connexion.";
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    msg = "Email ou mot de passe incorrect.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    msg = "Trop de tentatives. Réessayez plus tard.";
+                }
                 showMessage(msg, 'error');
                 button.disabled = false;
                 button.innerHTML = originalText;
             }
         });
         
-        document.getElementById('google-signup-button').addEventListener('click', async () => {
+        // Login Google
+        document.getElementById('google-login-button').addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             showMessage("Ouverture de Google...", 'info');
+            
             try {
                 await signInWithPopup(auth, provider);
-                showMessage("Inscription avec Google réussie !", 'success');
             } catch (error) {
-                console.error("Erreur d'inscription Google:", error);
-                showMessage("Erreur lors de l'inscription avec Google.", 'error');
+                console.error("Erreur Google:", error);
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showMessage("Connexion annulée.", 'error');
+                } else {
+                    showMessage("Erreur : " + error.code, 'error');
+                }
             }
         });
     </script>

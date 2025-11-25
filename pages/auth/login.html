@@ -13,7 +13,6 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
-        /* Styles spécifiques à l'authentification pour centrer verticalement */
         .auth-container {
             min-height: 100vh;
             display: flex;
@@ -126,7 +125,7 @@
 
         onAuthStateChanged(auth, (user) => {
             if (user && !user.isAnonymous) {
-                // Si déjà connecté, redirection vers Dashboard (dans pages/app/)
+                // Redirection vers le Dashboard (chemin relatif depuis pages/auth/)
                 window.location.href = '../app/dashboard.html';
             }
         });

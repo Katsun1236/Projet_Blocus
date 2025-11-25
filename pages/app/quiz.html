@@ -107,6 +107,12 @@
                 <span class="font-medium">Planning</span>
             </a>
 
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
+            
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
             <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -543,13 +549,38 @@
                     instructionPrompt = `Génère un quiz de type "${qType}" avec ${count} questions de difficulté "${difficulty}". Fournis 4 options pour les QCM. ${instruction}`;
                 }
                 
-                // MOCK DATA (Pour démo sans API Key - A REMPLACER)
-                await new Promise(r => setTimeout(r, 2000));
-                const mockData = type === 'Flashcards' 
-                    ? { flashcards: Array.from({length: parseInt(count)}, (_,i) => ({term: `Concept ${i+1}`, definition: `Définition simulée pour le concept ${i+1}.`})) }
-                    : { quiz: Array.from({length: parseInt(count)}, (_,i) => ({question: `Question simulée ${i+1}?`, options: ["A","B","C","D"], answer: "A", explanation: "C'est la réponse A."})) };
+                const finalPrompt = `Voici le contenu d'un ou plusieurs cours:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nÀ partir de ce contenu, suis cette instruction: ${instructionPrompt}`;
+
+                // Utilisation de la clé API fournie par l'utilisateur
+                const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 
-                currentContent = mockData; // Remplacez par response de l'API
+                const payload = { 
+                    contents: [{ parts: [{ text: finalPrompt }] }], 
+                    generationConfig: { 
+                        responseMimeType: "application/json",
+                        responseSchema: schema
+                    } 
+                };
+                
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+                if (!response.ok) {
+                    const errorBody = await response.json().catch(() => response.text());
+                    console.error("API Error Body:", errorBody);
+                    throw new Error(`Erreur de l'API Gemini: ${response.status} ${response.statusText}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    console.error("Invalid API response structure:", result);
+                    throw new Error("Réponse de l'API invalide ou vide.");
+                }
+
+                let responseText = result.candidates[0].content.parts[0].text;
+                
+                currentContent = JSON.parse(responseText);
 
                 const title = document.getElementById('quiz-title-input').value;
                 const contentData = type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz;
@@ -567,7 +598,7 @@
 
             } catch (error) {
                 console.error("Erreur:", error);
-                showMessage("Erreur lors de la génération.", true);
+                showMessage("Erreur lors de la génération (vérifiez la console).", true);
                 showSection('setup');
             }
         }
@@ -724,10 +755,8 @@
                 // Load Header info (simplified)
                 const uDoc = await getDoc(doc(db, 'users', user.uid));
                 if(uDoc.exists()) {
-                    document.getElementById('user-name-header').textContent = uDoc.data().firstName;
-                    document.getElementById('user-avatar-header').src = uDoc.data().photoURL;
-                    ui.navLoggedIn.classList.remove('hidden');
-                    ui.navLoggedIn.classList.add('flex');
+                    document.getElementById('nav-logged-in').classList.remove('hidden');
+                    document.getElementById('nav-logged-in').classList.add('flex');
                 }
                 
                 populateCourses();

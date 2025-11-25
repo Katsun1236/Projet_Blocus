@@ -386,25 +386,22 @@
                 
                 const prompt = `À partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
 
-                // NOTE: En prod, ne jamais mettre la clé API côté client. Utiliser une Cloud Function.
-                // Pour ce prototype, nous utilisons la clé directement.
-                const apiKey = ""; // LAISSER VIDE - Sera injectée par l'environnement ou à ajouter manuellement
+                // Utilisation de la clé API gérée par l'environnement
+                const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 
-                // Simulation pour la démo si pas de clé (A REMPLACER PAR VOTRE CLE OU BACKEND)
-                // Si vous avez une clé, décommentez la partie fetch ci-dessous
-                
-                /* const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 const payload = { contents: [{ parts: [{ text: prompt }] }] };
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
                 if (!response.ok) throw new Error(`Erreur API: ${response.status}`);
                 const result = await response.json();
-                let synthesisHtml = result.candidates?.[0]?.content?.parts?.[0]?.text || "Erreur de génération.";
+                
+                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    throw new Error("Réponse de l'IA invalide.");
+                }
+                
+                let synthesisHtml = result.candidates[0].content.parts[0].text;
                 synthesisHtml = synthesisHtml.replace(/```html/g, '').replace(/```/g, '').trim();
-                */
-
-                // MOCK DATA (POUR LA DEMO SANS API KEY)
-                await new Promise(r => setTimeout(r, 2000)); // Simule le temps d'attente
-                const synthesisHtml = `<h2>Introduction</h2><p>Ceci est une synthèse générée (Simulation). Dans la version finale, l'IA analysera le texte réel.</p><h2>Points Clés</h2><ul><li>Concept A : Important pour l'examen.</li><li>Concept B : À retenir absolument.</li></ul><p>Conclusion : Le cours aborde des thématiques essentielles.</p>`;
 
                 const title = document.getElementById('synthesis-title-input').value;
 
