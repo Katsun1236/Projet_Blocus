@@ -187,8 +187,8 @@
                         <!-- Footer Post -->
                         <div class="flex items-center gap-6 pt-6 border-t border-gray-800/50 text-gray-500 text-sm">
                             <span class="flex items-center gap-2"><i class="fas fa-comment-alt"></i> <span id="reply-count">0</span> réponses</span>
-                            <button class="flex items-center gap-2 hover:text-white transition-colors"><i class="fas fa-share"></i> Partager</button>
-                            <button class="flex items-center gap-2 hover:text-red-400 transition-colors ml-auto"><i class="fas fa-flag"></i> Signaler</button>
+                            <button id="share-post-btn" class="flex items-center gap-2 hover:text-white transition-colors"><i class="fas fa-share"></i> Partager</button>
+                            <button id="report-post-btn" class="flex items-center gap-2 hover:text-red-400 transition-colors ml-auto"><i class="fas fa-flag"></i> Signaler</button>
                         </div>
                     </div>
 
@@ -263,6 +263,8 @@
             voteDownBtn: document.getElementById('vote-down-btn'),
             replyCount: document.getElementById('reply-count'),
             sharedContentArea: document.getElementById('shared-content-area'),
+            sharePostBtn: document.getElementById('share-post-btn'),
+            reportPostBtn: document.getElementById('report-post-btn'),
             
             // Replies
             replyForm: document.getElementById('reply-form'),
@@ -501,6 +503,44 @@
 
         ui.voteUpBtn.addEventListener('click', () => handleVote(1));
         ui.voteDownBtn.addEventListener('click', () => handleVote(-1));
+
+        // SHARE (Partager le lien de la discussion)
+        ui.sharePostBtn.addEventListener('click', () => {
+            if (!discussionId) {
+                showMessage("Discussion introuvable.", true);
+                return;
+            }
+            // Utilisation du document.execCommand pour l'environnement canvas
+            const link = window.location.href;
+            const tempInput = document.createElement('textarea');
+            tempInput.value = link;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showMessage('Lien de la discussion copié !');
+        });
+
+        // REPORT (Simule un signalement)
+        ui.reportPostBtn.addEventListener('click', async () => {
+            if (!discussionId) return;
+
+            // Envoi d'une alerte au modérateur (simulé, la logique serveur serait dans une Cloud Function)
+            try {
+                // Simulation d'envoi à la collection 'reports'
+                await addDoc(collection(db, 'reports'), {
+                    postId: discussionId,
+                    reportedBy: currentUserId,
+                    reason: 'Contenu inapproprié',
+                    timestamp: serverTimestamp()
+                });
+                showMessage('Signalement envoyé aux modérateurs.', false);
+            } catch (e) {
+                console.error(e);
+                showMessage('Erreur lors de l\'envoi du signalement.', true);
+            }
+        });
+
 
         // Reply Logic
         ui.replyForm.addEventListener('submit', async (e) => {
