@@ -10,8 +10,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PDF.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <!-- PDF.js (Version stable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configuration du Worker PDF.js (Essentiel pour le rendu)
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     
@@ -39,11 +43,24 @@
         .drop-zone {
             transition: all 0.3s ease;
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%234B5563FF' stroke-width='2' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+            position: relative;
+            cursor: pointer;
         }
-        .drop-zone.active {
+        .drop-zone:hover, .drop-zone.active {
             background-color: rgba(99, 102, 241, 0.1);
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%236366F1FF' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
             transform: scale(1.01);
+        }
+        /* Overlay Input File (Invisible mais cliquable partout) */
+        .file-input-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 10;
         }
     </style>
 </head>
@@ -54,7 +71,7 @@
     <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <!-- SIDEBAR -->
+    <!-- SIDEBAR COMPLÈTE (Identique Dashboard) -->
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
             <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
@@ -63,32 +80,45 @@
             <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
         </div>
 
-        <nav class="flex-grow px-4 space-y-2">
+        <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
+            
             <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Tableau de Bord</span>
             </a>
+            
+            <!-- Mes Cours est ACTIF ici -->
             <a href="courses.html" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mes Cours</span>
             </a>
+            
             <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Quiz IA</span>
             </a>
+            
             <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
                 <span class="font-medium">Planning</span>
             </a>
 
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
+            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
+                <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
             </a>
 
@@ -146,26 +176,32 @@
                             <input type="text" id="courseName" class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: Histoire de l'Art - Chapitre 1" required>
                         </div>
 
-                        <!-- Zone de Drop -->
-                        <div id="drop-zone" class="drop-zone rounded-2xl p-10 text-center cursor-pointer hover:bg-gray-800/30 transition-all group relative overflow-hidden">
-                            <input type="file" id="file-input" class="hidden" accept=".pdf">
+                        <!-- Zone de Drop (Avec input overlay pour garantir le clic) -->
+                        <div id="drop-zone" class="drop-zone rounded-2xl p-10 text-center hover:bg-gray-800/30 transition-all group relative overflow-hidden">
+                            <!-- Input invisible qui prend toute la place (z-index supérieur) -->
+                            <input type="file" id="file-input" class="file-input-overlay" accept=".pdf" title="Cliquez pour sélectionner un fichier">
                             
-                            <div class="relative z-10 pointer-events-none"> <!-- Important: pointer-events-none pour que le clic traverse -->
+                            <div class="relative z-0 pointer-events-none">
                                 <i class="fas fa-file-pdf text-5xl text-gray-600 group-hover:text-indigo-400 transition-colors mb-4"></i>
                                 <p class="text-lg font-medium text-white mb-1">Glisse ton fichier ici</p>
-                                <p class="text-sm text-gray-500 mb-6">ou clique pour parcourir tes dossiers</p>
-                                <!-- Le bouton est décoratif, c'est la zone entière qui est cliquable -->
-                                <span class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors inline-block">Choisir un fichier</span>
+                                <p class="text-sm text-gray-500 mb-6">ou clique n'importe où dans la zone</p>
+                                <span class="px-4 py-2 bg-gray-700 group-hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors inline-block">Choisir un fichier</span>
                             </div>
                         </div>
 
                         <!-- Prévisualisation (Caché par défaut) -->
                         <div id="preview-container" class="hidden bg-gray-900/50 rounded-xl p-6 border border-gray-800 flex flex-col md:flex-row items-center gap-6 animate-fade-in-up">
-                            <canvas id="pdf-preview-canvas" class="h-32 w-auto rounded-lg shadow-lg border border-gray-700"></canvas>
+                            <!-- Canvas pour le PDF -->
+                            <canvas id="pdf-preview-canvas" class="h-32 w-auto rounded-lg shadow-lg border border-gray-700 hidden"></canvas>
+                            <!-- Placeholder icône si le canvas échoue -->
+                            <div id="pdf-icon-fallback" class="h-32 w-24 bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-center hidden">
+                                <i class="fas fa-file-pdf text-4xl text-red-500"></i>
+                            </div>
+                            
                             <div class="flex-1 text-center md:text-left">
                                 <p id="file-name-preview" class="text-lg font-bold text-white truncate mb-1"></p>
                                 <p id="file-size-preview" class="text-sm text-gray-500 font-mono"></p>
-                                <button type="button" id="remove-file-btn" class="mt-3 text-xs text-red-400 hover:text-red-300 flex items-center gap-2 md:justify-start justify-center cursor-pointer">
+                                <button type="button" id="remove-file-btn" class="mt-3 text-xs text-red-400 hover:text-red-300 flex items-center gap-2 md:justify-start justify-center cursor-pointer z-20 relative">
                                     <i class="fas fa-trash"></i> Supprimer
                                 </button>
                             </div>
@@ -221,6 +257,7 @@
             progressContainer: document.getElementById('progress-container'),
             previewContainer: document.getElementById('preview-container'),
             canvas: document.getElementById('pdf-preview-canvas'),
+            fallbackIcon: document.getElementById('pdf-icon-fallback'),
             messageBox: document.getElementById('message-box'),
             removeFileBtn: document.getElementById('remove-file-btn'),
             courseNameInput: document.getElementById('courseName')
@@ -265,12 +302,11 @@
         });
 
         // --- PDF Logic ---
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-
         async function renderPdfPreview(file) {
             const reader = new FileReader();
             reader.onload = async function(event) {
                 try {
+                    // Essayer de rendre le PDF
                     const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(event.target.result) });
                     const pdf = await loadingTask.promise;
                     const page = await pdf.getPage(1);
@@ -285,13 +321,20 @@
 
                     await page.render({ canvasContext: ui.canvas.getContext('2d'), viewport: scaledViewport }).promise;
                     
-                    ui.previewContainer.classList.remove('hidden');
-                    ui.previewContainer.classList.add('flex');
-                    ui.dropZone.classList.add('hidden');
+                    // Si succès :
+                    ui.canvas.classList.remove('hidden');
+                    ui.fallbackIcon.classList.add('hidden');
                 } catch (error) {
-                    console.error(error);
-                    showMessage("Impossible de prévisualiser ce PDF.", true);
+                    console.warn("Erreur rendu PDF (fichier valide mais preview impossible) :", error);
+                    // Fallback propre
+                    ui.canvas.classList.add('hidden');
+                    ui.fallbackIcon.classList.remove('hidden');
                 }
+                
+                // Dans tous les cas, on affiche le conteneur de preview
+                ui.previewContainer.classList.remove('hidden');
+                ui.previewContainer.classList.add('flex');
+                ui.dropZone.classList.add('hidden');
             };
             reader.readAsArrayBuffer(file);
         }
@@ -317,8 +360,8 @@
 
         // --- Event Listeners ---
         
-        // Click sur la zone déclenche l'input file
-        ui.dropZone.addEventListener('click', () => ui.fileInput.click());
+        // L'input est désormais une overlay transparente, pas besoin de relier le click manuellement
+        // Cela évite les conflits d'événements
         
         // Changement de l'input file
         ui.fileInput.addEventListener('change', () => {
@@ -327,24 +370,15 @@
             }
         });
         
-        // Drag & Drop Visuals
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            ui.dropZone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); });
-        });
-        ['dragenter', 'dragover'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.add('active')));
-        ['dragleave', 'drop'].forEach(eventName => ui.dropZone.addEventListener(eventName, () => ui.dropZone.classList.remove('active')));
+        // Drag & Drop Visuals (pour le style uniquement, l'input gère le drop réel)
+        ui.fileInput.addEventListener('dragenter', () => ui.dropZone.classList.add('active'));
+        ui.fileInput.addEventListener('dragleave', () => ui.dropZone.classList.remove('active'));
+        ui.fileInput.addEventListener('drop', () => ui.dropZone.classList.remove('active'));
         
-        ui.dropZone.addEventListener('drop', (e) => {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            if (files.length > 0) {
-                handleFile(files[0]);
-            }
-        });
-
-        ui.removeFileBtn.addEventListener('click', () => {
+        ui.removeFileBtn.addEventListener('click', (e) => {
+            e.preventDefault(); // Empêche le rechargement
             selectedFile = null;
-            ui.fileInput.value = '';
+            ui.fileInput.value = ''; // Reset input
             ui.previewContainer.classList.add('hidden');
             ui.previewContainer.classList.remove('flex');
             ui.dropZone.classList.remove('hidden');
