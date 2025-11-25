@@ -4,132 +4,107 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de Bord - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style> body { font-family: 'Inter', sans-serif; } </style>
+    <style> 
+        body { font-family: 'Inter', sans-serif; }
+        /* Scrollbar personnalisée */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { bg-gray-900; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
+<body class="bg-gray-900 text-white h-screen flex overflow-hidden">
 
-    <header class="flex justify-between items-center p-6 bg-gray-900 shadow-lg w-full z-20 sticky top-0">
-        <a href="/dashboard.html" class="flex items-center space-x-2">
-            <img src="images/logo.png" onerror="this.onerror=null;this.src='https://firebasestorage.googleapis.com/v0/b/chatbot-playground-c0c32.appspot.com/o/opera_xnPtx6KH7F.png?alt=media&token=c191a3ec-80f0-466d-9788-b7f33d79047c';" alt="Logo Projet Blocus" class="h-10">
-        </a>
-        <nav id="nav-logged-in" class="hidden items-center relative">
-            <button id="user-menu-button" class="flex items-center space-x-3 text-white hover:text-indigo-400 transition-colors duration-300">
-                <img id="user-avatar-header" src="https://placehold.co/32x32/4b5563/ffffff?text=👤" class="h-8 w-8 rounded-full object-cover border-2 border-indigo-500">
-                <span id="user-name-header" class="font-semibold">Chargement...</span>
-                <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div id="user-menu" class="hidden absolute top-12 right-0 bg-gray-800 rounded-lg shadow-xl w-48 py-2 border border-gray-700">
-                <a href="/dashboard.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Tableau de Bord</a>
-                <a href="/profile.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-700">Mon Profil</a>
-                <hr class="border-gray-600 my-2">
-                <button id="logout-button" class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-500 hover:text-white">Se déconnecter</button>
-            </div>
-        </nav>
-    </header>
-
-    <main id="dashboard-content" class="hidden w-full max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
-        <h1 class="text-4xl font-bold mb-8">Mon Tableau de Bord</h1>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            
-            <a href="/upload.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
-                <i class="fas fa-file-upload text-6xl text-indigo-400 mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">Uploader un cours</h2>
-                <p class="text-gray-400">Ajoute un nouveau PDF pour commencer.</p>
-            </a>
-            
-            <a href="/quiz.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
-                <i class="fas fa-brain text-6xl text-indigo-400 mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">Créer un quiz</h2>
-                <p class="text-gray-400">Teste tes connaissances sur un cours.</p>
-            </a>
-
-            <a href="/synthesize.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
-                <i class="fas fa-file-alt text-6xl text-indigo-400 mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">Synthétiser</h2>
-                <p class="text-gray-400">Génère une fiche de révision.</p>
-            </a>
-            
-            <a href="/courses.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
-                <i class="fas fa-book-open text-6xl text-indigo-400 mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">Mes cours</h2>
-                <p class="text-gray-400">Gère tous tes documents.</p>
-            </a>
-            
-            <a href="/forum.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
-                <i class="fas fa-users text-6xl text-indigo-400 mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">Forum</h2>
-                <p class="text-gray-400">Échange avec la communauté.</p>
-            </a>
-
-            <a href="/profile.html" class="bg-gray-800 p-8 rounded-xl shadow-2xl flex flex-col items-center justify-center text-center transition-transform transform hover:-translate-y-2 duration-300 border border-gray-700 hover:border-indigo-500">
-                <i class="fas fa-user-cog text-6xl text-indigo-400 mb-4"></i>
-                <h2 class="text-2xl font-bold mb-2">Mon Profil</h2>
-                <p class="text-gray-400">Modifie tes informations.</p>
-            </a>
-
+    <!-- Sidebar -->
+    <aside class="w-64 bg-gray-800 flex-shrink-0 border-r border-gray-700 hidden md:flex flex-col">
+        <div class="p-6 border-b border-gray-700 flex items-center">
+            <i class="fas fa-graduation-cap text-indigo-500 text-2xl mr-3"></i>
+            <span class="font-bold text-xl">Projet Blocus</span>
         </div>
-    </main>
-    
-    <div id="loading-dashboard" class="text-center p-12 pt-40">
-        <i class="fas fa-spinner fa-spin text-indigo-400 text-5xl"></i>
-        <p class="mt-4 text-gray-400 text-lg">Chargement de votre espace...</p>
+        <nav class="flex-grow p-4 space-y-2">
+            <a href="#" class="block py-2.5 px-4 rounded bg-indigo-600 text-white font-bold">
+                <i class="fas fa-th-large mr-3"></i> Dashboard
+            </a>
+            <a href="/courses.html" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300 transition">
+                <i class="fas fa-book mr-3"></i> Mes Cours
+            </a>
+            <a href="/quiz.html" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300 transition">
+                <i class="fas fa-brain mr-3"></i> Quiz
+            </a>
+            <a href="/planning.html" class="block py-2.5 px-4 rounded hover:bg-gray-700 text-gray-300 transition">
+                <i class="fas fa-calendar-alt mr-3"></i> Planning
+            </a>
+        </nav>
+        <div class="p-4 border-t border-gray-700">
+            <button id="logout-button" class="w-full flex items-center justify-center py-2 px-4 rounded border border-red-500 text-red-500 hover:bg-red-500 hover:text-white transition">
+                <i class="fas fa-sign-out-alt mr-2"></i> Déconnexion
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-grow flex flex-col min-w-0">
+        <!-- Header -->
+        <header class="h-16 bg-gray-800 border-b border-gray-700 flex items-center justify-between px-6">
+            <h1 class="text-xl font-bold text-gray-100">Tableau de Bord</h1>
+            
+            <div id="nav-logged-in" class="flex items-center space-x-4 hidden">
+                <span id="user-name-header" class="font-bold text-gray-300 hidden sm:block">Étudiant</span>
+                <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-indigo-500 object-cover">
+            </div>
+        </header>
+
+        <!-- Content Scrollable -->
+        <main class="flex-grow p-6 overflow-y-auto">
+            
+            <!-- Breadcrumbs -->
+            <div id="breadcrumbs" class="mb-6 text-gray-400 text-sm">
+                <span>Accueil</span>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="main-title" class="text-2xl font-bold">Mes Cours</h2>
+                <button id="new-folder-button" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition">
+                    <i class="fas fa-folder-plus mr-2"></i> Nouveau Dossier
+                </button>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="flex justify-center items-center py-20">
+                <i class="fas fa-spinner fa-spin text-4xl text-indigo-500"></i>
+            </div>
+
+            <!-- Folders Grid -->
+            <div id="folders-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+                <!-- Les dossiers seront injectés ici par JS -->
+            </div>
+
+            <!-- Courses List -->
+            <div>
+                <h3 id="courses-title" class="text-xl font-bold mb-4 text-gray-300 border-b border-gray-700 pb-2">Fichiers & Synthèses</h3>
+                <div id="courses-list">
+                    <!-- Les cours seront injectés ici -->
+                </div>
+                <div id="no-content" class="hidden text-center py-10 text-gray-500">
+                    <i class="fas fa-box-open text-4xl mb-3"></i>
+                    <p>Aucun contenu dans ce dossier.</p>
+                </div>
+            </div>
+
+        </main>
     </div>
 
-    <script type="module">
-        import { auth, db } from '/firebase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    <!-- Message Box -->
+    <div id="message-box" class="hidden fixed bottom-4 right-4 bg-gray-700 text-white p-4 rounded-lg shadow-xl z-50"></div>
 
-        const loadingScreen = document.getElementById('loading-dashboard');
-        const dashboardContent = document.getElementById('dashboard-content');
-        const navLoggedIn = document.getElementById('nav-logged-in');
-        const userMenuButton = document.getElementById('user-menu-button');
-        const userMenu = document.getElementById('user-menu');
-        const logoutButton = document.getElementById('logout-button');
+    <!-- Scripts -->
+    <!-- On charge courses.js qui contient toute la logique et les imports Firebase corrigés -->
+    <script type="module" src="./courses.js"></script>
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user && !user.isAnonymous) {
-                const userRef = doc(db, 'users', user.uid);
-                const docSnap = await getDoc(userRef);
-
-                if (docSnap.exists()) {
-                    const profileData = docSnap.data();
-                    document.getElementById('user-name-header').textContent = profileData.firstName;
-                    document.getElementById('user-avatar-header').src = profileData.photoURL;
-                    
-                    loadingScreen.classList.add('hidden');
-                    dashboardContent.classList.remove('hidden');
-                    navLoggedIn.classList.remove('hidden');
-                    navLoggedIn.classList.add('flex');
-                } else {
-                    window.location.href = '/onboarding.html';
-                }
-            } else {
-                window.location.href = '/login.html';
-            }
-        });
-
-        userMenuButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            userMenu.classList.toggle('hidden');
-        });
-
-        window.addEventListener('click', (e) => {
-            if (navLoggedIn && !navLoggedIn.contains(e.target)) {
-                userMenu.classList.add('hidden');
-            }
-        });
-
-        logoutButton.addEventListener('click', async () => {
-            await signOut(auth);
-            window.location.href = '/index.html';
-        });
-    </script>
 </body>
 </html>
