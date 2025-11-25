@@ -150,7 +150,7 @@
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { doc, getDoc, collection, onSnapshot, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         let currentUserId = null;
         let friendsProfiles = {}; // Cache des profils d'amis
@@ -161,6 +161,10 @@
             noChats: document.getElementById('no-chats'),
         };
 
+        function createChatId(user1, user2) {
+            return [user1, user2].sort().join('_');
+        }
+
         function timeAgo(date) {
             if (!date) return 'récemment';
             const seconds = Math.floor((new Date() - date) / 1000);
@@ -169,6 +173,7 @@
             if (minutes < 60) return `${minutes} min`;
             const hours = Math.floor(minutes / 60);
             if (hours < 24) return `${hours} h`;
+            if (hours < 48) return `Hier`;
             const days = Math.floor(hours / 24);
             if (days < 7) return `${days} j`;
             return new Date(date).toLocaleDateString('fr-FR');
@@ -183,10 +188,14 @@
             }
             
             if (messageData.type === 'file') {
-                return `${prefix} [Fichier: ${messageData.fileName || 'Document'}]`;
+                const isImage = messageData.fileType && messageData.fileType.startsWith('image/');
+                const isAudio = messageData.fileType && messageData.fileType.startsWith('audio/');
+                if (isImage) return `${prefix} [Image]`;
+                if (isAudio) return `${prefix} [Vocal]`;
+                return `${prefix} [Fichier]`;
             }
             if (messageData.type === 'sharedContent') {
-                return `${prefix} [Partage: ${messageData.contentTitle}]`;
+                return `${prefix} [Partage] ${messageData.contentTitle}`;
             }
             
             // Message texte
@@ -204,6 +213,9 @@
                 }
             });
         }
+        
+        // Stockage temporaire des écouteurs de messages
+        let messageUnsubscribers = [];
 
         function renderChats(friendships) {
             ui.loading.classList.add('hidden');
@@ -217,53 +229,72 @@
             }
             ui.noChats.classList.add('hidden');
 
+            // 1. Annuler les anciens écouteurs de messages pour éviter les fuites
+            messageUnsubscribers.forEach(unsub => unsub());
+            messageUnsubscribers = [];
 
-            // 1. Pour chaque ami, écouter la sous-collection de messages pour obtenir le dernier
+
+            // 2. Pour chaque ami, créer un élément de chat et attacher un écouteur de messages
             friendIds.forEach(friendId => {
                 const chatId = createChatId(currentUserId, friendId);
+                const profile = friendsProfiles[friendId];
+                
+                if (!profile) return;
+                
+                const newEl = document.createElement('a');
+                newEl.href = `chat.html?with=${friendId}`;
+                newEl.id = `chat-item-${friendId}`;
+                newEl.className = 'content-glass p-4 rounded-xl cursor-pointer hover:bg-gray-800/50 transition-colors block';
+                
+                // Rendu initial (sans dernier message)
+                newEl.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="relative flex-shrink-0">
+                            <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 bg-gray-800">
+                            <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
+                        </div>
+                        <div class="flex-grow min-w-0">
+                            <div class="flex justify-between items-center">
+                                <h3 class="font-bold text-white truncate">${profile.firstName} ${profile.lastName}</h3>
+                                <span class="text-xs text-gray-500 chat-date-display"></span>
+                            </div>
+                            <p class="text-sm text-gray-400 truncate mt-1 chat-preview-text">
+                                Nouveau Chat
+                            </p>
+                        </div>
+                    </div>
+                `;
+                ui.chatsList.appendChild(newEl);
+
+
+                // 3. Attacher l'écouteur du dernier message
                 const messagesRef = collection(db, 'chats', chatId, 'messages');
                 const q = query(messagesRef, orderBy('createdAt', 'desc'), limit(1));
                 
-                onSnapshot(q, (snapshot) => {
+                const unsub = onSnapshot(q, (snapshot) => {
+                    const elToUpdate = document.getElementById(`chat-item-${friendId}`);
+                    if (!elToUpdate) return; // Si l'élément a été supprimé ou n'existe plus
+
                     const lastMessage = snapshot.docs.length > 0 ? snapshot.docs[0].data() : null;
-                    const profile = friendsProfiles[friendId];
-
-                    if (!profile) return;
-
-                    // Créer/Mettre à jour l'élément de la liste
-                    const existingEl = document.getElementById(`chat-item-${friendId}`);
+                    
                     const dateDisplay = lastMessage ? timeAgo(lastMessage.createdAt?.toDate ? lastMessage.createdAt.toDate() : new Date()) : '';
+                    
+                    const previewText = elToUpdate.querySelector('.chat-preview-text');
+                    const dateEl = elToUpdate.querySelector('.chat-date-display');
+                    
+                    if (previewText) previewText.textContent = formatLastMessage(lastMessage);
+                    if (dateEl) dateEl.textContent = dateDisplay;
 
-                    const chatHtml = `
-                        <div class="flex items-center gap-4">
-                            <div class="relative flex-shrink-0">
-                                <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 bg-gray-800">
-                                <span class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></span>
-                            </div>
-                            <div class="flex-grow min-w-0">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="font-bold text-white truncate">${profile.firstName} ${profile.lastName}</h3>
-                                    <span class="text-xs text-gray-500">${dateDisplay}</span>
-                                </div>
-                                <p class="text-sm text-gray-400 truncate mt-1">
-                                    ${formatLastMessage(lastMessage)}
-                                </p>
-                            </div>
-                        </div>
-                    `;
-
-                    if (existingEl) {
-                        existingEl.innerHTML = chatHtml;
-                    } else {
-                        const newEl = document.createElement('a');
-                        newEl.href = `chat.html?with=${friendId}`;
-                        newEl.id = `chat-item-${friendId}`;
-                        newEl.className = 'content-glass p-4 rounded-xl cursor-pointer hover:bg-gray-800/50 transition-colors block';
-                        newEl.innerHTML = chatHtml;
-                        ui.chatsList.appendChild(newEl);
-                    }
+                    // Re-sortir l'élément si un nouveau message arrive (non implémenté pour la V1 mais c'est le point d'extension)
                 });
+                
+                messageUnsubscribers.push(unsub);
             });
+            
+            // Si la liste est vide après le rendu, afficher "No Chats"
+            if (ui.chatsList.children.length === 0) {
+                ui.noChats.classList.remove('hidden');
+            }
         }
 
 
@@ -283,6 +314,7 @@
 
                 onSnapshot(q, async (snapshot) => {
                     const friends = [];
+                    const friendIds = [];
                     
                     snapshot.forEach(doc => {
                         const data = { id: doc.id, ...doc.data() };
@@ -290,11 +322,14 @@
                         
                         if (data.status === 'friends') {
                             friends.push({ ...data, otherUserId });
+                            friendIds.push(otherUserId);
                         }
                     });
 
-                    const friendIds = friends.map(f => f.otherUserId);
+                    // Mise à jour des profils en cache (asynchrone)
                     await fetchFriendProfiles(friendIds);
+                    
+                    // Rendu de la liste
                     renderChats(friends);
                 });
             } else {
