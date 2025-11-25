@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenue - Projet Blocus</title>
+    <!-- Chemin corrigé vers l'image -->
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    <!-- Custom CSS (Chemin relatif corrigé : on remonte de 2 niveaux) -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
         .onboarding-container {
@@ -41,65 +42,69 @@
     <div class="glow-bg" style="bottom: -10%; left: -10%; background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);"></div>
 
     <div class="onboarding-container relative z-10">
-        <div class="w-full max-w-2xl bg-gray-900/80 backdrop-blur-xl border border-gray-800 rounded-3xl p-10 shadow-2xl animate-float">
+        <div class="w-full max-w-2xl bg-gray-900/80 backdrop-blur-2xl border border-gray-800 rounded-3xl p-8 md:p-12 shadow-2xl animate-float">
             
             <!-- Header -->
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-display font-bold text-white mb-3">Bienvenue à bord ! 🚀</h1>
-                <p class="text-gray-400 text-lg">Configurons ton espace de travail pour une réussite maximale.</p>
+                <p class="text-gray-400 text-lg">Quelques infos pour personnaliser ton espace.</p>
             </div>
 
             <form id="onboarding-form" class="space-y-8">
                 
                 <!-- Photo de profil -->
-                <div class="flex flex-col items-center mb-8">
+                <div class="flex flex-col items-center">
                     <div class="relative group cursor-pointer" id="profile-picture-container">
-                        <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-800 group-hover:border-indigo-500 transition-all duration-300 avatar-glow bg-gray-800">
-                            <img id="profile-picture-preview" src="" alt="Avatar" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        </div>
-                        <div class="absolute bottom-0 right-0 bg-indigo-600 text-white p-2.5 rounded-full shadow-lg border-4 border-gray-900 group-hover:bg-indigo-500 transition-colors">
-                            <i class="fas fa-camera text-sm"></i>
+                        <!-- Cercle avec bordure dégradée -->
+                        <div class="w-32 h-32 rounded-full p-[3px] bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-400 transition-all">
+                            <div class="w-full h-full rounded-full overflow-hidden bg-gray-800 relative">
+                                <img id="profile-picture-preview" src="" alt="Avatar" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                <!-- Overlay caméra -->
+                                <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                    <i class="fas fa-camera text-white text-2xl"></i>
+                                </div>
+                            </div>
                         </div>
                         <input type="file" id="profilePicture" name="profilePicture" accept="image/*" class="hidden">
                     </div>
-                    <p class="text-sm text-gray-500 mt-3">Clique pour changer ta photo</p>
+                    <p class="text-sm text-gray-500 mt-3 font-medium">Clique pour changer ta photo</p>
                 </div>
 
-                <!-- Champs Prénom / Nom -->
+                <!-- Grille Nom/Prénom -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="firstName" class="block text-sm font-medium text-gray-400 mb-2">Prénom</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-user text-gray-600 group-focus-within:text-indigo-500 transition-colors"></i>
+                    <div class="space-y-2">
+                        <label for="firstName" class="text-sm font-medium text-gray-300 ml-1">Prénom</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                                <i class="fas fa-user"></i>
                             </div>
-                            <input type="text" id="firstName" class="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ton prénom" required>
+                            <input type="text" id="firstName" class="w-full pl-11 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ton prénom" required>
                         </div>
                     </div>
-                    <div>
-                        <label for="lastName" class="block text-sm font-medium text-gray-400 mb-2">Nom</label>
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-signature text-gray-600 group-focus-within:text-indigo-500 transition-colors"></i>
+                    <div class="space-y-2">
+                        <label for="lastName" class="text-sm font-medium text-gray-300 ml-1">Nom</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                                <i class="fas fa-signature"></i>
                             </div>
-                            <input type="text" id="lastName" class="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ton nom" required>
+                            <input type="text" id="lastName" class="w-full pl-11 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ton nom" required>
                         </div>
                     </div>
                 </div>
 
                 <!-- Champ École -->
-                <div>
-                    <label for="school" class="block text-sm font-medium text-gray-400 mb-2">École / Université</label>
-                    <div class="relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-university text-gray-600 group-focus-within:text-indigo-500 transition-colors"></i>
+                <div class="space-y-2">
+                    <label for="school" class="text-sm font-medium text-gray-300 ml-1">École / Université</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
+                            <i class="fas fa-university"></i>
                         </div>
-                        <input type="text" id="school" class="w-full pl-10 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: Université de Liège" required>
+                        <input type="text" id="school" class="w-full pl-11 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: UCLouvain, ULB..." required>
                     </div>
                 </div>
 
                 <!-- Bouton Action -->
-                <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-900/30 transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 text-lg">
+                <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-900/30 transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 text-lg mt-4">
                     <span>C'est parti !</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>
@@ -114,7 +119,9 @@
         <span id="message-text"></span>
     </div>
 
+    <!-- SCRIPT -->
     <script type="module">
+        // Import depuis le dossier assets centralisé (../../ pour remonter de pages/auth/)
         import { auth, db, storage } from '../../assets/js/config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
@@ -144,7 +151,7 @@
 
         function setRandomEmoji() {
             const randomEmoji = emojiList[Math.floor(Math.random() * emojiList.length)];
-            // Utilisation d'un service fiable pour générer un avatar avec l'emoji
+            // Utilisation de ui-avatars pour une image propre par défaut
             document.getElementById('profile-picture-preview').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(randomEmoji)}&background=1f2937&color=fff&size=256&font-size=0.5`;
         }
 
@@ -155,17 +162,17 @@
                 if (user && !user.isAnonymous) {
                     currentUserId = user.uid;
                     
-                    // Vérifier si déjà configuré
+                    // Vérifier si l'utilisateur a déjà un profil
                     const userRefCheck = doc(db, 'users', user.uid);
                     try {
                         const docSnap = await getDoc(userRefCheck);
                         if (docSnap.exists()) {
-                            // Redirection vers le dashboard (chemin relatif vers pages/app/)
+                            // Redirection vers le dashboard (../app/dashboard.html car on est dans pages/auth)
                             window.location.href = '../app/dashboard.html';
                             return;
                         }
 
-                        // Pré-remplissage
+                        // Pré-remplissage des champs avec Google
                         if (user.displayName) {
                             const nameParts = user.displayName.split(' ');
                             document.getElementById('firstName').value = nameParts[0] || '';
@@ -178,7 +185,7 @@
                         console.error("Erreur vérification profil:", error);
                     }
                 } else {
-                    // Retour login si pas connecté
+                    // Retour login si pas connecté (fichier dans le même dossier)
                     window.location.href = 'login.html';
                 }
             });
@@ -213,7 +220,7 @@
                 let photoURL = document.getElementById('profile-picture-preview').src;
 
                 try {
-                    // Upload image si nécessaire
+                    // Upload image vers Firebase Storage si une nouvelle a été choisie
                     if (profilePictureFile) {
                         const storageRef = ref(storage, `users/${currentUserId}/profilePicture.jpg`);
                         const snapshot = await uploadBytes(storageRef, profilePictureFile);
@@ -229,12 +236,13 @@
                         createdAt: new Date().toISOString()
                     };
                     
+                    // Sauvegarde dans Firestore
                     const userRef = doc(db, 'users', currentUserId);
                     await setDoc(userRef, userProfile);
 
                     showMessage("Profil configuré avec succès !", 'success');
                     
-                    // Redirection vers le Dashboard (pages/app/dashboard.html)
+                    // Redirection vers le Dashboard
                     setTimeout(() => {
                         window.location.href = '../app/dashboard.html';
                     }, 1500);
