@@ -61,7 +61,7 @@
             <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
         </div>
 
-        <nav class="flex-grow px-4 space-y-2">
+        <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
             <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -109,6 +109,20 @@
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mon Profil</span>
             </a>
+
+            <!-- SECTION SUPPORT & ADMIN -->
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Zone Système</p>
+            
+            <a href="bug-report.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-bug w-6 group-hover:text-red-400 transition-colors"></i>
+                <span class="font-medium">Signaler un bug</span>
+            </a>
+
+            <!-- ADMIN PANEL (Hidden by default) -->
+            <a href="admin/panel.html" id="admin-link" class="hidden nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group hover:bg-red-900/20 border border-transparent hover:border-red-500/20">
+                <i class="fas fa-shield-alt w-6 text-red-500 group-hover:animate-pulse"></i>
+                <span class="font-bold text-red-400">Panel Admin</span>
+            </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800">
@@ -154,7 +168,10 @@
                         
                         <div class="text-center md:text-left flex-1 w-full">
                             <div class="flex flex-col md:flex-row justify-between items-center mb-2">
-                                <h1 id="user-name" class="text-4xl font-display font-bold text-white"></h1>
+                                <div class="flex items-center gap-3">
+                                    <h1 id="user-name" class="text-4xl font-display font-bold text-white"></h1>
+                                    <span id="admin-badge" class="hidden px-2 py-1 rounded bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-bold uppercase tracking-wider">Admin</span>
+                                </div>
                                 <button id="edit-profile-btn" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-bold transition-colors">
                                     <i class="fas fa-pen"></i> Modifier
                                 </button>
@@ -345,6 +362,8 @@
             toggleBadgesBtn: document.getElementById('toggle-badges-btn'),
             badgesWrapper: document.getElementById('badges-wrapper'),
             chartCanvas: document.getElementById('activity-chart'),
+            adminLink: document.getElementById('admin-link'),
+            adminBadge: document.getElementById('admin-badge'),
         };
 
         let allData = {};
@@ -586,8 +605,13 @@
                 document.getElementById('user-email').textContent = userEmail;
                 document.getElementById('profile-picture-display').src = userData.photoURL || 'https://ui-avatars.com/api/?background=random';
 
-                // 2. Récupération des sous-collections (Version simple avec getDocs)
-                // Pour une app massive, utiliser getCountFromServer est mieux (plus économique)
+                // Vérification Admin (Simple check field, secure with backend rules)
+                if (userData.role === 'admin') {
+                    if(ui.adminLink) ui.adminLink.classList.remove('hidden');
+                    if(ui.adminBadge) ui.adminBadge.classList.remove('hidden');
+                }
+
+                // 2. Récupération des sous-collections
                 const [coursesSnap, foldersSnap, quizzesSnap, synthSnap] = await Promise.all([
                     getDocs(collection(db, 'users', userId, 'courses')),
                     getDocs(collection(db, 'users', userId, 'folders')),
