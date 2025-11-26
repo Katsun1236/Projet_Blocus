@@ -49,34 +49,30 @@ function showMessage(message, isError = false) {
     }, 4000);
 }
 
-// --- Drag & Drop Logic ---
+// --- Drag & Drop Logic (Optimisé) ---
 
-// Démarrage du drag (Fichier)
 window.handleDragStart = (e, courseId) => {
     e.dataTransfer.setData("text/plain", courseId);
     e.dataTransfer.effectAllowed = "move";
-    e.target.classList.add('draggable-source');
+    // Ajoute une classe visuelle
+    e.target.classList.add('opacity-50', 'scale-95');
 };
 
-// Fin du drag (Nettoyage style)
 window.handleDragEnd = (e) => {
-    e.target.classList.remove('draggable-source');
+    e.target.classList.remove('opacity-50', 'scale-95');
     document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 };
 
-// Survol d'une zone de drop (Dossier)
 window.handleDragOver = (e) => {
-    e.preventDefault(); // Nécessaire pour autoriser le drop
+    e.preventDefault(); 
     e.dataTransfer.dropEffect = "move";
     e.currentTarget.classList.add('drag-over');
 };
 
-// Sortie de zone (Dossier)
 window.handleDragLeave = (e) => {
     e.currentTarget.classList.remove('drag-over');
 };
 
-// Drop (Action finale)
 window.handleDrop = async (e, targetFolderId) => {
     e.preventDefault();
     e.currentTarget.classList.remove('drag-over');
@@ -84,19 +80,29 @@ window.handleDrop = async (e, targetFolderId) => {
     const courseId = e.dataTransfer.getData("text/plain");
     if (!courseId) return;
 
-    // Empêcher de drop dans le dossier courant (inutile)
+    // Vérification user
+    if (!currentUserId) {
+        showMessage("Erreur: Utilisateur non connecté.", true);
+        return;
+    }
+
+    // Empêcher le drop sur soi-même
     if (targetFolderId === currentFolderId) return;
-    // Si targetFolderId est 'root' (ex: retour accueil), on le met à null
+    
+    // Conversion 'root' -> null
     const finalFolderId = targetFolderId === 'root' ? null : targetFolderId;
 
     try {
         const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
         await updateDoc(courseRef, { folderId: finalFolderId });
         showMessage("Fichier déplacé avec succès !");
-        // Le snapshot listener rechargera l'UI automatiquement
     } catch (error) {
         console.error("Erreur déplacement:", error);
-        showMessage("Erreur lors du déplacement.", true);
+        if (error.code === 'permission-denied') {
+            showMessage("Permission refusée. Vérifiez les règles Firestore.", true);
+        } else {
+            showMessage("Erreur lors du déplacement : " + error.message, true);
+        }
     }
 };
 
@@ -157,8 +163,6 @@ function renderFolders() {
     if (!ui.foldersGrid) return;
 
     if (currentFolderId) {
-        // En mode dossier, on cache la grille des dossiers pour l'instant
-        // (Amélioration possible: afficher les sous-dossiers si on en avait)
         ui.foldersGridWrapper.classList.add('hidden');
         return; 
     } else {
@@ -225,7 +229,6 @@ function renderCourses() {
                 dateStr = course.createdAt.toDate().toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
             }
 
-            // Ajout des attributs draggable
             return `
             <div class="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group animate-fade-in-up border-b border-gray-800/50 cursor-pointer draggable-item"
                  draggable="true"
@@ -259,7 +262,7 @@ function renderCourses() {
     }
 }
 
-// --- Global Actions (exposed) ---
+// --- Global Actions ---
 
 window.openFolder = (id, name) => {
     const url = new URL(window.location.href);
@@ -303,19 +306,22 @@ if(ui.newFolderBtn) {
 window.deleteFolder = async (folderId) => {
     if(confirm("Supprimer ce dossier va détacher les cours (retour racine). Confirmer ?")) {
         try {
-            // 1. Détacher les cours
             const coursesToUpdate = allCourses.filter(c => c.folderId === folderId);
+            const batch = db.batch(); // Utilisation de batch pour la performance
+            
             coursesToUpdate.forEach(course => {
                 const courseRef = doc(db, 'users', currentUserId, 'courses', course.id);
-                updateDoc(courseRef, { folderId: null });
+                batch.update(courseRef, { folderId: null });
             });
-
-            // 2. Supprimer le dossier
-            await deleteDoc(doc(db, 'users', currentUserId, 'folders', folderId));
+            
+            const folderRef = doc(db, 'users', currentUserId, 'folders', folderId);
+            batch.delete(folderRef);
+            
+            await batch.commit();
             showMessage("Dossier supprimé.");
         } catch (e) {
             console.error(e);
-            showMessage("Erreur suppression.", true);
+            showMessage("Erreur suppression : " + e.message, true);
         }
     }
 };
@@ -385,7 +391,7 @@ onAuthStateChanged(auth, (user) => {
         const coursesQuery = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
         onSnapshot(coursesQuery, (snapshot) => {
             allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Update Folder Counts (Local only for display speed)
+            // Update Folder Counts
             allFolders.forEach(folder => {
                 folder.courseCount = allCourses.filter(c => c.folderId === folder.id).length;
             });
