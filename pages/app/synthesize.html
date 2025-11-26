@@ -405,7 +405,7 @@
 
                 if (!response.ok) {
                     if (response.status === 429) {
-                        throw new Error("Quota dépassé. Réessayez dans une minute.");
+                        throw new Error("Quota dépassé (429). Réessayez dans une minute.");
                     }
                     throw new Error(`Erreur API Gemini: ${response.status}`);
                 }
