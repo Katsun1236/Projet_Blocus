@@ -33,6 +33,15 @@
             background: rgba(255, 255, 255, 0.03);
             color: #e5e7eb;
         }
+        /* Drag & Drop Styles */
+        .drag-over {
+            border: 2px dashed #6366f1 !important;
+            background: rgba(99, 102, 241, 0.1) !important;
+            transform: scale(1.02);
+        }
+        .draggable-source {
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
@@ -51,7 +60,7 @@
             <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
         </div>
 
-        <nav class="flex-grow px-4 space-y-2">
+        <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
             <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -70,12 +79,14 @@
                 <span class="font-medium">Planning</span>
             </a>
 
+            <!-- SECTION OUTILS (Ajoutée) -->
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
             <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Synthétiseur</span>
             </a>
 
+            <!-- SECTION SOCIAL (Complétée) -->
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
             <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
@@ -93,6 +104,12 @@
                 <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
             </a>
+            
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800">
@@ -106,7 +123,7 @@
     <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
         
-        <!-- Header Mobile (Remplacé par un header plus complet pour cohérence) -->
+        <!-- Header Mobile -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4 md:hidden">
                 <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -118,7 +135,6 @@
                 <p class="text-sm text-gray-400" id="date-display">Gère, organise et retrouve tes documents.</p>
             </div>
 
-            <!-- Bouton Profil (simplifié pour cette page, le script courses.js le remplira) -->
             <div id="nav-logged-in" class="flex items-center gap-6">
                 <a href="profile.html" class="flex items-center gap-3 group cursor-pointer">
                     <div class="text-right hidden sm:block">
@@ -136,6 +152,7 @@
             <!-- Breadcrumbs & Actions -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
+                    <!-- La zone de fil d'ariane devient une drop zone pour remonter à la racine -->
                     <div id="breadcrumbs" class="flex items-center text-sm text-gray-500 mb-1">
                         <span class="hover:text-white cursor-pointer transition-colors">Accueil</span>
                     </div>
@@ -174,7 +191,7 @@
                     </div>
                 </div>
                 
-                <div id="courses-list" class="divide-y divide-gray-800">
+                <div id="courses-list" class="divide-y divide-gray-800 min-h-[100px]">
                     <!-- Les cours seront injectés ici -->
                 </div>
                 
@@ -190,7 +207,7 @@
         </main>
     </div>
 
-    <!-- Message Box (Toast) -->
+    <!-- Message Box -->
     <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
         <!-- Icone gérée par JS -->
     </div>
