@@ -49,7 +49,7 @@ function showMessage(message, isError = false) {
     }, 4000);
 }
 
-// --- Drag & Drop Logic (CORRIGÉ) ---
+// --- Drag & Drop Logic (CORRIGÉ & ROBUSTE) ---
 
 window.handleDragStart = (e, courseId) => {
     e.dataTransfer.setData("text/plain", courseId);
@@ -93,15 +93,15 @@ window.handleDrop = async (e, targetFolderId) => {
     try {
         const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
         
-        // CORRECTION MAJEURE : Utilisation de setDoc avec merge au lieu de updateDoc
-        // Cela évite l'erreur "No document to update" si Firestore a un léger délai de sync
+        // CORRECTION ICI : Utilisation de setDoc avec merge: true
+        // C'est plus sûr que updateDoc car ça marche même si le doc est "en cours de sync"
         await setDoc(courseRef, { folderId: finalFolderId }, { merge: true });
         
         showMessage("Fichier déplacé avec succès !");
     } catch (error) {
         console.error("Erreur déplacement:", error);
         if (error.code === 'permission-denied') {
-            showMessage("Permission refusée. Vérifiez les règles.", true);
+            showMessage("Permission refusée. Vérifiez les règles Firestore.", true);
         } else {
             showMessage("Erreur : " + error.message, true);
         }
@@ -313,7 +313,7 @@ window.deleteFolder = async (folderId) => {
             
             coursesToUpdate.forEach(course => {
                 const courseRef = doc(db, 'users', currentUserId, 'courses', course.id);
-                batch.update(courseRef, { folderId: null });
+                batch.update(courseRef, { folderId: null }); // batch.update est ok ici car on a la ref
             });
             
             const folderRef = doc(db, 'users', currentUserId, 'folders', folderId);
@@ -362,7 +362,8 @@ window.promptMove = async (courseId) => {
 
     try {
         const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
-        await updateDoc(courseRef, { folderId: newFolderId });
+        // Ici aussi, setDoc avec merge est plus sûr
+        await setDoc(courseRef, { folderId: newFolderId }, { merge: true });
         showMessage("Cours déplacé !");
     } catch (e) { console.error(e); showMessage("Erreur déplacement.", true); }
 };
