@@ -6,17 +6,12 @@
     <title>Uploader un cours - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PDF.js (Version stable) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
-        // Configuration du Worker PDF.js
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
@@ -39,14 +34,12 @@
             background: rgba(255, 255, 255, 0.03);
             color: #e5e7eb;
         }
-        /* Zone de Drop Stylisée */
         .drop-zone {
             transition: all 0.3s ease;
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%234B5563FF' stroke-width='2' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
             cursor: pointer;
-            position: relative; /* Important pour l'overlay */
+            position: relative;
         }
-        /* L'input prend tout l'espace et déclenche le hover du parent via CSS */
         .drop-zone:focus-within, .drop-zone:hover {
             background-color: rgba(99, 102, 241, 0.1);
             background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%236366F1FF' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
@@ -57,12 +50,10 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <!-- SIDEBAR -->
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
             <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
@@ -95,7 +86,6 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
         <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4">
@@ -123,7 +113,6 @@
 
                     <form id="upload-form" class="space-y-8">
                         
-                        <!-- Grid Nom + Dossier -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label for="courseName" class="block text-sm font-medium text-gray-300 mb-2 ml-1">Nom du cours</label>
@@ -134,7 +123,6 @@
                                 <div class="relative">
                                     <select id="folderSelect" class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all appearance-none cursor-pointer">
                                         <option value="root">📁 À la racine (Mes Cours)</option>
-                                        <!-- Options injectées par JS -->
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                                         <i class="fas fa-chevron-down"></i>
@@ -143,10 +131,7 @@
                             </div>
                         </div>
 
-                        <!-- Zone de Drop avec Input Overlay (Technique infaillible) -->
                         <div id="drop-zone" class="drop-zone rounded-2xl p-10 text-center hover:bg-gray-800/30 transition-all group relative overflow-hidden">
-                            
-                            <!-- L'input fait toute la taille et est invisible -->
                             <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf" title="">
                             
                             <div class="relative z-0 pointer-events-none">
@@ -157,7 +142,6 @@
                             </div>
                         </div>
 
-                        <!-- Prévisualisation -->
                         <div id="preview-container" class="hidden bg-gray-900/50 rounded-xl p-6 border border-gray-800 flex flex-col md:flex-row items-center gap-6 animate-fade-in-up">
                             <canvas id="pdf-preview-canvas" class="h-32 w-auto rounded-lg shadow-lg border border-gray-700 hidden"></canvas>
                             <div id="pdf-icon-fallback" class="h-32 w-24 bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-center hidden">
@@ -173,7 +157,6 @@
                             </div>
                         </div>
 
-                        <!-- Barre de progression -->
                         <div id="progress-container" class="hidden">
                             <div class="flex justify-between text-xs text-gray-400 mb-2">
                                 <span>Upload en cours...</span>
@@ -194,13 +177,11 @@
         </main>
     </div>
 
-    <!-- Message Box -->
     <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
         <div id="message-icon"></div>
         <span id="message-text"></span>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
     <script type="module">
         import { auth, db, storage } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -245,14 +226,12 @@
             ui.progressBar.style.width = '0%';
         }
 
-        // --- Folders Logic ---
         async function loadFolders() {
             try {
                 const foldersRef = collection(db, 'users', currentUserId, 'folders');
                 const q = query(foldersRef, orderBy('name'));
                 const snapshot = await getDocs(q);
                 
-                // Reset select (keep root)
                 ui.folderSelect.innerHTML = '<option value="root">📁 À la racine (Mes Cours)</option>';
                 
                 snapshot.forEach(doc => {
@@ -263,15 +242,14 @@
                     ui.folderSelect.appendChild(option);
                 });
             } catch (error) {
-                console.error("Erreur chargement dossiers:", error);
+                console.error(error);
             }
         }
 
-        // --- Auth & Init ---
         onAuthStateChanged(auth, async (user) => {
             if (user && !user.isAnonymous) {
                 currentUserId = user.uid;
-                loadFolders(); // Charger les dossiers au démarrage
+                loadFolders();
             } else {
                 window.location.href = '../auth/login.html';
             }
@@ -279,7 +257,6 @@
 
         document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
 
-        // --- PDF Handling ---
         async function renderPdfPreview(file) {
             const reader = new FileReader();
             reader.onload = async function(event) {
@@ -321,9 +298,6 @@
             }
         }
 
-        // --- EVENT HANDLERS (Simplifiés grâce à l'overlay) ---
-        
-        // L'input overlay gère tout : clic, dragover, drop. On écoute juste "change"
         ui.fileInput.addEventListener('change', (e) => {
             if (e.target.files.length > 0) handleFile(e.target.files[0]);
         });
@@ -331,7 +305,7 @@
         ui.removeFileBtn.addEventListener('click', (e) => {
             e.preventDefault();
             selectedFile = null;
-            ui.fileInput.value = ''; // Reset input pour permettre de resélectionner le même fichier
+            ui.fileInput.value = '';
             ui.previewContainer.classList.add('hidden');
             ui.previewContainer.classList.remove('flex');
             ui.dropZone.classList.remove('hidden');
@@ -339,7 +313,6 @@
             ui.submitButton.classList.add('opacity-50', 'cursor-not-allowed');
         });
 
-        // --- Upload Process ---
         ui.uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!selectedFile || !currentUserId) return;
@@ -373,7 +346,6 @@
                     try {
                         const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                         
-                        // Sauvegarde avec le FolderID
                         await setDoc(newCourseRef, {
                             title: courseName,
                             fileName: selectedFile.name,
@@ -382,14 +354,8 @@
                             status: 'uploaded',
                             type: selectedFile.type,
                             size: selectedFile.size,
-                            folderId: selectedFolderId // Stockage du dossier
+                            folderId: selectedFolderId
                         });
-
-                        // Optionnel : Mettre à jour le compteur de cours dans le dossier
-                        /* if (selectedFolderId) {
-                            const folderRef = doc(db, 'users', currentUserId, 'folders', selectedFolderId);
-                            // updateDoc(folderRef, { courseCount: increment(1) }); // Nécessite d'importer increment
-                        } */
 
                         showMessage("Succès ! Redirection...", false);
                         setTimeout(() => window.location.href = 'courses.html', 1500);
