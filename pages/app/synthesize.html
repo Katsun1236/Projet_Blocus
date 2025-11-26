@@ -282,7 +282,7 @@
         import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         let userCourses = [];
-        const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; // Ta clé API
+        const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
 
         const ui = {
             list: document.getElementById('synthesis-list-section'),
@@ -398,12 +398,17 @@
                 
                 const prompt = `À partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 
                 const payload = { contents: [{ parts: [{ text: prompt }] }] };
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 
-                if (!response.ok) throw new Error(`Erreur API Gemini: ${response.status}`);
+                if (!response.ok) {
+                    if (response.status === 429) {
+                        throw new Error("Quota dépassé. Réessayez dans une minute.");
+                    }
+                    throw new Error(`Erreur API Gemini: ${response.status}`);
+                }
                 const result = await response.json();
                 
                 if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
