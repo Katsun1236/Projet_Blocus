@@ -1,3 +1,4 @@
+
 // firebase-config.js
 // Version optimisée pour Projet Blocus
 // Stack : Auth, Firestore, Storage, Functions
@@ -5,13 +6,14 @@
 // 1. Importations CORRIGÉES
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+// Suppression de enableIndexedDbPersistence car nous utilisons la nouvelle syntaxe
+import { getFirestore, initializeFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-import { getFunctions } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js"; // Ajouté
+import { getFunctions } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js"; 
 
 // Configuration Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDmC7x4_bwR3epzhzYkC9xdpkEHO6_E2kY", // Ta clé actuelle
+  apiKey: "AIzaSyDmC7x4_bwR3epzhzYkC9xdpkEHO6_E2kY", 
   authDomain: "projet-blocus-v2.firebaseapp.com",
   projectId: "projet-blocus-v2",
   storageBucket: "projet-blocus-v2.firebasestorage.app",
@@ -24,23 +26,27 @@ const app = initializeApp(firebaseConfig);
 
 // 2. Initialisation des Services
 const auth = getAuth(app);
-const db = getFirestore(app);
 const storage = getStorage(app);
-// On force une région proche (ex: Belgique/Paris) pour la latence.
-// Si aucune région n'est spécifiée, le default est 'us-central1'.
 const functions = getFunctions(app, 'europe-west1'); 
 
-// 3. Persistance Offline (Optionnel mais recommandé pour l'UX étudiante)
-// Permet à l'app de charger le cache si le wifi de l'unif saute
-enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code == 'failed-precondition') {
-        // Multiple tabs open, persistence can only be enabled in one tab at a a time.
-        console.warn('Persistance Firestore désactivée (multi-onglets).');
-    } else if (err.code == 'unimplemented') {
-        // The current browser does not support all of the features required to enable persistence
-        console.warn('Persistance non supportée par ce navigateur.');
-    }
-});
+// 3. Initialisation de Firestore avec Persistance (Nouvelle Syntaxe)
+// On utilise initializeFirestore à la place de getFirestore suivi de enableIndexedDbPersistence
+let db;
+try {
+    db = initializeFirestore(app, {
+        // Nouvelle syntaxe pour la persistance locale (remplace enableIndexedDbPersistence)
+        cache: {
+            // Configuration de la persistance via IndexedDB
+            persistence: 'indexedDB' 
+        }
+    });
+} catch (err) {
+    // Si la persistance est déjà initialisée (multi-onglet) ou non supportée, on retombe sur getFirestore par sécurité
+    db = getFirestore(app);
+    console.warn("Erreur lors de l'initialisation de la persistance. Utilisation du cache mémoire. Détails:", err.code);
+}
+
 
 // 4. Exports
+// Remarque: L'export de 'db' doit se faire après son initialisation.
 export { app, auth, db, storage, functions };
