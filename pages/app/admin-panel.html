@@ -3,250 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panneau Admin - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
+    <title>Admin Panel - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../../assets/images/logo.png">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    
-    <style>
-        .sidebar-glass {
-            background: rgba(5, 5, 5, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .content-glass {
-            background: rgba(20, 20, 20, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        .report-card.forum { border-left: 4px solid #ef4444; }
-        .report-card.bug { border-left: 4px solid #f97316; }
-    </style>
+    <link rel="stylesheet" href="../../../assets/css/style.css">
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+<body class="bg-black text-white min-h-screen font-sans selection:bg-red-500 selection:text-white">
 
-    <!-- SIDEBAR MINIMALE POUR ADMIN -->
-    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
-        <div class="p-6 flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
-                B.
+    <nav class="border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center font-bold text-white">A</div>
+                <span class="font-bold text-lg">Admin Panel</span>
             </div>
-            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
+            <a href="../dashboard.html" class="text-sm text-gray-400 hover:text-white transition-colors">Retour App</a>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        
+        <div id="loading-admin" class="text-center py-20">
+            <div class="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-red-500 mx-auto mb-4"></div>
+            <p class="text-gray-500">Vérification des privilèges...</p>
         </div>
 
-        <nav class="flex-grow px-4 space-y-2">
-            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-arrow-left w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Retour au Dashboard</span>
-            </a>
+        <div id="admin-content" class="hidden space-y-10">
             
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Administration</p>
-            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-red-400 bg-red-900/20">
-                <i class="fas fa-user-shield w-6"></i>
-                <span class="font-medium">Panneau Admin</span>
-            </a>
-        </nav>
-        
-        <div class="p-4 border-t border-gray-800">
-            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
-                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">Déconnexion</span>
-            </button>
-        </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <div class="flex-grow flex flex-col min-w-0 relative z-10">
-        
-        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
-            <h1 class="text-xl font-display font-bold text-white flex items-center gap-3">
-                <i class="fas fa-lock text-red-500"></i> Centre de Modération
-            </h1>
-            <span id="admin-user-name" class="text-sm font-bold text-gray-400">Admin</span>
-        </header>
-
-        <main class="flex-grow p-6 md:p-10 overflow-y-auto">
-            
-            <div class="max-w-6xl mx-auto">
-                <h2 class="text-3xl font-display font-bold text-white mb-6">Rapports et Signalements</h2>
-
-                <div id="loading-reports" class="flex justify-center py-20">
-                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+            <!-- Stats Row -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl">
+                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Utilisateurs</p>
+                    <p id="count-users" class="text-3xl font-bold text-white">-</p>
                 </div>
-
-                <div id="reports-list" class="space-y-6">
-                    <!-- Rapports injectés ici -->
+                <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl">
+                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Rapports de bugs</p>
+                    <p id="count-bugs" class="text-3xl font-bold text-red-400">-</p>
                 </div>
-                
-                <div id="no-reports" class="hidden text-center py-20 content-glass rounded-3xl border border-dashed border-gray-700">
-                    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-gray-600">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Tout est clair !</h3>
-                    <p class="text-gray-400">Aucun rapport en attente.</p>
+                <div class="bg-gray-900 border border-gray-800 p-6 rounded-xl">
+                    <p class="text-gray-500 text-xs font-bold uppercase mb-1">Discussions</p>
+                    <p id="count-posts" class="text-3xl font-bold text-indigo-400">-</p>
                 </div>
             </div>
 
-        </main>
-    </div>
+            <!-- Bug Reports -->
+            <div>
+                <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                    <i class="fas fa-bug text-red-500"></i> Rapports Récents
+                </h2>
+                <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+                    <table class="w-full text-left text-sm text-gray-400">
+                        <thead class="bg-gray-800 text-gray-200 uppercase text-xs font-bold">
+                            <tr>
+                                <th class="px-6 py-3">Gravité</th>
+                                <th class="px-6 py-3">Sujet</th>
+                                <th class="px-6 py-3">Utilisateur</th>
+                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body" class="divide-y divide-gray-800">
+                            <!-- Rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
 
-    <!-- Message Box -->
-    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+        </div>
 
-    <!-- JAVASCRIPT -->
+        <div id="access-denied" class="hidden text-center py-20">
+            <div class="w-20 h-20 bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-red-500">
+                <i class="fas fa-lock"></i>
+            </div>
+            <h1 class="text-2xl font-bold text-white mb-2">Accès Refusé</h1>
+            <p class="text-gray-500">Vous n'avez pas les permissions nécessaires.</p>
+            <a href="../dashboard.html" class="inline-block mt-6 px-6 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors">Retour</a>
+        </div>
+
+    </main>
+
     <script type="module">
-        import { auth, db } from '../../assets/js/config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, onSnapshot, query, orderBy, deleteDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-        let currentUserId = null;
-        let currentUserProfile = null;
+        import { auth, db } from '../../../assets/js/config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs, query, orderBy, limit, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         const ui = {
-            loading: document.getElementById('loading-reports'),
-            reportsList: document.getElementById('reports-list'),
-            noReports: document.getElementById('no-reports'),
-            adminUserName: document.getElementById('admin-user-name'),
+            loading: document.getElementById('loading-admin'),
+            content: document.getElementById('admin-content'),
+            denied: document.getElementById('access-denied'),
+            reportsTable: document.getElementById('reports-table-body'),
+            countUsers: document.getElementById('count-users'),
+            countBugs: document.getElementById('count-bugs'),
+            countPosts: document.getElementById('count-posts'),
         };
 
-        function showMessage(message, isError = false) {
-            const box = document.createElement('div');
-            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
-            box.innerHTML = `<p class="font-medium text-sm">${message}</p>`;
-            document.getElementById('message-box').appendChild(box);
-            requestAnimationFrame(() => box.classList.remove('translate-y-10', 'opacity-0'));
-            setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
-        }
+        async function loadDashboard() {
+            // 1. Fetch Stats (Simple counting via size - not efficient for huge datasets but ok for MVP)
+            const [usersSnap, bugsSnap, postsSnap] = await Promise.all([
+                getDocs(collection(db, 'users')),
+                getDocs(collection(db, 'reports')),
+                getDocs(collection(db, 'forum'))
+            ]);
 
-        function timeAgo(date) {
-            if (!date) return 'récemment';
-            const seconds = Math.floor((new Date() - date) / 1000);
-            if (seconds < 60) return "à l'instant";
-            const minutes = Math.floor(seconds / 60);
-            if (minutes < 60) return `${minutes} min`;
-            const hours = Math.floor(minutes / 60);
-            if (hours < 24) return `${hours} h`;
-            return new Date(date).toLocaleDateString('fr-FR');
-        }
+            ui.countUsers.textContent = usersSnap.size;
+            ui.countBugs.textContent = bugsSnap.size;
+            ui.countPosts.textContent = postsSnap.size;
 
-        async function renderReports(reports) {
-            ui.loading.classList.add('hidden');
-            ui.reportsList.innerHTML = '';
+            // 2. Fetch Reports
+            const reportsQuery = query(collection(db, 'reports'), orderBy('createdAt', 'desc'), limit(10));
+            const reportsSnap = await getDocs(reportsQuery);
 
-            if (reports.length === 0) {
-                ui.noReports.classList.remove('hidden');
-                return;
-            }
-            ui.noReports.classList.add('hidden');
-
-            reports.forEach(report => {
-                const isBug = report.type === 'bug_report';
-                const typeLabel = isBug ? 'Rapport de Bug' : 'Signalement Forum';
-                const typeClass = isBug ? 'bug' : 'forum';
-                const source = isBug ? `Page: ${report.page || 'Inconnue'}` : `Post ID: ${report.postId.substring(0, 8)}...`;
-                const color = isBug ? 'text-orange-400' : 'text-red-400';
+            ui.reportsTable.innerHTML = '';
+            reportsSnap.forEach(doc => {
+                const r = doc.data();
+                const severityColors = { 'low': 'text-green-400', 'medium': 'text-yellow-400', 'high': 'text-red-500 font-bold' };
+                const severityLabels = { 'low': 'Mineur', 'medium': 'Gênant', 'high': 'CRITIQUE' };
                 
-                let reporterName = report.reporterName || report.reportedBy || 'Utilisateur inconnu';
-                if (!isBug && report.reportedBy) reporterName = report.reportedBy; // Pour la V1 simple
-
-                const el = document.createElement('div');
-                el.id = `report-${report.id}`;
-                el.className = `content-glass p-6 rounded-xl report-card ${typeClass} flex flex-col sm:flex-row justify-between items-start sm:items-center`;
-                el.innerHTML = `
-                    <div class="flex-grow min-w-0 mb-4 sm:mb-0">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-xs font-bold uppercase tracking-wider ${color}">${typeLabel}</span>
-                            ${isBug ? `<span class="text-xs text-gray-500 font-mono">Impact: ${report.impact}</span>` : ''}
-                        </div>
-                        <p class="text-lg font-medium text-white mb-2 line-clamp-2">
-                            ${report.description || report.postTitle || 'Pas de description.'}
-                        </p>
-                        <p class="text-sm text-gray-500">
-                            <i class="fas fa-user-tag"></i> Rapporté par: ${reporterName}
-                        </p>
-                        <p class="text-xs text-gray-600 mt-1"><i class="fas fa-clock"></i> ${timeAgo(report.timestamp?.toDate())}</p>
-                    </div>
-                    
-                    <div class="flex gap-2 flex-shrink-0">
-                        <button data-id="${report.id}" class="btn-resolve px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-bold rounded-lg transition-colors">
-                            Résolu
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-800/50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-6 py-4 ${severityColors[r.severity]}">${severityLabels[r.severity]}</td>
+                    <td class="px-6 py-4 font-medium text-white">${r.title}</td>
+                    <td class="px-6 py-4">${r.userEmail}</td>
+                    <td class="px-6 py-4">${r.createdAt ? new Date(r.createdAt.toDate()).toLocaleDateString() : '-'}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button class="text-red-400 hover:text-white transition-colors" onclick="deleteReport('${doc.id}')">
+                            <i class="fas fa-check"></i> Traiter
                         </button>
-                        <button data-id="${report.id}" class="btn-delete px-4 py-2 bg-gray-800 hover:bg-red-500/20 text-gray-400 hover:text-red-400 text-sm font-bold rounded-lg transition-colors">
-                            Supprimer
-                        </button>
-                    </div>
+                    </td>
                 `;
-                
-                el.querySelector('.btn-resolve').addEventListener('click', () => resolveReport(report.id));
-                el.querySelector('.btn-delete').addEventListener('click', () => deleteReport(report.id));
-                
-                ui.reportsList.appendChild(el);
+                ui.reportsTable.appendChild(tr);
             });
-        }
-        
-        async function resolveReport(reportId) {
-            if (!confirm("Marquer ce rapport comme résolu ?")) return;
-            try {
-                // Pour la V1, on supprime simplement le rapport. Dans la V2, on mettrait un statut 'resolved'.
-                await deleteDoc(doc(db, 'reports', reportId));
-                showMessage("Rapport marqué comme résolu !");
-            } catch (e) {
-                console.error(e);
-                showMessage("Erreur lors de la résolution.", true);
-            }
-        }
-        
-        async function deleteReport(reportId) {
-            if (!confirm("Supprimer ce rapport définitivement ?")) return;
-            try {
-                await deleteDoc(doc(db, 'reports', reportId));
-                showMessage("Rapport supprimé.");
-            } catch (e) {
-                console.error(e);
-                showMessage("Erreur lors de la suppression.", true);
-            }
-        }
 
-        // --- Auth & Init ---
-        document.getElementById('logout-button').addEventListener('click', async () => { 
-            await signOut(auth); 
-            window.location.href = '../../index.html'; 
-        });
+            window.deleteReport = async (id) => {
+                if(confirm("Marquer comme traité et supprimer ?")) {
+                    await deleteDoc(doc(db, 'reports', id));
+                    loadDashboard(); // Reload
+                }
+            };
+        }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                currentUserId = user.uid;
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
                 
-                const userSnap = await getDoc(doc(db, 'users', user.uid));
-                if (userSnap.exists()) {
-                    currentUserProfile = userSnap.data();
+                if (userSnap.exists() && userSnap.data().role === 'admin') {
+                    ui.loading.classList.add('hidden');
+                    ui.content.classList.remove('hidden');
+                    loadDashboard();
+                } else {
+                    ui.loading.classList.add('hidden');
+                    ui.denied.classList.remove('hidden');
                 }
-
-                // Vérification du rôle d'administrateur
-                if (currentUserProfile?.role !== 'admin') {
-                    // Redirection ou affichage d'une erreur d'accès
-                    document.body.innerHTML = '<div class="flex items-center justify-center h-screen text-red-400">Accès refusé. Vous devez être administrateur.</div>';
-                    return;
-                }
-                
-                ui.adminUserName.textContent = currentUserProfile.firstName || 'Administrateur';
-                
-                // Écouteur en temps réel pour tous les rapports (Forum et Bugs)
-                const q = query(collection(db, 'reports'), orderBy('timestamp', 'desc'));
-                onSnapshot(q, (snapshot) => {
-                    const reports = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    renderReports(reports);
-                }, (error) => {
-                    console.error("Erreur de l'écouteur de rapports:", error);
-                });
-
             } else {
-                window.location.href = '../auth/login.html';
+                window.location.href = '../../auth/login.html';
             }
         });
     </script>
