@@ -8,7 +8,7 @@ let currentUserId = null;
 let currentFolderId = null;
 let currentFolderName = "Mes Cours";
 
-// On attache les variables à window pour pouvoir débugger dans la console (taper window.allCourses)
+// Variables globales pour le debug console
 window.allCourses = [];
 window.allFolders = [];
 
@@ -32,40 +32,6 @@ const ui = {
     noNotifMsg: document.getElementById('no-notif-msg'),
     markAllReadBtn: document.getElementById('mark-all-read'),
 };
-
-// --- Helper Functions ---
-function showMessage(message, isError = false) {
-    const box = document.getElementById('message-box');
-    if (!box) return;
-    
-    box.innerHTML = '';
-    const icon = document.createElement('div');
-    icon.className = isError ? 'text-red-400' : 'text-indigo-400';
-    icon.innerHTML = isError ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
-    
-    const text = document.createElement('span');
-    text.textContent = message;
-    
-    box.appendChild(icon);
-    box.appendChild(text);
-    
-    box.className = `fixed bottom-6 right-6 bg-gray-900 border ${isError ? 'border-red-500/30' : 'border-green-500/30'} text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float`;
-    
-    box.classList.remove('hidden');
-    setTimeout(() => { box.classList.add('hidden'); }, 3000);
-}
-
-function timeAgo(date) {
-    if (!date) return 'récemment';
-    const seconds = Math.floor((new Date() - date) / 1000);
-    if (seconds < 60) return "à l'instant";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `il y a ${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `il y a ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `il y a ${days} j`;
-}
 
 // --- Render Functions ---
 function render() {
@@ -97,7 +63,7 @@ async function renderHeader() {
             if (ui.navLoggedIn) ui.navLoggedIn.classList.remove('hidden');
         }
     } catch (e) {
-        console.error("Erreur chargement header:", e);
+        console.error("Erreur header:", e);
     }
 }
 
@@ -119,7 +85,6 @@ function renderBreadcrumbs() {
 function renderFolders() {
     if (!ui.foldersGrid) return;
     
-    // Gestion de l'affichage de la grille dossier
     if (currentFolderId) {
         ui.foldersGrid.innerHTML = '';
         ui.foldersGrid.classList.add('hidden');
@@ -141,7 +106,6 @@ function renderFolders() {
             </div>
             <h3 class="font-bold text-white text-lg truncate mb-1 group-hover:text-indigo-300 transition-colors">${folder.name}</h3>
             <p class="text-xs text-gray-400 font-medium">${folder.courseCount || 0} fichiers</p>
-            <div class="absolute inset-0 rounded-xl bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
         </div>
     `).join('');
 }
@@ -149,21 +113,11 @@ function renderFolders() {
 function renderCourses() {
     if (!ui.coursesList) return;
     
-    console.log("🔄 Render Courses déclenché.");
-    console.log("📂 Dossier actuel:", currentFolderId ? currentFolderId : "Racine");
-    console.log("📚 Total cours en mémoire:", window.allCourses.length);
-
-    // Filtre robuste : gère les cas où folderId est null, undefined ou manquant
-    const coursesToShow = window.allCourses.filter(c => {
-        if (currentFolderId) {
-            return c.folderId === currentFolderId;
-        } else {
-            // À la racine : on veut ceux qui n'ont PAS de folderId ou qui sont à null
-            return !c.folderId || c.folderId === 'null';
-        }
-    });
-
-    console.log("👀 Cours à afficher après filtre:", coursesToShow.length);
+    console.log("🔍 FILTRE ACTIVÉ : Affichage de TOUS les cours sans distinction de dossier.");
+    
+    // DEBUG : On désactive temporairement le filtre de dossier pour voir si les fichiers apparaissent
+    // const coursesToShow = window.allCourses.filter(c => ...); 
+    const coursesToShow = window.allCourses; // Affiche tout ce qu'on a reçu
 
     if (coursesToShow.length === 0) {
         if(ui.noContent) ui.noContent.classList.remove('hidden');
@@ -178,21 +132,19 @@ function renderCourses() {
             if (course.fileName && course.fileName.toLowerCase().endsWith('.pdf')) {
                 iconClass = "fa-file-pdf";
                 colorClass = "text-red-400 bg-red-400/10";
-            } else if (course.type && course.type.startsWith('image/')) {
-                iconClass = "fa-file-image";
-                colorClass = "text-purple-400 bg-purple-400/10";
             }
             
-            let dateStr = 'Récemment';
+            let dateStr = 'Date inconnue';
             if (course.createdAt) {
+                // Gestion robuste des dates (Timestamp Firestore ou String ISO)
                 const d = course.createdAt.toDate ? course.createdAt.toDate() : new Date(course.createdAt);
                 if (!isNaN(d.getTime())) {
-                    dateStr = d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'short', year: 'numeric'});
+                    dateStr = d.toLocaleDateString('fr-FR');
                 }
             }
 
-            const displayTitle = course.title || course.name || course.fileName || 'Sans titre';
-            // Fallback sécurisé pour l'URL
+            // Pour le debug, on affiche le folderId à côté du nom
+            const debugFolderInfo = course.folderId ? `(Dossier: ${course.folderId})` : '(Racine)';
             const link = course.fileURL || course.url || '#';
 
             return `
@@ -202,93 +154,20 @@ function renderCourses() {
                         <i class="fas ${iconClass}"></i>
                     </div>
                     <div>
-                        <h4 class="font-medium text-white group-hover:text-indigo-300 transition-colors">${displayTitle}</h4>
+                        <h4 class="font-medium text-white group-hover:text-indigo-300 transition-colors">${course.title || course.fileName} <span class="text-xs text-gray-600">${debugFolderInfo}</span></h4>
                         <div class="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                            <span>${course.fileName || 'Document'}</span>
+                            <span>${course.fileName || 'Fichier'}</span>
                             <span class="w-1 h-1 rounded-full bg-gray-600"></span>
                             <span>${dateStr}</span>
                         </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Télécharger" onclick="event.stopPropagation(); window.open('${link}', '_blank')">
-                        <i class="fas fa-download"></i>
-                    </button>
-                    <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="event.stopPropagation(); deleteCourse('${course.id}', '${course.fileName}')">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </div>
+                <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="event.stopPropagation(); deleteCourse('${course.id}')">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>`;
         }).join('');
     }
-}
-
-// --- Notification Logic ---
-function setupNotifications(userId) {
-    const notifRef = collection(db, 'users', userId, 'notifications');
-    const q = query(notifRef, orderBy('createdAt', 'desc'), limit(10));
-
-    onSnapshot(q, (snapshot) => {
-        const notifications = [];
-        snapshot.forEach(doc => notifications.push({ id: doc.id, ...doc.data() }));
-        renderNotifications(notifications);
-    });
-}
-
-function renderNotifications(notifications) {
-    if (!ui.notifList) return;
-    
-    if (notifications.length > 0) {
-        ui.notifBadge.textContent = notifications.length;
-        ui.notifBadge.classList.remove('hidden');
-        if(ui.noNotifMsg) ui.noNotifMsg.classList.add('hidden');
-    } else {
-        ui.notifBadge.classList.add('hidden');
-        ui.notifList.innerHTML = '';
-        if(ui.noNotifMsg) ui.noNotifMsg.classList.remove('hidden');
-        return;
-    }
-
-    ui.notifList.innerHTML = notifications.map(notif => {
-        let icon = 'fa-bell';
-        let color = 'text-gray-400 bg-gray-800';
-        
-        if (notif.type === 'friend_request') { icon = 'fa-user-plus'; color = 'text-indigo-400 bg-indigo-400/20'; }
-        if (notif.type === 'message') { icon = 'fa-comment-alt'; color = 'text-blue-400 bg-blue-400/20'; }
-        if (notif.type === 'success') { icon = 'fa-trophy'; color = 'text-yellow-400 bg-yellow-400/20'; }
-
-        const dateNotif = notif.createdAt ? (notif.createdAt.toDate ? notif.createdAt.toDate() : new Date(notif.createdAt)) : new Date();
-
-        return `
-        <div class="p-4 border-b border-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer flex justify-between items-start group">
-            <div class="flex gap-3">
-                <div class="w-8 h-8 rounded-full ${color} flex items-center justify-center flex-shrink-0">
-                    <i class="fas ${icon} text-xs"></i>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-300">${notif.message}</p>
-                    <p class="text-xs text-gray-500 mt-1">${timeAgo(dateNotif)}</p>
-                </div>
-            </div>
-            <button onclick="deleteNotification('${notif.id}')" class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>`;
-    }).join('');
-}
-
-window.deleteNotification = async (id) => {
-    if (!currentUserId) return;
-    await deleteDoc(doc(db, 'users', currentUserId, 'notifications', id));
-};
-
-if (ui.markAllReadBtn) {
-    ui.markAllReadBtn.addEventListener('click', async () => {
-        if (!currentUserId) return;
-        const notifRef = collection(db, 'users', currentUserId, 'notifications');
-        const snapshot = await getDocs(notifRef);
-        snapshot.forEach(async (d) => await deleteDoc(doc(db, 'users', currentUserId, 'notifications', d.id)));
-    });
 }
 
 // --- Global Functions ---
@@ -304,79 +183,56 @@ window.resetView = () => {
     render();
 };
 
+window.deleteCourse = async (courseId) => {
+    if(confirm("Supprimer ?")) {
+        await deleteDoc(doc(db, 'users', currentUserId, 'courses', courseId));
+    }
+};
+
 if(ui.newFolderBtn) {
     ui.newFolderBtn.addEventListener('click', async () => {
-        const folderName = prompt("Nom du nouveau dossier :");
+        const folderName = prompt("Nom du dossier :");
         if (folderName && currentUserId) {
-            try {
-                await addDoc(collection(db, 'users', currentUserId, 'folders'), {
-                    name: folderName,
-                    createdAt: serverTimestamp(),
-                    courseCount: 0
-                });
-                showMessage("Dossier créé avec succès !");
-            } catch (e) {
-                console.error(e);
-                showMessage("Erreur lors de la création.", true);
-            }
+            await addDoc(collection(db, 'users', currentUserId, 'folders'), {
+                name: folderName,
+                createdAt: serverTimestamp(),
+                courseCount: 0
+            });
         }
     });
 }
-
-window.deleteFolder = async (folderId) => {
-    if(confirm("Supprimer ce dossier ?")) {
-        try {
-            await deleteDoc(doc(db, 'users', currentUserId, 'folders', folderId));
-            showMessage("Dossier supprimé.");
-        } catch (e) {
-            console.error(e);
-            showMessage("Erreur suppression.", true);
-        }
-    }
-};
-
-window.deleteCourse = async (courseId, fileName) => {
-    if(confirm("Voulez-vous vraiment supprimer ce fichier ?")) {
-        try {
-            await deleteDoc(doc(db, 'users', currentUserId, 'courses', courseId));
-            showMessage("Fichier supprimé.");
-        } catch (e) {
-            console.error(e);
-            showMessage("Erreur suppression.", true);
-        }
-    }
-};
 
 // --- Initialization ---
 onAuthStateChanged(auth, (user) => {
     if (user && !user.isAnonymous) {
         currentUserId = user.uid;
+        console.log("🔑 LOGIN OK. User ID:", currentUserId);
+        
         renderHeader();
-        setupNotifications(currentUserId);
 
-        // 1. Ecouteurs Dossiers
-        const foldersQuery = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
+        // 1. Dossiers
+        // J'ai retiré le orderBy pour être sûr de tout voir, même si le champ date manque
+        const foldersQuery = collection(db, 'users', currentUserId, 'folders');
         onSnapshot(foldersQuery, (snapshot) => {
             window.allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // On ne force pas le render ici pour éviter de masquer les cours si les dossiers arrivent en premier mais vides
             renderFolders(); 
-        }, (error) => console.log("Erreur folders", error));
+        });
 
-        // 2. Ecouteurs Cours
-        const coursesQuery = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
+        // 2. Cours (VERSION SIMPLIFIÉE)
+        // J'ai retiré orderBy('createdAt') -> Si tes documents n'ont pas ce champ, ils n'apparaissent pas avec orderBy !
+        console.log("📡 Lancement de la requête Firestore...");
+        const coursesQuery = collection(db, 'users', currentUserId, 'courses');
+        
         onSnapshot(coursesQuery, (snapshot) => {
-            // Mise à jour de la variable globale
             window.allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            console.log("🔥 SNAPSHOT REÇU ! Nombre de cours :", window.allCourses.length);
-            // On force le render ici car c'est la donnée critique
+            console.log("📦 SNAPSHOT REÇU ! Cours trouvés:", window.allCourses);
             render();
         }, (error) => {
+            console.error("❌ ERREUR FIRESTORE:", error);
             if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
-            console.error("Erreur fetch cours:", error);
         });
 
     } else {
-        // Gestion redirection
         if (window.location.pathname.includes('/app/')) {
              window.location.href = '../auth/login.html';
         }
@@ -385,11 +241,7 @@ onAuthStateChanged(auth, (user) => {
 
 if (ui.logoutButton) {
     ui.logoutButton.addEventListener('click', async () => {
-        try {
-            await signOut(auth);
-            window.location.href = '../auth/login.html';
-        } catch (error) {
-            console.error('Erreur déconnexion:', error);
-        }
+        await signOut(auth);
+        window.location.href = '../auth/login.html';
     });
 }
