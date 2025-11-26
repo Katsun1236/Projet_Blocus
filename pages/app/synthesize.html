@@ -6,14 +6,13 @@
     <title>Mes Synthèses - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PDF.js & jsPDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Custom CSS -->
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
     <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
@@ -36,7 +35,6 @@
             background: rgba(255, 255, 255, 0.03);
             color: #e5e7eb;
         }
-        /* Styles spécifiques Synthèse */
         .synthesis-card {
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.05);
@@ -46,7 +44,6 @@
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(99, 102, 241, 0.3);
         }
-        /* Typography pour le contenu généré */
         .prose h2 { font-size: 1.25rem; font-weight: 700; color: #fff; margin-top: 1.5em; margin-bottom: 0.5em; }
         .prose p { margin-bottom: 1em; color: #d1d5db; line-height: 1.6; }
         .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; color: #d1d5db; }
@@ -56,12 +53,10 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <!-- SIDEBAR -->
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
             <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
@@ -70,7 +65,7 @@
             <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
         </div>
 
-        <nav class="flex-grow px-4 space-y-2">
+        <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
             <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -94,25 +89,29 @@
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Synthétiseur</span>
             </a>
-            
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
+            
             <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Mes Amis</span>
             </a>
+
             <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
                 <span class="font-medium">Discussions</span>
             </a>
+
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
+            
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
             </a>
-
+            
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
             <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
@@ -128,10 +127,8 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
         
-        <!-- Header Mobile -->
         <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4">
                 <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -141,7 +138,6 @@
 
         <main class="flex-grow p-6 md:p-10 overflow-y-auto">
             
-            <!-- SECTION: LISTE DES SYNTHÈSES -->
             <section id="synthesis-list-section" class="max-w-5xl mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
@@ -168,11 +164,9 @@
                 </div>
 
                 <div id="saved-syntheses-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Les cartes seront injectées ici par JS -->
                 </div>
             </section>
 
-            <!-- SECTION: SETUP / FORMULAIRE -->
             <section id="synthesis-setup-section" class="hidden max-w-3xl mx-auto">
                 <button id="back-to-list-btn-setup" class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
                     <i class="fas fa-arrow-left"></i> Retour
@@ -191,25 +185,21 @@
 
                     <form id="synthesis-generator-form" class="space-y-8 relative z-10">
                         
-                        <!-- Titre -->
                         <div>
                             <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre de la synthèse</label>
                             <input type="text" id="synthesis-title-input" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: Psychologie Cognitive - Chapitre 1" required>
                         </div>
 
-                        <!-- Sélection Cours -->
                         <div>
                             <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2. Sources (Cours)</label>
                             <div class="relative">
                                 <select id="course-select" multiple class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all h-40 custom-select" required>
-                                    <!-- Options injectées par JS -->
                                 </select>
                                 <p class="text-xs text-gray-500 mt-2 text-right">Maintiens Ctrl/Cmd pour sélectionner plusieurs fichiers</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <!-- Longueur -->
                             <div>
                                 <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3. Longueur</label>
                                 <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
@@ -222,7 +212,6 @@
                                 </div>
                             </div>
 
-                            <!-- Style -->
                             <div>
                                 <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4. Format</label>
                                 <div class="relative">
@@ -248,7 +237,6 @@
                 </div>
             </section>
 
-            <!-- SECTION: LOADING -->
             <section id="synthesis-loading-section" class="hidden flex flex-col items-center justify-center py-32 text-center">
                 <div class="relative w-24 h-24 mb-8">
                     <div class="absolute inset-0 rounded-full border-4 border-gray-800"></div>
@@ -259,14 +247,12 @@
                 <p class="text-gray-400 max-w-md">L'IA lit vos documents, extrait les concepts clés et rédige votre synthèse. Cela peut prendre quelques secondes.</p>
             </section>
 
-            <!-- SECTION: RESULTAT -->
             <section id="synthesis-result-section" class="hidden max-w-4xl mx-auto">
                 <button id="back-to-list-btn-result" class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
                     <i class="fas fa-arrow-left"></i> Retour
                 </button>
 
                 <div class="content-glass rounded-3xl overflow-hidden border border-gray-800 shadow-2xl">
-                    <!-- Header Resultat -->
                     <div class="bg-gray-900/50 border-b border-gray-800 p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
                             <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Synthèse Générée</span>
@@ -282,10 +268,8 @@
                         </div>
                     </div>
 
-                    <!-- Contenu Resultat -->
                     <div class="p-8 md:p-12 bg-gray-900/30">
                         <div id="synthesis-result-content" class="prose prose-invert max-w-none">
-                            <!-- Contenu injecté ici -->
                         </div>
                     </div>
                 </div>
@@ -294,23 +278,14 @@
         </main>
     </div>
     
-    <!-- Message Box -->
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- JAVASCRIPT -->
     <script type="module">
-        import { auth, db, app } from '../../assets/js/config.js';
+        import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-        // Importation des fonctions Firebase
-        import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
-
 
         let userCourses = [];
-        // Initialisation de Firebase Functions
-        const functions = getFunctions(app);
-        const generateSynthesisCloud = httpsCallable(functions, 'generateSynthesis');
-
 
         const ui = {
             list: document.getElementById('synthesis-list-section'),
@@ -359,43 +334,38 @@
         async function populateCourses() {
             if(!auth.currentUser) return;
             const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
+            const coursesSnap = await getDocs(coursesRef);
+            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             
-            try {
-                const coursesSnap = await getDocs(coursesRef);
-                userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                ui.courseSelect.innerHTML = '';
-                if (userCourses.length === 0) {
-                    ui.courseSelect.innerHTML = '<option value="" disabled>Aucun cours disponible. Uploadez un PDF d\'abord.</option>';
-                } else {
-                    userCourses.forEach(course => {
-                        const option = document.createElement('option');
-                        option.value = course.id;
-                        option.textContent = course.title || course.name || course.fileName;
-                        ui.courseSelect.appendChild(option);
-                    });
-                }
-            } catch (e) {
-                console.error("Erreur de chargement des cours:", e);
-                showMessage("Erreur de chargement des cours.", true);
+            ui.courseSelect.innerHTML = '';
+            if (userCourses.length === 0) {
+                ui.courseSelect.innerHTML = '<option value="" disabled>Aucun cours disponible. Uploadez un PDF d\'abord.</option>';
+            } else {
+                userCourses.forEach(course => {
+                    const option = document.createElement('option');
+                    option.value = course.id;
+                    option.textContent = course.title || course.name;
+                    ui.courseSelect.appendChild(option);
+                });
             }
         }
 
         async function extractTextFromPdf(url) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            
-            // NOTE: La lecture du PDF échoue si les règles CORS de Firebase Storage sont incorrectes.
-            // L'erreur "ERR_FAILED" est souvent causée par le blocage du CORS.
-            // La solution est d'appliquer les règles CORS via gsutil sur votre bucket.
-
-            const pdf = await pdfjsLib.getDocument(url).promise;
-            let fullText = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+            try {
+                const loadingTask = pdfjsLib.getDocument(url);
+                const pdf = await loadingTask.promise;
+                let fullText = '';
+                
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+                }
+                return fullText;
+            } catch (error) {
+                console.error("Erreur PDF.js:", error);
+                throw new Error("Impossible de lire le PDF. Vérifiez qu'il est accessible.");
             }
-            return fullText;
         }
 
         async function generateSynthesis(e) {
@@ -411,13 +381,19 @@
                 let combinedText = '';
                 for (const option of selectedOptions) {
                     const course = userCourses.find(c => c.id === option.value);
-                    if (course && (course.url || course.fileURL)) { 
-                        const url = course.url || course.fileURL;
-                        
-                        // Tentative de lecture du PDF via PDF.js. C'est ici que l'erreur CORS se produit.
-                        // Si le CORS est résolu, cela fonctionne :
-                        combinedText += `--- Contenu du cours: ${course.title || course.name} ---\n${await extractTextFromPdf(url)}\n\n`;
+                    if (course) {
+                        const url = course.fileURL || course.url;
+                        try {
+                            const text = await extractTextFromPdf(url);
+                            combinedText += `--- Contenu du cours: ${course.title || course.name} ---\n${text}\n\n`;
+                        } catch (err) {
+                            console.warn(`Erreur lecture cours ${course.title}:`, err);
+                        }
                     }
+                }
+
+                if (!combinedText.trim()) {
+                    throw new Error("Aucun texte n'a pu être extrait des fichiers sélectionnés.");
                 }
 
                 const wordCount = ui.wordCount.value;
@@ -425,14 +401,20 @@
                 
                 const prompt = `À partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
 
-                // Appel à la Cloud Function
-                const result = await generateSynthesisCloud({ prompt: prompt });
+                const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 
-                if (!result.data || !result.data.content) {
-                    throw new Error("Réponse de la Cloud Function invalide ou vide.");
-                }
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 
-                let synthesisHtml = result.data.content;
+                if (!response.ok) throw new Error(`Erreur API Gemini: ${response.status}`);
+                const result = await response.json();
+                
+                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    throw new Error("Réponse de l'IA vide ou invalide.");
+                }
+                
+                let synthesisHtml = result.candidates[0].content.parts[0].text;
                 synthesisHtml = synthesisHtml.replace(/```html/g, '').replace(/```/g, '').trim();
 
                 const title = document.getElementById('synthesis-title-input').value;
@@ -448,18 +430,8 @@
                 displaySynthesis(title, synthesisHtml);
 
             } catch (error) {
-                console.error("Erreur de génération/Cloud Function:", error);
-                
-                let displayMsg = "Erreur lors de la génération. ";
-                if (error.message.includes('Failed to fetch') || error.message.includes('CORS')) {
-                     displayMsg = "Erreur de connexion (CORS). Vérifiez si les règles CORS de Firebase Storage et la Cloud Function sont déployées.";
-                } else if (error.message.includes('PDF')) {
-                     displayMsg = "Erreur de lecture du PDF (le fichier est peut-être inaccessible).";
-                } else {
-                    displayMsg += `Détails: ${error.message}`;
-                }
-                
-                showMessage(displayMsg, true);
+                console.error("Erreur:", error);
+                showMessage(`Erreur: ${error.message}`, true);
                 showSection('setup');
             }
         }
@@ -481,7 +453,12 @@
                 syntheses.forEach(synth => {
                     const el = document.createElement('div');
                     el.className = 'content-glass p-5 rounded-xl flex justify-between items-center group hover:bg-gray-800/50 transition-all border border-gray-800';
-                    const creationDate = synth.createdAt ? new Date(synth.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : 'Récemment';
+                    
+                    let dateStr = 'Récemment';
+                    if (synth.createdAt) {
+                        const d = synth.createdAt.toDate ? synth.createdAt.toDate() : new Date(synth.createdAt);
+                        dateStr = d.toLocaleDateString('fr-FR');
+                    }
                     
                     el.innerHTML = `
                         <div class="flex items-center gap-4 overflow-hidden">
@@ -491,7 +468,7 @@
                             <div class="truncate">
                                 <h3 class="font-bold text-white truncate group-hover:text-indigo-300 transition-colors">${synth.title}</h3>
                                 <div class="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                                    <span>${creationDate}</span>
+                                    <span>${dateStr}</span>
                                     <span class="w-1 h-1 rounded-full bg-gray-700"></span>
                                     <span>${synth.style || 'Standard'}</span>
                                 </div>
@@ -499,7 +476,7 @@
                         </div>
                         <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                             <button class="view-btn p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Voir"><i class="fas fa-eye"></i></button>
-                            <button class="delete-btn p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" data-id="${synth.id}" title="Supprimer"><i class="fas fa-trash"></i></button>
+                            <button class="delete-btn p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Supprimer"><i class="fas fa-trash"></i></button>
                         </div>`;
                     
                     el.querySelector('.view-btn').addEventListener('click', () => displaySynthesis(synth.title, synth.content));
@@ -527,12 +504,7 @@
 
         function copyToClipboard() {
             const textToCopy = ui.resultContent.innerText;
-            // Utilisation de document.execCommand('copy') car navigator.clipboard.writeText() est parfois bloqué dans les iframes
-            if (document.execCommand('copy')) {
-                showMessage('Contenu copié !');
-            } else {
-                showMessage('Erreur copie (copie manuelle nécessaire).', true);
-            }
+            navigator.clipboard.writeText(textToCopy).then(() => showMessage('Contenu copié !'), () => showMessage('Erreur copie.', true));
         }
 
         function downloadAsPdf() {
@@ -555,7 +527,6 @@
             showMessage('PDF téléchargé !');
         }
 
-        // Event Listeners
         ui.wordCount.addEventListener('input', (e) => { ui.wordCountValue.textContent = `${e.target.value} mots`; });
         ui.form.addEventListener('submit', generateSynthesis);
         ui.copyBtn.addEventListener('click', copyToClipboard);
@@ -565,7 +536,6 @@
         ui.backToListBtnResult.addEventListener('click', () => showSection('list'));
         document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
 
-        // Auth State & Init
         onAuthStateChanged(auth, async (user) => {
             if (user && !user.isAnonymous) {
                 populateCourses();
