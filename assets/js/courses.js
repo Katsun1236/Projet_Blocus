@@ -1,6 +1,6 @@
 import { auth, db } from './config.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc, serverTimestamp, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, setDoc, serverTimestamp, query, orderBy, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // --- State Management ---
 let currentUserId = null;
@@ -49,12 +49,12 @@ function showMessage(message, isError = false) {
     }, 4000);
 }
 
-// --- Drag & Drop Logic (Optimisé) ---
+// --- Drag & Drop Logic (CORRIGÉ) ---
 
+// Fonctions attachées à window pour être accessibles depuis le HTML
 window.handleDragStart = (e, courseId) => {
     e.dataTransfer.setData("text/plain", courseId);
     e.dataTransfer.effectAllowed = "move";
-    // Ajoute une classe visuelle
     e.target.classList.add('opacity-50', 'scale-95');
 };
 
@@ -80,28 +80,30 @@ window.handleDrop = async (e, targetFolderId) => {
     const courseId = e.dataTransfer.getData("text/plain");
     if (!courseId) return;
 
-    // Vérification user
     if (!currentUserId) {
         showMessage("Erreur: Utilisateur non connecté.", true);
         return;
     }
 
-    // Empêcher le drop sur soi-même
+    // Empêcher le drop sur le dossier courant
     if (targetFolderId === currentFolderId) return;
     
-    // Conversion 'root' -> null
+    // Conversion 'root' -> null pour la racine
     const finalFolderId = targetFolderId === 'root' ? null : targetFolderId;
 
     try {
         const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
-        await updateDoc(courseRef, { folderId: finalFolderId });
+        
+        // UTILISATION DE setDoc avec merge: true pour éviter les erreurs si le doc n'est pas "prêt"
+        await setDoc(courseRef, { folderId: finalFolderId }, { merge: true });
+        
         showMessage("Fichier déplacé avec succès !");
     } catch (error) {
         console.error("Erreur déplacement:", error);
         if (error.code === 'permission-denied') {
             showMessage("Permission refusée. Vérifiez les règles Firestore.", true);
         } else {
-            showMessage("Erreur lors du déplacement : " + error.message, true);
+            showMessage("Erreur : " + error.message, true);
         }
     }
 };
@@ -125,7 +127,6 @@ async function renderHeader(user) {
             if (ui.userName) ui.userName.textContent = profileData.firstName;
             if (ui.userAvatar) ui.userAvatar.src = profileData.photoURL || 'https://ui-avatars.com/api/?background=random';
             
-            // Admin check
             const adminLink = document.getElementById('admin-link');
             if (profileData.role === 'admin' && adminLink) {
                 adminLink.classList.remove('hidden');
@@ -139,7 +140,7 @@ async function renderHeader(user) {
 function renderBreadcrumbs() {
     if (!ui.breadcrumbs) return;
     
-    // Zone de drop "Retour à l'accueil" si on est dans un dossier
+    // Zone de drop pour revenir à l'accueil
     const dropAttr = currentFolderId 
         ? `ondragover="window.handleDragOver(event)" ondragleave="window.handleDragLeave(event)" ondrop="window.handleDrop(event, 'root')"` 
         : '';
@@ -164,7 +165,6 @@ function renderFolders() {
 
     if (currentFolderId) {
         ui.foldersGridWrapper.classList.add('hidden');
-        return; 
     } else {
         ui.foldersGridWrapper.classList.remove('hidden');
     }
@@ -187,7 +187,6 @@ function renderFolders() {
             <h3 class="font-bold text-white text-lg truncate mb-1 group-hover:text-indigo-300 transition-colors pointer-events-none">${folder.name}</h3>
             <p class="text-xs text-gray-400 font-medium pointer-events-none">${folder.courseCount || 0} fichiers</p>
             
-            <!-- Feedback visuel pour le drop -->
             <div class="absolute inset-0 rounded-xl bg-indigo-500/10 border-2 border-indigo-500 opacity-0 transition-opacity pointer-events-none drag-overlay"></div>
         </div>
     `).join('');
@@ -203,11 +202,17 @@ function renderCourses() {
     ui.coursesList.innerHTML = '';
     
     if (coursesToShow.length === 0) {
-        if(ui.noContent) ui.noContent.classList.remove('hidden');
-        ui.coursesTitle.textContent = currentFolderId ? `Contenu: ${currentFolderName}` : "Fichiers & Synthèses";
+        if (currentFolderId) {
+            if(ui.noContent) ui.noContent.classList.remove('hidden');
+            ui.coursesTitle.textContent = `Contenu du dossier: ${currentFolderName}`;
+        } else {
+            // Pas de contenu à la racine et pas de dossier ouvert
+            if(allFolders.length === 0) if(ui.noContent) ui.noContent.classList.remove('hidden');
+            ui.coursesTitle.textContent = "Fichiers & Synthèses";
+        }
     } else {
         if(ui.noContent) ui.noContent.classList.add('hidden');
-        ui.coursesTitle.textContent = currentFolderId ? `Contenu: ${currentFolderName}` : "Fichiers & Synthèses (Hors Dossier)";
+        ui.coursesTitle.textContent = currentFolderId ? `Contenu du dossier: ${currentFolderName}` : "Fichiers & Synthèses (Hors Dossier)";
         
         const sortedCourses = coursesToShow.sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
 
@@ -250,7 +255,7 @@ function renderCourses() {
                     </div>
                 </div>
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
-                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Déplacer manuellement" onclick="event.stopPropagation(); window.promptMove('${course.id}')">
+                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Déplacer" onclick="event.stopPropagation(); window.promptMove('${course.id}')">
                         <i class="fas fa-folder-open"></i>
                     </button>
                     <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="event.stopPropagation(); window.deleteCourse('${course.id}')">
@@ -304,10 +309,10 @@ if(ui.newFolderBtn) {
 }
 
 window.deleteFolder = async (folderId) => {
-    if(confirm("Supprimer ce dossier va détacher les cours (retour racine). Confirmer ?")) {
+    if(confirm("Supprimer ce dossier et détacher ses fichiers ?")) {
         try {
             const coursesToUpdate = allCourses.filter(c => c.folderId === folderId);
-            const batch = db.batch(); // Utilisation de batch pour la performance
+            const batch = db.batch();
             
             coursesToUpdate.forEach(course => {
                 const courseRef = doc(db, 'users', currentUserId, 'courses', course.id);
@@ -321,13 +326,13 @@ window.deleteFolder = async (folderId) => {
             showMessage("Dossier supprimé.");
         } catch (e) {
             console.error(e);
-            showMessage("Erreur suppression : " + e.message, true);
+            showMessage("Erreur suppression.", true);
         }
     }
 };
 
 window.deleteCourse = async (courseId) => {
-    if(confirm("Supprimer définitivement ?")) {
+    if(confirm("Supprimer ce fichier ?")) {
         try {
             await deleteDoc(doc(db, 'users', currentUserId, 'courses', courseId));
             showMessage("Fichier supprimé.");
@@ -340,7 +345,7 @@ window.deleteCourse = async (courseId) => {
 
 window.promptMove = async (courseId) => {
     if (allFolders.length === 0) {
-        showMessage("Créez d'abord un dossier.", true);
+        showMessage("Aucun dossier disponible.", true);
         return;
     }
     const course = allCourses.find(c => c.id === courseId);
@@ -360,7 +365,7 @@ window.promptMove = async (courseId) => {
 
     try {
         const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
-        await updateDoc(courseRef, { folderId: newFolderId });
+        await setDoc(courseRef, { folderId: newFolderId }, { merge: true });
         showMessage("Cours déplacé !");
     } catch (e) { console.error(e); showMessage("Erreur déplacement.", true); }
 };
@@ -376,7 +381,7 @@ onAuthStateChanged(auth, (user) => {
         
         renderHeader(user);
 
-        // Listeners
+        // Load Folders
         const foldersQuery = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
         onSnapshot(foldersQuery, (snapshot) => {
             allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -388,10 +393,10 @@ onAuthStateChanged(auth, (user) => {
             render();
         });
 
+        // Load Courses
         const coursesQuery = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
         onSnapshot(coursesQuery, (snapshot) => {
             allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Update Folder Counts
             allFolders.forEach(folder => {
                 folder.courseCount = allCourses.filter(c => c.folderId === folder.id).length;
             });
