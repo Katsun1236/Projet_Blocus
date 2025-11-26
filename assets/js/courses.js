@@ -118,6 +118,12 @@ async function renderHeader(user) {
             const profileData = docSnap.data();
             if (ui.userName) ui.userName.textContent = profileData.firstName;
             if (ui.userAvatar) ui.userAvatar.src = profileData.photoURL || 'https://ui-avatars.com/api/?background=random';
+            
+            // Admin check
+            const adminLink = document.getElementById('admin-link');
+            if (profileData.role === 'admin' && adminLink) {
+                adminLink.classList.remove('hidden');
+            }
         }
     } catch (e) {
         console.error("Erreur chargement header:", e);
