@@ -7,8 +7,10 @@ import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/fir
 let currentUserId = null;
 let currentFolderId = null;
 let currentFolderName = "Mes Cours";
-let allCourses = [];
-let allFolders = [];
+
+// On attache les variables à window pour pouvoir débugger dans la console (taper window.allCourses)
+window.allCourses = [];
+window.allFolders = [];
 
 // --- DOM Elements ---
 const ui = {
@@ -47,12 +49,8 @@ function showMessage(message, isError = false) {
     box.appendChild(icon);
     box.appendChild(text);
     
-    if (isError) {
-        box.className = "fixed bottom-6 right-6 bg-gray-900 border border-red-500/30 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float";
-    } else {
-        box.className = "fixed bottom-6 right-6 bg-gray-900 border border-green-500/30 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float";
-    }
-
+    box.className = `fixed bottom-6 right-6 bg-gray-900 border ${isError ? 'border-red-500/30' : 'border-green-500/30'} text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float`;
+    
     box.classList.remove('hidden');
     setTimeout(() => { box.classList.add('hidden'); }, 3000);
 }
@@ -81,7 +79,7 @@ function render() {
 }
 
 function updateStats() {
-    if(ui.statsCoursesCount) ui.statsCoursesCount.textContent = allCourses.length;
+    if(ui.statsCoursesCount) ui.statsCoursesCount.textContent = window.allCourses.length;
     if(ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; 
 }
 
@@ -121,7 +119,7 @@ function renderBreadcrumbs() {
 function renderFolders() {
     if (!ui.foldersGrid) return;
     
-    // CORRECTION: On ne cache plus le parentElement (qui est <main> !), on vide juste la grille ou on la cache elle-même.
+    // Gestion de l'affichage de la grille dossier
     if (currentFolderId) {
         ui.foldersGrid.innerHTML = '';
         ui.foldersGrid.classList.add('hidden');
@@ -130,7 +128,7 @@ function renderFolders() {
         ui.foldersGrid.classList.remove('hidden');
     }
 
-    ui.foldersGrid.innerHTML = allFolders.map(folder => `
+    ui.foldersGrid.innerHTML = window.allFolders.map(folder => `
         <div class="content-glass p-5 rounded-xl cursor-pointer hover:bg-white/5 transition-all duration-300 group border border-white/5 hover:border-indigo-500/30 relative" 
              onclick="openFolder('${folder.id}', '${folder.name}')">
             <div class="flex justify-between items-start mb-4">
@@ -151,14 +149,21 @@ function renderFolders() {
 function renderCourses() {
     if (!ui.coursesList) return;
     
-    // Debug log pour vérifier les données
-    console.log("Render Courses. Total:", allCourses.length, "Current Folder:", currentFolderId);
+    console.log("🔄 Render Courses déclenché.");
+    console.log("📂 Dossier actuel:", currentFolderId ? currentFolderId : "Racine");
+    console.log("📚 Total cours en mémoire:", window.allCourses.length);
 
-    const coursesToShow = currentFolderId 
-        ? allCourses.filter(c => c.folderId === currentFolderId)
-        : allCourses.filter(c => !c.folderId); // !c.folderId inclut null, undefined, false
+    // Filtre robuste : gère les cas où folderId est null, undefined ou manquant
+    const coursesToShow = window.allCourses.filter(c => {
+        if (currentFolderId) {
+            return c.folderId === currentFolderId;
+        } else {
+            // À la racine : on veut ceux qui n'ont PAS de folderId ou qui sont à null
+            return !c.folderId || c.folderId === 'null';
+        }
+    });
 
-    console.log("Courses to show:", coursesToShow.length);
+    console.log("👀 Cours à afficher après filtre:", coursesToShow.length);
 
     if (coursesToShow.length === 0) {
         if(ui.noContent) ui.noContent.classList.remove('hidden');
@@ -166,10 +171,10 @@ function renderCourses() {
     } else {
         if(ui.noContent) ui.noContent.classList.add('hidden');
         
-        // CORRECTION: Suppression de animate-fade-in-up qui pouvait causer des problèmes de visibilité si non défini
         ui.coursesList.innerHTML = coursesToShow.map(course => {
             let iconClass = "fa-file-alt";
             let colorClass = "text-blue-400 bg-blue-400/10";
+            
             if (course.fileName && course.fileName.toLowerCase().endsWith('.pdf')) {
                 iconClass = "fa-file-pdf";
                 colorClass = "text-red-400 bg-red-400/10";
@@ -187,9 +192,11 @@ function renderCourses() {
             }
 
             const displayTitle = course.title || course.name || course.fileName || 'Sans titre';
+            // Fallback sécurisé pour l'URL
+            const link = course.fileURL || course.url || '#';
 
             return `
-            <div class="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group border-b border-gray-800/50 cursor-pointer" onclick="window.open('${course.fileURL || course.url}', '_blank')">
+            <div class="p-4 hover:bg-white/5 transition-colors flex items-center justify-between group border-b border-gray-800/50 cursor-pointer" onclick="window.open('${link}', '_blank')">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center">
                         <i class="fas ${iconClass}"></i>
@@ -204,7 +211,7 @@ function renderCourses() {
                     </div>
                 </div>
                 <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Télécharger" onclick="event.stopPropagation(); window.open('${course.fileURL || course.url}', '_blank')">
+                    <button class="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Télécharger" onclick="event.stopPropagation(); window.open('${link}', '_blank')">
                         <i class="fas fa-download"></i>
                     </button>
                     <button class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors" title="Supprimer" onclick="event.stopPropagation(); deleteCourse('${course.id}', '${course.fileName}')">
@@ -347,21 +354,21 @@ onAuthStateChanged(auth, (user) => {
         renderHeader();
         setupNotifications(currentUserId);
 
-        // Ecouteurs Dossiers
+        // 1. Ecouteurs Dossiers
         const foldersQuery = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
         onSnapshot(foldersQuery, (snapshot) => {
-            allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            render();
-        }, (error) => {
-            console.log("Info folders: Pas encore de données ou erreur", error);
-        });
+            window.allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // On ne force pas le render ici pour éviter de masquer les cours si les dossiers arrivent en premier mais vides
+            renderFolders(); 
+        }, (error) => console.log("Erreur folders", error));
 
-        // Ecouteurs Cours
+        // 2. Ecouteurs Cours
         const coursesQuery = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
         onSnapshot(coursesQuery, (snapshot) => {
-            allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Log pour le debug
-            console.log("Données Firestore reçues :", allCourses);
+            // Mise à jour de la variable globale
+            window.allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            console.log("🔥 SNAPSHOT REÇU ! Nombre de cours :", window.allCourses.length);
+            // On force le render ici car c'est la donnée critique
             render();
         }, (error) => {
             if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
@@ -369,7 +376,7 @@ onAuthStateChanged(auth, (user) => {
         });
 
     } else {
-        // Gestion redirection selon où on est
+        // Gestion redirection
         if (window.location.pathname.includes('/app/')) {
              window.location.href = '../auth/login.html';
         }
