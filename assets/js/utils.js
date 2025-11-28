@@ -1,7 +1,9 @@
-import { pdfjsLib } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.mjs';
 
 // Configuration PDF.js Worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+export { pdfjsLib };
 
 /**
  * Affiche une notification (Toast)
@@ -10,7 +12,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
  */
 export function showToast(message, isError = false) {
     let box = document.getElementById('global-message-box');
-    
+
     // Créer le conteneur s'il n'existe pas
     if (!box) {
         box = document.createElement('div');
@@ -21,7 +23,7 @@ export function showToast(message, isError = false) {
 
     const toast = document.createElement('div');
     toast.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border backdrop-blur-md ${isError ? 'bg-gray-900/90 border-red-500/30' : 'bg-gray-900/90 border-green-500/30'}`;
-    
+
     toast.innerHTML = `
         <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl">
             <i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
@@ -30,7 +32,7 @@ export function showToast(message, isError = false) {
     `;
 
     box.appendChild(toast);
-    
+
     // Animation d'entrée
     requestAnimationFrame(() => {
         toast.classList.remove('translate-y-10', 'opacity-0');
@@ -53,7 +55,7 @@ export async function extractTextFromPdf(url) {
         const loadingTask = pdfjsLib.getDocument(url);
         const pdf = await loadingTask.promise;
         let fullText = '';
-        
+
         for (let i = 1; i <= pdf.numPages; i++) {
             const page = await pdf.getPage(i);
             const textContent = await page.getTextContent();
@@ -73,12 +75,12 @@ export async function extractTextFromPdf(url) {
  */
 export function timeAgo(date) {
     if (!date) return 'récemment';
-    
+
     // Gestion des Timestamps Firestore
     const d = date.toDate ? date.toDate() : new Date(date);
-    
+
     const seconds = Math.floor((new Date() - d) / 1000);
-    
+
     if (seconds < 60) return "à l'instant";
     const minutes = Math.floor(seconds / 60);
     if (minutes < 60) return `il y a ${minutes} min`;
