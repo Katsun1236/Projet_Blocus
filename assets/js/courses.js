@@ -48,7 +48,7 @@ function render() {
 } catch (e) {
     console.error(e);
 }
-}
+
 
 function renderBreadcrumbs() {
     if (!ui.breadcrumbs) return;
