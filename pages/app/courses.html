@@ -223,34 +223,15 @@
                 <div id="folders-grid"
                     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
                     <!-- Les dossiers seront injectés ici par JS -->
-                </div>
-            </div>
-
-            <!-- Courses List Section -->
-            <div class="content-glass rounded-2xl border border-gray-800 overflow-hidden">
-                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                    <h3 id="courses-title" class="font-display font-bold text-lg text-white">Fichiers & Synthèses</h3>
-                    <div class="flex gap-2">
-                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i
-                                class="fas fa-filter"></i></button>
-                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i
-                                class="fas fa-sort"></i></button>
+                    <div id="no-content" class="hidden text-center py-16">
+                        <div
+                            class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800/50 text-gray-600 mb-4">
+                            <i class="fas fa-box-open text-3xl"></i>
+                        </div>
+                        <p class="text-gray-400 font-medium">Ce dossier est vide.</p>
+                        <p class="text-gray-600 text-sm mt-1">Commence par ajouter un fichier !</p>
                     </div>
                 </div>
-
-                <div id="courses-list" class="divide-y divide-gray-800 min-h-[100px]">
-                    <!-- Les cours seront injectés ici -->
-                </div>
-
-                <div id="no-content" class="hidden text-center py-16">
-                    <div
-                        class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800/50 text-gray-600 mb-4">
-                        <i class="fas fa-box-open text-3xl"></i>
-                    </div>
-                    <p class="text-gray-400 font-medium">Ce dossier est vide.</p>
-                    <p class="text-gray-600 text-sm mt-1">Commence par ajouter un fichier !</p>
-                </div>
-            </div>
 
         </main>
     </div>
