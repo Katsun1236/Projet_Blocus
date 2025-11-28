@@ -31,23 +31,48 @@ const ui = {
     markAllReadBtn: document.getElementById('mark-all-read'),
 };
 
+// Helper to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
 function render() {
     if (!currentUserId) return;
     renderHeader();
     renderBreadcrumbs();
-    const docSnap = await getDoc(userRef);
-    if (docSnap.exists()) {
-        const profileData = docSnap.data();
-        const nameEl = document.getElementById('user-name-header');
-        const avatarEl = document.getElementById('user-avatar-header');
-
-        if (nameEl) nameEl.textContent = profileData.firstName;
-        if (avatarEl) avatarEl.src = profileData.photoURL || 'https://ui-avatars.com/api/?background=random';
-        if (ui.navLoggedIn) ui.navLoggedIn.classList.remove('hidden');
-    }
-} catch (e) {
-    console.error(e);
+    renderFolders();
+    renderCourses();
+    updateStats();
+    if (ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
 }
+
+function updateStats() {
+    if (ui.statsCoursesCount) ui.statsCoursesCount.textContent = window.allCourses.length;
+    if (ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; // TODO: Implement quiz count
+}
+
+async function renderHeader() {
+    try {
+        const userRef = doc(db, 'users', currentUserId);
+        const docSnap = await getDoc(userRef);
+        if (docSnap.exists()) {
+            const profileData = docSnap.data();
+            const nameEl = document.getElementById('user-name-header');
+            const avatarEl = document.getElementById('user-avatar-header');
+
+            if (nameEl) nameEl.textContent = profileData.firstName;
+            if (avatarEl) avatarEl.src = profileData.photoURL || 'https://ui-avatars.com/api/?background=random';
+            if (ui.navLoggedIn) ui.navLoggedIn.classList.remove('hidden');
+        }
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 function renderBreadcrumbs() {
@@ -56,10 +81,13 @@ function renderBreadcrumbs() {
         ui.breadcrumbs.innerHTML = `<span class="text-indigo-400 font-medium">Accueil</span>`;
         if (ui.mainTitle) ui.mainTitle.textContent = "Mes Dossiers";
     } else {
+        // Safe because we use escapeHtml for folder name in other places, 
+        // but here we should also be careful if currentFolderName comes from user input
+        const safeFolderName = escapeHtml(currentFolderName);
         ui.breadcrumbs.innerHTML = `
             <span class="cursor-pointer hover:text-white transition-colors" onclick="resetView()">Accueil</span>
             <i class="fas fa-chevron-right text-xs mx-2"></i>
-            <span class="text-indigo-400 font-medium">${currentFolderName}</span>
+            <span class="text-indigo-400 font-medium">${safeFolderName}</span>
         `;
         if (ui.mainTitle) ui.mainTitle.textContent = currentFolderName;
     }
@@ -76,10 +104,15 @@ function renderFolders() {
         ui.foldersGrid.classList.remove('hidden');
     }
 
-    ui.foldersGrid.innerHTML = window.allFolders.map(folder => `
+    ui.foldersGrid.innerHTML = window.allFolders.map(folder => {
+        const safeName = escapeHtml(folder.name);
+        // We pass ID and Name to openFolder. Name needs to be escaped for JS string context too if it contains quotes
+        const safeNameForJs = folder.name.replace(/'/g, "\\'");
+
+        return `
         <div class="content-glass p-5 rounded-xl cursor-pointer hover:bg-white/5 transition-all duration-300 group border border-white/5 hover:border-indigo-500/30 relative folder-dropzone" 
              data-folder-id="${folder.id}"
-             onclick="openFolder('${folder.id}', '${folder.name}')"
+             onclick="openFolder('${folder.id}', '${safeNameForJs}')"
              ondragover="handleDragOver(event)"
              ondragleave="handleDragLeave(event)"
              ondrop="handleDrop(event, '${folder.id}')">
@@ -91,11 +124,11 @@ function renderFolders() {
                     <i class="fas fa-trash-alt text-sm"></i>
                 </button>
             </div>
-            <h3 class="font-bold text-white text-lg truncate mb-1 group-hover:text-indigo-300 transition-colors pointer-events-none">${folder.name}</h3>
+            <h3 class="font-bold text-white text-lg truncate mb-1 group-hover:text-indigo-300 transition-colors pointer-events-none">${safeName}</h3>
             <p class="text-xs text-gray-400 font-medium pointer-events-none">${folder.courseCount || 0} fichiers</p>
             <div class="absolute inset-0 rounded-xl bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none drop-indicator"></div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function renderCourses() {
@@ -135,7 +168,8 @@ function renderCourses() {
                 }
             }
 
-            const displayTitle = course.title || course.name || course.fileName || 'Sans titre';
+            const displayTitle = escapeHtml(course.title || course.name || course.fileName || 'Sans titre');
+            const safeFileName = escapeHtml(course.fileName || 'Document');
             const link = course.fileURL || course.url || '#';
 
             return `
@@ -151,7 +185,7 @@ function renderCourses() {
                     <div>
                         <h4 class="font-medium text-white group-hover:text-indigo-300 transition-colors">${displayTitle}</h4>
                         <div class="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                            <span>${course.fileName || 'Document'}</span>
+                            <span>${safeFileName}</span>
                             <span class="w-1 h-1 rounded-full bg-gray-600"></span>
                             <span>${dateStr}</span>
                         </div>
@@ -204,6 +238,7 @@ function renderNotifications(notifications) {
         if (notif.type === 'success') { icon = 'fa-trophy'; color = 'text-yellow-400 bg-yellow-400/20'; }
 
         const dateNotif = notif.createdAt ? (notif.createdAt.toDate ? notif.createdAt.toDate() : new Date(notif.createdAt)) : new Date();
+        const safeMessage = escapeHtml(notif.message);
 
         return `
         <div class="p-4 border-b border-gray-800/50 hover:bg-gray-800 transition-colors cursor-pointer flex justify-between items-start group">
@@ -212,7 +247,7 @@ function renderNotifications(notifications) {
                     <i class="fas ${icon} text-xs"></i>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-300">${notif.message}</p>
+                    <p class="text-sm text-gray-300">${safeMessage}</p>
                     <p class="text-xs text-gray-500 mt-1">${timeAgo(dateNotif)}</p>
                 </div>
             </div>
@@ -222,6 +257,8 @@ function renderNotifications(notifications) {
         </div>`;
     }).join('');
 }
+
+// --- Window Scoped Functions for HTML Event Handlers ---
 
 window.openFolder = (id, name) => {
     currentFolderId = id;
@@ -248,19 +285,25 @@ window.deleteFolder = async (folderId) => {
 };
 
 window.deleteCourse = async (courseId) => {
+    const course = window.allCourses.find(c => c.id === courseId);
+    if (!course) return;
+
     if (confirm("Supprimer ce cours ?")) {
         try {
-            const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
-            const courseSnap = await getDoc(courseRef);
-            if (courseSnap.exists()) {
-                const fileRef = ref(storage, courseSnap.data().fileURL);
-                await deleteObject(fileRef).catch(e => console.log("Fichier déjà supprimé ou introuvable"));
-                await deleteDoc(courseRef);
-                showToast("Fichier supprimé.");
+            // 1. Delete from Storage first if URL exists
+            if (course.fileURL) {
+                const fileRef = ref(storage, course.fileURL);
+                await deleteObject(fileRef).catch(e => console.log("Fichier déjà supprimé ou introuvable dans Storage:", e));
             }
+
+            // 2. Delete from Firestore
+            const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
+            await deleteDoc(courseRef);
+
+            showToast("Fichier supprimé.");
         } catch (e) {
-            console.error(e);
-            showToast("Erreur suppression.", true);
+            console.error("Erreur suppression:", e);
+            showToast("Erreur lors de la suppression.", true);
         }
     }
 };
@@ -311,6 +354,8 @@ window.handleDrop = async (e, folderId) => {
     }
 };
 
+// --- Auth State Listener ---
+
 onAuthStateChanged(auth, (user) => {
     if (user && !user.isAnonymous) {
         currentUserId = user.uid;
@@ -328,6 +373,7 @@ onAuthStateChanged(auth, (user) => {
             window.allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             render();
         }, (error) => {
+            console.error("Error fetching courses:", error);
             if (ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
         });
 
