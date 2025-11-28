@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Synthèses - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -14,52 +15,88 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
     <link rel="stylesheet" href="../../assets/css/style.css">
-    
+
     <style>
         .sidebar-glass {
             background: rgba(5, 5, 5, 0.6);
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .content-glass {
             background: rgba(20, 20, 20, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .nav-item.active {
             background: rgba(99, 102, 241, 0.15);
             color: #fff;
             border-left: 3px solid #6366f1;
         }
+
         .nav-item:hover:not(.active) {
             background: rgba(255, 255, 255, 0.03);
             color: #e5e7eb;
         }
+
         .synthesis-card {
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .synthesis-card:hover {
             transform: translateY(-2px);
             background: rgba(255, 255, 255, 0.05);
             border-color: rgba(99, 102, 241, 0.3);
         }
-        .prose h2 { font-size: 1.25rem; font-weight: 700; color: #fff; margin-top: 1.5em; margin-bottom: 0.5em; }
-        .prose p { margin-bottom: 1em; color: #d1d5db; line-height: 1.6; }
-        .prose ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; color: #d1d5db; }
-        .prose li { margin-bottom: 0.5em; }
-        .prose strong { color: #818cf8; font-weight: 600; }
+
+        .prose h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+
+        .prose p {
+            margin-bottom: 1em;
+            color: #d1d5db;
+            line-height: 1.6;
+        }
+
+        .prose ul {
+            list-style-type: disc;
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+            color: #d1d5db;
+        }
+
+        .prose li {
+            margin-bottom: 0.5em;
+        }
+
+        .prose strong {
+            color: #818cf8;
+            font-weight: 600;
+        }
     </style>
 </head>
+
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
     <div class="noise-overlay"></div>
-    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
-    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg"
+        style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);">
+    </div>
+    <div class="glow-bg"
+        style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);">
+    </div>
 
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+            <div
+                class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
                 B.
             </div>
             <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
@@ -67,56 +104,67 @@
 
         <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
-            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="dashboard.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Tableau de Bord</span>
             </a>
-            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="courses.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mes Cours</span>
             </a>
-            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="quiz.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Quiz IA</span>
             </a>
-            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="planning.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
                 <span class="font-medium">Planning</span>
             </a>
 
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
-            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="#"
+                class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Synthétiseur</span>
             </a>
 
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
-            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="friends.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Mes Amis</span>
             </a>
-            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="chat.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
                 <span class="font-medium">Discussions</span>
             </a>
-            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="community.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
-            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="forum.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
             </a>
-            
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
-            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="profile.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mon Profil</span>
             </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800">
-            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+            <button id="logout-button"
+                class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
                 <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
                 <span class="font-medium">Déconnexion</span>
             </button>
@@ -124,8 +172,9 @@
     </aside>
 
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
-        
-        <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
+
+        <header
+            class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4">
                 <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Synthèses</span>
@@ -133,14 +182,15 @@
         </header>
 
         <main class="flex-grow p-6 md:p-10 overflow-y-auto">
-            
+
             <section id="synthesis-list-section" class="max-w-5xl mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
                         <h1 class="text-3xl font-display font-bold text-white mb-2">Mes Synthèses</h1>
                         <p class="text-gray-400">Retrouve tous tes résumés générés par IA.</p>
                     </div>
-                    <button id="go-to-generator-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
+                    <button id="go-to-generator-btn"
+                        class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
                         <i class="fas fa-plus"></i>
                         <span>Nouvelle Synthèse</span>
                     </button>
@@ -150,13 +200,16 @@
                     <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
                 </div>
 
-                <div id="no-syntheses" class="hidden text-center py-20 content-glass rounded-3xl border border-dashed border-gray-700">
-                    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-gray-600">
+                <div id="no-syntheses"
+                    class="hidden text-center py-20 content-glass rounded-3xl border border-dashed border-gray-700">
+                    <div
+                        class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-gray-600">
                         <i class="fas fa-file-alt"></i>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">C'est vide ici !</h3>
                     <p class="text-gray-400 mb-6">Génère ta première synthèse pour commencer à réviser.</p>
-                    <button onclick="document.getElementById('go-to-generator-btn').click()" class="text-indigo-400 hover:text-indigo-300 font-medium">Créer une synthèse maintenant</button>
+                    <button onclick="document.getElementById('go-to-generator-btn').click()"
+                        class="text-indigo-400 hover:text-indigo-300 font-medium">Créer une synthèse maintenant</button>
                 </div>
 
                 <div id="saved-syntheses-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -164,15 +217,18 @@
             </section>
 
             <section id="synthesis-setup-section" class="hidden max-w-3xl mx-auto">
-                <button id="back-to-list-btn-setup" class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
+                <button id="back-to-list-btn-setup"
+                    class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
                     <i class="fas fa-arrow-left"></i> Retour
                 </button>
 
                 <div class="content-glass rounded-3xl p-8 md:p-10 border border-gray-800 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                    
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl -mr-16 -mt-16">
+                    </div>
+
                     <div class="text-center mb-10 relative z-10">
-                        <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
+                        <div
+                            class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
                             <i class="fas fa-magic text-3xl text-indigo-400"></i>
                         </div>
                         <h2 class="text-3xl font-display font-bold text-white mb-2">Générateur IA</h2>
@@ -180,52 +236,66 @@
                     </div>
 
                     <form id="synthesis-generator-form" class="space-y-8 relative z-10">
-                        
+
                         <div>
-                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre de la synthèse</label>
-                            <input type="text" id="synthesis-title-input" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: Psychologie Cognitive - Chapitre 1" required>
+                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre
+                                de la synthèse</label>
+                            <input type="text" id="synthesis-title-input"
+                                class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600"
+                                placeholder="Ex: Psychologie Cognitive - Chapitre 1" required>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2. Sources (Cours)</label>
+                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2.
+                                Sources (Cours)</label>
                             <div class="relative">
-                                <select id="course-select" multiple class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all h-40 custom-select" required>
+                                <select id="course-select" multiple
+                                    class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all h-40 custom-select"
+                                    required>
                                 </select>
-                                <p class="text-xs text-gray-500 mt-2 text-right">Maintiens Ctrl/Cmd pour sélectionner plusieurs fichiers</p>
+                                <p class="text-xs text-gray-500 mt-2 text-right">Maintiens Ctrl/Cmd pour sélectionner
+                                    plusieurs fichiers</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3. Longueur</label>
+                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3.
+                                    Longueur</label>
                                 <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
                                     <div class="flex justify-between mb-2">
                                         <span class="text-gray-400 text-xs">Court</span>
                                         <span id="word-count-value" class="text-indigo-400 font-bold">500 mots</span>
                                         <span class="text-gray-400 text-xs">Long</span>
                                     </div>
-                                    <input type="range" id="word-count" min="100" max="2000" value="500" step="100" class="w-full accent-indigo-500">
+                                    <input type="range" id="word-count" min="100" max="2000" value="500" step="100"
+                                        class="w-full accent-indigo-500">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4. Format</label>
+                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4.
+                                    Format</label>
                                 <div class="relative">
-                                    <select id="synthesis-style" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none cursor-pointer">
+                                    <select id="synthesis-style"
+                                        class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none cursor-pointer">
                                         <option value="Résumé Standard">📄 Résumé Standard</option>
                                         <option value="Points Clés (Puces)">📝 Points Clés (Listes)</option>
                                         <option value="Fiche de Révision (Q&A)">❓ Questions / Réponses</option>
-                                        <option value="Explication Simplifiée (ELI5)">👶 Explique-moi comme si j'avais 5 ans</option>
+                                        <option value="Explication Simplifiée (ELI5)">👶 Explique-moi comme si j'avais 5
+                                            ans</option>
                                         <option value="Plan Détaillé">🗂️ Plan Structuré</option>
                                     </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                                    <div
+                                        class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                                         <i class="fas fa-chevron-down"></i>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
+                        <button type="submit"
+                            class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
                             <i class="fas fa-magic"></i>
                             <span>Générer la synthèse</span>
                         </button>
@@ -233,32 +303,42 @@
                 </div>
             </section>
 
-            <section id="synthesis-loading-section" class="hidden flex flex-col items-center justify-center py-32 text-center">
+            <section id="synthesis-loading-section"
+                class="hidden flex flex-col items-center justify-center py-32 text-center">
                 <div class="relative w-24 h-24 mb-8">
                     <div class="absolute inset-0 rounded-full border-4 border-gray-800"></div>
-                    <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+                    <div
+                        class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin">
+                    </div>
                     <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">✨</div>
                 </div>
                 <h2 class="text-3xl font-display font-bold text-white mb-2">Analyse en cours...</h2>
-                <p class="text-gray-400 max-w-md">L'IA lit vos documents, extrait les concepts clés et rédige votre synthèse. Cela peut prendre quelques secondes.</p>
+                <p class="text-gray-400 max-w-md">L'IA lit vos documents, extrait les concepts clés et rédige votre
+                    synthèse. Cela peut prendre quelques secondes.</p>
             </section>
 
             <section id="synthesis-result-section" class="hidden max-w-4xl mx-auto">
-                <button id="back-to-list-btn-result" class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
+                <button id="back-to-list-btn-result"
+                    class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
                     <i class="fas fa-arrow-left"></i> Retour
                 </button>
 
                 <div class="content-glass rounded-3xl overflow-hidden border border-gray-800 shadow-2xl">
-                    <div class="bg-gray-900/50 border-b border-gray-800 p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div
+                        class="bg-gray-900/50 border-b border-gray-800 p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Synthèse Générée</span>
-                            <h1 id="synthesis-result-title" class="text-2xl md:text-3xl font-display font-bold text-white">Titre du Document</h1>
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Synthèse
+                                Générée</span>
+                            <h1 id="synthesis-result-title"
+                                class="text-2xl md:text-3xl font-display font-bold text-white">Titre du Document</h1>
                         </div>
                         <div class="flex gap-3">
-                            <button id="copy-synthesis-btn" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                            <button id="copy-synthesis-btn"
+                                class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
                                 <i class="fas fa-copy"></i> Copier
                             </button>
-                            <button id="download-pdf-btn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-lg shadow-indigo-900/20">
+                            <button id="download-pdf-btn"
+                                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-lg shadow-indigo-900/20">
                                 <i class="fas fa-file-pdf"></i> PDF
                             </button>
                         </div>
@@ -271,197 +351,406 @@
                 </div>
             </section>
 
-        </main>
-    </div>
-    
-    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+            <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
+            <span class="font-medium">Quiz IA</span>
+            </a>
+            <a href="planning.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
+                <span class="font-medium">Planning</span>
+            </a>
 
-    <script type="module">
-        import { auth, db } from '../../assets/js/config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
+            <a href="#"
+                class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Synthétiseur</span>
+            </a>
 
-        let userCourses = [];
-        const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
+            <a href="friends.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
+                <span class="font-medium">Mes Amis</span>
+            </a>
+            <a href="chat.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
+                <span class="font-medium">Discussions</span>
+            </a>
+            <a href="community.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Communauté</span>
+            </a>
+            <a href="forum.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
+                <span class="font-medium">Forum</span>
+            </a>
 
-        const ui = {
-            list: document.getElementById('synthesis-list-section'),
-            setup: document.getElementById('synthesis-setup-section'),
-            loading: document.getElementById('synthesis-loading-section'),
-            result: document.getElementById('synthesis-result-section'),
-            form: document.getElementById('synthesis-generator-form'),
-            courseSelect: document.getElementById('course-select'),
-            wordCount: document.getElementById('word-count'),
-            wordCountValue: document.getElementById('word-count-value'),
-            resultTitle: document.getElementById('synthesis-result-title'),
-            resultContent: document.getElementById('synthesis-result-content'),
-            copyBtn: document.getElementById('copy-synthesis-btn'),
-            downloadPdfBtn: document.getElementById('download-pdf-btn'),
-            goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
-            backToListBtnSetup: document.getElementById('back-to-list-btn-setup'),
-            backToListBtnResult: document.getElementById('back-to-list-btn-result'),
-            savedSynthesesList: document.getElementById('saved-syntheses-list'),
-            loadingSyntheses: document.getElementById('loading-syntheses'),
-            noSyntheses: document.getElementById('no-syntheses'),
-            navLoggedIn: document.getElementById('nav-logged-in'),
-            logoutButton: document.getElementById('logout-button'),
-        };
+            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
+            <a href="profile.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
+                <span class="font-medium">Mon Profil</span>
+            </a>
+            </nav>
 
-        function showMessage(message, isError = false) {
-            const box = document.createElement('div');
-            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
-            box.innerHTML = `
-                <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl"><i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i></div>
-                <p class="font-medium text-sm">${message}</p>
-            `;
-            document.getElementById('message-box').appendChild(box);
-            
-            requestAnimationFrame(() => { box.classList.remove('translate-y-10', 'opacity-0'); });
-            setTimeout(() => { 
-                box.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => box.remove(), 500);
-            }, 4000);
-        }
+            <div class="p-4 border-t border-gray-800">
+                <button id="logout-button"
+                    class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+                    <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
+                    <span class="font-medium">Déconnexion</span>
+                </button>
+            </div>
+            </aside>
 
-        function showSection(section) {
-            ['list', 'setup', 'loading', 'result'].forEach(s => ui[s].classList.add('hidden'));
-            ui[section].classList.remove('hidden');
-        }
+            <div class="flex-grow flex flex-col min-w-0 relative z-10">
 
-        async function populateCourses() {
-            if(!auth.currentUser) return;
-            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
-            const coursesSnap = await getDocs(coursesRef);
-            userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            ui.courseSelect.innerHTML = '';
-            if (userCourses.length === 0) {
-                ui.courseSelect.innerHTML = '<option value="" disabled>Aucun cours disponible. Uploadez un PDF d\'abord.</option>';
-            } else {
-                userCourses.forEach(course => {
-                    const option = document.createElement('option');
-                    option.value = course.id;
-                    option.textContent = course.title || course.name;
-                    ui.courseSelect.appendChild(option);
-                });
-            }
-        }
+                <header
+                    class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
+                    <div class="flex items-center gap-4">
+                        <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                        <span class="font-bold text-lg text-white">Synthèses</span>
+                    </div>
+                </header>
 
-        async function extractTextFromPdf(url) {
-            try {
-                const loadingTask = pdfjsLib.getDocument(url);
-                const pdf = await loadingTask.promise;
-                let fullText = '';
-                
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    fullText += textContent.items.map(item => item.str).join(' ') + '\n';
+                <main class="flex-grow p-6 md:p-10 overflow-y-auto">
+
+                    <section id="synthesis-list-section" class="max-w-5xl mx-auto">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+                            <div>
+                                <h1 class="text-3xl font-display font-bold text-white mb-2">Mes Synthèses</h1>
+                                <p class="text-gray-400">Retrouve tous tes résumés générés par IA.</p>
+                            </div>
+                            <button id="go-to-generator-btn"
+                                class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
+                                <i class="fas fa-plus"></i>
+                                <span>Nouvelle Synthèse</span>
+                            </button>
+                        </div>
+
+                        <div id="loading-syntheses" class="flex justify-center py-20">
+                            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500">
+                            </div>
+                        </div>
+
+                        <div id="no-syntheses"
+                            class="hidden text-center py-20 content-glass rounded-3xl border border-dashed border-gray-700">
+                            <div
+                                class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-gray-600">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2">C'est vide ici !</h3>
+                            <p class="text-gray-400 mb-6">Génère ta première synthèse pour commencer à réviser.</p>
+                            <button onclick="document.getElementById('go-to-generator-btn').click()"
+                                class="text-indigo-400 hover:text-indigo-300 font-medium">Créer une synthèse
+                                maintenant</button>
+                        </div>
+
+                        <div id="saved-syntheses-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        </div>
+                    </section>
+
+                    <section id="synthesis-setup-section" class="hidden max-w-3xl mx-auto">
+                        <button id="back-to-list-btn-setup"
+                            class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+
+                        <div
+                            class="content-glass rounded-3xl p-8 md:p-10 border border-gray-800 relative overflow-hidden">
+                            <div
+                                class="absolute top-0 right-0 w-64 h-64 bg-purple-600/10 rounded-full blur-3xl -mr-16 -mt-16">
+                            </div>
+
+                            <div class="text-center mb-10 relative z-10">
+                                <div
+                                    class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
+                                    <i class="fas fa-magic text-3xl text-indigo-400"></i>
+                                </div>
+                                <h2 class="text-3xl font-display font-bold text-white mb-2">Générateur IA</h2>
+                                <p class="text-gray-400">Sélectionne tes sources et laisse la magie opérer.</p>
+                            </div>
+
+                            <form id="synthesis-generator-form" class="space-y-8 relative z-10">
+
+                                <div>
+                                    <label
+                                        class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1.
+                                        Titre de la synthèse</label>
+                                    <input type="text" id="synthesis-title-input"
+                                        class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600"
+                                        placeholder="Ex: Psychologie Cognitive - Chapitre 1" required>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2.
+                                        Sources (Cours)</label>
+                                    <div class="relative">
+                                        <select id="course-select" multiple
+                                            class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all h-40 custom-select"
+                                            required>
+                                        </select>
+                                        <p class="text-xs text-gray-500 mt-2 text-right">Maintiens Ctrl/Cmd pour
+                                            sélectionner plusieurs fichiers</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label
+                                            class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3.
+                                            Longueur</label>
+                                        <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4">
+                                            <div class="flex justify-between mb-2">
+                                                <span class="text-gray-400 text-xs">Court</span>
+                                                <span id="word-count-value" class="text-indigo-400 font-bold">500
+                                                    mots</span>
+                                                <span class="text-gray-400 text-xs">Long</span>
+                                            </div>
+                                            <input type="range" id="word-count" min="100" max="2000" value="500"
+                                                step="100" class="w-full accent-indigo-500">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label
+                                            class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4.
+                                            Format</label>
+                                        <div class="relative">
+                                            <select id="synthesis-style"
+                                                class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none cursor-pointer">
+                                                <option value="Résumé Standard">📄 Résumé Standard</option>
+                                                <option value="Points Clés (Puces)">📝 Points Clés (Listes)</option>
+                                                <option value="Fiche de Révision (Q&A)">❓ Questions / Réponses</option>
+                                                <option value="Explication Simplifiée (ELI5)">👶 Explique-moi comme si
+                                                    j'avais 5 ans</option>
+                                                <option value="Plan Détaillé">🗂️ Plan Structuré</option>
+                                            </select>
+                                            <div
+                                                class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                                                <i class="fas fa-chevron-down"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button type="submit"
+                                    class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
+                                    <i class="fas fa-magic"></i>
+                                    <span>Générer la synthèse</span>
+                                </button>
+                            </form>
+                        </div>
+                    </section>
+
+                    <section id="synthesis-loading-section"
+                        class="hidden flex flex-col items-center justify-center py-32 text-center">
+                        <div class="relative w-24 h-24 mb-8">
+                            <div class="absolute inset-0 rounded-full border-4 border-gray-800"></div>
+                            <div
+                                class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin">
+                            </div>
+                            <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">✨
+                            </div>
+                        </div>
+                        <h2 class="text-3xl font-display font-bold text-white mb-2">Analyse en cours...</h2>
+                        <p class="text-gray-400 max-w-md">L'IA lit vos documents, extrait les concepts clés et rédige
+                            votre synthèse. Cela peut prendre quelques secondes.</p>
+                    </section>
+
+                    <section id="synthesis-result-section" class="hidden max-w-4xl mx-auto">
+                        <button id="back-to-list-btn-result"
+                            class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+
+                        <div class="content-glass rounded-3xl overflow-hidden border border-gray-800 shadow-2xl">
+                            <div
+                                class="bg-gray-900/50 border-b border-gray-800 p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div>
+                                    <span
+                                        class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Synthèse
+                                        Générée</span>
+                                    <h1 id="synthesis-result-title"
+                                        class="text-2xl md:text-3xl font-display font-bold text-white">Titre du Document
+                                    </h1>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button id="copy-synthesis-btn"
+                                        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2">
+                                        <i class="fas fa-copy"></i> Copier
+                                    </button>
+                                    <button id="download-pdf-btn"
+                                        class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-colors flex items-center gap-2 shadow-lg shadow-indigo-900/20">
+                                        <i class="fas fa-file-pdf"></i> PDF
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="p-8 md:p-12 bg-gray-900/30">
+                                <div id="synthesis-result-content" class="prose prose-invert max-w-none">
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+
+            <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+            <script type="module">
+                import { auth, db, GEMINI_API_KEY } from '../../assets/js/config.js';
+                import { showToast, extractTextFromPdf, formatDate } from '../../assets/js/utils.js';
+                import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+                import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+                let userCourses = [];
+
+                const ui = {
+                    list: document.getElementById('synthesis-list-section'),
+                    setup: document.getElementById('synthesis-setup-section'),
+                    loading: document.getElementById('synthesis-loading-section'),
+                    result: document.getElementById('synthesis-result-section'),
+                    form: document.getElementById('synthesis-generator-form'),
+                    courseSelect: document.getElementById('course-select'),
+                    wordCount: document.getElementById('word-count'),
+                    wordCountValue: document.getElementById('word-count-value'),
+                    resultTitle: document.getElementById('synthesis-result-title'),
+                    resultContent: document.getElementById('synthesis-result-content'),
+                    copyBtn: document.getElementById('copy-synthesis-btn'),
+                    downloadPdfBtn: document.getElementById('download-pdf-btn'),
+                    goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
+                    backToListBtnSetup: document.getElementById('back-to-list-btn-setup'),
+                    backToListBtnResult: document.getElementById('back-to-list-btn-result'),
+                    savedSynthesesList: document.getElementById('saved-syntheses-list'),
+                    loadingSyntheses: document.getElementById('loading-syntheses'),
+                    noSyntheses: document.getElementById('no-syntheses'),
+                    navLoggedIn: document.getElementById('nav-logged-in'),
+                    logoutButton: document.getElementById('logout-button'),
+                };
+
+                function showSection(section) {
+                    ['list', 'setup', 'loading', 'result'].forEach(s => ui[s].classList.add('hidden'));
+                    ui[section].classList.remove('hidden');
                 }
-                return fullText;
-            } catch (error) {
-                console.error("Erreur PDF.js:", error);
-                throw new Error("Impossible de lire le PDF. Vérifiez qu'il est accessible.");
-            }
-        }
 
-        async function generateSynthesis(e) {
-            e.preventDefault();
-            const selectedOptions = [...ui.courseSelect.selectedOptions];
-            if (selectedOptions.length === 0 || selectedOptions[0].disabled) {
-                showMessage('Veuillez sélectionner au moins un cours.', true);
-                return;
-            }
-            showSection('loading');
+                async function populateCourses() {
+                    if (!auth.currentUser) return;
+                    const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
+                    const coursesSnap = await getDocs(coursesRef);
+                    userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            try {
-                let combinedText = '';
-                for (const option of selectedOptions) {
-                    const course = userCourses.find(c => c.id === option.value);
-                    if (course) {
-                        const url = course.fileURL || course.url;
-                        try {
-                            const text = await extractTextFromPdf(url);
-                            combinedText += `--- Contenu du cours: ${course.title || course.name} ---\n${text}\n\n`;
-                        } catch (err) {
-                            console.warn(`Erreur lecture cours ${course.title}:`, err);
+                    ui.courseSelect.innerHTML = '';
+                    if (userCourses.length === 0) {
+                        ui.courseSelect.innerHTML = '<option value="" disabled>Aucun cours disponible. Uploadez un PDF d\'abord.</option>';
+                    } else {
+                        userCourses.forEach(course => {
+                            const option = document.createElement('option');
+                            option.value = course.id;
+                            option.textContent = course.title || course.name;
+                            ui.courseSelect.appendChild(option);
+                        });
+                    }
+                }
+
+                async function generateSynthesis(e) {
+                    e.preventDefault();
+                    const selectedOptions = [...ui.courseSelect.selectedOptions];
+                    if (selectedOptions.length === 0 || selectedOptions[0].disabled) {
+                        showToast('Veuillez sélectionner au moins un cours.', true);
+                        return;
+                    }
+                    showSection('loading');
+
+                    try {
+                        let combinedText = '';
+                        for (const option of selectedOptions) {
+                            const course = userCourses.find(c => c.id === option.value);
+                            if (course) {
+                                const url = course.fileURL || course.url;
+                                try {
+                                    const text = await extractTextFromPdf(url);
+                                    combinedText += `--- Contenu du cours: ${course.title || course.name} ---\n${text}\n\n`;
+                                } catch (err) {
+                                    console.warn(`Erreur lecture cours ${course.title}:`, err);
+                                }
+                            }
                         }
+
+                        if (!combinedText.trim()) {
+                            throw new Error("Aucun texte n'a pu être extrait des fichiers sélectionnés.");
+                        }
+
+                        const wordCount = ui.wordCount.value;
+                        const style = document.getElementById('synthesis-style').value;
+
+                        const prompt = `À partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
+
+                        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+                        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                        const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+                        if (!response.ok) {
+                            if (response.status === 429) {
+                                throw new Error("Quota dépassé (429). Réessayez dans une minute.");
+                            }
+                            throw new Error(`Erreur API Gemini: ${response.status}`);
+                        }
+                        const result = await response.json();
+
+                        if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                            throw new Error("Réponse de l'IA vide ou invalide.");
+                        }
+
+                        let synthesisHtml = result.candidates[0].content.parts[0].text;
+                        synthesisHtml = synthesisHtml.replace(/```html/g, '').replace(/```/g, '').trim();
+
+                        const title = document.getElementById('synthesis-title-input').value;
+
+                        await addDoc(collection(db, 'users', auth.currentUser.uid, 'syntheses'), {
+                            title: title,
+                            content: synthesisHtml,
+                            style: style,
+                            createdAt: serverTimestamp()
+                        });
+
+                        showToast('Synthèse générée et sauvegardée !');
+                        displaySynthesis(title, synthesisHtml);
+
+                    } catch (error) {
+                        console.error("Erreur:", error);
+                        showToast(`Erreur: ${error.message}`, true);
+                        showSection('setup');
                     }
                 }
 
-                if (!combinedText.trim()) {
-                    throw new Error("Aucun texte n'a pu être extrait des fichiers sélectionnés.");
+                function displaySynthesis(title, content) {
+                    ui.resultTitle.textContent = title;
+                    ui.resultContent.innerHTML = content;
+                    showSection('result');
                 }
 
-                const wordCount = ui.wordCount.value;
-                const style = document.getElementById('synthesis-style').value;
-                
-                const prompt = `À partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
+                function renderSavedSyntheses(syntheses) {
+                    ui.loadingSyntheses.classList.add('hidden');
+                    ui.savedSynthesesList.innerHTML = '';
 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-                
-                const payload = { contents: [{ parts: [{ text: prompt }] }] };
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    if (syntheses.length === 0) {
+                        ui.noSyntheses.classList.remove('hidden');
+                    } else {
+                        ui.noSyntheses.classList.add('hidden');
+                        syntheses.forEach(synth => {
+                            const el = document.createElement('div');
+                            el.className = 'content-glass p-5 rounded-xl flex justify-between items-center group hover:bg-gray-800/50 transition-all border border-gray-800';
 
-                if (!response.ok) {
-                    if (response.status === 429) {
-                        throw new Error("Quota dépassé (429). Réessayez dans une minute.");
-                    }
-                    throw new Error(`Erreur API Gemini: ${response.status}`);
-                }
-                const result = await response.json();
-                
-                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    throw new Error("Réponse de l'IA vide ou invalide.");
-                }
-                
-                let synthesisHtml = result.candidates[0].content.parts[0].text;
-                synthesisHtml = synthesisHtml.replace(/```html/g, '').replace(/```/g, '').trim();
+                            const dateStr = formatDate(synth.createdAt) || 'Récemment';
 
-                const title = document.getElementById('synthesis-title-input').value;
-
-                await addDoc(collection(db, 'users', auth.currentUser.uid, 'syntheses'), {
-                    title: title,
-                    content: synthesisHtml,
-                    style: style,
-                    createdAt: serverTimestamp()
-                });
-
-                showMessage('Synthèse générée et sauvegardée !');
-                displaySynthesis(title, synthesisHtml);
-
-            } catch (error) {
-                console.error("Erreur:", error);
-                showMessage(`Erreur: ${error.message}`, true);
-                showSection('setup');
-            }
-        }
-
-        function displaySynthesis(title, content) {
-            ui.resultTitle.textContent = title;
-            ui.resultContent.innerHTML = content;
-            showSection('result');
-        }
-
-        function renderSavedSyntheses(syntheses) {
-            ui.loadingSyntheses.classList.add('hidden');
-            ui.savedSynthesesList.innerHTML = '';
-
-            if (syntheses.length === 0) {
-                ui.noSyntheses.classList.remove('hidden');
-            } else {
-                ui.noSyntheses.classList.add('hidden');
-                syntheses.forEach(synth => {
-                    const el = document.createElement('div');
-                    el.className = 'content-glass p-5 rounded-xl flex justify-between items-center group hover:bg-gray-800/50 transition-all border border-gray-800';
-                    
-                    let dateStr = 'Récemment';
-                    if (synth.createdAt) {
-                        const d = synth.createdAt.toDate ? synth.createdAt.toDate() : new Date(synth.createdAt);
-                        dateStr = d.toLocaleDateString('fr-FR');
-                    }
-                    
-                    el.innerHTML = `
+                            el.innerHTML = `
                         <div class="flex items-center gap-4 overflow-hidden">
                             <div class="w-12 h-12 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-xl flex-shrink-0">
                                 <i class="fas fa-file-alt"></i>
@@ -479,76 +768,77 @@
                             <button class="view-btn p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Voir"><i class="fas fa-eye"></i></button>
                             <button class="delete-btn p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors" title="Supprimer"><i class="fas fa-trash"></i></button>
                         </div>`;
-                    
-                    el.querySelector('.view-btn').addEventListener('click', () => displaySynthesis(synth.title, synth.content));
-                    el.querySelector('.delete-btn').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        deleteSynthesis(synth.id);
-                    });
-                    
-                    ui.savedSynthesesList.appendChild(el);
-                });
-            }
-        }
 
-        async function deleteSynthesis(id) {
-            if (confirm("Supprimer définitivement cette synthèse ?")) {
-                try {
-                    await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'syntheses', id));
-                    showMessage('Synthèse supprimée.');
-                } catch (e) {
-                    console.error(e);
-                    showMessage('Erreur lors de la suppression.', true);
+                            el.querySelector('.view-btn').addEventListener('click', () => displaySynthesis(synth.title, synth.content));
+                            el.querySelector('.delete-btn').addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                deleteSynthesis(synth.id);
+                            });
+
+                            ui.savedSynthesesList.appendChild(el);
+                        });
+                    }
                 }
-            }
-        }
 
-        function copyToClipboard() {
-            const textToCopy = ui.resultContent.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => showMessage('Contenu copié !'), () => showMessage('Erreur copie.', true));
-        }
+                async function deleteSynthesis(id) {
+                    if (confirm("Supprimer définitivement cette synthèse ?")) {
+                        try {
+                            await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'syntheses', id));
+                            showToast('Synthèse supprimée.');
+                        } catch (e) {
+                            console.error(e);
+                            showToast('Erreur lors de la suppression.', true);
+                        }
+                    }
+                }
 
-        function downloadAsPdf() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
-            const title = ui.resultTitle.textContent;
-            const text = ui.resultContent.innerText;
-            
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(20);
-            doc.text(title, 15, 20);
-            
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(12);
-            
-            const splitText = doc.splitTextToSize(text, 180);
-            doc.text(splitText, 15, 40);
-            
-            doc.save(`${title}.pdf`);
-            showMessage('PDF téléchargé !');
-        }
+                function copyToClipboard() {
+                    const textToCopy = ui.resultContent.innerText;
+                    navigator.clipboard.writeText(textToCopy).then(() => showToast('Contenu copié !'), () => showToast('Erreur copie.', true));
+                }
 
-        ui.wordCount.addEventListener('input', (e) => { ui.wordCountValue.textContent = `${e.target.value} mots`; });
-        ui.form.addEventListener('submit', generateSynthesis);
-        ui.copyBtn.addEventListener('click', copyToClipboard);
-        ui.downloadPdfBtn.addEventListener('click', downloadAsPdf);
-        ui.goToGeneratorBtn.addEventListener('click', () => showSection('setup'));
-        ui.backToListBtnSetup.addEventListener('click', () => showSection('list'));
-        ui.backToListBtnResult.addEventListener('click', () => showSection('list'));
-        document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
+                function downloadAsPdf() {
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF();
+                    const title = ui.resultTitle.textContent;
+                    const text = ui.resultContent.innerText;
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user && !user.isAnonymous) {
-                populateCourses();
-                const synthesesRef = collection(db, 'users', user.uid, 'syntheses');
-                onSnapshot(synthesesRef, (snapshot) => {
-                    const syntheses = snapshot.docs.map(d => ({id: d.id, ...d.data()}));
-                    renderSavedSyntheses(syntheses);
+                    doc.setFont("helvetica", "bold");
+                    doc.setFontSize(20);
+                    doc.text(title, 15, 20);
+
+                    doc.setFont("helvetica", "normal");
+                    doc.setFontSize(12);
+
+                    const splitText = doc.splitTextToSize(text, 180);
+                    doc.text(splitText, 15, 40);
+
+                    doc.save(`${title}.pdf`);
+                    showToast('PDF téléchargé !');
+                }
+
+                ui.wordCount.addEventListener('input', (e) => { ui.wordCountValue.textContent = `${e.target.value} mots`; });
+                ui.form.addEventListener('submit', generateSynthesis);
+                ui.copyBtn.addEventListener('click', copyToClipboard);
+                ui.downloadPdfBtn.addEventListener('click', downloadAsPdf);
+                ui.goToGeneratorBtn.addEventListener('click', () => showSection('setup'));
+                ui.backToListBtnSetup.addEventListener('click', () => showSection('list'));
+                ui.backToListBtnResult.addEventListener('click', () => showSection('list'));
+                document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user && !user.isAnonymous) {
+                        populateCourses();
+                        const synthesesRef = collection(db, 'users', user.uid, 'syntheses');
+                        onSnapshot(synthesesRef, (snapshot) => {
+                            const syntheses = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                            renderSavedSyntheses(syntheses);
+                        });
+                    } else {
+                        window.location.href = '../auth/login.html';
+                    }
                 });
-            } else {
-                window.location.href = '../auth/login.html';
-            }
-        });
-    </script>
+            </script>
 </body>
+
 </html>

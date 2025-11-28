@@ -18,9 +18,13 @@ const firebaseConfig = {
 // Initialisation
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // Retour à la méthode standard, sans options expérimentales
+const db = getFirestore(app);
 const storage = getStorage(app);
 const functions = getFunctions(app, 'europe-west1');
 
 // Exports essentiels
 export { app, auth, db, storage, functions };
+
+// ATTENTION : Cette clé est exposée côté client. 
+// Pour une sécurité optimale, les appels à l'IA devraient passer par un backend (Firebase Functions).
+export const GEMINI_API_KEY = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 

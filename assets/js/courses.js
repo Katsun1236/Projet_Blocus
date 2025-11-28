@@ -1,4 +1,5 @@
 import { auth, db, storage } from './config.js';
+import { showToast, timeAgo } from './utils.js';
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { doc, getDoc, collection, onSnapshot, deleteDoc, addDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { ref, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
@@ -30,43 +31,6 @@ const ui = {
     markAllReadBtn: document.getElementById('mark-all-read'),
 };
 
-function showMessage(message, isError = false) {
-    const box = document.getElementById('message-box');
-    if (!box) return;
-    
-    box.innerHTML = '';
-    const icon = document.createElement('div');
-    icon.className = isError ? 'text-red-400' : 'text-indigo-400';
-    icon.innerHTML = isError ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>';
-    
-    const text = document.createElement('span');
-    text.textContent = message;
-    
-    box.appendChild(icon);
-    box.appendChild(text);
-    
-    if (isError) {
-        box.className = "fixed bottom-6 right-6 bg-gray-900 border border-red-500/30 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float";
-    } else {
-        box.className = "fixed bottom-6 right-6 bg-gray-900 border border-green-500/30 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float";
-    }
-
-    box.classList.remove('hidden');
-    setTimeout(() => { box.classList.add('hidden'); }, 3000);
-}
-
-function timeAgo(date) {
-    if (!date) return 'récemment';
-    const seconds = Math.floor((new Date() - date) / 1000);
-    if (seconds < 60) return "à l'instant";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `il y a ${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `il y a ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `il y a ${days} j`;
-}
-
 function render() {
     if (!currentUserId) return;
     renderHeader();
@@ -74,12 +38,12 @@ function render() {
     renderFolders();
     renderCourses();
     updateStats();
-    if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
+    if (ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
 }
 
 function updateStats() {
-    if(ui.statsCoursesCount) ui.statsCoursesCount.textContent = window.allCourses.length;
-    if(ui.statsQuizCount) ui.statsQuizCount.textContent = "0"; 
+    if (ui.statsCoursesCount) ui.statsCoursesCount.textContent = window.allCourses.length;
+    if (ui.statsQuizCount) ui.statsQuizCount.textContent = "0";
 }
 
 async function renderHeader() {
@@ -90,7 +54,7 @@ async function renderHeader() {
             const profileData = docSnap.data();
             const nameEl = document.getElementById('user-name-header');
             const avatarEl = document.getElementById('user-avatar-header');
-            
+
             if (nameEl) nameEl.textContent = profileData.firstName;
             if (avatarEl) avatarEl.src = profileData.photoURL || 'https://ui-avatars.com/api/?background=random';
             if (ui.navLoggedIn) ui.navLoggedIn.classList.remove('hidden');
@@ -104,24 +68,24 @@ function renderBreadcrumbs() {
     if (!ui.breadcrumbs) return;
     if (!currentFolderId) {
         ui.breadcrumbs.innerHTML = `<span class="text-indigo-400 font-medium">Accueil</span>`;
-        if(ui.mainTitle) ui.mainTitle.textContent = "Mes Dossiers";
+        if (ui.mainTitle) ui.mainTitle.textContent = "Mes Dossiers";
     } else {
         ui.breadcrumbs.innerHTML = `
             <span class="cursor-pointer hover:text-white transition-colors" onclick="resetView()">Accueil</span>
             <i class="fas fa-chevron-right text-xs mx-2"></i>
             <span class="text-indigo-400 font-medium">${currentFolderName}</span>
         `;
-        if(ui.mainTitle) ui.mainTitle.textContent = currentFolderName;
+        if (ui.mainTitle) ui.mainTitle.textContent = currentFolderName;
     }
 }
 
 function renderFolders() {
     if (!ui.foldersGrid) return;
-    
+
     if (currentFolderId) {
         ui.foldersGrid.innerHTML = '';
         ui.foldersGrid.classList.add('hidden');
-        return; 
+        return;
     } else {
         ui.foldersGrid.classList.remove('hidden');
     }
@@ -150,7 +114,7 @@ function renderFolders() {
 
 function renderCourses() {
     if (!ui.coursesList) return;
-    
+
     const coursesToShow = window.allCourses.filter(c => {
         if (currentFolderId) {
             return c.folderId === currentFolderId;
@@ -160,15 +124,15 @@ function renderCourses() {
     });
 
     if (coursesToShow.length === 0) {
-        if(ui.noContent) ui.noContent.classList.remove('hidden');
+        if (ui.noContent) ui.noContent.classList.remove('hidden');
         ui.coursesList.innerHTML = '';
     } else {
-        if(ui.noContent) ui.noContent.classList.add('hidden');
-        
+        if (ui.noContent) ui.noContent.classList.add('hidden');
+
         ui.coursesList.innerHTML = coursesToShow.map(course => {
             let iconClass = "fa-file-alt";
             let colorClass = "text-blue-400 bg-blue-400/10";
-            
+
             if (course.fileName && course.fileName.toLowerCase().endsWith('.pdf')) {
                 iconClass = "fa-file-pdf";
                 colorClass = "text-red-400 bg-red-400/10";
@@ -176,7 +140,7 @@ function renderCourses() {
                 iconClass = "fa-file-image";
                 colorClass = "text-purple-400 bg-purple-400/10";
             }
-            
+
             let dateStr = 'Récemment';
             if (course.createdAt) {
                 const d = course.createdAt.toDate ? course.createdAt.toDate() : new Date(course.createdAt);
@@ -233,22 +197,22 @@ function setupNotifications(userId) {
 
 function renderNotifications(notifications) {
     if (!ui.notifList) return;
-    
+
     if (notifications.length > 0) {
         ui.notifBadge.textContent = notifications.length;
         ui.notifBadge.classList.remove('hidden');
-        if(ui.noNotifMsg) ui.noNotifMsg.classList.add('hidden');
+        if (ui.noNotifMsg) ui.noNotifMsg.classList.add('hidden');
     } else {
         ui.notifBadge.classList.add('hidden');
         ui.notifList.innerHTML = '';
-        if(ui.noNotifMsg) ui.noNotifMsg.classList.remove('hidden');
+        if (ui.noNotifMsg) ui.noNotifMsg.classList.remove('hidden');
         return;
     }
 
     ui.notifList.innerHTML = notifications.map(notif => {
         let icon = 'fa-bell';
         let color = 'text-gray-400 bg-gray-800';
-        
+
         if (notif.type === 'friend_request') { icon = 'fa-user-plus'; color = 'text-indigo-400 bg-indigo-400/20'; }
         if (notif.type === 'message') { icon = 'fa-comment-alt'; color = 'text-blue-400 bg-blue-400/20'; }
         if (notif.type === 'success') { icon = 'fa-trophy'; color = 'text-yellow-400 bg-yellow-400/20'; }
@@ -273,20 +237,6 @@ function renderNotifications(notifications) {
     }).join('');
 }
 
-window.deleteNotification = async (id) => {
-    if (!currentUserId) return;
-    await deleteDoc(doc(db, 'users', currentUserId, 'notifications', id));
-};
-
-if (ui.markAllReadBtn) {
-    ui.markAllReadBtn.addEventListener('click', async () => {
-        if (!currentUserId) return;
-        const notifRef = collection(db, 'users', currentUserId, 'notifications');
-        const snapshot = await getDocs(notifRef);
-        snapshot.forEach(async (d) => await deleteDoc(doc(db, 'users', currentUserId, 'notifications', d.id)));
-    });
-}
-
 window.openFolder = (id, name) => {
     currentFolderId = id;
     currentFolderName = name;
@@ -299,34 +249,41 @@ window.resetView = () => {
     render();
 };
 
-window.deleteCourse = async (courseId) => {
-    if(confirm("Supprimer ?")) {
-        await deleteDoc(doc(db, 'users', currentUserId, 'courses', courseId));
+window.deleteFolder = async (folderId) => {
+    if (confirm("Supprimer ce dossier ?")) {
+        try {
+            await deleteDoc(doc(db, 'users', currentUserId, 'folders', folderId));
+            showToast("Dossier supprimé.");
+        } catch (e) {
+            console.error(e);
+            showToast("Erreur suppression.", true);
+        }
     }
 };
 
-if(ui.newFolderBtn) {
-    ui.newFolderBtn.addEventListener('click', async () => {
-        const folderName = prompt("Nom du dossier :");
-        if (folderName && currentUserId) {
-            await addDoc(collection(db, 'users', currentUserId, 'folders'), {
-                name: folderName,
-                createdAt: serverTimestamp(),
-                courseCount: 0
-            });
-        }
-    });
-}
-
-window.deleteFolder = async (folderId) => {
-    if(confirm("Supprimer ce dossier ?")) {
+window.deleteCourse = async (courseId) => {
+    if (confirm("Supprimer ce cours ?")) {
         try {
-            await deleteDoc(doc(db, 'users', currentUserId, 'folders', folderId));
-            showMessage("Dossier supprimé.");
+            const courseRef = doc(db, 'users', currentUserId, 'courses', courseId);
+            const courseSnap = await getDoc(courseRef);
+            if (courseSnap.exists()) {
+                const fileRef = ref(storage, courseSnap.data().fileURL);
+                await deleteObject(fileRef).catch(e => console.log("Fichier déjà supprimé ou introuvable"));
+                await deleteDoc(courseRef);
+                showToast("Fichier supprimé.");
+            }
         } catch (e) {
             console.error(e);
-            showMessage("Erreur suppression.", true);
+            showToast("Erreur suppression.", true);
         }
+    }
+};
+
+window.deleteNotification = async (notifId) => {
+    try {
+        await deleteDoc(doc(db, 'users', currentUserId, 'notifications', notifId));
+    } catch (e) {
+        console.error(e);
     }
 };
 
@@ -338,6 +295,7 @@ window.handleDragStart = (e, courseId) => {
 
 window.handleDragOver = (e) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
     e.currentTarget.classList.add('bg-indigo-500/20', 'border-indigo-500');
 };
 
@@ -349,9 +307,9 @@ window.handleDrop = async (e, folderId) => {
     e.preventDefault();
     e.stopPropagation();
     e.currentTarget.classList.remove('bg-indigo-500/20', 'border-indigo-500');
-    
+
     const courseId = e.dataTransfer.getData("text/plain");
-    
+
     document.querySelectorAll('.draggable-course').forEach(el => el.style.opacity = '1');
 
     if (courseId && folderId) {
@@ -359,10 +317,10 @@ window.handleDrop = async (e, folderId) => {
             await updateDoc(doc(db, 'users', currentUserId, 'courses', courseId), {
                 folderId: folderId
             });
-            showMessage("Cours déplacé !");
+            showToast("Cours déplacé !");
         } catch (error) {
             console.error(error);
-            showMessage("Erreur lors du déplacement.", true);
+            showToast("Erreur lors du déplacement.", true);
         }
     }
 };
@@ -376,7 +334,7 @@ onAuthStateChanged(auth, (user) => {
         const foldersQuery = collection(db, 'users', currentUserId, 'folders');
         onSnapshot(foldersQuery, (snapshot) => {
             window.allFolders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            renderFolders(); 
+            renderFolders();
         });
 
         const coursesQuery = collection(db, 'users', currentUserId, 'courses');
@@ -384,19 +342,12 @@ onAuthStateChanged(auth, (user) => {
             window.allCourses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             render();
         }, (error) => {
-            if(ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
+            if (ui.loadingIndicator) ui.loadingIndicator.classList.add('hidden');
         });
 
     } else {
         if (window.location.pathname.includes('/app/')) {
-             window.location.href = '../auth/login.html';
+            window.location.href = '../auth/login.html';
         }
     }
 });
-
-if (ui.logoutButton) {
-    ui.logoutButton.addEventListener('click', async () => {
-        await signOut(auth);
-        window.location.href = '../auth/login.html';
-    });
-}
