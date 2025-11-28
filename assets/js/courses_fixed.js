@@ -88,8 +88,6 @@ function renderBreadcrumbs() {
         ui.breadcrumbs.innerHTML = `<span class="text-indigo-400 font-medium">Accueil</span>`;
         if (ui.mainTitle) ui.mainTitle.textContent = "Mes Dossiers";
     } else {
-        // Safe because we use escapeHtml for folder name in other places, 
-        // but here we should also be careful if currentFolderName comes from user input
         const safeFolderName = escapeHtml(currentFolderName);
         ui.breadcrumbs.innerHTML = `
             <span class="cursor-pointer hover:text-white transition-colors" onclick="resetView()">Accueil</span>
@@ -113,7 +111,6 @@ function renderFolders() {
 
     ui.foldersGrid.innerHTML = window.allFolders.map(folder => {
         const safeName = escapeHtml(folder.name);
-        // We pass ID and Name to openFolder. Name needs to be escaped for JS string context too if it contains quotes
         const safeNameForJs = folder.name.replace(/'/g, "\\'");
 
         return `
@@ -141,10 +138,19 @@ function renderFolders() {
 function renderCourses() {
     if (!ui.coursesList) return;
 
+    // DEBUG LOGS
+    console.log("RenderCourses called");
+    console.log("All Courses:", window.allCourses);
+    console.log("Current Folder:", currentFolderId);
+    console.log("Search Query:", searchQuery);
+
     // 1. Filter
     let coursesToShow = window.allCourses.filter(c => {
         // Folder Filter
-        const inFolder = currentFolderId ? c.folderId === currentFolderId : (!c.folderId || c.folderId === 'null');
+        // Relaxed filter: show if folderId matches, OR if current is root (null) and folderId is null/undefined/'null'/'root'
+        const inFolder = currentFolderId
+            ? c.folderId === currentFolderId
+            : (!c.folderId || c.folderId === 'null' || c.folderId === 'root');
 
         // Search Filter
         const matchesSearch = searchQuery
@@ -153,6 +159,8 @@ function renderCourses() {
 
         return inFolder && matchesSearch;
     });
+
+    console.log("Courses To Show (after filter):", coursesToShow);
 
     // 2. Sort
     coursesToShow.sort((a, b) => {
