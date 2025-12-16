@@ -1,11 +1,12 @@
-// firebase-config.js
+// assets/js/config.js
+
+// 1. Importations Firebase (Version 11.0.1)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-import { getFunctions } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
-// Ta configuration
+// 2. Configuration Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDmC7x4_bwR3epzhzYkC9xdpkEHO6_E2kY",
   authDomain: "projet-blocus-v2.firebaseapp.com",
@@ -15,12 +16,14 @@ const firebaseConfig = {
   appId: "1:12006785680:web:d1b649979fe0a76b628e15"
 };
 
-// Initialisation
+// 3. Clé API Gemini (Centralisée ici pour éviter de la copier partout)
+const GEMINI_API_KEY = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
+
+// 4. Initialisation
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app); // Retour à la méthode standard, sans options expérimentales
+const db = getFirestore(app);
 const storage = getStorage(app);
-const functions = getFunctions(app, 'europe-west1');
 
-// Exports essentiels
-export { app, auth, db, storage, functions };
+// 5. Exports
+export { app, auth, db, storage, GEMINI_API_KEY };
