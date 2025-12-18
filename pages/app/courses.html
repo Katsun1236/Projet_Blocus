@@ -49,10 +49,10 @@
     <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER HARMONISÉ (Identique au Dashboard + Recherche) -->
+        <!-- HEADER HARMONISÉ -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
             
-            <!-- Partie Gauche : Titre/Date ou Breadcrumb (Mobile) -->
+            <!-- Partie Gauche : Titre/Date -->
             <div class="flex items-center gap-4">
                 <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 
@@ -60,7 +60,6 @@
                     <h1 class="text-xl font-display font-bold text-white">Mes Cours</h1>
                     <p class="text-sm text-gray-400" id="date-display">Chargement...</p>
                 </div>
-                <!-- Fil d'ariane Mobile -->
                 <span id="current-folder-name-mobile" class="md:hidden text-white font-bold truncate max-w-[150px]">Cours</span>
             </div>
 
@@ -137,7 +136,7 @@
                 </div>
             </div>
 
-            <!-- Recherche Mobile (Visible seulement sur petit écran) -->
+            <!-- Recherche Mobile -->
             <div class="lg:hidden mb-6 relative group">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
                 <input type="text" id="search-input-mobile" placeholder="Rechercher un cours..." 
@@ -176,7 +175,6 @@
 
                     <!-- Files List -->
                     <div id="files-list" class="divide-y divide-gray-800">
-                        <!-- Empty State par défaut -->
                         <div class="p-12 text-center text-gray-500 flex flex-col items-center justify-center">
                             <div class="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
                                 <i class="fas fa-file-invoice text-2xl opacity-50"></i>
@@ -210,7 +208,12 @@
         import { initLayout } from '../../assets/js/layout.js';
         import { showMessage, formatDate } from '../../assets/js/utils.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { collection, query, where, getDocs, addDoc, orderBy, serverTimestamp, doc, getDoc, deleteDoc, writeBatch, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        // Imports Firestore (tous regroupés ici)
+        import { 
+            collection, query, where, getDocs, addDoc, orderBy, 
+            serverTimestamp, doc, getDoc, deleteDoc, writeBatch, updateDoc,
+            onSnapshot, limit 
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         // --- STATE ---
         let currentUserId = null;
@@ -244,7 +247,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initLayout('courses');
             
-            // Date du jour
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             ui.dateDisplay.textContent = new Date().toLocaleDateString('fr-FR', options);
 
@@ -259,9 +261,7 @@
             });
         });
 
-        // --- INIT PAGE & USER HEADER ---
         async function initPage(user) {
-            // Charger infos profil pour le header
             try {
                 const userDoc = await getDoc(doc(db, 'users', currentUserId));
                 if (userDoc.exists()) {
@@ -271,7 +271,6 @@
                 }
             } catch (e) { console.log("Info user chargement background", e); }
 
-            // Chargement Cours/Dossiers
             if (currentFolderId) {
                 try {
                     const folderDoc = await getDoc(doc(db, 'users', currentUserId, 'folders', currentFolderId));
@@ -282,26 +281,19 @@
                         ui.breadcrumbSep.classList.remove('hidden');
                         ui.foldersSection.classList.add('hidden');
                     }
-                } catch (e) {
-                    console.error("Erreur chargement dossier", e);
-                }
+                } catch (e) { console.error("Erreur chargement dossier", e); }
             } else {
                 loadFolders();
             }
             loadFiles();
         }
 
-        // --- LOGIQUE NOTIFICATIONS (Copie du Dashboard) ---
         function setupNotifications(userId) {
             const q = query(
                 collection(db, 'users', userId, 'notifications'),
                 orderBy('createdAt', 'desc'),
                 limit(10)
             );
-            // Snapshot listener... (Même logique que dashboard.html pour garder la synchro)
-            // Pour alléger le code ici, on pourrait déplacer ça dans un module partagé plus tard
-            // J'intègre la version simplifiée ici :
-            import { onSnapshot, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
             
             onSnapshot(q, (snapshot) => {
                 const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -320,8 +312,6 @@
             } else {
                 ui.noNotifMsg.classList.add('hidden');
                 notifications.forEach(n => {
-                    // (Logique rendu notification idem Dashboard)
-                    // ... Je simplifie pour la démo, l'important est que la structure soit là
                     const el = document.createElement('div');
                     el.className = `p-4 border-b border-gray-800 hover:bg-gray-800 transition-colors text-sm text-gray-300`;
                     el.textContent = n.message;
@@ -330,7 +320,6 @@
             }
         }
 
-        // Event Listeners Notifications
         ui.notifBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             ui.notifDropdown.classList.toggle('hidden');
@@ -341,7 +330,6 @@
             }
         });
 
-        // --- CHARGEMENT DES DOSSIERS ---
         async function loadFolders() {
             try {
                 const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
@@ -383,7 +371,6 @@
             } catch (error) { console.error("Erreur dossiers:", error); }
         }
 
-        // --- CHARGEMENT DES FICHIERS ---
         async function loadFiles() {
             try {
                 let q;
@@ -452,7 +439,6 @@
             });
         }
 
-        // --- GESTION RECHERCHE ---
         const handleSearch = (e) => {
             const term = e.target.value.toLowerCase();
             Array.from(ui.filesList.children).forEach(row => {
@@ -464,7 +450,6 @@
         const mobileSearch = document.getElementById('search-input-mobile');
         if(mobileSearch) mobileSearch.addEventListener('input', handleSearch);
 
-        // --- GESTION CRÉATION DOSSIER ---
         const btnCreate = document.getElementById('create-folder-btn');
         const btnConfirm = document.getElementById('confirm-folder');
         const btnCancel = document.getElementById('cancel-folder');
@@ -487,7 +472,6 @@
                 loadFolders();
             } catch (error) { showMessage('Erreur création dossier', 'error'); }
         });
-
     </script>
 </body>
 </html>
