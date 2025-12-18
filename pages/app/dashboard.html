@@ -3,591 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tableau de Bord - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    
-    <!-- Tailwind CSS -->
+    <title>Dashboard - Projet Blocus</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
-    
-    <style>
-        /* Ajustements spécifiques au dashboard */
-        .sidebar-glass {
-            background: rgba(5, 5, 5, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
-        
-        .content-glass {
-            background: rgba(20, 20, 20, 0.3);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .nav-item.active {
-            background: rgba(99, 102, 241, 0.15);
-            color: #fff;
-            border-left: 3px solid #6366f1;
-        }
-
-        .nav-item:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.03);
-            color: #e5e7eb;
-        }
-
-        /* Animation Dropdown */
-        .dropdown-enter {
-            animation: slideDown 0.2s ease-out forwards;
-            transform-origin: top right;
-        }
-        @keyframes slideDown {
-            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
-        /* Notification Item Hover */
-        .notif-item:hover .delete-notif {
-            opacity: 1;
-        }
-    </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+<body class="bg-dark text-gray-100 font-sans antialiased selection:bg-indigo-500 selection:text-white">
 
-    <!-- FOND ANIMÉ -->
-    <div class="noise-overlay"></div>
-    <div class="glow-bg" style="top: -20%; left: -10%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);"></div>
-    <div class="glow-bg" style="bottom: -20%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);"></div>
+    <!-- Background Elements -->
+    <div class="fixed inset-0 z-0 pointer-events-none">
+        <div class="absolute top-[-10%] right-[-5%] w-[30%] h-[30%] bg-indigo-600/10 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[-10%] left-[-5%] w-[30%] h-[30%] bg-purple-600/10 rounded-full blur-[100px]"></div>
+    </div>
 
-    <!-- SIDEBAR -->
-    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
-        <div class="p-6 flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
-                B.
-            </div>
-            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
-        </div>
-
-        <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
-            
-            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Tableau de Bord</span>
-            </a>
-            
-            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Mes Cours</span>
-            </a>
-            
-            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
-                <span class="font-medium">Quiz IA</span>
-            </a>
-            
-            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
-                <span class="font-medium">Planning</span>
-            </a>
-
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
-            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Synthétiseur</span>
-            </a>
-
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
-            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
-                <span class="font-medium">Mes Amis</span>
-            </a>
-            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
-                <span class="font-medium">Discussions</span>
-            </a>
-            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Communauté</span>
-            </a>
-            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
-                <span class="font-medium">Forum</span>
-            </a>
-
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
-            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Mon Profil</span>
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-800">
-            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
-                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">Déconnexion</span>
-            </button>
-        </div>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+    <!-- App Container (Layout JS injectera la sidebar ici) -->
+    <div id="app-container" class="relative z-10 min-h-screen flex flex-col md:flex-row">
         
-        <!-- HEADER -->
-        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 relative">
-            <div class="flex items-center gap-4 md:hidden">
-                <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
-                <span class="font-bold text-lg text-white">Dashboard</span>
-            </div>
+        <!-- Main Content Area -->
+        <div class="flex-1 md:ml-64 flex flex-col min-h-screen transition-all duration-300">
             
-            <div class="hidden md:block">
-                <h1 class="text-xl font-display font-bold text-white">Bon retour, <span id="user-first-name" class="text-indigo-400">...</span> 👋</h1>
-                <p class="text-sm text-gray-400" id="date-display">Chargement...</p>
-            </div>
+            <!-- Topbar -->
+            <header class="h-20 border-b border-white/5 bg-[#0f1115]/80 backdrop-blur-md sticky top-0 z-30 px-6 flex items-center justify-between">
+                
+                <!-- Titre de la page (Mobile menu btn injecté ici par JS) -->
+                <div class="flex items-center">
+                    <h2 class="text-xl font-semibold text-white">Vue d'ensemble</h2>
+                </div>
 
-            <div id="nav-logged-in" class="flex items-center gap-6">
-                <!-- Notification Bell -->
-                <div class="relative">
-                    <button id="notif-btn" class="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 outline-none">
-                        <i class="fas fa-bell text-xl"></i>
-                        <!-- Badge -->
-                        <span id="notif-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900 hidden transform scale-100 transition-transform"></span>
+                <!-- User Quick Actions -->
+                <div class="flex items-center gap-4">
+                    <!-- Notifications -->
+                    <button class="w-10 h-10 rounded-xl border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-colors relative">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-[#0f1115]"></span>
                     </button>
-
-                    <!-- Notification Dropdown -->
-                    <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 sm:w-96 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden z-50 dropdown-enter origin-top-right">
-                        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/95 backdrop-blur sticky top-0 z-10">
-                            <h3 class="font-bold text-white text-sm">Notifications</h3>
-                            <button id="mark-all-read" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium">Tout marquer comme lu</button>
+                    
+                    <!-- Profile Dropdown Trigger (Simplifié pour l'instant) -->
+                    <div class="flex items-center gap-3 pl-4 border-l border-white/10">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-sm font-medium text-white" id="user-name">Chargement...</p>
+                            <p class="text-xs text-gray-500">Étudiant</p>
                         </div>
-                        <div id="notifications-list" class="max-h-[400px] overflow-y-auto custom-scrollbar">
-                            <!-- Les notifications seront injectées ici par JS -->
-                            <div class="p-8 text-center text-gray-500 text-sm flex flex-col items-center" id="no-notif-msg">
-                                <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 text-gray-600">
-                                    <i class="far fa-bell-slash text-xl"></i>
-                                </div>
-                                <p>Aucune nouvelle notification</p>
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-700 to-gray-600 border border-white/10 overflow-hidden">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="Avatar" class="w-full h-full object-cover">
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="p-6 space-y-6">
+                
+                <!-- Welcome Banner -->
+                <div class="w-full p-8 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 relative overflow-hidden shadow-xl shadow-indigo-500/20">
+                    <div class="relative z-10">
+                        <h1 class="text-3xl font-bold text-white mb-2">Prêt à tout déchirer ? 🚀</h1>
+                        <p class="text-indigo-100 max-w-xl">Ton planning est à jour. Tu as 2 quiz en attente et une synthèse à terminer pour demain.</p>
+                        <div class="mt-6 flex gap-3">
+                            <button class="px-5 py-2.5 bg-white text-indigo-600 rounded-lg font-semibold hover:bg-gray-50 transition-colors shadow-lg">
+                                Reprendre les révisions
+                            </button>
+                            <button class="px-5 py-2.5 bg-indigo-700/50 text-white border border-white/20 rounded-lg font-medium hover:bg-indigo-700/70 transition-colors backdrop-blur-sm">
+                                Voir mon planning
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Decor -->
+                    <div class="absolute right-0 bottom-0 opacity-20 transform translate-x-10 translate-y-10">
+                        <i class="fas fa-rocket text-9xl"></i>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="content-glass p-6 rounded-2xl border border-white/5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-400 text-sm">Heures d'étude</p>
+                                <h3 class="text-2xl font-bold text-white mt-1">24h 12m</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400">
+                                <i class="fas fa-clock"></i>
                             </div>
                         </div>
+                        <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-green-500 h-full rounded-full" style="width: 75%"></div>
+                        </div>
                     </div>
-                </div>
-                
-                <div class="h-8 w-px bg-gray-800 hidden sm:block"></div>
 
-                <a href="profile.html" class="flex items-center gap-3 group cursor-pointer">
-                    <div class="text-right hidden sm:block">
-                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">...</p>
-                        <p class="text-xs text-gray-500">Voir mon profil</p>
+                    <div class="content-glass p-6 rounded-2xl border border-white/5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-400 text-sm">Quiz complétés</p>
+                                <h3 class="text-2xl font-bold text-white mt-1">12 / 15</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-blue-500 h-full rounded-full" style="width: 80%"></div>
+                        </div>
                     </div>
-                    <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
-                </a>
-            </div>
-        </header>
 
-        <!-- SCROLLABLE CONTENT -->
-        <main class="flex-grow p-8 overflow-y-auto custom-scrollbar">
-            
-            <!-- Stats / Quick Actions Row -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <!-- Card: Total Cours -->
-                <div class="content-glass rounded-2xl p-6 relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <i class="fas fa-book text-6xl text-indigo-500"></i>
-                    </div>
-                    <p class="text-gray-400 text-sm font-medium mb-1">Total Cours</p>
-                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-courses-count">--</h3>
-                    <div class="flex items-center text-xs text-green-400 bg-green-400/10 w-fit px-2 py-1 rounded">
-                        <i class="fas fa-arrow-up mr-1"></i> <span id="stats-folders-count">0 dossiers</span>
-                    </div>
-                </div>
-
-                <!-- Card: Quiz Complétés -->
-                <div class="content-glass rounded-2xl p-6 relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                        <i class="fas fa-check-circle text-6xl text-purple-500"></i>
-                    </div>
-                    <p class="text-gray-400 text-sm font-medium mb-1">Quiz Créés</p>
-                    <h3 class="text-3xl font-display font-bold text-white mb-2" id="stats-quiz-count">--</h3>
-                    <div class="flex items-center text-xs text-purple-400 bg-purple-400/10 w-fit px-2 py-1 rounded">
-                        <i class="fas fa-fire mr-1"></i> En feu !
+                    <div class="content-glass p-6 rounded-2xl border border-white/5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-gray-400 text-sm">Moyenne</p>
+                                <h3 class="text-2xl font-bold text-white mt-1">85%</h3>
+                            </div>
+                            <div class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-700 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-purple-500 h-full rounded-full" style="width: 85%"></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Card: Action Rapide -->
-                <button id="trigger-add-content" class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-center flex flex-col justify-center items-center shadow-lg shadow-indigo-900/20 group cursor-pointer hover:scale-[1.02] transition-transform w-full">
-                    <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3 text-white group-hover:rotate-90 transition-transform">
-                        <i class="fas fa-plus text-xl"></i>
-                    </div>
-                    <h3 class="font-bold text-white text-lg">Ajouter un contenu</h3>
-                    <p class="text-indigo-200 text-xs mt-1">Fichier, Dossier ou Quiz</p>
-                </button>
-            </div>
-
-            <!-- Recent Folders -->
-            <div class="mb-8">
-                <div class="flex justify-between items-end mb-4">
-                    <h2 class="text-xl font-display font-bold text-white">Dossiers Récents</h2>
-                    <a href="courses.html" class="text-sm text-indigo-400 hover:text-indigo-300">Tout voir</a>
-                </div>
-                <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    <!-- Squelette de chargement -->
-                    <div class="content-glass p-4 rounded-xl h-32 animate-pulse flex flex-col justify-between">
-                        <div class="w-8 h-8 bg-gray-700 rounded"></div>
-                        <div class="w-2/3 h-4 bg-gray-700 rounded"></div>
-                    </div>
-                    <div class="content-glass p-4 rounded-xl h-32 animate-pulse flex flex-col justify-between hidden sm:flex">
-                        <div class="w-8 h-8 bg-gray-700 rounded"></div>
-                        <div class="w-2/3 h-4 bg-gray-700 rounded"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Recent Files -->
-            <div class="content-glass rounded-2xl border border-gray-800 overflow-hidden">
-                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                    <h3 class="font-display font-bold text-lg text-white">Fichiers Récents</h3>
-                    <a href="courses.html" class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-arrow-right"></i></a>
-                </div>
-                
-                <div id="courses-list" class="divide-y divide-gray-800">
-                    <!-- Liste vide par défaut -->
-                    <div class="p-8 text-center text-gray-500 text-sm">
-                        <p>Chargement des fichiers...</p>
-                    </div>
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <!-- MODAL D'AJOUT DE CONTENU -->
-    <div id="add-content-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl relative transform transition-all scale-100">
-            <button id="close-add-content" class="absolute top-4 right-4 text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors">
-                <i class="fas fa-times"></i>
-            </button>
-            
-            <h2 class="text-2xl font-bold text-white mb-8">Que souhaitez-vous ajouter ?</h2>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <a href="upload.html" class="group p-5 rounded-2xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-indigo-500 transition-all text-center flex flex-col items-center">
-                    <div class="w-14 h-14 bg-indigo-500/20 rounded-full flex items-center justify-center mb-3 text-indigo-400 group-hover:scale-110 transition-transform group-hover:bg-indigo-500 group-hover:text-white">
-                        <i class="fas fa-file-upload text-xl"></i>
-                    </div>
-                    <h3 class="font-bold text-white">Fichier</h3>
-                    <p class="text-xs text-gray-400 mt-1">PDF, Image, Note</p>
-                </a>
-                
-                <a href="courses.html" class="group p-5 rounded-2xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-emerald-500 transition-all text-center flex flex-col items-center">
-                    <div class="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center mb-3 text-emerald-400 group-hover:scale-110 transition-transform group-hover:bg-emerald-500 group-hover:text-white">
-                        <i class="fas fa-folder-plus text-xl"></i>
-                    </div>
-                    <h3 class="font-bold text-white">Dossier</h3>
-                    <p class="text-xs text-gray-400 mt-1">Organiser mes cours</p>
-                </a>
-                
-                <a href="quiz.html" class="group p-5 rounded-2xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500 transition-all text-center flex flex-col items-center">
-                    <div class="w-14 h-14 bg-purple-500/20 rounded-full flex items-center justify-center mb-3 text-purple-400 group-hover:scale-110 transition-transform group-hover:bg-purple-500 group-hover:text-white">
-                        <i class="fas fa-brain text-xl"></i>
-                    </div>
-                    <h3 class="font-bold text-white">Quiz IA</h3>
-                    <p class="text-xs text-gray-400 mt-1">Générer via IA</p>
-                </a>
-                
-                <a href="synthesize.html" class="group p-5 rounded-2xl bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-pink-500 transition-all text-center flex flex-col items-center">
-                    <div class="w-14 h-14 bg-pink-500/20 rounded-full flex items-center justify-center mb-3 text-pink-400 group-hover:scale-110 transition-transform group-hover:bg-pink-500 group-hover:text-white">
-                        <i class="fas fa-magic text-xl"></i>
-                    </div>
-                    <h3 class="font-bold text-white">Synthèse</h3>
-                    <p class="text-xs text-gray-400 mt-1">Résumer un cours</p>
-                </a>
-            </div>
+            </main>
         </div>
     </div>
 
-    <!-- Message Box (Toast) -->
-    <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
-        <div id="message-icon" class="text-indigo-400"></div>
-        <span id="message-text"></span>
-    </div>
+    <!-- MessageBox -->
+    <div id="message-box" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-x-full"></div>
 
-    <!-- LOGIQUE PRINCIPALE -->
+    <!-- Logic -->
     <script type="module">
-        import { auth, db } from '../../assets/js/config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, query, orderBy, limit, onSnapshot, where, getDocs, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { auth } from '../../assets/js/config.js';
+        import { initLayout } from '../../assets/js/layout.js';
+        import { showMessage } from '../../assets/js/utils.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-        // --- DOM Elements ---
-        const ui = {
-            userName: document.getElementById('user-name-header'),
-            userFirstName: document.getElementById('user-first-name'),
-            userAvatar: document.getElementById('user-avatar-header'),
-            dateDisplay: document.getElementById('date-display'),
-            statsCourses: document.getElementById('stats-courses-count'),
-            statsQuiz: document.getElementById('stats-quiz-count'),
-            statsFolders: document.getElementById('stats-folders-count'),
-            foldersGrid: document.getElementById('folders-grid'),
-            coursesList: document.getElementById('courses-list'),
-            notifBtn: document.getElementById('notif-btn'),
-            notifBadge: document.getElementById('notif-badge'),
-            notifDropdown: document.getElementById('notif-dropdown'),
-            notifList: document.getElementById('notifications-list'),
-            noNotifMsg: document.getElementById('no-notif-msg'),
-            markAllReadBtn: document.getElementById('mark-all-read'),
-            addContentModal: document.getElementById('add-content-modal'),
-            triggerAddContent: document.getElementById('trigger-add-content'),
-            closeAddContent: document.getElementById('close-add-content')
-        };
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Initialiser le layout (Sidebar + Topbar) avec l'ID de la page active
+            initLayout('dashboard');
 
-        let currentUserId = null;
-
-        // --- Date Display ---
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        ui.dateDisplay.textContent = new Date().toLocaleDateString('fr-FR', options);
-
-        // --- Notifications Logic ---
-        function setupNotifications(userId) {
-            // Ecoute en temps réel des notifications
-            const q = query(
-                collection(db, 'users', userId, 'notifications'),
-                orderBy('createdAt', 'desc'),
-                limit(10)
-            );
-
-            onSnapshot(q, (snapshot) => {
-                const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateNotificationUI(notifications);
-            });
-        }
-
-        function updateNotificationUI(notifications) {
-            // Filtrer les non-lues pour le badge
-            const unreadCount = notifications.filter(n => !n.read).length;
-            
-            // Mise à jour du badge
-            if (unreadCount > 0) {
-                ui.notifBadge.classList.remove('hidden');
-                // ui.notifBadge.textContent = unreadCount; // Optionnel: afficher le nombre
-            } else {
-                ui.notifBadge.classList.add('hidden');
-            }
-
-            // Mise à jour de la liste
-            ui.notifList.innerHTML = '';
-            
-            if (notifications.length === 0) {
-                ui.noNotifMsg.classList.remove('hidden');
-            } else {
-                ui.noNotifMsg.classList.add('hidden');
-                
-                notifications.forEach(n => {
-                    // Style selon le type
-                    let icon = 'fa-info-circle';
-                    let iconColor = 'text-blue-400';
-                    let bgIcon = 'bg-blue-400/10';
-
-                    if (n.type === 'success') { icon = 'fa-check-circle'; iconColor = 'text-green-400'; bgIcon = 'bg-green-400/10'; }
-                    if (n.type === 'warning') { icon = 'fa-exclamation-triangle'; iconColor = 'text-yellow-400'; bgIcon = 'bg-yellow-400/10'; }
-                    if (n.type === 'message') { icon = 'fa-comment-alt'; iconColor = 'text-indigo-400'; bgIcon = 'bg-indigo-400/10'; }
-
-                    const isUnread = !n.read ? 'bg-gray-800/50 border-l-2 border-indigo-500' : 'opacity-75';
-                    const timeStr = n.createdAt ? new Date(n.createdAt.seconds * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-
-                    const el = document.createElement('div');
-                    el.className = `notif-item p-4 border-b border-gray-800 hover:bg-gray-800 transition-colors cursor-pointer relative group ${isUnread}`;
-                    el.innerHTML = `
-                        <div class="flex gap-3">
-                            <div class="w-8 h-8 rounded-full ${bgIcon} flex items-center justify-center flex-shrink-0 mt-1">
-                                <i class="fas ${icon} ${iconColor} text-xs"></i>
-                            </div>
-                            <div class="flex-grow pr-6">
-                                <p class="text-sm text-gray-200 leading-snug">${n.message}</p>
-                                <p class="text-xs text-gray-500 mt-1">${timeStr}</p>
-                            </div>
-                        </div>
-                        <button class="delete-notif absolute top-2 right-2 text-gray-600 hover:text-red-400 opacity-0 transition-opacity p-1" title="Supprimer">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    `;
-
-                    // Action de suppression
-                    el.querySelector('.delete-notif').addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        await deleteDoc(doc(db, 'users', currentUserId, 'notifications', n.id));
-                    });
-
-                    // Marquer comme lu au clic
-                    el.addEventListener('click', async () => {
-                        if (!n.read) {
-                            await updateDoc(doc(db, 'users', currentUserId, 'notifications', n.id), { read: true });
-                        }
-                        // Optionnel: rediriger si lien attaché
-                        if (n.link) window.location.href = n.link;
-                    });
-
-                    ui.notifList.appendChild(el);
-                });
-            }
-        }
-
-        // Tout marquer comme lu
-        ui.markAllReadBtn.addEventListener('click', async () => {
-            const batch = writeBatch(db);
-            const q = query(collection(db, 'users', currentUserId, 'notifications'), where('read', '==', false));
-            const snapshot = await getDocs(q);
-            
-            if (snapshot.empty) return;
-
-            snapshot.forEach(doc => {
-                batch.update(doc.ref, { read: true });
-            });
-            await batch.commit();
-        });
-
-        // Toggle Dropdown Notification
-        ui.notifBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            ui.notifDropdown.classList.toggle('hidden');
-        });
-
-        // Fermer dropdown au clic ailleurs
-        window.addEventListener('click', (e) => {
-            if (!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) {
-                ui.notifDropdown.classList.add('hidden');
-            }
-        });
-
-        // --- Stats & Data Loading ---
-        async function loadDashboardData(userId) {
-            // 1. Stats Counts (Snapshot unique pour perf)
-            const coursesSnap = await getDocs(collection(db, 'users', userId, 'courses'));
-            const quizSnap = await getDocs(collection(db, 'users', userId, 'quizzes')); // Assure-toi que la collection s'appelle 'quizzes'
-            const foldersSnap = await getDocs(collection(db, 'users', userId, 'folders'));
-
-            ui.statsCourses.textContent = coursesSnap.size;
-            ui.statsQuiz.textContent = quizSnap.size;
-            ui.statsFolders.textContent = `${foldersSnap.size} dossiers`;
-
-            // 2. Dossiers Récents (Limit 5)
-            const foldersList = foldersSnap.docs
-                .map(doc => ({id: doc.id, ...doc.data()}))
-                .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                .slice(0, 5);
-
-            renderFolders(foldersList);
-
-            // 3. Fichiers Récents (Limit 5)
-            const coursesList = coursesSnap.docs
-                .map(doc => ({id: doc.id, ...doc.data()}))
-                .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                .slice(0, 5);
-
-            renderCourses(coursesList);
-        }
-
-        function renderFolders(folders) {
-            ui.foldersGrid.innerHTML = '';
-            
-            // Bouton "Nouveau Dossier" toujours présent
-            const addBtn = document.createElement('div');
-            addBtn.className = 'bg-indigo-600/20 border border-indigo-500/30 p-4 rounded-xl h-32 flex flex-col items-center justify-center text-indigo-400 cursor-pointer hover:bg-indigo-600 hover:text-white transition-all group';
-            addBtn.innerHTML = `<i class="fas fa-plus text-2xl mb-2 group-hover:scale-110 transition-transform"></i><span class="text-xs font-bold">Nouveau</span>`;
-            addBtn.onclick = () => window.location.href = 'courses.html'; // Ou modale création
-            ui.foldersGrid.appendChild(addBtn);
-
-            folders.forEach(f => {
-                const el = document.createElement('div');
-                el.className = 'content-glass p-4 rounded-xl h-32 flex flex-col justify-between cursor-pointer hover:bg-gray-800 transition-colors group relative';
-                el.onclick = () => window.location.href = `courses.html?folder=${f.id}`;
-                el.innerHTML = `
-                    <div class="text-indigo-400 group-hover:text-white transition-colors"><i class="fas fa-folder text-3xl"></i></div>
-                    <div>
-                        <h4 class="font-bold text-white truncate text-sm">${f.name}</h4>
-                        <p class="text-xs text-gray-500">${f.courseCount || 0} fichiers</p>
-                    </div>
-                `;
-                ui.foldersGrid.appendChild(el);
-            });
-        }
-
-        function renderCourses(courses) {
-            ui.coursesList.innerHTML = '';
-            if (courses.length === 0) {
-                ui.coursesList.innerHTML = `
-                    <div class="p-8 text-center text-gray-500 text-sm">
-                        <i class="fas fa-file-pdf text-2xl mb-2 opacity-50"></i>
-                        <p>Aucun fichier récent.</p>
-                    </div>`;
-                return;
-            }
-
-            courses.forEach(c => {
-                let icon = 'fa-file-alt';
-                let color = 'text-gray-400';
-                if (c.fileName?.endsWith('.pdf')) { icon = 'fa-file-pdf'; color = 'text-red-400'; }
-                
-                const dateStr = c.createdAt ? new Date(c.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : '';
-
-                const el = document.createElement('div');
-                el.className = 'p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors cursor-pointer group';
-                el.onclick = () => window.open(c.fileURL || c.url, '_blank');
-                el.innerHTML = `
-                    <div class="flex items-center gap-4 overflow-hidden">
-                        <div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center ${color} text-lg flex-shrink-0">
-                            <i class="fas ${icon}"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <h4 class="font-medium text-white truncate group-hover:text-indigo-400 transition-colors">${c.title || c.fileName}</h4>
-                            <p class="text-xs text-gray-500">${dateStr} • ${(c.size / 1024 / 1024).toFixed(1)} MB</p>
-                        </div>
-                    </div>
-                    <button class="p-2 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-download"></i></button>
-                `;
-                ui.coursesList.appendChild(el);
-            });
-        }
-
-        // --- Modal Logic ---
-        ui.triggerAddContent.addEventListener('click', () => ui.addContentModal.classList.remove('hidden'));
-        ui.closeAddContent.addEventListener('click', () => ui.addContentModal.classList.add('hidden'));
-        ui.addContentModal.addEventListener('click', (e) => {
-            if(e.target === ui.addContentModal) ui.addContentModal.classList.add('hidden');
-        });
-
-        // --- Logout ---
-        document.getElementById('logout-button').addEventListener('click', async () => {
-            await signOut(auth);
-            window.location.href = '../../index.html';
-        });
-
-        // --- Auth & Initialization ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user && !user.isAnonymous) {
-                currentUserId = user.uid;
-                
-                // Charger infos user
-                const userSnap = await getDoc(doc(db, 'users', currentUserId));
-                if (userSnap.exists()) {
-                    const data = userSnap.data();
-                    ui.userName.textContent = data.firstName;
-                    ui.userFirstName.textContent = data.firstName;
-                    ui.userAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+            // 2. Vérifier l'auth et charger les infos utilisateur
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const userNameEl = document.getElementById('user-name');
+                    if(userNameEl) userNameEl.textContent = user.displayName || user.email.split('@')[0];
                 } else {
-                    // Fallback si pas de profil (rare car onboarding forcé)
-                    ui.userName.textContent = "Étudiant";
+                    // Redirection si pas connecté (sécurité basique front)
+                    window.location.href = '../auth/login.html';
                 }
-
-                // Lancer les écouteurs
-                setupNotifications(currentUserId);
-                loadDashboardData(currentUserId);
-
-            } else {
-                window.location.href = '../auth/login.html';
-            }
+            });
         });
-
     </script>
 </body>
 </html>
