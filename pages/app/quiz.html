@@ -42,10 +42,18 @@
         .correct-answer { border-color: #22c55e !important; background-color: rgba(34, 197, 94, 0.1) !important; }
         .wrong-answer { border-color: #ef4444 !important; background-color: rgba(239, 68, 68, 0.1) !important; }
         
-        /* Scrollbar fine pour le bilan */
-        .review-scroll::-webkit-scrollbar { width: 6px; }
-        .review-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
-        .review-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+        /* Flashcards Styling */
+        .flashcard-container { perspective: 1000px; height: 300px; cursor: pointer; }
+        .flashcard-inner {
+            position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s; transform-style: preserve-3d;
+        }
+        .flashcard-container.flipped .flashcard-inner { transform: rotateY(180deg); }
+        .flashcard-front, .flashcard-back {
+            position: absolute; width: 100%; height: 100%; -webkit-backface-visibility: hidden; backface-visibility: hidden;
+            display: flex; align-items: center; justify-content: center; padding: 2rem; border-radius: 1.5rem;
+            background: rgba(30, 30, 35, 0.8); border: 1px solid rgba(255,255,255,0.1);
+        }
+        .flashcard-back { transform: rotateY(180deg); background: rgba(79, 70, 229, 0.1); border-color: #6366f1; }
 
         /* Animation Barre de Chargement */
         @keyframes progress-indeterminate {
@@ -70,15 +78,12 @@
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -10%; right: 20%; background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 60%);"></div>
     <div class="glow-bg" style="bottom: 10%; left: -5%; background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 60%);"></div>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
                 <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -115,13 +120,10 @@
             </div>
         </header>
 
-        <!-- CONTENU SCROLLABLE -->
         <main class="flex-grow p-6 overflow-y-auto custom-scrollbar relative">
             
-            <!-- VUE DASHBOARD (Liste des quiz) -->
             <div id="quiz-dashboard" class="space-y-10 transition-all duration-300">
                 
-                <!-- Hero Section -->
                 <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-500/20 p-8 flex flex-col justify-center items-start group">
                     <div class="relative z-10">
                         <span class="inline-block px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold mb-3 border border-indigo-500/20">
@@ -138,7 +140,6 @@
                     </div>
                 </div>
 
-                <!-- Stats Rapides -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="content-glass p-6 rounded-2xl flex items-center justify-between">
                         <div>
@@ -160,7 +161,6 @@
                     </div>
                 </div>
 
-                <!-- Liste des Quiz -->
                 <div>
                     <h2 class="text-xl font-bold text-white mb-6">Mes Quiz</h2>
                     <div id="quiz-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -172,9 +172,7 @@
                 </div>
             </div>
 
-            <!-- VUE PLAYER (Jeu) -->
             <div id="quiz-player" class="hidden absolute inset-0 bg-[#050505] z-50 flex flex-col p-6 overflow-hidden">
-                <!-- Player Header -->
                 <div class="flex justify-between items-center mb-6 flex-shrink-0">
                     <button id="exit-quiz-btn" class="text-gray-400 hover:text-white flex items-center gap-2 transition-colors">
                         <i class="fas fa-arrow-left"></i> Quitter
@@ -186,24 +184,52 @@
                     <div class="w-16"></div> 
                 </div>
 
-                <!-- Content Area -->
                 <div class="flex-grow overflow-y-auto custom-scrollbar flex flex-col items-center pb-8" id="player-scroll-area">
                     
-                    <!-- Question Container -->
                     <div class="max-w-3xl w-full mx-auto slide-in" id="question-container">
-                        <div class="w-full bg-gray-900 border border-gray-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden mb-6">
-                            <div class="absolute top-0 left-0 h-1 bg-indigo-600 transition-all duration-500" id="progress-bar" style="width: 0%"></div>
-                            
-                            <span id="question-type-badge" class="inline-block px-3 py-1 rounded-full bg-gray-800 text-gray-400 text-xs font-bold mb-4 border border-gray-700">QCM</span>
-                            
-                            <h3 id="question-text" class="text-2xl font-bold text-white mb-8 leading-relaxed">
-                                Chargement...
-                            </h3>
+                        
+                        <div id="standard-mode-container">
+                            <div class="w-full bg-gray-900 border border-gray-800 rounded-3xl p-8 shadow-2xl relative overflow-hidden mb-6">
+                                <div class="absolute top-0 left-0 h-1 bg-indigo-600 transition-all duration-500" id="progress-bar" style="width: 0%"></div>
+                                
+                                <span id="question-type-badge" class="inline-block px-3 py-1 rounded-full bg-gray-800 text-gray-400 text-xs font-bold mb-4 border border-gray-700">QCM</span>
+                                
+                                <h3 id="question-text" class="text-2xl font-bold text-white mb-8 leading-relaxed">
+                                    Chargement...
+                                </h3>
 
-                            <div id="options-grid" class="grid grid-cols-1 gap-4"></div>
+                                <div id="options-grid" class="grid grid-cols-1 gap-4"></div>
+                            </div>
                         </div>
 
-                        <!-- Feedback -->
+                        <div id="flashcard-mode-container" class="hidden w-full max-w-2xl mx-auto mb-8">
+                            <div class="flashcard-container" id="flashcard-element">
+                                <div class="flashcard-inner">
+                                    <div class="flashcard-front">
+                                        <div>
+                                            <span class="block text-indigo-400 text-sm font-bold uppercase tracking-wider mb-4">Question</span>
+                                            <h3 class="text-2xl font-bold text-white" id="flashcard-question">...</h3>
+                                            <p class="text-xs text-gray-500 mt-8 absolute bottom-4 w-full left-0">Cliquez pour retourner</p>
+                                        </div>
+                                    </div>
+                                    <div class="flashcard-back">
+                                        <div>
+                                            <span class="block text-indigo-400 text-sm font-bold uppercase tracking-wider mb-4">Réponse</span>
+                                            <h3 class="text-xl font-medium text-white" id="flashcard-answer">...</h3>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-center gap-4 mt-8">
+                                <button id="fc-missed-btn" class="px-6 py-3 rounded-xl bg-red-500/20 text-red-400 font-bold border border-red-500/50 hover:bg-red-500/30 transition-colors">
+                                    <i class="fas fa-times"></i> À revoir
+                                </button>
+                                <button id="fc-known-btn" class="px-6 py-3 rounded-xl bg-green-500/20 text-green-400 font-bold border border-green-500/50 hover:bg-green-500/30 transition-colors">
+                                    <i class="fas fa-check"></i> Compris
+                                </button>
+                            </div>
+                        </div>
+
                         <div id="feedback-area" class="w-full hidden">
                             <div id="feedback-box" class="p-4 rounded-xl mb-4 text-sm font-medium"></div>
                             <button id="next-question-btn" class="w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold shadow-lg transition-all">
@@ -212,9 +238,7 @@
                         </div>
                     </div>
 
-                    <!-- Results / Review View -->
                     <div id="results-container" class="hidden max-w-4xl w-full mx-auto text-center slide-in pb-10">
-                        <!-- Score Card -->
                         <div class="bg-gray-900 border border-gray-800 rounded-3xl p-8 mb-8 shadow-2xl">
                             <div class="w-32 h-32 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-indigo-500/30 mx-auto">
                                 <span id="final-score" class="text-4xl font-bold text-white">80%</span>
@@ -235,7 +259,6 @@
                             </div>
                         </div>
 
-                        <!-- Detailed Review -->
                         <h3 class="text-left text-xl font-bold text-white mb-4 pl-2 border-l-4 border-indigo-500">Détail des réponses</h3>
                         <div id="review-list" class="space-y-4 text-left">
                             <!-- Injected by JS -->
@@ -248,7 +271,6 @@
         </main>
     </div>
 
-    <!-- MODAL CONFIGURATION QUIZ -->
     <div id="new-quiz-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
@@ -317,6 +339,7 @@
                             <option value="qrm">QRM (Multi-réponses)</option>
                             <option value="truefalse">Vrai / Faux</option>
                             <option value="fill">Texte à trous</option>
+                            <option value="flashcards">Flashcards</option>
                         </select>
                     </div>
                     <div class="space-y-2">
@@ -325,14 +348,12 @@
                     </div>
                 </div>
 
-                <!-- LOADING BAR SECTION (Hidden by default) -->
-                <div id="loading-bar-container" class="hidden pt-4">
+                <div id="loading-bar-container" class="hidden pt-4 relative">
                     <div class="flex justify-between text-xs text-indigo-400 mb-1">
                         <span>Génération en cours...</span>
                         <span><i class="fas fa-brain fa-spin"></i></span>
                     </div>
-                    <div class="w-full bg-gray-700 rounded-full h-1.5 loading-bar-anim"></div>
-                    <p class="text-xs text-gray-500 mt-2 text-center">L'IA analyse ton contenu et prépare les questions...</p>
+                    <div class="w-full bg-gray-700 rounded-full h-1.5 loading-bar-anim relative overflow-hidden"></div>
                 </div>
 
             </div>
@@ -346,32 +367,28 @@
         </div>
     </div>
 
-    <!-- MessageBox -->
     <div id="message-box" class="fixed top-4 right-4 z-50"></div>
 
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { initLayout } from '../../assets/js/layout.js';
-        import { showMessage, formatDate } from '../../assets/js/utils.js';
+        // Import XP
+        import { showMessage, formatDate, addXP, XP_VALUES } from '../../assets/js/utils.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { collection, query, where, getDocs, addDoc, orderBy, serverTimestamp, doc, getDoc, deleteDoc, updateDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // --- CONFIG ---
         const apiKey = "AIzaSyBkLY1F5uDZDiNKG1kGXC81cTbQ90uybuk";
         let currentUserId = null;
         let currentQuiz = null; 
         let currentQuestionIndex = 0;
         let currentScore = 0;
-        let quizHistory = []; // Stocke les réponses pour le bilan
+        let quizHistory = []; 
 
-        // --- DOM ---
         const ui = {
-            // Dashboard
             dashboard: document.getElementById('quiz-dashboard'),
             quizGrid: document.getElementById('quiz-grid'),
             statAvg: document.getElementById('stat-avg-score'),
             statTotal: document.getElementById('stat-total-quiz'),
-            // Player
             player: document.getElementById('quiz-player'),
             playerTitle: document.getElementById('player-quiz-title'),
             playerProgress: document.getElementById('player-progress'),
@@ -384,6 +401,13 @@
             nextBtn: document.getElementById('next-question-btn'),
             resultsContainer: document.getElementById('results-container'),
             questionContainer: document.getElementById('question-container'),
+            standardModeContainer: document.getElementById('standard-mode-container'),
+            flashcardModeContainer: document.getElementById('flashcard-mode-container'),
+            flashcardElement: document.getElementById('flashcard-element'),
+            flashcardQuestion: document.getElementById('flashcard-question'),
+            flashcardAnswer: document.getElementById('flashcard-answer'),
+            fcMissedBtn: document.getElementById('fc-missed-btn'),
+            fcKnownBtn: document.getElementById('fc-known-btn'),
             finalScore: document.getElementById('final-score'),
             resultMessage: document.getElementById('result-message'),
             reviewList: document.getElementById('review-list'),
@@ -391,7 +415,6 @@
             backDashboardBtn: document.getElementById('back-to-dashboard-btn'),
             retryQuizBtn: document.getElementById('retry-quiz-btn'),
             retryErrorsBtn: document.getElementById('retry-errors-btn'),
-            // Modal
             modal: document.getElementById('new-quiz-modal'),
             btnOpenHero: document.getElementById('btn-new-quiz-hero'),
             btnOpenHeader: document.getElementById('btn-new-quiz-header'),
@@ -399,7 +422,6 @@
             btnCancel: document.getElementById('cancel-quiz-btn'),
             btnGenerate: document.getElementById('generate-quiz-btn'),
             loadingBar: document.getElementById('loading-bar-container'),
-            // Form
             titleInput: document.getElementById('quiz-title-input'),
             sourceRadios: document.getElementsByName('quiz-source'),
             containers: {
@@ -415,16 +437,18 @@
             typeSelect: document.getElementById('quiz-type'),
             lengthInput: document.getElementById('quiz-length'),
             lengthVal: document.getElementById('quiz-length-val'),
-            // Header
             userName: document.getElementById('user-name-header'),
             userAvatar: document.getElementById('user-avatar-header'),
-            dateDisplay: document.getElementById('date-display')
+            dateDisplay: document.getElementById('date-display'),
+            notifBtn: document.getElementById('notif-btn'),
+            notifBadge: document.getElementById('notif-badge'),
+            notifDropdown: document.getElementById('notif-dropdown'),
+            notifList: document.getElementById('notifications-list')
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             initLayout('quiz');
             
-            // Gestion des selects (couleur background)
             const allSelects = document.querySelectorAll('select');
             allSelects.forEach(select => {
                 select.addEventListener('change', () => {
@@ -439,6 +463,7 @@
                     await initPage();
                     loadQuizzes();
                     loadSources();
+                    setupNotifications(currentUserId);
                 } else {
                     window.location.href = '../auth/login.html';
                 }
@@ -583,35 +608,34 @@
 
             if (!context) return showMessage("Source invalide", "error");
 
-            // UI LOADING START
             btn.disabled = true;
             btn.innerHTML = `<i class="fas fa-hourglass-half fa-spin"></i> Patientez...`;
             ui.loadingBar.classList.remove('hidden');
 
             try {
-                // Prompt amélioré pour questions poussées
                 const prompt = `
                     Agis comme un professeur d'université exigeant. Génère un quiz difficile et pertinent de ${count} questions.
                     Le but est de tester une compréhension profonde, pas juste de la mémorisation superficielle.
                     
                     Contexte/Sujet: ${context}
-                    Type de questions: ${type} (qcm, qrm, truefalse, fill)
+                    Type de questions: ${type} (qcm, qrm, truefalse, fill, flashcards)
                     Langue: Français (Belgique/France)
 
                     Instructions spécifiques au type:
                     - 'qcm': Une seule bonne réponse parmi 4 choix. Les pièges doivent être subtils.
-                    - 'qrm': Plusieurs bonnes réponses possibles. Indique bien 'correctAnswers' comme tableau d'index.
+                    - 'qrm': Plusieurs bonnes réponses possibles.
                     - 'truefalse': Options ["Vrai", "Faux"]. Explications détaillées requises.
-                    - 'fill': Une phrase avec un mot clé manquant remplacé par [mot]. Mets le mot correct dans 'options' avec des leurres crédibles.
+                    - 'fill': Une phrase avec un mot clé manquant remplacé par [mot].
+                    - 'flashcards': Génère une série de cartes "Recto" (Question/Concept) / "Verso" (Réponse/Définition). Pour le JSON, utilise la même structure 'question' (recto) et 'explanation' (verso) qui servira de réponse.
 
                     Format JSON attendu STRICT (tableau d'objets 'questions'):
                     {
                         "questions": [
                             {
-                                "question": "Énoncé complexe de la question...",
-                                "options": ["Option A", "Option B", "Option C", "Option D"], 
-                                "correctAnswers": [0], // Index des bonnes réponses (0, 1, 2 ou 3)
-                                "explanation": "Explication pédagogique détaillée de pourquoi c'est la bonne réponse et pourquoi les autres sont fausses."
+                                "question": "Énoncé...",
+                                "options": ["A", "B", "C", "D"], 
+                                "correctAnswers": [0], 
+                                "explanation": "Réponse complète ou verso de la flashcard."
                             }
                         ]
                     }
@@ -642,30 +666,30 @@
                     status: 'created'
                 });
 
+                // --- AJOUT XP CREATION ---
+                await addXP(currentUserId, XP_VALUES.CREATE_QUIZ);
+
                 ui.modal.classList.add('hidden');
                 ui.titleInput.value = "";
-                showMessage("Quiz généré et sauvegardé !", "success");
+                showMessage("Quiz généré et sauvegardé ! (+50 XP)", "success");
                 loadQuizzes();
 
             } catch (e) {
                 console.error(e);
                 showMessage("Erreur IA : " + e.message, "error");
             } finally {
-                // UI LOADING STOP
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
                 ui.loadingBar.classList.add('hidden');
             }
         };
 
-        // --- 3. MODE JEU (PLAYER) ---
         function startQuiz(quizId, quizData) {
             currentQuiz = { id: quizId, ...quizData };
             currentQuestionIndex = 0;
             currentScore = 0;
-            quizHistory = []; // Reset historique
+            quizHistory = []; 
 
-            // UI Switch
             ui.dashboard.classList.add('hidden');
             ui.player.classList.remove('hidden');
             ui.resultsContainer.classList.add('hidden');
@@ -674,7 +698,45 @@
             ui.playerTitle.textContent = currentQuiz.title;
             ui.questionTypeBadge.textContent = currentQuiz.type ? currentQuiz.type.toUpperCase() : 'QUIZ';
 
-            renderQuestion();
+            if (currentQuiz.type === 'flashcards') {
+                ui.standardModeContainer.classList.add('hidden');
+                ui.flashcardModeContainer.classList.remove('hidden');
+                renderFlashcard();
+            } else {
+                ui.standardModeContainer.classList.remove('hidden');
+                ui.flashcardModeContainer.classList.add('hidden');
+                renderQuestion();
+            }
+        }
+
+        function renderFlashcard() {
+            const q = currentQuiz.questions[currentQuestionIndex];
+            ui.playerProgress.textContent = `Carte ${currentQuestionIndex + 1}/${currentQuiz.questions.length}`;
+            ui.progressBar.style.width = `${((currentQuestionIndex) / currentQuiz.questions.length) * 100}%`;
+
+            ui.flashcardQuestion.textContent = q.question;
+            ui.flashcardAnswer.textContent = q.explanation; 
+            
+            ui.flashcardElement.classList.remove('flipped');
+            
+            ui.flashcardElement.onclick = () => ui.flashcardElement.classList.toggle('flipped');
+            
+            ui.fcMissedBtn.onclick = (e) => { e.stopPropagation(); handleFlashcardResult(false, q); };
+            ui.fcKnownBtn.onclick = (e) => { e.stopPropagation(); handleFlashcardResult(true, q); };
+        }
+
+        function handleFlashcardResult(known, questionData) {
+            if (known) currentScore++;
+            
+            quizHistory.push({
+                question: questionData.question,
+                userAnswer: known ? "Su" : "Non su",
+                correctAnswer: questionData.explanation,
+                isCorrect: known,
+                explanation: ""
+            });
+
+            nextQuestion();
         }
 
         function renderQuestion() {
@@ -707,11 +769,6 @@
             allBtns.forEach(b => b.disabled = true);
 
             const correctIndices = Array.isArray(questionData.correctAnswers) ? questionData.correctAnswers : [questionData.correctAnswer];
-            
-            // Mode QRM simplifié : on considère juste si la réponse cliquée est une DES bonnes réponses pour l'instant
-            // Pour un vrai QRM, il faudrait pouvoir sélectionner plusieurs choix puis valider.
-            // Ici on adapte pour QCM principalement ou QRM simple (trouver 1 bonne réponse).
-            
             const isCorrect = correctIndices.includes(selectedIndex);
 
             if (isCorrect) {
@@ -726,7 +783,6 @@
                 });
             }
 
-            // Save history
             quizHistory.push({
                 question: questionData.question,
                 userAnswer: questionData.options[selectedIndex],
@@ -745,7 +801,8 @@
         async function nextQuestion() {
             currentQuestionIndex++;
             if (currentQuestionIndex < currentQuiz.questions.length) {
-                renderQuestion();
+                if (currentQuiz.type === 'flashcards') renderFlashcard();
+                else renderQuestion();
             } else {
                 finishQuiz();
             }
@@ -759,18 +816,16 @@
             const finalPercent = Math.round((currentScore / currentQuiz.questions.length) * 100);
             ui.finalScore.textContent = `${finalPercent}%`;
             
-            if (finalPercent >= 80) ui.resultMessage.textContent = "Excellent travail ! Tu maîtrises le sujet.";
+            if (finalPercent >= 80) ui.resultMessage.textContent = "Excellent travail !";
             else if (finalPercent >= 50) ui.resultMessage.textContent = "Bien joué, mais il reste des lacunes.";
             else ui.resultMessage.textContent = "Continue de réviser, ça va venir !";
 
-            // Affichage du bouton "Revoir mes erreurs" si score < 100%
             if (finalPercent < 100) {
                 ui.retryErrorsBtn.classList.remove('hidden');
             } else {
                 ui.retryErrorsBtn.classList.add('hidden');
             }
 
-            // Génération du Bilan
             ui.reviewList.innerHTML = '';
             quizHistory.forEach((item, index) => {
                 const el = document.createElement('div');
@@ -795,17 +850,24 @@
                 status: 'completed',
                 lastPlayed: serverTimestamp()
             });
+
+            // --- AJOUT XP FIN QUIZ ---
+            await addXP(currentUserId, XP_VALUES.COMPLETE_QUIZ);
+            if(finalPercent === 100) {
+                await addXP(currentUserId, XP_VALUES.PERFECT_SCORE);
+                showMessage("Score Parfait ! Bonus XP obtenu ! 🏆", "success");
+            } else {
+                showMessage("Quiz terminé ! (+30 XP)", "success");
+            }
             
             loadQuizzes();
         }
 
-        // --- RETRY LOGIC ---
         ui.retryQuizBtn.onclick = () => {
-            startQuiz(currentQuiz.id, currentQuiz); // Restart same quiz
+            startQuiz(currentQuiz.id, currentQuiz); 
         };
 
         ui.retryErrorsBtn.onclick = () => {
-            // Filtrer les questions ratées via l'historique
             const wrongIndices = quizHistory
                 .map((h, i) => h.isCorrect ? -1 : i)
                 .filter(i => i !== -1);
@@ -814,7 +876,6 @@
 
             const wrongQuestions = wrongIndices.map(i => currentQuiz.questions[i]);
             
-            // Créer un quiz temporaire
             const tempQuiz = {
                 ...currentQuiz,
                 title: `${currentQuiz.title} (Erreurs)`,
@@ -824,7 +885,6 @@
             startQuiz(currentQuiz.id, tempQuiz);
         };
 
-        // --- NAVIGATION ---
         const exit = () => {
             ui.player.classList.add('hidden');
             ui.dashboard.classList.remove('hidden');
@@ -832,7 +892,6 @@
         ui.exitBtn.onclick = () => confirm("Quitter ?") && exit();
         ui.backDashboardBtn.onclick = exit;
 
-        // --- UTILS ---
         const toggleModal = (show) => { ui.modal.classList.toggle('hidden', !show); };
         ui.btnOpenHero.onclick = () => toggleModal(true);
         ui.btnOpenHeader.onclick = () => toggleModal(true);
@@ -846,6 +905,21 @@
             });
         });
         ui.lengthInput.addEventListener('input', (e) => ui.lengthVal.textContent = e.target.value);
+
+        function setupNotifications(userId) {
+            const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(5));
+            onSnapshot(q, (snapshot) => {
+                const notifs = snapshot.docs.map(d => d.data());
+                if (notifs.length > 0) {
+                    ui.notifBadge.classList.remove('hidden');
+                    ui.notifList.innerHTML = notifs.map(n => `<div class="p-3 border-b border-gray-800 text-left text-sm text-gray-300">${n.message}</div>`).join('');
+                } else {
+                    ui.notifBadge.classList.add('hidden');
+                }
+            });
+        }
+        ui.notifBtn.onclick = (e) => { e.stopPropagation(); ui.notifDropdown.classList.toggle('hidden'); };
+        window.onclick = (e) => { if(!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) ui.notifDropdown.classList.add('hidden'); };
 
     </script>
 </body>
