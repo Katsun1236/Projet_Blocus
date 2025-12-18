@@ -3,370 +3,420 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Uploader un cours - Projet Blocus</title>
+    <title>Upload - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
-        .sidebar-glass {
-            background: rgba(5, 5, 5, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
         .content-glass {
-            background: rgba(20, 20, 20, 0.3);
-            backdrop-filter: blur(10px);
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .nav-item.active {
-            background: rgba(99, 102, 241, 0.15);
-            color: #fff;
-            border-left: 3px solid #6366f1;
-        }
-        .nav-item:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.03);
-            color: #e5e7eb;
-        }
+        
+        /* Zone de Drag & Drop */
         .drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%234B5563FF' stroke-width='2' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
-            cursor: pointer;
-            position: relative;
+            background: rgba(255, 255, 255, 0.02);
         }
-        .drop-zone:focus-within, .drop-zone:hover {
-            background-color: rgba(99, 102, 241, 0.1);
-            background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='16' ry='16' stroke='%236366F1FF' stroke-width='3' stroke-dasharray='12%2c 12' stroke-dashoffset='0' stroke-linecap='square'/%3e%3c/svg%3e");
+        .drop-zone.dragover {
+            border-color: #6366f1; /* Indigo-500 */
+            background: rgba(99, 102, 241, 0.1);
             transform: scale(1.01);
-            border-color: #6366f1;
+        }
+        
+        /* Select stylisé */
+        select {
+            background-color: rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+        select option {
+            background-color: #1f2937;
+        }
+
+        /* Animation progression */
+        .progress-bar {
+            transition: width 0.3s ease;
         }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
+<body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+
+    <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
-    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
-    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="top: -10%; left: 30%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 60%);"></div>
+    <div class="glow-bg" style="bottom: 10%; right: 10%; background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 60%);"></div>
 
-    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
-        <div class="p-6 flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
-                B.
-            </div>
-            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
-        </div>
-
-        <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
-            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Tableau de Bord</span>
-            </a>
-            <a href="courses.html" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Mes Cours</span>
-            </a>
-            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i><span class="font-medium">Quiz IA</span></a>
-            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i><span class="font-medium">Planning</span></a>
-            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i><span class="font-medium">Synth├®tiseur</span></a>
-            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i><span class="font-medium">Mon Profil</span></a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-800">
-            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
-                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">D├®connexion</span>
-            </button>
-        </div>
-    </aside>
-
-    <div class="flex-grow flex flex-col min-w-0 relative z-10">
-        <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
+    <!-- MAIN CONTENT -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
+        
+        <!-- HEADER -->
+        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
-                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
-                <span class="font-bold text-lg text-white">Upload</span>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <div class="hidden md:block">
+                    <h1 class="text-xl font-display font-bold text-white">Ajouter un document</h1>
+                    <p class="text-sm text-gray-400">Centralise tes ressources</p>
+                </div>
+                <span class="md:hidden text-white font-bold">Upload</span>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <!-- Bouton retour -->
+                <a href="courses.html" class="hidden sm:flex bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all items-center gap-2 border border-gray-700">
+                    <i class="fas fa-arrow-left"></i> <span>Retour</span>
+                </a>
+
+                <div class="h-8 w-px bg-gray-800 hidden sm:block"></div>
+
+                <!-- Profil -->
+                <a href="profile.html" class="flex items-center gap-3 group cursor-pointer pl-2">
+                    <div class="text-right hidden sm:block">
+                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">...</p>
+                        <p class="text-xs text-gray-500">Étudiant</p>
+                    </div>
+                    <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
+                </a>
             </div>
         </header>
 
-        <main class="flex-grow p-6 md:p-10 overflow-y-auto flex flex-col items-center justify-center">
+        <!-- CONTENU SCROLLABLE -->
+        <main class="flex-grow p-6 overflow-y-auto custom-scrollbar flex items-center justify-center">
+            
             <div class="w-full max-w-3xl">
-                <div class="mb-6 flex items-center text-sm text-gray-500">
-                    <a href="dashboard.html" class="hover:text-white transition-colors">Accueil</a>
-                    <i class="fas fa-chevron-right text-xs mx-3"></i>
-                    <span class="text-indigo-400">Ajouter un cours</span>
-                </div>
-
-                <div class="content-glass rounded-3xl p-8 md:p-12 border border-gray-800 shadow-2xl">
-                    <div class="text-center mb-10">
-                        <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
-                            <i class="fas fa-cloud-upload-alt text-3xl text-indigo-400"></i>
-                        </div>
-                        <h1 class="text-3xl font-display font-bold text-white mb-2">Importer un fichier</h1>
-                        <p class="text-gray-400">Glisse ton fichier dans un dossier ou ├á la racine.</p>
-                    </div>
-
-                    <form id="upload-form" class="space-y-8">
+                
+                <!-- Zone Principale -->
+                <div class="content-glass rounded-3xl p-8 md:p-12 border border-gray-800 shadow-2xl relative overflow-hidden">
+                    
+                    <!-- Formulaire -->
+                    <form id="upload-form" class="space-y-8 relative z-10">
                         
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="courseName" class="block text-sm font-medium text-gray-300 mb-2 ml-1">Nom du cours</label>
-                                <input type="text" id="courseName" class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: Chapitre 1" required>
-                            </div>
-                            <div>
-                                <label for="folderSelect" class="block text-sm font-medium text-gray-300 mb-2 ml-1">Dossier de destination</label>
-                                <div class="relative">
-                                    <select id="folderSelect" class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="root">­ƒôü ├Ç la racine (Mes Cours)</option>
-                                    </select>
-                                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
-                                        <i class="fas fa-chevron-down"></i>
-                                    </div>
+                        <!-- Zone de Drop -->
+                        <div id="drop-area" class="drop-zone rounded-2xl p-10 text-center cursor-pointer group">
+                            <input type="file" id="file-input" class="hidden" accept=".pdf,.png,.jpg,.jpeg,.doc,.docx">
+                            
+                            <!-- État initial -->
+                            <div id="drop-content-initial">
+                                <div class="w-20 h-20 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fas fa-cloud-upload-alt text-3xl text-indigo-400"></i>
                                 </div>
+                                <h3 class="text-xl font-bold text-white mb-2">Glisse ton fichier ici</h3>
+                                <p class="text-gray-400 text-sm">ou <span class="text-indigo-400 hover:underline">clique pour parcourir</span></p>
+                                <p class="text-gray-600 text-xs mt-4">PDF, Images, Word (Max 10MB)</p>
                             </div>
-                        </div>
 
-                        <div id="drop-zone" class="drop-zone rounded-2xl p-10 text-center hover:bg-gray-800/30 transition-all group relative overflow-hidden">
-                            <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf" title="">
-                            
-                            <div class="relative z-0 pointer-events-none">
-                                <i class="fas fa-file-pdf text-5xl text-gray-600 group-hover:text-indigo-400 transition-colors mb-4"></i>
-                                <p class="text-lg font-medium text-white mb-1">Glisse ton fichier ici</p>
-                                <p class="text-sm text-gray-500 mb-6">ou clique n'importe o├╣</p>
-                                <span class="px-4 py-2 bg-gray-700 group-hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors inline-block">Parcourir</span>
-                            </div>
-                        </div>
-
-                        <div id="preview-container" class="hidden bg-gray-900/50 rounded-xl p-6 border border-gray-800 flex flex-col md:flex-row items-center gap-6 animate-fade-in-up">
-                            <canvas id="pdf-preview-canvas" class="h-32 w-auto rounded-lg shadow-lg border border-gray-700 hidden"></canvas>
-                            <div id="pdf-icon-fallback" class="h-32 w-24 bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-center hidden">
-                                <i class="fas fa-file-pdf text-4xl text-red-500"></i>
-                            </div>
-                            
-                            <div class="flex-1 text-center md:text-left">
-                                <p id="file-name-preview" class="text-lg font-bold text-white truncate mb-1"></p>
-                                <p id="file-size-preview" class="text-sm text-gray-500 font-mono"></p>
-                                <button type="button" id="remove-file-btn" class="mt-3 text-xs text-red-400 hover:text-red-300 flex items-center gap-2 md:justify-start justify-center cursor-pointer z-20 relative">
-                                    <i class="fas fa-trash"></i> Supprimer
+                            <!-- État Fichier Sélectionné (Caché par défaut) -->
+                            <div id="drop-content-selected" class="hidden">
+                                <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-file-alt text-2xl text-green-400"></i>
+                                </div>
+                                <h3 id="selected-filename" class="text-lg font-bold text-white mb-1 truncate max-w-md mx-auto">mon_cours.pdf</h3>
+                                <p id="selected-filesize" class="text-gray-400 text-xs mb-4">2.4 MB</p>
+                                <button type="button" id="remove-file-btn" class="text-xs text-red-400 hover:text-red-300 flex items-center justify-center gap-1 mx-auto">
+                                    <i class="fas fa-times"></i> Changer de fichier
                                 </button>
                             </div>
                         </div>
 
-                        <div id="progress-container" class="hidden">
-                            <div class="flex justify-between text-xs text-gray-400 mb-2">
-                                <span>Upload en cours...</span>
-                                <span id="progress-text">0%</span>
+                        <!-- Métadonnées (Caché tant que pas de fichier) -->
+                        <div id="metadata-section" class="space-y-6 opacity-50 pointer-events-none transition-opacity duration-300">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-gray-400 ml-1">Titre du document</label>
+                                    <input type="text" id="file-title" placeholder="Ex: Synthèse Droit Civil" required
+                                        class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <label class="text-sm font-bold text-gray-400 ml-1">Dossier</label>
+                                    <div class="relative">
+                                        <select id="folder-select" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 outline-none appearance-none cursor-pointer">
+                                            <option value="">📂 Racine (Mes Cours)</option>
+                                            <!-- Dossiers injectés par JS -->
+                                        </select>
+                                        <div class="absolute right-4 top-3.5 pointer-events-none text-gray-500">
+                                            <i class="fas fa-chevron-down text-xs"></i>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                <div id="progress-bar" class="bg-indigo-500 h-2 rounded-full transition-all duration-300 w-0 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
+
+                            <!-- Barre de progression -->
+                            <div id="progress-container" class="hidden">
+                                <div class="flex justify-between text-xs text-indigo-400 mb-1 font-bold">
+                                    <span>Upload en cours...</span>
+                                    <span id="progress-text">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                                    <div id="progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 progress-bar"></div>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" id="upload-btn" class="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-105 transition-all transform flex items-center gap-2">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <span>Importer</span>
+                                </button>
                             </div>
                         </div>
 
-                        <button type="submit" id="submit-button" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2" disabled>
-                            <span>Uploader le fichier</span>
-                            <i class="fas fa-cloud-upload-alt"></i>
-                        </button>
                     </form>
+
+                    <!-- Décoration de fond -->
+                    <div class="absolute -top-24 -right-24 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
                 </div>
+                
+                <p class="text-center text-gray-500 text-xs mt-6">
+                    Formats supportés : PDF, PNG, JPG, DOCX. Taille max : 10MB.<br>
+                    Les fichiers sont privés et sécurisés.
+                </p>
+
             </div>
+
         </main>
     </div>
 
-    <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
-        <div id="message-icon"></div>
-        <span id="message-text"></span>
-    </div>
+    <!-- Message Box -->
+    <div id="message-box" class="fixed top-4 right-4 z-50"></div>
 
     <script type="module">
         import { auth, db, storage } from '../../assets/js/config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, setDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { initLayout } from '../../assets/js/layout.js';
+        import { showMessage, addXP, XP_VALUES } from '../../assets/js/utils.js'; // Assure-toi que XP_VALUES est exporté dans utils.js
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { collection, addDoc, serverTimestamp, getDocs, query, orderBy, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
         let currentUserId = null;
         let selectedFile = null;
 
         const ui = {
-            dropZone: document.getElementById('drop-zone'),
+            dropArea: document.getElementById('drop-area'),
             fileInput: document.getElementById('file-input'),
-            submitButton: document.getElementById('submit-button'),
-            uploadForm: document.getElementById('upload-form'),
+            dropInitial: document.getElementById('drop-content-initial'),
+            dropSelected: document.getElementById('drop-content-selected'),
+            fileName: document.getElementById('selected-filename'),
+            fileSize: document.getElementById('selected-filesize'),
+            removeBtn: document.getElementById('remove-file-btn'),
+            metaSection: document.getElementById('metadata-section'),
+            titleInput: document.getElementById('file-title'),
+            folderSelect: document.getElementById('folder-select'),
+            form: document.getElementById('upload-form'),
+            progressContainer: document.getElementById('progress-container'),
             progressBar: document.getElementById('progress-bar'),
             progressText: document.getElementById('progress-text'),
-            progressContainer: document.getElementById('progress-container'),
-            previewContainer: document.getElementById('preview-container'),
-            canvas: document.getElementById('pdf-preview-canvas'),
-            fallbackIcon: document.getElementById('pdf-icon-fallback'),
-            messageBox: document.getElementById('message-box'),
-            removeFileBtn: document.getElementById('remove-file-btn'),
-            courseNameInput: document.getElementById('courseName'),
-            folderSelect: document.getElementById('folderSelect')
+            uploadBtn: document.getElementById('upload-btn'),
+            // Header
+            userName: document.getElementById('user-name-header'),
+            userAvatar: document.getElementById('user-avatar-header')
         };
 
-        function showMessage(message, isError = false) {
-            const box = ui.messageBox;
-            const text = document.getElementById('message-text');
-            const icon = document.getElementById('message-icon');
-            text.textContent = message;
-            icon.innerHTML = isError ? '<i class="fas fa-exclamation-circle text-red-400"></i>' : '<i class="fas fa-check-circle text-green-400"></i>';
-            box.className = `fixed bottom-6 right-6 bg-gray-900 border ${isError ? 'border-red-500/30' : 'border-green-500/30'} text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float`;
-            box.classList.remove('hidden');
-            setTimeout(() => box.classList.add('hidden'), 4000);
+        document.addEventListener('DOMContentLoaded', () => {
+            initLayout('courses'); // On reste dans la section "Cours" pour la sidebar active
+
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    await initPage();
+                    loadFolders();
+                } else {
+                    window.location.href = '../auth/login.html';
+                }
+            });
+        });
+
+        async function initPage() {
+            try {
+                const userDoc = await getDoc(doc(db, 'users', currentUserId));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    ui.userName.textContent = data.firstName || "Étudiant";
+                    ui.userAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+                }
+            } catch(e) {}
         }
 
-        function resetUploadState() {
-            ui.submitButton.disabled = false;
-            ui.submitButton.innerHTML = '<span>Uploader le fichier</span><i class="fas fa-cloud-upload-alt"></i>';
+        // --- DRAG & DROP LOGIC ---
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            ui.dropArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            ui.dropArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            ui.dropArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() { ui.dropArea.classList.add('dragover'); }
+        function unhighlight() { ui.dropArea.classList.remove('dragover'); }
+
+        ui.dropArea.addEventListener('drop', handleDrop, false);
+        ui.dropArea.addEventListener('click', () => ui.fileInput.click()); // Clic pour ouvrir
+        ui.fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                
+                // Validation basique
+                if (file.size > 10 * 1024 * 1024) { // 10MB
+                    return showMessage("Fichier trop volumineux (Max 10MB)", "error");
+                }
+
+                selectedFile = file;
+                updateUISelected();
+            }
+        }
+
+        function updateUISelected() {
+            if (!selectedFile) {
+                ui.dropInitial.classList.remove('hidden');
+                ui.dropSelected.classList.add('hidden');
+                ui.metaSection.classList.add('opacity-50', 'pointer-events-none');
+                return;
+            }
+
+            // Affichage infos fichier
+            ui.dropInitial.classList.add('hidden');
+            ui.dropSelected.classList.remove('hidden');
+            ui.fileName.textContent = selectedFile.name;
+            ui.fileSize.textContent = (selectedFile.size / 1024 / 1024).toFixed(2) + ' MB';
+            
+            // Pré-remplir le titre (sans extension)
+            ui.titleInput.value = selectedFile.name.replace(/\.[^/.]+$/, "");
+            
+            // Activer la suite
+            ui.metaSection.classList.remove('opacity-50', 'pointer-events-none');
+        }
+
+        ui.removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Empêcher le clic de remonter à la dropzone
+            selectedFile = null;
+            ui.fileInput.value = ''; // Reset input
+            updateUISelected();
+        });
+
+        // --- CHARGEMENT DOSSIERS ---
+        async function loadFolders() {
+            const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
+            
+            // Reset mais garde l'option Racine
+            ui.folderSelect.innerHTML = '<option value="">📂 Racine (Mes Cours)</option>';
+            
+            snapshot.forEach(doc => {
+                const folder = doc.data();
+                const opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = `📁 ${folder.name}`;
+                ui.folderSelect.appendChild(opt);
+            });
+        }
+
+        // --- UPLOAD PROCESS ---
+        ui.form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!selectedFile) return;
+
+            const title = ui.titleInput.value.trim();
+            const folderId = ui.folderSelect.value || null; // null si racine
+
+            // UI Loading
+            ui.uploadBtn.disabled = true;
+            ui.uploadBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Envoi...`;
+            ui.progressContainer.classList.remove('hidden');
+
+            try {
+                // 1. Upload Storage
+                // Chemin: users/{uid}/courses/{timestamp_filename}
+                const storagePath = `users/${currentUserId}/courses/${Date.now()}_${selectedFile.name}`;
+                const storageRef = ref(storage, storagePath);
+                
+                const uploadTask = uploadBytesResumable(storageRef, selectedFile);
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        ui.progressBar.style.width = progress + '%';
+                        ui.progressText.textContent = Math.round(progress) + '%';
+                    }, 
+                    (error) => {
+                        console.error(error);
+                        showMessage("Erreur lors de l'upload", "error");
+                        resetFormState();
+                    }, 
+                    async () => {
+                        // Upload terminé
+                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+                        // 2. Save Firestore
+                        await addDoc(collection(db, 'users', currentUserId, 'courses'), {
+                            title: title,
+                            fileName: selectedFile.name,
+                            fileURL: downloadURL,
+                            storagePath: storagePath,
+                            folderId: folderId,
+                            size: selectedFile.size,
+                            type: selectedFile.type,
+                            createdAt: serverTimestamp()
+                        });
+
+                        // 3. Gain XP
+                        // On suppose que XP_VALUES.UPLOAD_DOC existe ou on utilise une valeur par défaut
+                        const xpGain = 20; 
+                        await addXP(currentUserId, xpGain);
+
+                        showMessage(`Fichier importé avec succès ! (+${xpGain} XP)`, "success");
+                        
+                        // Redirection après court délai
+                        setTimeout(() => {
+                            // Si un dossier était sélectionné, on redirige dedans
+                            const redirectUrl = folderId ? `courses.html?folder=${folderId}` : 'courses.html';
+                            window.location.href = redirectUrl;
+                        }, 1500);
+                    }
+                );
+
+            } catch (error) {
+                console.error(error);
+                showMessage("Une erreur est survenue", "error");
+                resetFormState();
+            }
+        });
+
+        function resetFormState() {
+            ui.uploadBtn.disabled = false;
+            ui.uploadBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> <span>Importer</span>`;
             ui.progressContainer.classList.add('hidden');
             ui.progressBar.style.width = '0%';
         }
 
-        async function loadFolders() {
-            try {
-                const foldersRef = collection(db, 'users', currentUserId, 'folders');
-                const q = query(foldersRef, orderBy('name'));
-                const snapshot = await getDocs(q);
-                
-                ui.folderSelect.innerHTML = '<option value="root">­ƒôü ├Ç la racine (Mes Cours)</option>';
-                
-                snapshot.forEach(doc => {
-                    const folder = doc.data();
-                    const option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = `­ƒôé ${folder.name}`;
-                    ui.folderSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error(error);
-            }
-        }
-
-        onAuthStateChanged(auth, async (user) => {
-            if (user && !user.isAnonymous) {
-                currentUserId = user.uid;
-                loadFolders();
-            } else {
-                window.location.href = '../auth/login.html';
-            }
-        });
-
-        document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
-
-        async function renderPdfPreview(file) {
-            const reader = new FileReader();
-            reader.onload = async function(event) {
-                try {
-                    const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(event.target.result) });
-                    const pdf = await loadingTask.promise;
-                    const page = await pdf.getPage(1);
-                    const desiredHeight = 300; 
-                    const viewport = page.getViewport({ scale: 1 });
-                    const scale = desiredHeight / viewport.height;
-                    const scaledViewport = page.getViewport({ scale: scale });
-                    ui.canvas.height = scaledViewport.height;
-                    ui.canvas.width = scaledViewport.width;
-                    await page.render({ canvasContext: ui.canvas.getContext('2d'), viewport: scaledViewport }).promise;
-                    ui.canvas.classList.remove('hidden');
-                    ui.fallbackIcon.classList.add('hidden');
-                } catch (error) {
-                    ui.canvas.classList.add('hidden');
-                    ui.fallbackIcon.classList.remove('hidden');
-                }
-                ui.previewContainer.classList.remove('hidden');
-                ui.previewContainer.classList.add('flex');
-                ui.dropZone.classList.add('hidden');
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        function handleFile(file) {
-            if (file && file.type === "application/pdf") {
-                selectedFile = file;
-                document.getElementById('file-name-preview').textContent = file.name;
-                document.getElementById('file-size-preview').textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
-                if (!ui.courseNameInput.value) ui.courseNameInput.value = file.name.replace('.pdf', '');
-                renderPdfPreview(file);
-                ui.submitButton.disabled = false;
-                ui.submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                showMessage("Veuillez s├®lectionner un fichier PDF.", true);
-            }
-        }
-
-        ui.fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) handleFile(e.target.files[0]);
-        });
-
-        ui.removeFileBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            selectedFile = null;
-            ui.fileInput.value = '';
-            ui.previewContainer.classList.add('hidden');
-            ui.previewContainer.classList.remove('flex');
-            ui.dropZone.classList.remove('hidden');
-            ui.submitButton.disabled = true;
-            ui.submitButton.classList.add('opacity-50', 'cursor-not-allowed');
-        });
-
-        ui.uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!selectedFile || !currentUserId) return;
-            
-            const courseName = ui.courseNameInput.value.trim();
-            const selectedFolderId = ui.folderSelect.value === 'root' ? null : ui.folderSelect.value;
-
-            if (!courseName) { showMessage("Nom du cours requis.", true); return; }
-
-            ui.submitButton.disabled = true;
-            ui.submitButton.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white mr-2"></div> Upload...';
-            ui.progressContainer.classList.remove('hidden');
-
-            const newCourseRef = doc(collection(db, 'users', currentUserId, 'courses'));
-            const courseId = newCourseRef.id;
-            const storageRef = ref(storage, `users/${currentUserId}/courses/${courseId}/${selectedFile.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, selectedFile);
-
-            uploadTask.on('state_changed', 
-                (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    ui.progressBar.style.width = progress + '%';
-                    ui.progressText.textContent = Math.round(progress) + '%';
-                }, 
-                (error) => {
-                    console.error(error);
-                    showMessage("Erreur d'upload.", true);
-                    resetUploadState();
-                }, 
-                async () => {
-                    try {
-                        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                        
-                        await setDoc(newCourseRef, {
-                            title: courseName,
-                            fileName: selectedFile.name,
-                            fileURL: downloadURL,
-                            createdAt: new Date().toISOString(),
-                            status: 'uploaded',
-                            type: selectedFile.type,
-                            size: selectedFile.size,
-                            folderId: selectedFolderId
-                        });
-
-                        showMessage("Succ├¿s ! Redirection...", false);
-                        setTimeout(() => window.location.href = 'courses.html', 1500);
-                    } catch (error) {
-                        console.error(error);
-                        showMessage("Erreur base de donn├®es.", true);
-                        resetUploadState();
-                    }
-                }
-            );
-        });
     </script>
 </body>
 </html>
