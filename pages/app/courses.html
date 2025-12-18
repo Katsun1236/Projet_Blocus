@@ -23,7 +23,6 @@
             background: rgba(255, 255, 255, 0.05);
             transform: translateY(-2px);
         }
-        /* Animation Dropdown */
         .dropdown-enter {
             animation: slideDown 0.2s ease-out forwards;
             transform-origin: top right;
@@ -32,7 +31,6 @@
             from { opacity: 0; transform: scale(0.95) translateY(-10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
-        /* Notification Item Hover */
         .notif-item:hover .delete-notif {
             opacity: 1;
         }
@@ -49,13 +47,10 @@
     <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER HARMONISÉ -->
+        <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
-            
-            <!-- Partie Gauche : Titre/Date -->
             <div class="flex items-center gap-4">
                 <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
-                
                 <div class="hidden md:block">
                     <h1 class="text-xl font-display font-bold text-white">Mes Cours</h1>
                     <p class="text-sm text-gray-400" id="date-display">Chargement...</p>
@@ -63,31 +58,22 @@
                 <span id="current-folder-name-mobile" class="md:hidden text-white font-bold truncate max-w-[150px]">Cours</span>
             </div>
 
-            <!-- Partie Droite : Recherche + Actions + Profil -->
             <div class="flex items-center gap-6">
-                
-                <!-- Search Bar (Visible Desktop) -->
                 <div class="relative hidden lg:block group">
                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
                     <input type="text" id="search-input" placeholder="Rechercher..." 
                         class="bg-black/20 border border-gray-800 rounded-xl pl-10 pr-4 py-2 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all w-64">
                 </div>
-
-                <!-- Add Button -->
                 <a href="upload.html" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-2">
                     <i class="fas fa-cloud-upload-alt"></i> <span class="hidden sm:inline">Ajouter</span>
                 </a>
-
                 <div class="h-8 w-px bg-gray-800 hidden sm:block"></div>
-
-                <!-- Notification Bell -->
+                
                 <div class="relative">
                     <button id="notif-btn" class="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 outline-none">
                         <i class="fas fa-bell text-xl"></i>
                         <span id="notif-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900 hidden transform scale-100 transition-transform"></span>
                     </button>
-
-                    <!-- Notification Dropdown -->
                     <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 sm:w-96 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden z-50 dropdown-enter origin-top-right">
                         <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/95 backdrop-blur sticky top-0 z-10">
                             <h3 class="font-bold text-white text-sm">Notifications</h3>
@@ -104,7 +90,6 @@
                     </div>
                 </div>
 
-                <!-- Profile Info -->
                 <a href="profile.html" class="flex items-center gap-3 group cursor-pointer pl-2">
                     <div class="text-right hidden sm:block">
                         <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">...</p>
@@ -115,20 +100,15 @@
             </div>
         </header>
 
-        <!-- CONTENU SCROLLABLE -->
+        <!-- CONTENU -->
         <main class="flex-grow p-6 overflow-y-auto custom-scrollbar">
             
-            <!-- Breadcrumb & Toolbar -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                <!-- Fil d'ariane Desktop -->
                 <nav class="flex items-center text-lg font-bold text-white font-display">
-                    <a href="courses.html" class="hover:text-indigo-400 transition-colors flex items-center gap-2">
-                         Tous mes cours
-                    </a>
+                    <a href="courses.html" class="hover:text-indigo-400 transition-colors flex items-center gap-2">Tous mes cours</a>
                     <span id="breadcrumb-separator" class="mx-3 text-gray-600 hidden">/</span>
                     <span id="current-folder-name" class="text-indigo-400 hidden">...</span>
                 </nav>
-                
                 <div class="flex gap-2 p-1 bg-gray-900/50 rounded-lg border border-gray-800 self-end sm:self-auto">
                     <button class="filter-btn active px-3 py-1.5 rounded-md text-xs font-medium text-white bg-gray-700 shadow-sm transition-all" data-filter="all">Tout</button>
                     <button class="filter-btn px-3 py-1.5 rounded-md text-xs font-medium text-gray-400 hover:text-white transition-all" data-filter="pdf">PDF</button>
@@ -136,14 +116,11 @@
                 </div>
             </div>
 
-            <!-- Recherche Mobile -->
             <div class="lg:hidden mb-6 relative group">
                 <i class="fas fa-search absolute left-3 top-3 text-gray-500 group-focus-within:text-indigo-400 transition-colors"></i>
-                <input type="text" id="search-input-mobile" placeholder="Rechercher un cours..." 
-                    class="w-full bg-black/20 border border-gray-800 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+                <input type="text" id="search-input-mobile" placeholder="Rechercher..." class="w-full bg-black/20 border border-gray-800 rounded-xl pl-10 pr-4 py-3 text-sm text-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
             </div>
 
-            <!-- SECTION DOSSIERS -->
             <div id="folders-section" class="mb-10">
                 <div class="flex justify-between items-center mb-4 px-1">
                     <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Dossiers</h2>
@@ -151,41 +128,25 @@
                         <i class="fas fa-plus"></i> Nouveau dossier
                     </button>
                 </div>
-                
-                <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    <!-- Loader -->
-                    <div class="h-32 rounded-xl bg-white/5 animate-pulse"></div>
-                    <div class="h-32 rounded-xl bg-white/5 animate-pulse delay-75"></div>
-                    <div class="h-32 rounded-xl bg-white/5 animate-pulse delay-150"></div>
-                </div>
+                <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"></div>
             </div>
 
-            <!-- SECTION FICHIERS -->
             <div>
                 <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 px-1">Fichiers</h2>
-                
                 <div class="content-glass rounded-2xl overflow-hidden min-h-[300px]">
-                    <!-- Table Header -->
                     <div class="grid grid-cols-12 gap-4 p-4 border-b border-gray-800 text-xs font-bold text-gray-500 bg-black/20">
                         <div class="col-span-6 sm:col-span-5">NOM</div>
                         <div class="col-span-3 hidden sm:block">DATE D'AJOUT</div>
                         <div class="col-span-3 sm:col-span-2">TAILLE</div>
                         <div class="col-span-3 sm:col-span-2 text-right">ACTIONS</div>
                     </div>
-
-                    <!-- Files List -->
                     <div id="files-list" class="divide-y divide-gray-800">
                         <div class="p-12 text-center text-gray-500 flex flex-col items-center justify-center">
-                            <div class="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mb-4">
-                                <i class="fas fa-file-invoice text-2xl opacity-50"></i>
-                            </div>
-                            <p class="text-lg font-medium text-gray-400">Aucun fichier ici</p>
-                            <p class="text-sm mt-1">Commence par importer tes cours ou créer un dossier.</p>
+                            <i class="fas fa-spinner fa-spin text-2xl mb-4"></i> Chargement...
                         </div>
                     </div>
                 </div>
             </div>
-
         </main>
     </div>
 
@@ -193,8 +154,7 @@
     <div id="folder-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h3 class="text-xl font-bold text-white mb-4">Nouveau Dossier</h3>
-            <input type="text" id="new-folder-name" placeholder="Ex: Mathématiques, Droit..." 
-                class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none mb-6">
+            <input type="text" id="new-folder-name" placeholder="Ex: Mathématiques, Droit..." class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none mb-6">
             <div class="flex justify-end gap-3">
                 <button id="cancel-folder" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Annuler</button>
                 <button id="confirm-folder" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 transition-colors">Créer</button>
@@ -202,22 +162,37 @@
         </div>
     </div>
 
-    <!-- SCRIPT -->
+    <!-- MODAL DÉPLACER FICHIER -->
+    <div id="move-file-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold text-white mb-2">Déplacer le fichier</h3>
+            <p class="text-sm text-gray-400 mb-6">Choisir le dossier de destination</p>
+            
+            <div id="move-folders-list" class="max-h-60 overflow-y-auto space-y-2 mb-6 custom-scrollbar">
+                <!-- Injecté par JS -->
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button id="cancel-move" class="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition-colors">Annuler</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { initLayout } from '../../assets/js/layout.js';
         import { showMessage, formatDate } from '../../assets/js/utils.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        // Imports Firestore (tous regroupés ici)
         import { 
             collection, query, where, getDocs, addDoc, orderBy, 
-            serverTimestamp, doc, getDoc, deleteDoc, writeBatch, updateDoc,
+            serverTimestamp, doc, getDoc, deleteDoc, updateDoc,
             onSnapshot, limit 
         } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         // --- STATE ---
         let currentUserId = null;
         let currentFolderId = new URLSearchParams(window.location.search).get('folder'); 
+        let fileToMoveId = null; // ID du fichier en cours de déplacement
 
         // --- DOM ---
         const ui = {
@@ -229,24 +204,23 @@
             breadcrumbSep: document.getElementById('breadcrumb-separator'),
             searchInput: document.getElementById('search-input'),
             foldersSection: document.getElementById('folders-section'),
-            
-            // Header User Elements
             userName: document.getElementById('user-name-header'),
             userAvatar: document.getElementById('user-avatar-header'),
             dateDisplay: document.getElementById('date-display'),
-            
-            // Notifications Elements
             notifBtn: document.getElementById('notif-btn'),
             notifBadge: document.getElementById('notif-badge'),
             notifDropdown: document.getElementById('notif-dropdown'),
             notifList: document.getElementById('notifications-list'),
             noNotifMsg: document.getElementById('no-notif-msg'),
-            markAllReadBtn: document.getElementById('mark-all-read')
+            
+            // Move Modal
+            moveModal: document.getElementById('move-file-modal'),
+            moveFoldersList: document.getElementById('move-folders-list'),
+            cancelMove: document.getElementById('cancel-move')
         };
 
         document.addEventListener('DOMContentLoaded', () => {
             initLayout('courses');
-            
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             ui.dateDisplay.textContent = new Date().toLocaleDateString('fr-FR', options);
 
@@ -288,48 +262,32 @@
             loadFiles();
         }
 
+        // --- NOTIFICATIONS (Simplifié pour la page courses) ---
         function setupNotifications(userId) {
-            const q = query(
-                collection(db, 'users', userId, 'notifications'),
-                orderBy('createdAt', 'desc'),
-                limit(10)
-            );
-            
+            const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(10));
             onSnapshot(q, (snapshot) => {
                 const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateNotificationUI(notifications);
+                const unreadCount = notifications.filter(n => !n.read).length;
+                if (unreadCount > 0) ui.notifBadge.classList.remove('hidden'); else ui.notifBadge.classList.add('hidden');
+                ui.notifList.innerHTML = '';
+                if (notifications.length === 0) ui.noNotifMsg.classList.remove('hidden');
+                else {
+                    ui.noNotifMsg.classList.add('hidden');
+                    notifications.forEach(n => {
+                        const el = document.createElement('div');
+                        el.className = `p-4 border-b border-gray-800 hover:bg-gray-800 transition-colors text-sm text-gray-300`;
+                        el.textContent = n.message;
+                        ui.notifList.appendChild(el);
+                    });
+                }
             });
         }
-
-        function updateNotificationUI(notifications) {
-            const unreadCount = notifications.filter(n => !n.read).length;
-            if (unreadCount > 0) ui.notifBadge.classList.remove('hidden');
-            else ui.notifBadge.classList.add('hidden');
-
-            ui.notifList.innerHTML = '';
-            if (notifications.length === 0) {
-                ui.noNotifMsg.classList.remove('hidden');
-            } else {
-                ui.noNotifMsg.classList.add('hidden');
-                notifications.forEach(n => {
-                    const el = document.createElement('div');
-                    el.className = `p-4 border-b border-gray-800 hover:bg-gray-800 transition-colors text-sm text-gray-300`;
-                    el.textContent = n.message;
-                    ui.notifList.appendChild(el);
-                });
-            }
-        }
-
-        ui.notifBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            ui.notifDropdown.classList.toggle('hidden');
-        });
+        ui.notifBtn.addEventListener('click', (e) => { e.stopPropagation(); ui.notifDropdown.classList.toggle('hidden'); });
         window.addEventListener('click', (e) => {
-            if (!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) {
-                ui.notifDropdown.classList.add('hidden');
-            }
+            if (!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) ui.notifDropdown.classList.add('hidden');
         });
 
+        // --- DOSSIERS ---
         async function loadFolders() {
             try {
                 const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
@@ -337,7 +295,7 @@
                 ui.foldersGrid.innerHTML = '';
 
                 if (snapshot.empty) {
-                    ui.foldersGrid.innerHTML = `<p class="text-gray-500 text-sm col-span-full">Aucun dossier. Créez-en un pour organiser vos cours !</p>`;
+                    ui.foldersGrid.innerHTML = `<p class="text-gray-500 text-sm col-span-full">Aucun dossier.</p>`;
                     return;
                 }
 
@@ -355,15 +313,12 @@
                         <h3 class="font-bold text-white text-sm truncate" title="${folder.name}">${folder.name}</h3>
                         <p class="text-xs text-gray-500 mt-1">${folder.courseCount || 0} éléments</p>
                     `;
-                    el.addEventListener('click', (e) => {
-                        if (!e.target.closest('.delete-folder-btn')) window.location.href = `courses.html?folder=${docSnap.id}`;
-                    });
+                    el.addEventListener('click', (e) => { if (!e.target.closest('.delete-folder-btn')) window.location.href = `courses.html?folder=${docSnap.id}`; });
                     el.querySelector('.delete-folder-btn').addEventListener('click', async (e) => {
                         e.stopPropagation();
                         if(confirm('Supprimer ce dossier ?')) {
                             await deleteDoc(doc(db, 'users', currentUserId, 'folders', docSnap.id));
                             loadFolders();
-                            showMessage('Dossier supprimé', 'success');
                         }
                     });
                     ui.foldersGrid.appendChild(el);
@@ -371,6 +326,7 @@
             } catch (error) { console.error("Erreur dossiers:", error); }
         }
 
+        // --- FICHIERS ---
         async function loadFiles() {
             try {
                 let q;
@@ -386,9 +342,7 @@
 
         function renderFilesList(docs) {
             ui.filesList.innerHTML = '';
-            const files = docs
-                .map(d => ({id: d.id, ...d.data()}))
-                .filter(f => currentFolderId ? f.folderId === currentFolderId : !f.folderId);
+            const files = docs.map(d => ({id: d.id, ...d.data()})).filter(f => currentFolderId ? f.folderId === currentFolderId : !f.folderId);
 
             if (files.length === 0) {
                 ui.filesList.innerHTML = `
@@ -422,11 +376,24 @@
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white" onclick="window.open('${file.fileURL || file.url}', '_blank')">
                             <i class="fas fa-external-link-alt"></i>
                         </button>
-                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 delete-file-btn">
+                        <!-- MOVE BUTTON -->
+                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-indigo-400 move-file-btn" title="Déplacer">
+                            <i class="fas fa-folder-open"></i>
+                        </button>
+                        <!-- DELETE BUTTON -->
+                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 delete-file-btn" title="Supprimer">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 `;
+                
+                // Déplacer
+                row.querySelector('.move-file-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openMoveModal(file.id);
+                });
+
+                // Supprimer
                 row.querySelector('.delete-file-btn').addEventListener('click', async (e) => {
                     e.stopPropagation();
                     if(confirm('Supprimer ce fichier définitivement ?')) {
@@ -435,41 +402,90 @@
                         showMessage('Fichier supprimé', 'success');
                     }
                 });
+
                 ui.filesList.appendChild(row);
             });
         }
 
+        // --- LOGIQUE DÉPLACEMENT ---
+        async function openMoveModal(fileId) {
+            fileToMoveId = fileId;
+            ui.moveModal.classList.remove('hidden');
+            ui.moveFoldersList.innerHTML = '<div class="text-center text-gray-500 text-xs"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+
+            try {
+                const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('name'));
+                const snapshot = await getDocs(q);
+                ui.moveFoldersList.innerHTML = '';
+
+                // Option "Racine"
+                const rootBtn = document.createElement('button');
+                rootBtn.className = 'w-full text-left p-3 rounded-lg bg-black/30 hover:bg-indigo-600/20 hover:text-indigo-400 transition-colors flex items-center gap-3 text-sm text-gray-300';
+                rootBtn.innerHTML = `<i class="fas fa-home"></i> Racine (Mes Cours)`;
+                rootBtn.onclick = () => moveFile(null); // null = racine
+                ui.moveFoldersList.appendChild(rootBtn);
+
+                snapshot.forEach(docSnap => {
+                    const f = docSnap.data();
+                    // On ne montre pas le dossier actuel si on est déjà dedans
+                    if (docSnap.id === currentFolderId) return;
+
+                    const btn = document.createElement('button');
+                    btn.className = 'w-full text-left p-3 rounded-lg bg-black/30 hover:bg-indigo-600/20 hover:text-indigo-400 transition-colors flex items-center gap-3 text-sm text-gray-300';
+                    btn.innerHTML = `<i class="fas fa-folder"></i> ${f.name}`;
+                    btn.onclick = () => moveFile(docSnap.id);
+                    ui.moveFoldersList.appendChild(btn);
+                });
+
+            } catch (e) {
+                ui.moveFoldersList.innerHTML = '<p class="text-red-400 text-xs">Erreur chargement dossiers</p>';
+            }
+        }
+
+        async function moveFile(targetFolderId) {
+            if (!fileToMoveId) return;
+            try {
+                // targetFolderId est soit un ID string, soit null (pour racine)
+                // Firestore n'aime pas les champs undefined, mais null est ok.
+                await updateDoc(doc(db, 'users', currentUserId, 'courses', fileToMoveId), {
+                    folderId: targetFolderId
+                });
+                
+                ui.moveModal.classList.add('hidden');
+                showMessage('Fichier déplacé avec succès', 'success');
+                loadFiles(); // Recharger la liste
+            } catch (e) {
+                console.error(e);
+                showMessage('Erreur lors du déplacement', 'error');
+            }
+        }
+
+        ui.cancelMove.addEventListener('click', () => ui.moveModal.classList.add('hidden'));
+
+        // --- RECHERCHE ---
         const handleSearch = (e) => {
             const term = e.target.value.toLowerCase();
             Array.from(ui.filesList.children).forEach(row => {
-                if (row.textContent.toLowerCase().includes(term)) row.classList.remove('hidden');
-                else row.classList.add('hidden');
+                if (row.textContent.toLowerCase().includes(term)) row.classList.remove('hidden'); else row.classList.add('hidden');
             });
         };
         ui.searchInput.addEventListener('input', handleSearch);
         const mobileSearch = document.getElementById('search-input-mobile');
         if(mobileSearch) mobileSearch.addEventListener('input', handleSearch);
 
+        // --- CRÉATION DOSSIER ---
         const btnCreate = document.getElementById('create-folder-btn');
         const btnConfirm = document.getElementById('confirm-folder');
         const btnCancel = document.getElementById('cancel-folder');
-
         btnCreate.addEventListener('click', () => ui.folderModal.classList.remove('hidden'));
-        btnCancel.addEventListener('click', () => {
-            ui.folderModal.classList.add('hidden');
-            ui.newFolderName.value = '';
-        });
+        btnCancel.addEventListener('click', () => { ui.folderModal.classList.add('hidden'); ui.newFolderName.value = ''; });
         btnConfirm.addEventListener('click', async () => {
             const name = ui.newFolderName.value.trim();
             if (!name) return;
             try {
-                await addDoc(collection(db, 'users', currentUserId, 'folders'), {
-                    name: name, createdAt: serverTimestamp(), courseCount: 0
-                });
-                ui.folderModal.classList.add('hidden');
-                ui.newFolderName.value = '';
-                showMessage('Dossier créé !', 'success');
-                loadFolders();
+                await addDoc(collection(db, 'users', currentUserId, 'folders'), { name: name, createdAt: serverTimestamp(), courseCount: 0 });
+                ui.folderModal.classList.add('hidden'); ui.newFolderName.value = '';
+                showMessage('Dossier créé !', 'success'); loadFolders();
             } catch (error) { showMessage('Erreur création dossier', 'error'); }
         });
     </script>
