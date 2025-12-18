@@ -240,9 +240,9 @@
                     <div class="space-y-2">
                         <label class="text-sm text-gray-400">Difficulté</label>
                         <select id="quiz-difficulty" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none">
-                            <option value="easy">Facile (Révision)</option>
-                            <option value="medium" selected>Moyen (Standard)</option>
-                            <option value="hard">Difficile (Expert)</option>
+                            <option value="facile">Facile (Révision)</option>
+                            <option value="moyen" selected>Moyen (Standard)</option>
+                            <option value="difficile">Difficile (Expert)</option>
                         </select>
                     </div>
                     <div class="space-y-2">
@@ -276,7 +276,8 @@
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { collection, query, where, getDocs, addDoc, orderBy, serverTimestamp, doc, getDoc, deleteDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        // --- STATE ---
+        // --- CONSTANTS ---
+        const apiKey = ""; // CLE API GEMINI
         let currentUserId = null;
 
         // --- DOM Elements ---
@@ -303,8 +304,10 @@
             topicContainer: document.getElementById('source-topic-container'),
             fileContainer: document.getElementById('source-file-container'),
             fileSelect: document.getElementById('quiz-file-select'),
+            difficultySelect: document.getElementById('quiz-difficulty'),
             rangeInput: document.getElementById('quiz-length'),
-            rangeVal: document.getElementById('quiz-length-val')
+            rangeVal: document.getElementById('quiz-length-val'),
+            topicInput: document.getElementById('quiz-topic')
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -314,9 +317,8 @@
                 if (user) {
                     currentUserId = user.uid;
                     await initPage(user);
-                    loadQuizzes();
-                    loadUserStats();
-                    loadUserFiles(); // Pour le select de la modale
+                    loadQuizzes(); // Charge les quiz ET met à jour les stats
+                    loadUserFiles(); 
                     setupNotifications(currentUserId);
                 } else {
                     window.location.href = '../auth/login.html';
@@ -324,7 +326,6 @@
             });
         });
 
-        // --- INITIALISATION UI ---
         async function initPage(user) {
             try {
                 const userDoc = await getDoc(doc(db, 'users', currentUserId));
@@ -336,13 +337,17 @@
             } catch (e) { console.log("Info user bg load error", e); }
         }
 
-        // --- CHARGEMENT DES QUIZ ---
+        // --- CHARGEMENT DES QUIZ & CALCUL DES STATS ---
         async function loadQuizzes() {
             try {
                 const q = query(collection(db, 'users', currentUserId, 'quizzes'), orderBy('createdAt', 'desc'));
                 const snapshot = await getDocs(q);
                 
                 ui.quizGrid.innerHTML = '';
+
+                let totalScore = 0;
+                let completedQuizCount = 0;
+                let totalQuizCount = snapshot.size;
 
                 if (snapshot.empty) {
                     ui.quizGrid.innerHTML = `
@@ -352,12 +357,23 @@
                             <p class="text-sm text-gray-500">Lance une génération pour commencer !</p>
                         </div>
                     `;
+                    // Reset stats UI
+                    ui.statAvg.textContent = "--%";
+                    ui.statTotal.textContent = "0";
                     return;
                 }
 
                 snapshot.forEach(docSnap => {
                     const quiz = docSnap.data();
-                    const score = quiz.score !== undefined ? `${quiz.score}%` : 'En cours';
+                    
+                    // Calcul Stats Dynamique
+                    if (quiz.score !== undefined && quiz.score !== null) {
+                        totalScore += quiz.score;
+                        completedQuizCount++;
+                    }
+
+                    // Rendu UI
+                    const score = quiz.score !== undefined ? `${quiz.score}%` : 'En attente';
                     const scoreColor = quiz.score >= 80 ? 'text-green-400' : (quiz.score >= 50 ? 'text-yellow-400' : 'text-gray-400');
                     const dateStr = formatDate(quiz.createdAt);
 
@@ -375,20 +391,27 @@
                             </div>
                             <h3 class="font-bold text-white text-lg mb-1 line-clamp-1">${quiz.topic || 'Quiz Général'}</h3>
                             <p class="text-xs text-gray-400 mb-4 flex items-center gap-2">
-                                <i class="far fa-clock"></i> ${dateStr} • ${quiz.questionCount || 10} questions
+                                <i class="far fa-clock"></i> ${dateStr} • ${quiz.questions ? quiz.questions.length : 0} questions
                             </p>
                         </div>
                         <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-800">
                             <span class="text-xs text-indigo-400 font-medium group-hover:text-indigo-300 transition-colors">
-                                ${quiz.status === 'completed' ? 'Revoir les résultats' : 'Continuer'}
+                                ${quiz.status === 'completed' ? 'Revoir les résultats' : 'Commencer'}
                             </span>
                             <i class="fas fa-arrow-right text-gray-500 group-hover:text-white transition-colors transform group-hover:translate-x-1"></i>
                         </div>
                     `;
-                    // Redirection au clic (à implémenter plus tard: page détail quiz)
-                    // el.onclick = () => window.location.href = `quiz-play.html?id=${docSnap.id}`;
                     ui.quizGrid.appendChild(el);
                 });
+
+                // Mise à jour des Stats dans le DOM
+                ui.statTotal.textContent = completedQuizCount;
+                if (completedQuizCount > 0) {
+                    const avg = Math.round(totalScore / completedQuizCount);
+                    ui.statAvg.textContent = `${avg}%`;
+                } else {
+                    ui.statAvg.textContent = "--%";
+                }
 
             } catch (error) {
                 console.error("Erreur chargement quiz:", error);
@@ -396,12 +419,128 @@
             }
         }
 
-        // --- STATS ---
-        async function loadUserStats() {
-            // Simulation ou calcul réel via Firestore (ici calcul simple sur les quiz chargés si possible, ou via un doc 'stats')
-            // Pour l'instant placeholder
-            ui.statAvg.textContent = "78%"; // Fake data pour le design
-            ui.statTotal.textContent = "12";
+        // --- GENERATION AVEC GEMINI ---
+        async function generateQuiz(topic, count, difficulty) {
+            const prompt = `
+                Tu es un professeur expert. Génère un quiz QCM (Questionnaire à Choix Multiples) en format JSON strict.
+                
+                Sujet : "${topic}"
+                Nombre de questions : ${count}
+                Difficulté : ${difficulty}
+                Langue : Français
+
+                Structure JSON attendue (tableau d'objets) :
+                {
+                    "questions": [
+                        {
+                            "question": "L'intitulé de la question",
+                            "options": ["Choix A", "Choix B", "Choix C", "Choix D"],
+                            "correctAnswer": 0, // Index de la bonne réponse (0-3)
+                            "explanation": "Brève explication de la réponse"
+                        }
+                    ]
+                }
+                
+                Ne donne QUE le JSON, pas de texte avant ou après.
+            `;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: {
+                            responseMimeType: "application/json"
+                        }
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error.message);
+                
+                const rawText = data.candidates[0].content.parts[0].text;
+                const parsed = JSON.parse(rawText);
+                
+                return parsed.questions || parsed; // Gère si l'IA renvoie directement le tableau ou l'objet wrapper
+
+            } catch (error) {
+                console.error("Erreur Gemini:", error);
+                throw error;
+            }
+        }
+
+        // --- GESTION DU BOUTON GÉNÉRER ---
+        ui.btnGenerate.onclick = async () => {
+            const btn = ui.btnGenerate;
+            const originalText = btn.innerHTML;
+            
+            // Validation
+            const source = document.querySelector('input[name="quiz-source"]:checked').value;
+            let topic = "";
+            
+            if (source === 'topic') {
+                topic = ui.topicInput.value.trim();
+                if (!topic) return showMessage("Entre un sujet pour le quiz.", "error");
+            } else {
+                const select = ui.fileSelect;
+                if (!select.value) return showMessage("Sélectionne un fichier.", "error");
+                // Pour l'instant, on utilise le nom du fichier comme topic pour l'IA
+                // Idéalement, on enverrait le contenu du fichier si on pouvait le lire facilement ici
+                topic = select.options[select.selectedIndex].text; 
+            }
+
+            const count = ui.rangeInput.value;
+            const difficulty = ui.difficultySelect.value;
+
+            // UI Loading
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Génération IA...`;
+            
+            try {
+                // 1. Appel API Gemini
+                const questions = await generateQuiz(topic, count, difficulty);
+                
+                if (!questions || questions.length === 0) throw new Error("Aucune question générée.");
+
+                // 2. Sauvegarde Firestore
+                await addDoc(collection(db, 'users', currentUserId, 'quizzes'), {
+                    topic: topic,
+                    questions: questions,
+                    createdAt: serverTimestamp(),
+                    status: 'pending', // Pas encore commencé
+                    difficulty: difficulty,
+                    questionCount: questions.length,
+                    score: null // Pas de score
+                });
+
+                // 3. Reset UI & Reload
+                toggleModal(false);
+                ui.topicInput.value = "";
+                showMessage('Quiz généré avec succès !', 'success');
+                loadQuizzes();
+
+            } catch (error) {
+                showMessage(`Erreur: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        };
+
+        // --- HELPER FUNCTIONS ---
+        async function loadUserFiles() {
+            const q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
+            ui.fileSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
+            snapshot.forEach(doc => {
+                const f = doc.data();
+                const opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = f.title || f.fileName;
+                ui.fileSelect.appendChild(opt);
+            });
         }
 
         // --- NOTIFICATIONS ---
@@ -425,8 +564,6 @@
         window.onclick = (e) => { if(!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) ui.notifDropdown.classList.add('hidden'); };
 
         // --- MODAL & FORM LOGIC ---
-        
-        // Ouverture/Fermeture
         const toggleModal = (show) => {
             if(show) ui.modal.classList.remove('hidden');
             else ui.modal.classList.add('hidden');
@@ -436,7 +573,6 @@
         ui.btnClose.onclick = () => toggleModal(false);
         ui.btnCancel.onclick = () => toggleModal(false);
 
-        // Switch Source (Sujet vs Fichier)
         ui.sourceRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
                 if(e.target.value === 'file') {
@@ -449,40 +585,8 @@
             });
         });
 
-        // Range Slider
         ui.rangeInput.addEventListener('input', (e) => ui.rangeVal.textContent = e.target.value);
-
-        // Chargement des fichiers pour le select
-        async function loadUserFiles() {
-            const q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
-            const snapshot = await getDocs(q);
-            ui.fileSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
-            snapshot.forEach(doc => {
-                const f = doc.data();
-                const opt = document.createElement('option');
-                opt.value = doc.id; // On stocke l'ID du fichier ou l'URL pour l'IA
-                opt.textContent = f.title || f.fileName;
-                ui.fileSelect.appendChild(opt);
-            });
-        }
-
-        // Action Générer (Simulation pour l'instant)
-        ui.btnGenerate.onclick = async () => {
-            const btn = ui.btnGenerate;
-            const originalText = btn.innerHTML;
-            
-            btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Création...`;
-            
-            // Simulation délai IA
-            setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-                toggleModal(false);
-                showMessage('Quiz généré avec succès ! (Simulation)', 'success');
-                // Ici on appellera la vraie fonction Gemini plus tard
-            }, 2000);
-        };
+        async function loadUserStats() {} // Remplacé par le calcul dynamique dans loadQuizzes
 
     </script>
 </body>
