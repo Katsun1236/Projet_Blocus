@@ -3,864 +3,487 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quiz & Flashcards - Projet Blocus</title>
+    <title>Quiz IA - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- PDF.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.min.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
-        .sidebar-glass {
-            background: rgba(5, 5, 5, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
         .content-glass {
-            background: rgba(20, 20, 20, 0.3);
-            backdrop-filter: blur(10px);
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .nav-item.active {
-            background: rgba(99, 102, 241, 0.15);
-            color: #fff;
-            border-left: 3px solid #6366f1;
+        .quiz-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.3);
         }
-        .nav-item:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.03);
-            color: #e5e7eb;
+        /* Animation pour le loader IA */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
         }
-        
-        /* Flashcard 3D Effect */
-        .flashcard-scene { perspective: 1000px; }
-        .flashcard {
-            width: 100%;
-            height: 400px;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-            cursor: pointer;
-        }
-        .flashcard.is-flipped { transform: rotateY(180deg); }
-        .flashcard-face {
+        .pulse-ring::before {
+            content: '';
             position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            left: 0; top: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            border: 2px solid #6366f1;
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
         }
-        .flashcard-front { z-index: 2; }
-        .flashcard-back { transform: rotateY(180deg); background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none; }
-
-        /* Quiz Options */
-        .quiz-option:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.1); }
-        .quiz-option.selected { border-color: #6366f1; background: rgba(99, 102, 241, 0.2); box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
-        .quiz-option.correct { border-color: #10b981; background: rgba(16, 185, 129, 0.2); }
-        .quiz-option.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.2); }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <!-- FOND ANIM├ë -->
+<body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+
+    <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
-    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
-    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
-
-    <!-- SIDEBAR -->
-    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
-        <div class="p-6 flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
-                B.
-            </div>
-            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
-        </div>
-
-        <nav class="flex-grow px-4 space-y-2">
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
-            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Tableau de Bord</span>
-            </a>
-            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Mes Cours</span>
-            </a>
-            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
-                <span class="font-medium">Quiz IA</span>
-            </a>
-            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
-                <span class="font-medium">Planning</span>
-            </a>
-
-            <!-- AJOUT DE LA SECTION OUTILS -->
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
-            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Synth├®tiseur</span>
-            </a>
-
-            <!-- CORRECTION/AJOUT DE LA SECTION SOCIAL -->
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
-            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
-                <span class="font-medium">Mes Amis</span>
-            </a>
-            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
-                <span class="font-medium">Discussions</span>
-            </a>
-            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Communaut├®</span>
-            </a>
-            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
-                <span class="font-medium">Forum</span>
-            </a>
-
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
-            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Mon Profil</span>
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-800">
-            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
-                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">D├®connexion</span>
-            </button>
-        </div>
-    </aside>
+    <div class="glow-bg" style="top: -10%; right: 20%; background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, transparent 60%);"></div>
+    <div class="glow-bg" style="bottom: 10%; left: -5%; background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 60%);"></div>
 
     <!-- MAIN CONTENT -->
-    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+    <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- Header Mobile -->
-        <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
+        <!-- HEADER HARMONISÉ -->
+        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
-                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
-                <span class="font-bold text-lg text-white">Quiz & Cards</span>
+                <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <div class="hidden md:block">
+                    <h1 class="text-xl font-display font-bold text-white">Quiz Intelligence Artificielle</h1>
+                    <p class="text-sm text-gray-400">Teste tes connaissances</p>
+                </div>
+                <span class="md:hidden text-white font-bold">Quiz IA</span>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <!-- Bouton Création Rapide -->
+                <button id="btn-new-quiz-header" class="hidden sm:flex bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-lg shadow-indigo-500/20 transition-all items-center gap-2">
+                    <i class="fas fa-brain"></i> <span>Générer un Quiz</span>
+                </button>
+
+                <div class="h-8 w-px bg-gray-800 hidden sm:block"></div>
+
+                <!-- Notifications -->
+                <div class="relative">
+                    <button id="notif-btn" class="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 outline-none">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span id="notif-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900 hidden transform scale-100 transition-transform"></span>
+                    </button>
+                    <!-- Dropdown Notifs -->
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden z-50">
+                        <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/95 backdrop-blur">
+                            <h3 class="font-bold text-white text-sm">Notifications</h3>
+                        </div>
+                        <div id="notifications-list" class="max-h-[300px] overflow-y-auto p-4 text-center text-gray-500 text-sm">
+                            <p>Aucune nouvelle notification</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profil -->
+                <a href="profile.html" class="flex items-center gap-3 group cursor-pointer pl-2">
+                    <div class="text-right hidden sm:block">
+                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">...</p>
+                        <p class="text-xs text-gray-500">Étudiant</p>
+                    </div>
+                    <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
+                </a>
             </div>
         </header>
 
-        <main class="flex-grow p-6 md:p-10 overflow-y-auto">
+        <!-- CONTENU SCROLLABLE -->
+        <main class="flex-grow p-6 overflow-y-auto custom-scrollbar">
             
-            <!-- SECTION: LISTE -->
-            <section id="quiz-list-section" class="max-w-6xl mx-auto">
-                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
-                    <div>
-                        <h1 class="text-3xl font-display font-bold text-white mb-2">Centre d'Entra├«nement</h1>
-                        <p class="text-gray-400">Teste tes connaissances et ancre le savoir.</p>
-                    </div>
-                    <button id="go-to-generator-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
-                        <i class="fas fa-plus"></i>
-                        <span>Cr├®er un contenu</span>
-                    </button>
-                </div>
-
-                <div id="loading-quizzes" class="flex justify-center py-20">
-                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
-                </div>
-
-                <div id="no-quizzes" class="hidden text-center py-20 content-glass rounded-3xl border border-dashed border-gray-700">
-                    <div class="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl text-gray-600">
-                        <i class="fas fa-brain"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Zone vide</h3>
-                    <p class="text-gray-400 mb-6">G├®n├¿re un quiz ou des flashcards pour commencer.</p>
-                    <button onclick="document.getElementById('go-to-generator-btn').click()" class="text-indigo-400 hover:text-indigo-300 font-medium">Lancer le g├®n├®rateur</button>
-                </div>
-
-                <div id="saved-quizzes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <!-- Cartes inject├®es ici -->
-                </div>
-            </section>
-
-            <!-- SECTION: SETUP (G├ëN├ëRATEUR) -->
-            <section id="quiz-setup-section" class="hidden max-w-3xl mx-auto">
-                <button id="back-to-list-btn" class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
-                    <i class="fas fa-arrow-left"></i> Retour
-                </button>
-
-                <div class="content-glass rounded-3xl p-8 md:p-10 border border-gray-800 relative">
-                    <div class="text-center mb-10">
-                        <h2 id="generator-title" class="text-3xl font-display font-bold text-white mb-2">G├®n├®rateur IA</h2>
-                        <p class="text-gray-400">Configure ton entra├«nement sur mesure.</p>
-                    </div>
-
-                    <form id="quiz-generator-form" class="space-y-8">
-                        <input type="hidden" id="content-type-hidden">
+            <!-- SECTION 1: STATS & ACTION -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+                
+                <!-- Carte Génération (Large) -->
+                <div class="lg:col-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900/40 to-purple-900/40 border border-indigo-500/20 p-8 flex flex-col justify-center items-start group">
+                    <div class="absolute right-0 top-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                    
+                    <div class="relative z-10">
+                        <span class="inline-block px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold mb-3 border border-indigo-500/20">
+                            <i class="fas fa-sparkles mr-1"></i> Propulsé par Gemini 2.0 Flash
+                        </span>
+                        <h2 class="text-3xl font-display font-bold text-white mb-2">Génère un quiz infini</h2>
+                        <p class="text-gray-300 mb-6 max-w-lg">Importe tes cours ou choisis un sujet. L'IA va créer des questions sur mesure pour tester tes connaissances instantanément.</p>
                         
-                        <div>
-                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre</label>
-                            <input type="text" id="quiz-title-input" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: R├®vision Droit Civil" required>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2. Sources (Cours)</label>
-                            <select id="course-select" multiple class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 custom-select" required></select>
-                            <p class="text-xs text-gray-500 mt-2 text-right">Ctrl+Clic pour s├®lection multiple</p>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3. Quantit├®</label>
-                                <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4 flex items-center gap-4">
-                                    <input type="range" id="question-count" min="5" max="30" value="10" class="w-full accent-indigo-500">
-                                    <span id="question-count-value" class="font-bold text-indigo-400 w-8">10</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4. Difficult├®</label>
-                                <select id="difficulty-select" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer">
-                                    <option value="Facile">Facile</option>
-                                    <option value="Moyen" selected>Moyen</option>
-                                    <option value="Difficile">Difficile</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Options Quiz Uniquement -->
-                        <div id="quiz-specific-options" class="space-y-6">
-                            <div id="quiz-type-container">
-                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Type de questions</label>
-                                <div class="grid grid-cols-3 gap-2">
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="qtype" value="QCM" checked class="peer hidden">
-                                        <div class="p-3 bg-gray-800 border border-gray-700 rounded-lg text-center peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all">QCM</div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="qtype" value="Vrai/Faux" class="peer hidden">
-                                        <div class="p-3 bg-gray-800 border border-gray-700 rounded-lg text-center peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all">Vrai/Faux</div>
-                                    </label>
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="qtype" value="Mixte" class="peer hidden">
-                                        <div class="p-3 bg-gray-800 border border-gray-700 rounded-lg text-center peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-500 transition-all">Mixte</div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Custom Prompt -->
-                        <div>
-                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Instruction Sp├®ciale (Optionnel)</label>
-                            <textarea id="custom-instruction" rows="2" class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Focus sur les dates historiques..."></textarea>
-                        </div>
-
-                        <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
-                            <i class="fas fa-magic"></i>
-                            <span>G├®n├®rer</span>
+                        <button id="btn-new-quiz-hero" class="bg-white text-indigo-900 hover:bg-gray-100 px-6 py-3 rounded-xl font-bold shadow-lg shadow-indigo-900/20 transition-all transform hover:scale-105 flex items-center gap-2">
+                            <i class="fas fa-play"></i> Commencer un Quiz
                         </button>
-                    </form>
-                </div>
-            </section>
-
-            <!-- SECTION: LOADING -->
-            <section id="quiz-loading-section" class="hidden flex flex-col items-center justify-center py-32 text-center">
-                <div class="relative w-24 h-24 mb-8">
-                    <div class="absolute inset-0 rounded-full border-4 border-gray-800"></div>
-                    <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
-                    <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">­ƒºá</div>
-                </div>
-                <h2 class="text-3xl font-display font-bold text-white mb-2">Entra├«nement en construction...</h2>
-                <p class="text-gray-400 max-w-md">L'IA g├®n├¿re des questions pertinentes bas├®es sur vos cours.</p>
-            </section>
-
-            <!-- SECTION: JEU (QUIZ) -->
-            <section id="quiz-taking-section" class="hidden max-w-3xl mx-auto">
-                <div class="content-glass rounded-3xl p-8 border border-gray-800 relative overflow-hidden min-h-[500px] flex flex-col">
-                    <!-- Header -->
-                    <div class="flex justify-between items-center mb-8">
-                        <span id="question-progress" class="text-sm font-bold text-indigo-400 bg-indigo-400/10 px-3 py-1 rounded-full">Question 1/10</span>
-                        <div id="timer-display" class="text-lg font-mono font-bold text-gray-300">--:--</div>
-                    </div>
-
-                    <!-- Question -->
-                    <div id="quiz-questions-container" class="flex-grow">
-                        <!-- Question inject├®e ici -->
-                    </div>
-
-                    <!-- Controls -->
-                    <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-800">
-                        <button id="quit-quiz-btn" class="text-gray-500 hover:text-white text-sm font-bold transition-colors">Quitter</button>
-                        <div class="flex gap-3">
-                            <button id="prev-question-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50">Pr├®c├®dent</button>
-                            <button id="next-question-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-colors">Suivant</button>
-                            <button id="submit-quiz-btn" class="hidden px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg transition-colors">Terminer</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SECTION: FLASHCARDS -->
-            <section id="flashcard-section" class="hidden max-w-2xl mx-auto">
-                <div class="mb-6 flex justify-between items-center">
-                    <button id="back-to-list-from-flashcards-btn" class="text-gray-400 hover:text-white flex items-center gap-2"><i class="fas fa-arrow-left"></i> Retour</button>
-                    <span id="card-progress" class="text-sm font-bold text-indigo-400">Carte 1/10</span>
-                </div>
-
-                <div class="flashcard-scene h-[400px] mb-8">
-                    <div id="flashcard" class="flashcard">
-                        <div class="flashcard-face flashcard-front">
-                            <p id="flashcard-front" class="text-2xl font-bold text-center">Terme</p>
-                            <span class="absolute bottom-6 text-xs text-gray-500 uppercase tracking-wider">Cliquer pour retourner</span>
-                        </div>
-                        <div class="flashcard-face flashcard-back">
-                            <p id="flashcard-back" class="text-xl text-center leading-relaxed">D├®finition</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex justify-center gap-4">
-                    <button id="prev-card-btn" class="p-4 bg-gray-800 rounded-full hover:bg-gray-700 text-white transition-colors"><i class="fas fa-chevron-left"></i></button>
-                    <button id="flip-card-btn" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-full shadow-lg transition-colors">Retourner</button>
-                    <button id="next-card-btn" class="p-4 bg-gray-800 rounded-full hover:bg-gray-700 text-white transition-colors"><i class="fas fa-chevron-right"></i></button>
-                </div>
-            </section>
-
-            <!-- SECTION: R├ëSULTATS QUIZ -->
-            <section id="quiz-results-section" class="hidden max-w-2xl mx-auto text-center">
-                <div class="content-glass rounded-3xl p-10 border border-gray-800 relative overflow-hidden">
-                    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-b from-indigo-500/20 to-transparent -z-10"></div>
-                    
-                    <div class="w-24 h-24 bg-gray-900 rounded-full border-4 border-indigo-500 flex items-center justify-center text-4xl mx-auto mb-6 shadow-2xl">
-                        ­ƒÅå
                     </div>
                     
-                    <h2 class="text-4xl font-display font-bold text-white mb-2">R├®sultats</h2>
-                    <p id="results-subtitle" class="text-gray-400 mb-8">Quiz termin├® avec succ├¿s</p>
-
-                    <div class="flex justify-center gap-8 mb-8">
-                        <div class="text-center">
-                            <p class="text-sm text-gray-500 uppercase font-bold">Score</p>
-                            <p id="score-text" class="text-3xl font-bold text-white">8/10</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-sm text-gray-500 uppercase font-bold">Pr├®cision</p>
-                            <p id="score-percentage" class="text-3xl font-bold text-emerald-400">80%</p>
-                        </div>
+                    <!-- Illustration Décorative -->
+                    <div class="absolute right-8 bottom-8 opacity-50 group-hover:opacity-80 transition-opacity duration-500 hidden sm:block">
+                        <i class="fas fa-brain text-9xl text-indigo-500/20"></i>
                     </div>
-
-                    <div class="flex flex-col gap-3">
-                        <button id="restart-quiz-btn" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors">Retour ├á la liste</button>
-                        <button id="review-errors-btn" class="hidden w-full py-3 bg-gray-800/50 hover:bg-gray-800 border border-red-500/30 text-red-400 font-bold rounded-xl transition-colors">Revoir mes erreurs</button>
-                    </div>
-                    
-                    <div id="results-summary" class="mt-8 text-left space-y-4 max-h-60 overflow-y-auto pr-2"></div>
                 </div>
-            </section>
+
+                <!-- Stats Rapides -->
+                <div class="grid grid-rows-2 gap-6">
+                    <div class="content-glass p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium">Moyenne Globale</p>
+                            <h3 class="text-3xl font-bold text-white mt-1" id="stat-avg-score">--%</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center text-green-400">
+                            <i class="fas fa-chart-line text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="content-glass p-6 rounded-2xl flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium">Quiz Complétés</p>
+                            <h3 class="text-3xl font-bold text-white mt-1" id="stat-total-quiz">--</h3>
+                        </div>
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400">
+                            <i class="fas fa-check-double text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: FILTRES & LISTE -->
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-white">Mes Quiz Récents</h2>
+                <div class="flex gap-2 p-1 bg-gray-900/50 rounded-lg border border-gray-800">
+                    <button class="px-3 py-1.5 rounded-md text-xs font-medium text-white bg-gray-700 shadow-sm">Tous</button>
+                    <button class="px-3 py-1.5 rounded-md text-xs font-medium text-gray-400 hover:text-white transition-colors">Terminés</button>
+                </div>
+            </div>
+
+            <div id="quiz-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Loader Squelette -->
+                <div class="content-glass rounded-2xl p-6 h-48 animate-pulse flex flex-col justify-between">
+                    <div class="w-12 h-12 bg-gray-800 rounded-lg mb-4"></div>
+                    <div class="space-y-2">
+                        <div class="h-4 bg-gray-800 rounded w-3/4"></div>
+                        <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                    </div>
+                </div>
+            </div>
 
         </main>
     </div>
 
-    <!-- MODAL CHOIX -->
-    <div id="content-choice-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl">
-            <h2 class="text-2xl font-bold text-white mb-8">Que veux-tu cr├®er ?</h2>
-            <div class="grid grid-cols-2 gap-6">
-                <button data-type="Quiz" class="content-choice-btn group bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-indigo-500 p-6 rounded-2xl transition-all">
-                    <div class="w-14 h-14 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-question text-2xl text-indigo-400"></i>
+    <!-- MODAL: NOUVEAU QUIZ -->
+    <div id="new-quiz-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+        <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-800/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-600/20 flex items-center justify-center text-indigo-400">
+                        <i class="fas fa-magic"></i>
                     </div>
-                    <h3 class="font-bold text-white">Quiz</h3>
-                    <p class="text-xs text-gray-400 mt-1">QCM, Vrai/Faux pour se tester</p>
-                </button>
-                <button data-type="Flashcards" class="content-choice-btn group bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-purple-500 p-6 rounded-2xl transition-all">
-                    <div class="w-14 h-14 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-clone text-2xl text-purple-400"></i>
+                    <div>
+                        <h3 class="text-xl font-bold text-white">Configuration du Quiz</h3>
+                        <p class="text-xs text-gray-400">Paramètre ton entraînement</p>
                     </div>
-                    <h3 class="font-bold text-white">Flashcards</h3>
-                    <p class="text-xs text-gray-400 mt-1">M├®morisation rapide par cartes</p>
+                </div>
+                <button id="close-modal-btn" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fas fa-times text-xl"></i>
                 </button>
             </div>
-            <button id="cancel-choice-btn" class="mt-8 text-gray-500 hover:text-white text-sm font-bold">Annuler</button>
+
+            <!-- Modal Body -->
+            <div class="p-6 overflow-y-auto custom-scrollbar space-y-6">
+                
+                <!-- 1. Source -->
+                <div class="space-y-3">
+                    <label class="text-sm font-medium text-gray-300 uppercase tracking-wider">Source du contenu</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="cursor-pointer relative">
+                            <input type="radio" name="quiz-source" value="topic" class="peer sr-only" checked>
+                            <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 transition-all hover:bg-gray-800">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <i class="fas fa-comment-dots text-indigo-400"></i>
+                                    <span class="font-bold text-white">Sujet libre</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Tape un sujet, l'IA improvise.</p>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer relative">
+                            <input type="radio" name="quiz-source" value="file" class="peer sr-only">
+                            <div class="p-4 rounded-xl border border-gray-700 bg-gray-800/50 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 transition-all hover:bg-gray-800">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <i class="fas fa-file-alt text-purple-400"></i>
+                                    <span class="font-bold text-white">Mes Cours</span>
+                                </div>
+                                <p class="text-xs text-gray-400">Utilise un fichier PDF existant.</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Input Sujet (Visible si Sujet libre) -->
+                <div id="source-topic-container" class="space-y-2">
+                    <label class="text-sm text-gray-400">Sujet du quiz</label>
+                    <input type="text" id="quiz-topic" placeholder="Ex: La Révolution Française, Droit Constitutionnel..." 
+                        class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+                </div>
+
+                <!-- Select Fichier (Visible si Fichier) -->
+                <div id="source-file-container" class="space-y-2 hidden">
+                    <label class="text-sm text-gray-400">Choisir un fichier</label>
+                    <select id="quiz-file-select" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all">
+                        <option value="">Chargement de tes cours...</option>
+                    </select>
+                </div>
+
+                <!-- 2. Options -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Difficulté</label>
+                        <select id="quiz-difficulty" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white outline-none">
+                            <option value="easy">Facile (Révision)</option>
+                            <option value="medium" selected>Moyen (Standard)</option>
+                            <option value="hard">Difficile (Expert)</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Nombre de questions</label>
+                        <div class="flex items-center gap-4 bg-black/20 border border-gray-700 rounded-xl px-4 py-3">
+                            <input type="range" id="quiz-length" min="5" max="20" step="5" value="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                            <span class="text-white font-bold min-w-[20px]" id="quiz-length-val">10</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-6 border-t border-gray-800 bg-gray-800/50 flex justify-end gap-3">
+                <button id="cancel-quiz-btn" class="px-5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-gray-700 transition-colors font-medium">Annuler</button>
+                <button id="generate-quiz-btn" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold hover:shadow-lg hover:shadow-indigo-500/25 transition-all flex items-center gap-2">
+                    <i class="fas fa-bolt"></i> Générer
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Message Box -->
-    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+    <div id="message-box" class="fixed top-4 right-4 z-50"></div>
 
-    <!-- JAVASCRIPT -->
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, addDoc, serverTimestamp, updateDoc, onSnapshot, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { initLayout } from '../../assets/js/layout.js';
+        import { showMessage, formatDate } from '../../assets/js/utils.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { collection, query, where, getDocs, addDoc, orderBy, serverTimestamp, doc, getDoc, deleteDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        let userCourses = [], currentContent = null, currentContentId = null, timerInterval = null, currentItemIndex = 0, userAnswers = [], wrongAnswers = [];
-        
-        const ui = { 
-            list: document.getElementById('quiz-list-section'),
-            setup: document.getElementById('quiz-setup-section'),
-            loading: document.getElementById('quiz-loading-section'),
-            taking: document.getElementById('quiz-taking-section'),
-            results: document.getElementById('quiz-results-section'),
-            flashcard: document.getElementById('flashcard-section'),
-            form: document.getElementById('quiz-generator-form'),
-            courseSelect: document.getElementById('course-select'),
-            questionCount: document.getElementById('question-count'),
-            questionCountValue: document.getElementById('question-count-value'),
-            quizTitle: document.getElementById('quiz-title'),
-            questionsContainer: document.getElementById('quiz-questions-container'),
-            submitQuizBtn: document.getElementById('submit-quiz-btn'),
-            resultsSubtitle: document.getElementById('results-subtitle'),
-            scoreText: document.getElementById('score-text'),
-            scorePercentage: document.getElementById('score-percentage'),
-            resultsSummary: document.getElementById('results-summary'),
-            restartQuizBtn: document.getElementById('restart-quiz-btn'),
-            navLoggedIn: document.getElementById('nav-logged-in'),
-            logoutButton: document.getElementById('logout-button'),
-            goToGeneratorBtn: document.getElementById('go-to-generator-btn'),
-            backToListBtn: document.getElementById('back-to-list-btn'),
-            savedQuizzesList: document.getElementById('saved-quizzes-list'),
-            loadingQuizzes: document.getElementById('loading-quizzes'),
-            noQuizzes: document.getElementById('no-quizzes'),
-            timerDisplay: document.getElementById('timer-display'),
-            prevQuestionBtn: document.getElementById('prev-question-btn'),
-            nextQuestionBtn: document.getElementById('next-question-btn'),
-            quitQuizBtn: document.getElementById('quit-quiz-btn'),
-            questionProgress: document.getElementById('question-progress'),
-            reviewErrorsBtn: document.getElementById('review-errors-btn'),
-            flashcardTitle: document.getElementById('flashcard-title'),
-            flipCardBtn: document.getElementById('flip-card-btn'),
-            prevCardBtn: document.getElementById('prev-card-btn'),
-            nextCardBtn: document.getElementById('next-card-btn'),
-            cardProgress: document.getElementById('card-progress'),
-            backToListFromFlashcardsBtn: document.getElementById('back-to-list-from-flashcards-btn'),
-            contentChoiceModal: document.getElementById('content-choice-modal'),
-            cancelChoiceBtn: document.getElementById('cancel-choice-btn'),
-            quizTypeContainer: document.getElementById('quiz-specific-options'),
-            generatorTitle: document.getElementById('generator-title'),
-            contentTypeHidden: document.getElementById('content-type-hidden'),
+        // --- STATE ---
+        let currentUserId = null;
+
+        // --- DOM Elements ---
+        const ui = {
+            quizGrid: document.getElementById('quiz-grid'),
+            statAvg: document.getElementById('stat-avg-score'),
+            statTotal: document.getElementById('stat-total-quiz'),
+            // Header User
+            userName: document.getElementById('user-name-header'),
+            userAvatar: document.getElementById('user-avatar-header'),
+            notifBtn: document.getElementById('notif-btn'),
+            notifBadge: document.getElementById('notif-badge'),
+            notifDropdown: document.getElementById('notif-dropdown'),
+            notifList: document.getElementById('notifications-list'),
+            // Modal
+            modal: document.getElementById('new-quiz-modal'),
+            btnOpenHero: document.getElementById('btn-new-quiz-hero'),
+            btnOpenHeader: document.getElementById('btn-new-quiz-header'),
+            btnClose: document.getElementById('close-modal-btn'),
+            btnCancel: document.getElementById('cancel-quiz-btn'),
+            btnGenerate: document.getElementById('generate-quiz-btn'),
+            // Form
+            sourceRadios: document.getElementsByName('quiz-source'),
+            topicContainer: document.getElementById('source-topic-container'),
+            fileContainer: document.getElementById('source-file-container'),
+            fileSelect: document.getElementById('quiz-file-select'),
+            rangeInput: document.getElementById('quiz-length'),
+            rangeVal: document.getElementById('quiz-length-val')
         };
-        
-        function showMessage(message, isError = false) {
-            const box = document.createElement('div');
-            box.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border ${isError ? 'bg-gray-900 border-red-500/30' : 'bg-gray-900 border-green-500/30'}`;
-            box.innerHTML = `
-                <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl"><i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i></div>
-                <p class="font-medium text-sm">${message}</p>
-            `;
-            document.getElementById('message-box').appendChild(box);
-            requestAnimationFrame(() => { box.classList.remove('translate-y-10', 'opacity-0'); });
-            setTimeout(() => { box.classList.add('translate-y-10', 'opacity-0'); setTimeout(() => box.remove(), 500); }, 4000);
-        }
 
-        function showSection(section) {
-            ['list', 'setup', 'loading', 'taking', 'results', 'flashcard'].forEach(s => ui[s].classList.add('hidden'));
-            ui[section].classList.remove('hidden');
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            initLayout('quiz');
 
-        function openGenerator(type) {
-            showSection('setup');
-            ui.contentTypeHidden.value = type;
-            if (type === 'Flashcards') {
-                ui.generatorTitle.textContent = 'G├®n├®rateur de Flashcards IA';
-                ui.quizTypeContainer.classList.add('hidden');
-            } else {
-                ui.generatorTitle.textContent = 'G├®n├®rateur de Quiz IA';
-                ui.quizTypeContainer.classList.remove('hidden');
-            }
-        }
-
-        async function populateCourses() {
-            if(!auth.currentUser) {
-                // Si l'utilisateur n'est pas encore authentifi├® (cas peu probable ici mais plus s├╗r)
-                return;
-            }
-            
-            const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
-            
-            try {
-                const coursesSnap = await getDocs(coursesRef);
-                userCourses = coursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                ui.courseSelect.innerHTML = '';
-                if (userCourses.length === 0) {
-                    const option = document.createElement('option');
-                    option.value = '';
-                    option.textContent = 'Veuillez d\'abord uploader un cours';
-                    option.disabled = true;
-                    ui.courseSelect.appendChild(option);
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    await initPage(user);
+                    loadQuizzes();
+                    loadUserStats();
+                    loadUserFiles(); // Pour le select de la modale
+                    setupNotifications(currentUserId);
                 } else {
-                    userCourses.forEach(course => {
-                        const option = document.createElement('option');
-                        option.value = course.id;
-                        option.textContent = course.title || course.name || course.fileName; 
-                        ui.courseSelect.appendChild(option);
-                    });
+                    window.location.href = '../auth/login.html';
                 }
-            } catch (e) {
-                console.error("Erreur de chargement des cours:", e);
-                showMessage("Erreur de chargement des cours. V├®rifiez votre connexion.", true);
-            }
-        }
+            });
+        });
 
-        async function extractTextFromPdf(url) {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.11.338/pdf.worker.min.js`;
-            const pdf = await pdfjsLib.getDocument(url).promise;
-            let fullText = '';
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-            }
-            return fullText;
-        }
-
-        async function generateContent(e) {
-            e.preventDefault();
-            const selectedOptions = [...ui.courseSelect.selectedOptions];
-            if (selectedOptions.length === 0 || selectedOptions[0].disabled) {
-                showMessage('Veuillez s├®lectionner au moins un cours.', true);
-                return;
-            }
-            showSection('loading');
-
+        // --- INITIALISATION UI ---
+        async function initPage(user) {
             try {
-                let combinedText = '';
-                for (const option of selectedOptions) {
-                    const course = userCourses.find(c => c.id === option.value);
-                    if (course) {
-                        const url = course.url || course.fileURL;
-                        combinedText += `--- ${course.title || course.name} ---\n${await extractTextFromPdf(url)}\n\n`;
-                    }
+                const userDoc = await getDoc(doc(db, 'users', currentUserId));
+                if (userDoc.exists()) {
+                    const data = userDoc.data();
+                    ui.userName.textContent = data.firstName || user.displayName;
+                    ui.userAvatar.src = data.photoURL || user.photoURL || 'https://ui-avatars.com/api/?background=random';
+                }
+            } catch (e) { console.log("Info user bg load error", e); }
+        }
+
+        // --- CHARGEMENT DES QUIZ ---
+        async function loadQuizzes() {
+            try {
+                const q = query(collection(db, 'users', currentUserId, 'quizzes'), orderBy('createdAt', 'desc'));
+                const snapshot = await getDocs(q);
+                
+                ui.quizGrid.innerHTML = '';
+
+                if (snapshot.empty) {
+                    ui.quizGrid.innerHTML = `
+                        <div class="col-span-full py-12 text-center flex flex-col items-center justify-center opacity-50">
+                            <i class="fas fa-ghost text-6xl mb-4 text-gray-600"></i>
+                            <p class="text-gray-400 text-lg">Aucun quiz pour le moment.</p>
+                            <p class="text-sm text-gray-500">Lance une génération pour commencer !</p>
+                        </div>
+                    `;
+                    return;
                 }
 
-                const count = ui.questionCount.value;
-                const type = ui.contentTypeHidden.value;
-                const difficulty = document.getElementById('difficulty-select').value;
-                const instruction = document.getElementById('custom-instruction').value.trim();
-                
-                let schema, instructionPrompt;
+                snapshot.forEach(docSnap => {
+                    const quiz = docSnap.data();
+                    const score = quiz.score !== undefined ? `${quiz.score}%` : 'En cours';
+                    const scoreColor = quiz.score >= 80 ? 'text-green-400' : (quiz.score >= 50 ? 'text-yellow-400' : 'text-gray-400');
+                    const dateStr = formatDate(quiz.createdAt);
 
-                if (type === 'Flashcards') {
-                    schema = {
-                        type: "OBJECT",
-                        properties: {
-                            flashcards: {
-                                type: "ARRAY",
-                                items: { type: "OBJECT", properties: { term: { type: "STRING" }, definition: { type: "STRING" } }, required: ["term", "definition"] }
-                            }
-                        }
-                    };
-                    instructionPrompt = `G├®n├¿re ${count} flashcards de difficult├® "${difficulty}". ${instruction}`;
-                } else {
-                    const qType = document.querySelector('input[name="qtype"]:checked').value;
-                    schema = {
-                        type: "OBJECT",
-                        properties: {
-                            quiz: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        question: { type: "STRING" },
-                                        options: { type: "ARRAY", items: { type: "STRING" } },
-                                        answer: { type: "STRING" },
-                                        explanation: { type: "STRING" }
-                                    },
-                                    required: ["question", "answer"]
-                                }
-                            }
-                        }
-                    };
-                    instructionPrompt = `G├®n├¿re un quiz de type "${qType}" avec ${count} questions de difficult├® "${difficulty}". Fournis 4 options pour les QCM. ${instruction}`;
-                }
-                
-                const finalPrompt = `Voici le contenu d'un ou plusieurs cours:\n\n${combinedText.substring(0, 30000)}\n\n---\n\n├Ç partir de ce contenu, suis cette instruction: ${instructionPrompt}`;
-
-                // Utilisation de la cl├® API fournie par l'utilisateur
-                const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                
-                const payload = { 
-                    contents: [{ parts: [{ text: finalPrompt }] }], 
-                    generationConfig: { 
-                        responseMimeType: "application/json",
-                        responseSchema: schema
-                    } 
-                };
-                
-                // Utilisation d'une boucle pour la gestion des erreurs d'API (Backoff Exponentiel)
-                let response = null;
-                const maxRetries = 3;
-                let delay = 1000;
-
-                for (let i = 0; i < maxRetries; i++) {
-                    try {
-                        response = await fetch(apiUrl, { 
-                            method: 'POST', 
-                            headers: { 'Content-Type': 'application/json' }, 
-                            body: JSON.stringify(payload) 
-                        });
-
-                        if (response.ok) break; 
-                        
-                        // Si la r├®ponse n'est pas OK, attend et r├®essaie
-                        if (i < maxRetries - 1) {
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            delay *= 2; 
-                        } else {
-                            const errorBody = await response.json().catch(() => response.text());
-                            console.error("API Error Body:", errorBody);
-                            throw new Error(`Erreur de l'API Gemini apr├¿s ${maxRetries} tentatives: ${response.status} ${response.statusText}`);
-                        }
-
-                    } catch (fetchError) {
-                        if (i < maxRetries - 1) {
-                            await new Promise(resolve => setTimeout(resolve, delay));
-                            delay *= 2; 
-                        } else {
-                            throw fetchError;
-                        }
-                    }
-                }
-
-                if (!response || !response.ok) {
-                    throw new Error("├ëchec de la connexion ou de l'API apr├¿s toutes les tentatives.");
-                }
-                
-                const result = await response.json();
-                
-                if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    console.error("Invalid API response structure:", result);
-                    throw new Error("R├®ponse de l'API invalide ou vide.");
-                }
-
-                let responseText = result.candidates[0].content.parts[0].text;
-                
-                currentContent = JSON.parse(responseText);
-
-                const title = document.getElementById('quiz-title-input').value;
-                const contentData = type === 'Flashcards' ? currentContent.flashcards : currentContent.quiz;
-                
-                const docRef = await addDoc(collection(db, 'users', auth.currentUser.uid, 'quizzes'), {
-                    title: title,
-                    type: type,
-                    content: contentData,
-                    createdAt: serverTimestamp()
+                    const el = document.createElement('div');
+                    el.className = 'quiz-card content-glass rounded-2xl p-6 flex flex-col justify-between h-full relative group cursor-pointer transition-all border border-gray-800 hover:border-indigo-500/30';
+                    el.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                                    <i class="fas fa-brain"></i>
+                                </div>
+                                <span class="px-3 py-1 rounded-full bg-gray-800 text-xs font-medium ${scoreColor} border border-gray-700">
+                                    ${score}
+                                </span>
+                            </div>
+                            <h3 class="font-bold text-white text-lg mb-1 line-clamp-1">${quiz.topic || 'Quiz Général'}</h3>
+                            <p class="text-xs text-gray-400 mb-4 flex items-center gap-2">
+                                <i class="far fa-clock"></i> ${dateStr} • ${quiz.questionCount || 10} questions
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-800">
+                            <span class="text-xs text-indigo-400 font-medium group-hover:text-indigo-300 transition-colors">
+                                ${quiz.status === 'completed' ? 'Revoir les résultats' : 'Continuer'}
+                            </span>
+                            <i class="fas fa-arrow-right text-gray-500 group-hover:text-white transition-colors transform group-hover:translate-x-1"></i>
+                        </div>
+                    `;
+                    // Redirection au clic (à implémenter plus tard: page détail quiz)
+                    // el.onclick = () => window.location.href = `quiz-play.html?id=${docSnap.id}`;
+                    ui.quizGrid.appendChild(el);
                 });
-                currentContentId = docRef.id;
-
-                if (type === 'Flashcards') displayFlashcards(title, contentData);
-                else displayQuiz(title, contentData);
 
             } catch (error) {
-                console.error("Erreur:", error);
-                showMessage("Erreur lors de la g├®n├®ration (v├®rifiez la console).", true);
-                showSection('setup');
+                console.error("Erreur chargement quiz:", error);
+                ui.quizGrid.innerHTML = '<p class="text-red-400">Erreur de chargement.</p>';
             }
         }
 
-        function displayQuiz(title, questions) {
-            currentContent = { quiz: questions, title: title };
-            userAnswers = new Array(questions.length).fill(null);
-            currentItemIndex = 0;
-            ui.quizTitle.textContent = title;
-            showQuestion(currentItemIndex);
-            showSection('taking');
-        }
-        
-        function showQuestion(index) {
-            ui.questionsContainer.innerHTML = '';
-            const q = currentContent.quiz[index];
-            
-            const el = document.createElement('div');
-            el.innerHTML = `
-                <h3 class="text-xl font-bold mb-6 text-white">${index + 1}. ${q.question}</h3>
-                <div class="space-y-3">
-                    ${q.options ? q.options.map(opt => `
-                        <label class="quiz-option block bg-gray-800 border border-gray-700 p-4 rounded-xl cursor-pointer transition-all">
-                            <input type="radio" name="q" value="${opt}" class="hidden" ${userAnswers[index] === opt ? 'checked' : ''}>
-                            <span class="text-gray-300 font-medium">${opt}</span>
-                        </label>
-                    `).join('') : `<input type="text" class="w-full p-4 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-indigo-500" placeholder="Votre r├®ponse...">`}
-                </div>
-            `;
-            
-            ui.questionsContainer.appendChild(el);
-            
-            // Event listener pour sauver la r├®ponse
-            if(q.options) {
-                el.querySelectorAll('input').forEach(inp => inp.addEventListener('change', (e) => {
-                    userAnswers[index] = e.target.value;
-                    el.querySelectorAll('.quiz-option').forEach(l => l.classList.remove('selected'));
-                    e.target.parentElement.classList.add('selected');
-                }));
-            }
-
-            ui.questionProgress.textContent = `Question ${index + 1}/${currentContent.quiz.length}`;
-            ui.prevQuestionBtn.disabled = index === 0;
-            ui.nextQuestionBtn.classList.toggle('hidden', index === currentContent.quiz.length - 1);
-            ui.submitQuizBtn.classList.toggle('hidden', index !== currentContent.quiz.length - 1);
+        // --- STATS ---
+        async function loadUserStats() {
+            // Simulation ou calcul réel via Firestore (ici calcul simple sur les quiz chargés si possible, ou via un doc 'stats')
+            // Pour l'instant placeholder
+            ui.statAvg.textContent = "78%"; // Fake data pour le design
+            ui.statTotal.textContent = "12";
         }
 
-        function submitQuiz() {
-            let score = 0;
-            wrongAnswers = [];
-            ui.resultsSummary.innerHTML = '';
-
-            currentContent.quiz.forEach((q, index) => {
-                const isCorrect = (userAnswers[index] || "").toLowerCase() === q.answer.toLowerCase();
-                if (isCorrect) score++;
-                else wrongAnswers.push(q);
-
-                const resEl = document.createElement('div');
-                resEl.className = `p-4 rounded-lg border ${isCorrect ? 'bg-green-900/20 border-green-500/30' : 'bg-red-900/20 border-red-500/30'}`;
-                resEl.innerHTML = `
-                    <p class="font-bold text-white mb-2">${index + 1}. ${q.question}</p>
-                    <p class="text-sm text-gray-400">Vous: <span class="${isCorrect ? 'text-green-400' : 'text-red-400'}">${userAnswers[index] || 'Vide'}</span></p>
-                    ${!isCorrect ? `<p class="text-sm text-green-400">R├®ponse: ${q.answer}</p>` : ''}
-                    <p class="text-xs text-gray-500 mt-2 italic">${q.explanation || ''}</p>
-                `;
-                ui.resultsSummary.appendChild(resEl);
-            });
-
-            const total = currentContent.quiz.length;
-            const pct = Math.round((score / total) * 100);
-            
-            ui.scoreText.textContent = `${score}/${total}`;
-            ui.scorePercentage.textContent = `${pct}%`;
-            ui.reviewErrorsBtn.classList.toggle('hidden', wrongAnswers.length === 0);
-            
-            if(currentContentId) {
-                updateDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', currentContentId), {
-                    lastResult: { score, total, percentage: pct, date: new Date().toISOString() }
-                });
-            }
-            
-            showSection('results');
-        }
-
-        function displayFlashcards(title, cards) {
-            currentContent = { flashcards: cards, title: title };
-            currentItemIndex = 0;
-            showFlashcard(0);
-            showSection('flashcard');
-        }
-
-        function showFlashcard(index) {
-            const card = currentContent.flashcards[index];
-            document.getElementById('flashcard').classList.remove('is-flipped');
-            document.getElementById('flashcard-front').textContent = card.term;
-            document.getElementById('flashcard-back').textContent = card.definition;
-            ui.cardProgress.textContent = `Carte ${index + 1}/${currentContent.flashcards.length}`;
-            ui.prevCardBtn.disabled = index === 0;
-            ui.nextCardBtn.disabled = index === currentContent.flashcards.length - 1;
-        }
-
-        function renderSavedQuizzes(quizzes) {
-            document.getElementById('loading-quizzes').classList.add('hidden');
-            ui.savedQuizzesList.innerHTML = '';
-            
-            if (quizzes.length === 0) {
-                document.getElementById('no-quizzes').classList.remove('hidden');
-            } else {
-                document.getElementById('no-quizzes').classList.add('hidden');
-                quizzes.forEach(q => {
-                    const el = document.createElement('div');
-                    const isFlash = q.type === 'Flashcards';
-                    const lastScore = q.lastResult ? `${q.lastResult.percentage}%` : 'Non fait';
-                    
-                    el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group';
-                    el.innerHTML = `
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="w-12 h-12 rounded-xl ${isFlash ? 'bg-purple-500/10 text-purple-400' : 'bg-indigo-500/10 text-indigo-400'} flex items-center justify-center text-xl">
-                                <i class="fas ${isFlash ? 'fa-clone' : 'fa-question'}"></i>
-                            </div>
-                            <button class="delete-btn text-gray-600 hover:text-red-400 transition-colors"><i class="fas fa-trash"></i></button>
+        // --- NOTIFICATIONS ---
+        function setupNotifications(userId) {
+            const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(5));
+            onSnapshot(q, (snapshot) => {
+                const notifs = snapshot.docs.map(d => d.data());
+                if (notifs.length > 0) {
+                    ui.notifBadge.classList.remove('hidden');
+                    ui.notifList.innerHTML = notifs.map(n => `
+                        <div class="p-3 border-b border-gray-800 text-left hover:bg-gray-800/50">
+                            <p class="text-white text-sm">${n.message}</p>
                         </div>
-                        <h3 class="font-bold text-white mb-1 truncate">${q.title}</h3>
-                        <div class="flex justify-between text-xs text-gray-500">
-                            <span>${isFlash ? q.content.length + ' cartes' : q.content.length + ' questions'}</span>
-                            <span>${isFlash ? '' : 'Score: ' + lastScore}</span>
-                        </div>
-                        <button class="play-btn w-full mt-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold transition-colors">
-                            ${isFlash ? 'R├®viser' : 'Lancer'}
-                        </button>
-                    `;
-                    
-                    el.querySelector('.play-btn').addEventListener('click', () => {
-                        currentContentId = q.id;
-                        isFlash ? displayFlashcards(q.title, q.content) : displayQuiz(q.title, q.content);
-                    });
-                    
-                    el.querySelector('.delete-btn').addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        if(confirm('Supprimer ?')) {
-                            await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', q.id));
-                            showMessage('Supprim├®.');
-                        }
-                    });
-                    
-                    ui.savedQuizzesList.appendChild(el);
-                });
-            }
-        }
-
-        // --- Init & Listeners ---
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // Load Header info (simplified)
-                const uDoc = await getDoc(doc(db, 'users', user.uid));
-                if(uDoc.exists()) {
-                    document.getElementById('nav-logged-in').classList.remove('hidden');
-                    document.getElementById('nav-logged-in').classList.add('flex');
+                    `).join('');
+                } else {
+                    ui.notifBadge.classList.add('hidden');
                 }
-                
-                // Correction: on appelle populateCourses ici apr├¿s l'authentification
-                await populateCourses(); 
-                
-                // Listener sur les quiz sauvegard├®s
-                onSnapshot(collection(db, 'users', user.uid, 'quizzes'), (snap) => {
-                    renderSavedQuizzes(snap.docs.map(d => ({id: d.id, ...d.data()})));
-                });
-            } else {
-                window.location.href = '../auth/login.html';
-            }
+            });
+        }
+        ui.notifBtn.onclick = (e) => { e.stopPropagation(); ui.notifDropdown.classList.toggle('hidden'); };
+        window.onclick = (e) => { if(!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) ui.notifDropdown.classList.add('hidden'); };
+
+        // --- MODAL & FORM LOGIC ---
+        
+        // Ouverture/Fermeture
+        const toggleModal = (show) => {
+            if(show) ui.modal.classList.remove('hidden');
+            else ui.modal.classList.add('hidden');
+        };
+        ui.btnOpenHero.onclick = () => toggleModal(true);
+        ui.btnOpenHeader.onclick = () => toggleModal(true);
+        ui.btnClose.onclick = () => toggleModal(false);
+        ui.btnCancel.onclick = () => toggleModal(false);
+
+        // Switch Source (Sujet vs Fichier)
+        ui.sourceRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if(e.target.value === 'file') {
+                    ui.topicContainer.classList.add('hidden');
+                    ui.fileContainer.classList.remove('hidden');
+                } else {
+                    ui.topicContainer.classList.remove('hidden');
+                    ui.fileContainer.classList.add('hidden');
+                }
+            });
         });
 
-        ui.questionCount.addEventListener('input', (e) => ui.questionCountValue.textContent = e.target.value);
-        ui.goToGeneratorBtn.addEventListener('click', () => ui.contentChoiceModal.classList.remove('hidden'));
-        ui.cancelChoiceBtn.addEventListener('click', () => ui.contentChoiceModal.classList.add('hidden'));
-        document.querySelectorAll('.content-choice-btn').forEach(btn => btn.addEventListener('click', () => {
-            ui.contentChoiceModal.classList.add('hidden');
-            openGenerator(btn.dataset.type);
-        }));
-        
-        ui.form.addEventListener('submit', generateContent);
-        ui.backToListBtn.addEventListener('click', () => showSection('list'));
-        ui.quitQuizBtn.addEventListener('click', () => showSection('list'));
-        ui.backToListFromFlashcardsBtn.addEventListener('click', () => showSection('list'));
-        ui.nextQuestionBtn.addEventListener('click', () => showQuestion(++currentItemIndex));
-        ui.prevQuestionBtn.addEventListener('click', () => showQuestion(--currentItemIndex));
-        ui.submitQuizBtn.addEventListener('click', submitQuiz);
-        ui.restartQuizBtn.addEventListener('click', () => showSection('list'));
-        ui.flipCardBtn.addEventListener('click', () => document.getElementById('flashcard').classList.toggle('is-flipped'));
-        ui.nextCardBtn.addEventListener('click', () => showFlashcard(++currentItemIndex));
-        ui.prevCardBtn.addEventListener('click', () => showFlashcard(--currentItemIndex));
-        document.getElementById('logout-button').addEventListener('click', async () => { await signOut(auth); window.location.href = '../../index.html'; });
-        
-        // Gestion du clic sur une flashcard pour la retourner
-        document.getElementById('flashcard').addEventListener('click', function() {
-            this.classList.toggle('is-flipped');
-        });
+        // Range Slider
+        ui.rangeInput.addEventListener('input', (e) => ui.rangeVal.textContent = e.target.value);
+
+        // Chargement des fichiers pour le select
+        async function loadUserFiles() {
+            const q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
+            const snapshot = await getDocs(q);
+            ui.fileSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
+            snapshot.forEach(doc => {
+                const f = doc.data();
+                const opt = document.createElement('option');
+                opt.value = doc.id; // On stocke l'ID du fichier ou l'URL pour l'IA
+                opt.textContent = f.title || f.fileName;
+                ui.fileSelect.appendChild(opt);
+            });
+        }
+
+        // Action Générer (Simulation pour l'instant)
+        ui.btnGenerate.onclick = async () => {
+            const btn = ui.btnGenerate;
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Création...`;
+            
+            // Simulation délai IA
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                toggleModal(false);
+                showMessage('Quiz généré avec succès ! (Simulation)', 'success');
+                // Ici on appellera la vraie fonction Gemini plus tard
+            }, 2000);
+        };
+
     </script>
 </body>
 </html>
