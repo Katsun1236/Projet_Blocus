@@ -1,107 +1,70 @@
-import 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-const pdfjsLib = window.pdfjsLib;
-
-// Configuration PDF.js Worker
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-export { pdfjsLib };
-
 /**
- * Affiche une notification (Toast)
- * @param {string} message - Le message à afficher
- * @param {boolean} isError - Si true, affiche en rouge, sinon en vert
+ * Affiche un message toast à l'utilisateur
+ * @param {string} message - Le texte à afficher
+ * @param {string} type - 'success', 'error', ou 'info'
  */
-export function showToast(message, isError = false) {
-    let box = document.getElementById('global-message-box');
-
-    // Créer le conteneur s'il n'existe pas
-    if (!box) {
-        box = document.createElement('div');
-        box.id = 'global-message-box';
-        box.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none';
-        document.body.appendChild(box);
+export function showMessage(message, type = 'info') {
+    const messageBox = document.getElementById('message-box');
+    
+    // Si la boîte de message n'existe pas dans le DOM, on ne fait rien (ou on log)
+    if (!messageBox) {
+        console.warn("Element #message-box introuvable dans le DOM. Message non affiché :", message);
+        alert(message); // Fallback basique
+        return;
     }
 
+    // Création de l'élément toast
     const toast = document.createElement('div');
-    toast.className = `p-4 rounded-xl shadow-2xl text-white flex items-center gap-3 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto border backdrop-blur-md ${isError ? 'bg-gray-900/90 border-red-500/30' : 'bg-gray-900/90 border-green-500/30'}`;
+    
+    // Styles de base Tailwind
+    let bgClass = 'bg-blue-600';
+    let icon = 'fa-info-circle';
 
+    if (type === 'success') {
+        bgClass = 'bg-green-600';
+        icon = 'fa-check-circle';
+    } else if (type === 'error') {
+        bgClass = 'bg-red-600';
+        icon = 'fa-exclamation-circle';
+    }
+
+    toast.className = `${bgClass} text-white px-6 py-4 rounded-xl shadow-xl flex items-center gap-3 mb-3 transform transition-all duration-300 translate-x-full opacity-0`;
     toast.innerHTML = `
-        <div class="${isError ? 'text-red-400' : 'text-green-400'} text-xl">
-            <i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i>
-        </div>
-        <p class="font-medium text-sm">${message}</p>
+        <i class="fas ${icon}"></i>
+        <span class="font-medium">${message}</span>
     `;
 
-    box.appendChild(toast);
 
-    // Animation d'entrée
+    messageBox.appendChild(toast);
+
     requestAnimationFrame(() => {
-        toast.classList.remove('translate-y-10', 'opacity-0');
+        toast.classList.remove('translate-x-full', 'opacity-0');
     });
 
-    // Suppression automatique
     setTimeout(() => {
-        toast.classList.add('translate-y-10', 'opacity-0');
-        setTimeout(() => toast.remove(), 500);
+        toast.classList.add('translate-x-full', 'opacity-0');
+        setTimeout(() => {
+            if (messageBox.contains(toast)) {
+                messageBox.removeChild(toast);
+            }
+        }, 300);
     }, 4000);
 }
 
 /**
- * Extrait le texte d'un fichier PDF via son URL
- * @param {string} url - URL du fichier PDF
- * @returns {Promise<string>} - Le texte extrait
+ * Formate une date Firestore ou JS standard
+ * @param {any} dateObj 
+ * @returns {string} Date formatée
  */
-export async function extractTextFromPdf(url) {
-    try {
-        const loadingTask = pdfjsLib.getDocument(url);
-        const pdf = await loadingTask.promise;
-        let fullText = '';
-
-        for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            fullText += textContent.items.map(item => item.str).join(' ') + '\n';
-        }
-        return fullText;
-    } catch (error) {
-        console.error("Erreur PDF.js:", error);
-        throw new Error("Impossible de lire le PDF. Vérifiez qu'il est accessible.");
-    }
-}
-
-/**
- * Formate une date en "il y a X temps"
- * @param {Date|Timestamp} date - La date à formater
- * @returns {string}
- */
-export function timeAgo(date) {
-    if (!date) return 'récemment';
-
-    // Gestion des Timestamps Firestore
-    const d = date.toDate ? date.toDate() : new Date(date);
-
-    const seconds = Math.floor((new Date() - d) / 1000);
-
-    if (seconds < 60) return "à l'instant";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `il y a ${minutes} min`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `il y a ${hours} h`;
-    const days = Math.floor(hours / 24);
-    return `il y a ${days} j`;
-}
-
-/**
- * Formate une date en format français (ex: 28 novembre 2025)
- * @param {Date|Timestamp} date 
- * @returns {string}
- */
-export function formatDate(date) {
-    if (!date) return '';
-    const d = date.toDate ? date.toDate() : new Date(date);
-    return d.toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
-    });
+export function formatDate(dateObj) {
+    if (!dateObj) return '';
+    // Gestion timestamp Firestore
+    const date = dateObj.toDate ? dateObj.toDate() : new Date(dateObj);
+    return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    }).format(date);
 }
