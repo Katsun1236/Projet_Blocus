@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FONCTION COMMUNE GOOGLE AUTH ---
     const handleGoogleAuth = async (e) => {
-        e.preventDefault(); // Empêche le submit classique
+        e.preventDefault(); 
         
         try {
             const result = await signInWithPopup(auth, googleProvider);
@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
             
             showMessage('Connexion Google réussie !', 'success');
             
-            // Redirection intelligente (on pourrait vérifier si c'est une 1ère connexion pour onboarding)
             setTimeout(() => {
                 window.location.href = '../app/dashboard.html';
             }, 1500);
@@ -28,9 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Erreur Auth Google:", error);
             if (error.code === 'auth/popup-closed-by-user') {
-                showMessage("Connexion annulée (fenêtre fermée).", 'error');
+                showMessage("Connexion annulée.", 'error');
             } else if (error.code === 'auth/popup-blocked') {
-                showMessage("Le popup a été bloqué par le navigateur.", 'error');
+                showMessage("Popup bloqué. Autorisez les popups pour ce site.", 'error');
             } else {
                 showMessage(`Erreur Google: ${error.message}`, 'error');
             }
@@ -39,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LISTENERS ---
 
-    // 1. Boutons Google (Login & Register)
+    // 1. Boutons Google
     const googleLoginBtn = document.getElementById('google-login');
     const googleRegisterBtn = document.getElementById('google-register');
 
@@ -51,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            // .trim() est crucial : supprime les espaces avant/après l'email copiés par erreur
+            const email = document.getElementById('email').value.trim(); 
             const password = document.getElementById('password').value;
             const btn = loginForm.querySelector('button[type="submit"]');
 
@@ -66,9 +66,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.location.href = '../app/dashboard.html';
             } catch (error) {
                 console.error("Login Error:", error);
-                let msg = "Email ou mot de passe incorrect.";
-                if (error.code === 'auth/user-not-found') msg = "Aucun compte trouvé avec cet email.";
-                if (error.code === 'auth/wrong-password') msg = "Mot de passe incorrect.";
+                
+                let msg = "Une erreur est survenue.";
+                
+                // Gestion des codes d'erreur v11 avec protection d'énumération
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                    msg = "Email ou mot de passe incorrect.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    msg = "Trop de tentatives échouées. Réessaie plus tard.";
+                } else if (error.code === 'auth/invalid-email') {
+                    msg = "Format d'email invalide.";
+                }
+
                 showMessage(msg, 'error');
                 
                 // Reset bouton
@@ -83,14 +92,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (registerForm) {
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const pseudo = document.getElementById('pseudo').value;
-            const email = document.getElementById('email').value;
+            const pseudo = document.getElementById('pseudo').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
             const btn = registerForm.querySelector('button[type="submit"]');
 
             if (password !== confirmPassword) {
                 showMessage("Les mots de passe ne correspondent pas.", 'error');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage("Le mot de passe doit faire au moins 6 caractères.", 'error');
                 return;
             }
 
@@ -115,8 +129,15 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error("Register Error:", error);
                 let msg = "Erreur lors de l'inscription.";
-                if (error.code === 'auth/email-already-in-use') msg = "Cet email est déjà utilisé.";
-                if (error.code === 'auth/weak-password') msg = "Le mot de passe doit faire au moins 6 caractères.";
+                
+                if (error.code === 'auth/email-already-in-use') {
+                    msg = "Cet email est déjà utilisé. Essaie de te connecter.";
+                } else if (error.code === 'auth/weak-password') {
+                    msg = "Le mot de passe est trop faible.";
+                } else if (error.code === 'auth/invalid-email') {
+                    msg = "L'adresse email est invalide.";
+                }
+                
                 showMessage(msg, 'error');
 
                 // Reset bouton
