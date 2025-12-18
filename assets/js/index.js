@@ -3,7 +3,8 @@ import {
     signInWithPopup, 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
-    updateProfile 
+    updateProfile,
+    getAdditionalUserInfo // Import nécessaire pour savoir si c'est un nouveau user
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { showMessage } from './utils.js';
 
@@ -16,12 +17,22 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
-            console.log("Google User:", user);
+            
+            // Récupération des infos additionnelles pour savoir si c'est une création de compte
+            const { isNewUser } = getAdditionalUserInfo(result);
+            console.log("Google User:", user.email, "Nouveau ?", isNewUser);
             
             showMessage('Connexion Google réussie !', 'success');
             
             setTimeout(() => {
-                window.location.href = '../app/dashboard.html';
+                if (isNewUser) {
+                    // Si c'est la première fois : Onboarding
+                    // On est dans /pages/auth/, donc onboarding.html est juste à côté
+                    window.location.href = 'onboarding.html';
+                } else {
+                    // Sinon : Dashboard
+                    window.location.href = '../app/dashboard.html';
+                }
             }, 1500);
 
         } catch (error) {
@@ -38,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- LISTENERS ---
 
-    // 1. Boutons Google
+    // 1. Boutons Google (Login & Register)
     const googleLoginBtn = document.getElementById('google-login');
     const googleRegisterBtn = document.getElementById('google-register');
 
@@ -50,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // .trim() est crucial : supprime les espaces avant/après l'email copiés par erreur
             const email = document.getElementById('email').value.trim(); 
             const password = document.getElementById('password').value;
             const btn = loginForm.querySelector('button[type="submit"]');
@@ -69,7 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 let msg = "Une erreur est survenue.";
                 
-                // Gestion des codes d'erreur v11 avec protection d'énumération
                 if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                     msg = "Email ou mot de passe incorrect.";
                 } else if (error.code === 'auth/too-many-requests') {
@@ -123,7 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 showMessage('Compte créé avec succès !', 'success');
                 setTimeout(() => {
-                    window.location.href = '../auth/onboarding.html';
+                    // Redirection vers l'onboarding pour compléter le profil
+                    window.location.href = 'onboarding.html';
                 }, 1500);
 
             } catch (error) {
