@@ -46,6 +46,25 @@
         .review-scroll::-webkit-scrollbar { width: 6px; }
         .review-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
         .review-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 3px; }
+
+        /* Animation Barre de Chargement */
+        @keyframes progress-indeterminate {
+            0% { width: 0%; left: 0%; }
+            50% { width: 70%; left: 30%; }
+            100% { width: 0%; left: 100%; }
+        }
+        .loading-bar-anim {
+            position: relative;
+            overflow: hidden;
+        }
+        .loading-bar-anim::after {
+            content: '';
+            position: absolute;
+            height: 100%;
+            background-color: #6366f1; /* Indigo-500 */
+            animation: progress-indeterminate 1.5s infinite ease-in-out;
+            border-radius: 9999px;
+        }
     </style>
 </head>
 
@@ -305,6 +324,17 @@
                         <input type="range" id="quiz-length" min="5" max="50" step="5" value="10" class="w-full h-2 bg-gray-700 rounded-lg accent-indigo-500">
                     </div>
                 </div>
+
+                <!-- LOADING BAR SECTION (Hidden by default) -->
+                <div id="loading-bar-container" class="hidden pt-4">
+                    <div class="flex justify-between text-xs text-indigo-400 mb-1">
+                        <span>Génération en cours...</span>
+                        <span><i class="fas fa-brain fa-spin"></i></span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-1.5 loading-bar-anim"></div>
+                    <p class="text-xs text-gray-500 mt-2 text-center">L'IA analyse ton contenu et prépare les questions...</p>
+                </div>
+
             </div>
 
             <div class="p-6 border-t border-gray-800 bg-gray-800/50 flex justify-end gap-3">
@@ -368,6 +398,7 @@
             btnClose: document.getElementById('close-modal-btn'),
             btnCancel: document.getElementById('cancel-quiz-btn'),
             btnGenerate: document.getElementById('generate-quiz-btn'),
+            loadingBar: document.getElementById('loading-bar-container'),
             // Form
             titleInput: document.getElementById('quiz-title-input'),
             sourceRadios: document.getElementsByName('quiz-source'),
@@ -552,8 +583,10 @@
 
             if (!context) return showMessage("Source invalide", "error");
 
+            // UI LOADING START
             btn.disabled = true;
-            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Création...`;
+            btn.innerHTML = `<i class="fas fa-hourglass-half fa-spin"></i> Patientez...`;
+            ui.loadingBar.classList.remove('hidden');
 
             try {
                 // Prompt amélioré pour questions poussées
@@ -618,8 +651,10 @@
                 console.error(e);
                 showMessage("Erreur IA : " + e.message, "error");
             } finally {
+                // UI LOADING STOP
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
+                ui.loadingBar.classList.add('hidden');
             }
         };
 
