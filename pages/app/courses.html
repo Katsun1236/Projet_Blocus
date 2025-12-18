@@ -1,60 +1,72 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Cours - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
-    
+
     <style>
         .sidebar-glass {
             background: rgba(5, 5, 5, 0.6);
             backdrop-filter: blur(20px);
             border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .content-glass {
             background: rgba(20, 20, 20, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
+
         .nav-item.active {
             background: rgba(99, 102, 241, 0.15);
             color: #fff;
             border-left: 3px solid #6366f1;
         }
+
         .nav-item:hover:not(.active) {
             background: rgba(255, 255, 255, 0.03);
             color: #e5e7eb;
         }
+
         /* Drag & Drop Styles */
         .drag-over {
             border: 2px dashed #6366f1 !important;
             background: rgba(99, 102, 241, 0.1) !important;
             transform: scale(1.02);
         }
+
         .draggable-source {
             opacity: 0.5;
         }
     </style>
 </head>
+
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
-    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
-    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
+    <div class="glow-bg"
+        style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);">
+    </div>
+    <div class="glow-bg"
+        style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);">
+    </div>
 
     <!-- SIDEBAR -->
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
+            <div
+                class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
                 B.
             </div>
             <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
@@ -62,72 +74,85 @@
 
         <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
-            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="dashboard.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Tableau de Bord</span>
             </a>
-            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="#"
+                class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mes Cours</span>
             </a>
-            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="quiz.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
                 <span class="font-medium">Quiz IA</span>
             </a>
-            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="planning.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
                 <span class="font-medium">Planning</span>
             </a>
 
             <!-- SECTION OUTILS -->
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
-            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="synthesize.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Synthétiseur</span>
             </a>
 
             <!-- SECTION SOCIAL -->
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
-            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="friends.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Mes Amis</span>
             </a>
-            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="chat.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
                 <span class="font-medium">Discussions</span>
             </a>
-            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="community.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Communauté</span>
             </a>
-            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="forum.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-comments w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Forum</span>
             </a>
-            
+
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
-            <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+            <a href="profile.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Mon Profil</span>
             </a>
 
             <!-- SECTION SUPPORT & ADMIN -->
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Zone Système</p>
-            
-            <a href="bug-report.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
+
+            <a href="bug-report.html"
+                class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-bug w-6 group-hover:text-red-400 transition-colors"></i>
                 <span class="font-medium">Signaler un bug</span>
             </a>
 
             <!-- ADMIN PANEL -->
-            <a href="admin/panel.html" id="admin-link" class="hidden nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group hover:bg-red-900/20 border border-transparent hover:border-red-500/20">
+            <a href="admin/panel.html" id="admin-link"
+                class="hidden nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group hover:bg-red-900/20 border border-transparent hover:border-red-500/20">
                 <i class="fas fa-shield-alt w-6 text-red-500 group-hover:animate-pulse"></i>
                 <span class="font-bold text-red-400">Panel Admin</span>
             </a>
         </nav>
 
         <div class="p-4 border-t border-gray-800">
-            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
+            <button id="logout-button"
+                class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
                 <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
                 <span class="font-medium">Déconnexion</span>
             </button>
@@ -136,14 +161,15 @@
 
     <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
-        
+
         <!-- Header Mobile -->
-        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
+        <header
+            class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4 md:hidden">
                 <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Mes Cours</span>
             </div>
-            
+
             <div class="hidden md:block">
                 <h1 class="text-xl font-display font-bold text-white">Bibliothèque de Cours</h1>
                 <p class="text-sm text-gray-400" id="date-display">Gère, organise et retrouve tes documents.</p>
@@ -152,17 +178,20 @@
             <div id="nav-logged-in" class="flex items-center gap-6">
                 <a href="profile.html" class="flex items-center gap-3 group cursor-pointer">
                     <div class="text-right hidden sm:block">
-                        <p id="user-name-header" class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">Étudiant</p>
+                        <p id="user-name-header"
+                            class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">Étudiant
+                        </p>
                         <p class="text-xs text-gray-500">Voir mon profil</p>
                     </div>
-                    <img id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
+                    <img id="user-avatar-header" src="" alt="Avatar"
+                        class="w-10 h-10 rounded-full border-2 border-gray-700 group-hover:border-indigo-500 transition-colors object-cover bg-gray-800">
                 </a>
             </div>
         </header>
 
         <!-- SCROLLABLE CONTENT -->
         <main class="flex-grow p-8 overflow-y-auto custom-scrollbar">
-            
+
             <!-- Breadcrumbs & Actions -->
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                 <div>
@@ -171,12 +200,14 @@
                     </div>
                     <h2 id="main-title" class="text-2xl font-display font-bold text-white">Mes Dossiers</h2>
                 </div>
-                
+
                 <div class="flex gap-3">
-                    <a href="upload.html" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-lg border border-gray-700 transition-colors flex items-center gap-2">
+                    <a href="upload.html"
+                        class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-lg border border-gray-700 transition-colors flex items-center gap-2">
                         <i class="fas fa-cloud-upload-alt"></i> Upload
                     </a>
-                    <button id="new-folder-button" class="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                    <button id="new-folder-button"
+                        class="px-4 py-2 bg-white text-black text-sm font-bold rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2 shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                         <i class="fas fa-folder-plus"></i> Nouveau Dossier
                     </button>
                 </div>
@@ -189,44 +220,31 @@
 
             <!-- Folders Grid -->
             <div id="folders-grid-wrapper">
-                <div id="folders-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
+                <div id="folders-grid"
+                    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-10">
                     <!-- Les dossiers seront injectés ici par JS -->
-                </div>
-            </div>
-
-            <!-- Courses List Section -->
-            <div class="content-glass rounded-2xl border border-gray-800 overflow-hidden">
-                <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                    <h3 id="courses-title" class="font-display font-bold text-lg text-white">Fichiers & Synthèses</h3>
-                    <div class="flex gap-2">
-                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-filter"></i></button>
-                        <button class="p-2 text-gray-400 hover:text-white transition-colors"><i class="fas fa-sort"></i></button>
+                    <div id="no-content" class="hidden text-center py-16">
+                        <div
+                            class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800/50 text-gray-600 mb-4">
+                            <i class="fas fa-box-open text-3xl"></i>
+                        </div>
+                        <p class="text-gray-400 font-medium">Ce dossier est vide.</p>
+                        <p class="text-gray-600 text-sm mt-1">Commence par ajouter un fichier !</p>
                     </div>
                 </div>
-                
-                <div id="courses-list" class="divide-y divide-gray-800 min-h-[100px]">
-                    <!-- Les cours seront injectés ici -->
-                </div>
-                
-                <div id="no-content" class="hidden text-center py-16">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-800/50 text-gray-600 mb-4">
-                        <i class="fas fa-box-open text-3xl"></i>
-                    </div>
-                    <p class="text-gray-400 font-medium">Ce dossier est vide.</p>
-                    <p class="text-gray-600 text-sm mt-1">Commence par ajouter un fichier !</p>
-                </div>
-            </div>
 
         </main>
     </div>
 
     <!-- Message Box -->
-    <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
+    <div id="message-box"
+        class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
         <!-- Icone gérée par JS -->
     </div>
 
     <!-- Import du module logique -->
-    <script type="module" src="../../assets/js/courses.js"></script>
+    <script type="module" src="../../assets/js/courses_fixed.js"></script>
 
 </body>
+
 </html>

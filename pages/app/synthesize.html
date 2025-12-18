@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mes Synthèses - Projet Blocus</title>
+    <title>Mes Synth├¿ses - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -87,7 +87,7 @@
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
             <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Synthétiseur</span>
+                <span class="font-medium">Synth├®tiseur</span>
             </a>
 
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Social</p>
@@ -101,7 +101,7 @@
             </a>
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Communauté</span>
+                <span class="font-medium">Communaut├®</span>
             </a>
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
@@ -118,7 +118,7 @@
         <div class="p-4 border-t border-gray-800">
             <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
                 <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">Déconnexion</span>
+                <span class="font-medium">D├®connexion</span>
             </button>
         </div>
     </aside>
@@ -128,7 +128,7 @@
         <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4">
                 <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
-                <span class="font-bold text-lg text-white">Synthèses</span>
+                <span class="font-bold text-lg text-white">Synth├¿ses</span>
             </div>
         </header>
 
@@ -137,12 +137,12 @@
             <section id="synthesis-list-section" class="max-w-5xl mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
-                        <h1 class="text-3xl font-display font-bold text-white mb-2">Mes Synthèses</h1>
-                        <p class="text-gray-400">Retrouve tous tes résumés générés par IA.</p>
+                        <h1 class="text-3xl font-display font-bold text-white mb-2">Mes Synth├¿ses</h1>
+                        <p class="text-gray-400">Retrouve tous tes r├®sum├®s g├®n├®r├®s par IA.</p>
                     </div>
                     <button id="go-to-generator-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
                         <i class="fas fa-plus"></i>
-                        <span>Nouvelle Synthèse</span>
+                        <span>Nouvelle Synth├¿se</span>
                     </button>
                 </div>
 
@@ -155,8 +155,8 @@
                         <i class="fas fa-file-alt"></i>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">C'est vide ici !</h3>
-                    <p class="text-gray-400 mb-6">Génère ta première synthèse pour commencer à réviser.</p>
-                    <button onclick="document.getElementById('go-to-generator-btn').click()" class="text-indigo-400 hover:text-indigo-300 font-medium">Créer une synthèse maintenant</button>
+                    <p class="text-gray-400 mb-6">G├®n├¿re ta premi├¿re synth├¿se pour commencer ├á r├®viser.</p>
+                    <button onclick="document.getElementById('go-to-generator-btn').click()" class="text-indigo-400 hover:text-indigo-300 font-medium">Cr├®er une synth├¿se maintenant</button>
                 </div>
 
                 <div id="saved-syntheses-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,14 +175,14 @@
                         <div class="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-indigo-500/20">
                             <i class="fas fa-magic text-3xl text-indigo-400"></i>
                         </div>
-                        <h2 class="text-3xl font-display font-bold text-white mb-2">Générateur IA</h2>
-                        <p class="text-gray-400">Sélectionne tes sources et laisse la magie opérer.</p>
+                        <h2 class="text-3xl font-display font-bold text-white mb-2">G├®n├®rateur IA</h2>
+                        <p class="text-gray-400">S├®lectionne tes sources et laisse la magie op├®rer.</p>
                     </div>
 
                     <form id="synthesis-generator-form" class="space-y-8 relative z-10">
                         
                         <div>
-                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre de la synthèse</label>
+                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre de la synth├¿se</label>
                             <input type="text" id="synthesis-title-input" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: Psychologie Cognitive - Chapitre 1" required>
                         </div>
 
@@ -191,7 +191,7 @@
                             <div class="relative">
                                 <select id="course-select" multiple class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all h-40 custom-select" required>
                                 </select>
-                                <p class="text-xs text-gray-500 mt-2 text-right">Maintiens Ctrl/Cmd pour sélectionner plusieurs fichiers</p>
+                                <p class="text-xs text-gray-500 mt-2 text-right">Maintiens Ctrl/Cmd pour s├®lectionner plusieurs fichiers</p>
                             </div>
                         </div>
 
@@ -212,11 +212,11 @@
                                 <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4. Format</label>
                                 <div class="relative">
                                     <select id="synthesis-style" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none appearance-none cursor-pointer">
-                                        <option value="Résumé Standard">📄 Résumé Standard</option>
-                                        <option value="Points Clés (Puces)">📝 Points Clés (Listes)</option>
-                                        <option value="Fiche de Révision (Q&A)">❓ Questions / Réponses</option>
-                                        <option value="Explication Simplifiée (ELI5)">👶 Explique-moi comme si j'avais 5 ans</option>
-                                        <option value="Plan Détaillé">🗂️ Plan Structuré</option>
+                                        <option value="R├®sum├® Standard">­ƒôä R├®sum├® Standard</option>
+                                        <option value="Points Cl├®s (Puces)">­ƒôØ Points Cl├®s (Listes)</option>
+                                        <option value="Fiche de R├®vision (Q&A)">ÔØô Questions / R├®ponses</option>
+                                        <option value="Explication Simplifi├®e (ELI5)">­ƒæÂ Explique-moi comme si j'avais 5 ans</option>
+                                        <option value="Plan D├®taill├®">­ƒùé´©Å Plan Structur├®</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                                         <i class="fas fa-chevron-down"></i>
@@ -227,7 +227,7 @@
 
                         <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
                             <i class="fas fa-magic"></i>
-                            <span>Générer la synthèse</span>
+                            <span>G├®n├®rer la synth├¿se</span>
                         </button>
                     </form>
                 </div>
@@ -237,10 +237,10 @@
                 <div class="relative w-24 h-24 mb-8">
                     <div class="absolute inset-0 rounded-full border-4 border-gray-800"></div>
                     <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
-                    <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">✨</div>
+                    <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">Ô£¿</div>
                 </div>
                 <h2 class="text-3xl font-display font-bold text-white mb-2">Analyse en cours...</h2>
-                <p class="text-gray-400 max-w-md">L'IA lit vos documents, extrait les concepts clés et rédige votre synthèse. Cela peut prendre quelques secondes.</p>
+                <p class="text-gray-400 max-w-md">L'IA lit vos documents, extrait les concepts cl├®s et r├®dige votre synth├¿se. Cela peut prendre quelques secondes.</p>
             </section>
 
             <section id="synthesis-result-section" class="hidden max-w-4xl mx-auto">
@@ -251,7 +251,7 @@
                 <div class="content-glass rounded-3xl overflow-hidden border border-gray-800 shadow-2xl">
                     <div class="bg-gray-900/50 border-b border-gray-800 p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Synthèse Générée</span>
+                            <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1 block">Synth├¿se G├®n├®r├®e</span>
                             <h1 id="synthesis-result-title" class="text-2xl md:text-3xl font-display font-bold text-white">Titre du Document</h1>
                         </div>
                         <div class="flex gap-3">
@@ -361,7 +361,7 @@
                 return fullText;
             } catch (error) {
                 console.error("Erreur PDF.js:", error);
-                throw new Error("Impossible de lire le PDF. Vérifiez qu'il est accessible.");
+                throw new Error("Impossible de lire le PDF. V├®rifiez qu'il est accessible.");
             }
         }
 
@@ -369,7 +369,7 @@
             e.preventDefault();
             const selectedOptions = [...ui.courseSelect.selectedOptions];
             if (selectedOptions.length === 0 || selectedOptions[0].disabled) {
-                showMessage('Veuillez sélectionner au moins un cours.', true);
+                showMessage('Veuillez s├®lectionner au moins un cours.', true);
                 return;
             }
             showSection('loading');
@@ -390,13 +390,13 @@
                 }
 
                 if (!combinedText.trim()) {
-                    throw new Error("Aucun texte n'a pu être extrait des fichiers sélectionnés.");
+                    throw new Error("Aucun texte n'a pu ├¬tre extrait des fichiers s├®lectionn├®s.");
                 }
 
                 const wordCount = ui.wordCount.value;
                 const style = document.getElementById('synthesis-style').value;
                 
-                const prompt = `À partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nRédige une synthèse de style "${style}" d'environ ${wordCount} mots. La synthèse doit être claire, bien structurée et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
+                const prompt = `├Ç partir du texte suivant:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nR├®dige une synth├¿se de style "${style}" d'environ ${wordCount} mots. La synth├¿se doit ├¬tre claire, bien structur├®e et au format HTML simple (utilise des balises <p>, <ul>, <li>, <h2>, <strong>). Ne mets pas de balises <html> ou <body>.`;
 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
                 
@@ -405,14 +405,14 @@
 
                 if (!response.ok) {
                     if (response.status === 429) {
-                        throw new Error("Quota dépassé (429). Réessayez dans une minute.");
+                        throw new Error("Quota d├®pass├® (429). R├®essayez dans une minute.");
                     }
                     throw new Error(`Erreur API Gemini: ${response.status}`);
                 }
                 const result = await response.json();
                 
                 if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    throw new Error("Réponse de l'IA vide ou invalide.");
+                    throw new Error("R├®ponse de l'IA vide ou invalide.");
                 }
                 
                 let synthesisHtml = result.candidates[0].content.parts[0].text;
@@ -427,7 +427,7 @@
                     createdAt: serverTimestamp()
                 });
 
-                showMessage('Synthèse générée et sauvegardée !');
+                showMessage('Synth├¿se g├®n├®r├®e et sauvegard├®e !');
                 displaySynthesis(title, synthesisHtml);
 
             } catch (error) {
@@ -455,7 +455,7 @@
                     const el = document.createElement('div');
                     el.className = 'content-glass p-5 rounded-xl flex justify-between items-center group hover:bg-gray-800/50 transition-all border border-gray-800';
                     
-                    let dateStr = 'Récemment';
+                    let dateStr = 'R├®cemment';
                     if (synth.createdAt) {
                         const d = synth.createdAt.toDate ? synth.createdAt.toDate() : new Date(synth.createdAt);
                         dateStr = d.toLocaleDateString('fr-FR');
@@ -492,10 +492,10 @@
         }
 
         async function deleteSynthesis(id) {
-            if (confirm("Supprimer définitivement cette synthèse ?")) {
+            if (confirm("Supprimer d├®finitivement cette synth├¿se ?")) {
                 try {
                     await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'syntheses', id));
-                    showMessage('Synthèse supprimée.');
+                    showMessage('Synth├¿se supprim├®e.');
                 } catch (e) {
                     console.error(e);
                     showMessage('Erreur lors de la suppression.', true);
@@ -505,7 +505,7 @@
 
         function copyToClipboard() {
             const textToCopy = ui.resultContent.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => showMessage('Contenu copié !'), () => showMessage('Erreur copie.', true));
+            navigator.clipboard.writeText(textToCopy).then(() => showMessage('Contenu copi├® !'), () => showMessage('Erreur copie.', true));
         }
 
         function downloadAsPdf() {
@@ -525,7 +525,7 @@
             doc.text(splitText, 15, 40);
             
             doc.save(`${title}.pdf`);
-            showMessage('PDF téléchargé !');
+            showMessage('PDF t├®l├®charg├® !');
         }
 
         ui.wordCount.addEventListener('input', (e) => { ui.wordCountValue.textContent = `${e.target.value} mots`; });

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -74,7 +74,7 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <!-- FOND ANIMÉ -->
+    <!-- FOND ANIM├ë -->
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
@@ -111,7 +111,7 @@
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
             <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Synthétiseur</span>
+                <span class="font-medium">Synth├®tiseur</span>
             </a>
 
             <!-- CORRECTION/AJOUT DE LA SECTION SOCIAL -->
@@ -126,7 +126,7 @@
             </a>
             <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-users w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Communauté</span>
+                <span class="font-medium">Communaut├®</span>
             </a>
             <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
@@ -143,7 +143,7 @@
         <div class="p-4 border-t border-gray-800">
             <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
                 <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">Déconnexion</span>
+                <span class="font-medium">D├®connexion</span>
             </button>
         </div>
     </aside>
@@ -165,12 +165,12 @@
             <section id="quiz-list-section" class="max-w-6xl mx-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
                     <div>
-                        <h1 class="text-3xl font-display font-bold text-white mb-2">Centre d'Entraînement</h1>
+                        <h1 class="text-3xl font-display font-bold text-white mb-2">Centre d'Entra├«nement</h1>
                         <p class="text-gray-400">Teste tes connaissances et ancre le savoir.</p>
                     </div>
                     <button id="go-to-generator-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/40 transition-all flex items-center gap-2 transform hover:scale-105">
                         <i class="fas fa-plus"></i>
-                        <span>Créer un contenu</span>
+                        <span>Cr├®er un contenu</span>
                     </button>
                 </div>
 
@@ -183,16 +183,16 @@
                         <i class="fas fa-brain"></i>
                     </div>
                     <h3 class="text-xl font-bold text-white mb-2">Zone vide</h3>
-                    <p class="text-gray-400 mb-6">Génère un quiz ou des flashcards pour commencer.</p>
-                    <button onclick="document.getElementById('go-to-generator-btn').click()" class="text-indigo-400 hover:text-indigo-300 font-medium">Lancer le générateur</button>
+                    <p class="text-gray-400 mb-6">G├®n├¿re un quiz ou des flashcards pour commencer.</p>
+                    <button onclick="document.getElementById('go-to-generator-btn').click()" class="text-indigo-400 hover:text-indigo-300 font-medium">Lancer le g├®n├®rateur</button>
                 </div>
 
                 <div id="saved-quizzes-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    <!-- Cartes injectées ici -->
+                    <!-- Cartes inject├®es ici -->
                 </div>
             </section>
 
-            <!-- SECTION: SETUP (GÉNÉRATEUR) -->
+            <!-- SECTION: SETUP (G├ëN├ëRATEUR) -->
             <section id="quiz-setup-section" class="hidden max-w-3xl mx-auto">
                 <button id="back-to-list-btn" class="text-gray-400 hover:text-white mb-6 flex items-center gap-2 transition-colors">
                     <i class="fas fa-arrow-left"></i> Retour
@@ -200,8 +200,8 @@
 
                 <div class="content-glass rounded-3xl p-8 md:p-10 border border-gray-800 relative">
                     <div class="text-center mb-10">
-                        <h2 id="generator-title" class="text-3xl font-display font-bold text-white mb-2">Générateur IA</h2>
-                        <p class="text-gray-400">Configure ton entraînement sur mesure.</p>
+                        <h2 id="generator-title" class="text-3xl font-display font-bold text-white mb-2">G├®n├®rateur IA</h2>
+                        <p class="text-gray-400">Configure ton entra├«nement sur mesure.</p>
                     </div>
 
                     <form id="quiz-generator-form" class="space-y-8">
@@ -209,25 +209,25 @@
                         
                         <div>
                             <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">1. Titre</label>
-                            <input type="text" id="quiz-title-input" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Révision Droit Civil" required>
+                            <input type="text" id="quiz-title-input" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: R├®vision Droit Civil" required>
                         </div>
 
                         <div>
                             <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">2. Sources (Cours)</label>
                             <select id="course-select" multiple class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all h-32 custom-select" required></select>
-                            <p class="text-xs text-gray-500 mt-2 text-right">Ctrl+Clic pour sélection multiple</p>
+                            <p class="text-xs text-gray-500 mt-2 text-right">Ctrl+Clic pour s├®lection multiple</p>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3. Quantité</label>
+                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">3. Quantit├®</label>
                                 <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4 flex items-center gap-4">
                                     <input type="range" id="question-count" min="5" max="30" value="10" class="w-full accent-indigo-500">
                                     <span id="question-count-value" class="font-bold text-indigo-400 w-8">10</span>
                                 </div>
                             </div>
                             <div>
-                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4. Difficulté</label>
+                                <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">4. Difficult├®</label>
                                 <select id="difficulty-select" class="w-full px-5 py-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer">
                                     <option value="Facile">Facile</option>
                                     <option value="Moyen" selected>Moyen</option>
@@ -259,13 +259,13 @@
 
                         <!-- Custom Prompt -->
                         <div>
-                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Instruction Spéciale (Optionnel)</label>
+                            <label class="block text-sm font-bold text-gray-300 mb-2 uppercase tracking-wider">Instruction Sp├®ciale (Optionnel)</label>
                             <textarea id="custom-instruction" rows="2" class="w-full p-4 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ex: Focus sur les dates historiques..."></textarea>
                         </div>
 
                         <button type="submit" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-lg rounded-xl shadow-lg shadow-indigo-900/30 transition-all transform hover:scale-[1.01] flex items-center justify-center gap-3">
                             <i class="fas fa-magic"></i>
-                            <span>Générer</span>
+                            <span>G├®n├®rer</span>
                         </button>
                     </form>
                 </div>
@@ -276,10 +276,10 @@
                 <div class="relative w-24 h-24 mb-8">
                     <div class="absolute inset-0 rounded-full border-4 border-gray-800"></div>
                     <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
-                    <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">🧠</div>
+                    <div class="absolute inset-0 flex items-center justify-center text-2xl animate-pulse">­ƒºá</div>
                 </div>
-                <h2 class="text-3xl font-display font-bold text-white mb-2">Entraînement en construction...</h2>
-                <p class="text-gray-400 max-w-md">L'IA génère des questions pertinentes basées sur vos cours.</p>
+                <h2 class="text-3xl font-display font-bold text-white mb-2">Entra├«nement en construction...</h2>
+                <p class="text-gray-400 max-w-md">L'IA g├®n├¿re des questions pertinentes bas├®es sur vos cours.</p>
             </section>
 
             <!-- SECTION: JEU (QUIZ) -->
@@ -293,14 +293,14 @@
 
                     <!-- Question -->
                     <div id="quiz-questions-container" class="flex-grow">
-                        <!-- Question injectée ici -->
+                        <!-- Question inject├®e ici -->
                     </div>
 
                     <!-- Controls -->
                     <div class="flex justify-between items-center mt-8 pt-6 border-t border-gray-800">
                         <button id="quit-quiz-btn" class="text-gray-500 hover:text-white text-sm font-bold transition-colors">Quitter</button>
                         <div class="flex gap-3">
-                            <button id="prev-question-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50">Précédent</button>
+                            <button id="prev-question-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors disabled:opacity-50">Pr├®c├®dent</button>
                             <button id="next-question-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-colors">Suivant</button>
                             <button id="submit-quiz-btn" class="hidden px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-xl shadow-lg transition-colors">Terminer</button>
                         </div>
@@ -322,7 +322,7 @@
                             <span class="absolute bottom-6 text-xs text-gray-500 uppercase tracking-wider">Cliquer pour retourner</span>
                         </div>
                         <div class="flashcard-face flashcard-back">
-                            <p id="flashcard-back" class="text-xl text-center leading-relaxed">Définition</p>
+                            <p id="flashcard-back" class="text-xl text-center leading-relaxed">D├®finition</p>
                         </div>
                     </div>
                 </div>
@@ -334,17 +334,17 @@
                 </div>
             </section>
 
-            <!-- SECTION: RÉSULTATS QUIZ -->
+            <!-- SECTION: R├ëSULTATS QUIZ -->
             <section id="quiz-results-section" class="hidden max-w-2xl mx-auto text-center">
                 <div class="content-glass rounded-3xl p-10 border border-gray-800 relative overflow-hidden">
                     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1/2 bg-gradient-to-b from-indigo-500/20 to-transparent -z-10"></div>
                     
                     <div class="w-24 h-24 bg-gray-900 rounded-full border-4 border-indigo-500 flex items-center justify-center text-4xl mx-auto mb-6 shadow-2xl">
-                        🏆
+                        ­ƒÅå
                     </div>
                     
-                    <h2 class="text-4xl font-display font-bold text-white mb-2">Résultats</h2>
-                    <p id="results-subtitle" class="text-gray-400 mb-8">Quiz terminé avec succès</p>
+                    <h2 class="text-4xl font-display font-bold text-white mb-2">R├®sultats</h2>
+                    <p id="results-subtitle" class="text-gray-400 mb-8">Quiz termin├® avec succ├¿s</p>
 
                     <div class="flex justify-center gap-8 mb-8">
                         <div class="text-center">
@@ -352,13 +352,13 @@
                             <p id="score-text" class="text-3xl font-bold text-white">8/10</p>
                         </div>
                         <div class="text-center">
-                            <p class="text-sm text-gray-500 uppercase font-bold">Précision</p>
+                            <p class="text-sm text-gray-500 uppercase font-bold">Pr├®cision</p>
                             <p id="score-percentage" class="text-3xl font-bold text-emerald-400">80%</p>
                         </div>
                     </div>
 
                     <div class="flex flex-col gap-3">
-                        <button id="restart-quiz-btn" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors">Retour à la liste</button>
+                        <button id="restart-quiz-btn" class="w-full py-3 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl transition-colors">Retour ├á la liste</button>
                         <button id="review-errors-btn" class="hidden w-full py-3 bg-gray-800/50 hover:bg-gray-800 border border-red-500/30 text-red-400 font-bold rounded-xl transition-colors">Revoir mes erreurs</button>
                     </div>
                     
@@ -372,7 +372,7 @@
     <!-- MODAL CHOIX -->
     <div id="content-choice-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl">
-            <h2 class="text-2xl font-bold text-white mb-8">Que veux-tu créer ?</h2>
+            <h2 class="text-2xl font-bold text-white mb-8">Que veux-tu cr├®er ?</h2>
             <div class="grid grid-cols-2 gap-6">
                 <button data-type="Quiz" class="content-choice-btn group bg-gray-800 hover:bg-gray-700 border border-gray-700 hover:border-indigo-500 p-6 rounded-2xl transition-all">
                     <div class="w-14 h-14 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
@@ -386,7 +386,7 @@
                         <i class="fas fa-clone text-2xl text-purple-400"></i>
                     </div>
                     <h3 class="font-bold text-white">Flashcards</h3>
-                    <p class="text-xs text-gray-400 mt-1">Mémorisation rapide par cartes</p>
+                    <p class="text-xs text-gray-400 mt-1">M├®morisation rapide par cartes</p>
                 </button>
             </div>
             <button id="cancel-choice-btn" class="mt-8 text-gray-500 hover:text-white text-sm font-bold">Annuler</button>
@@ -470,17 +470,17 @@
             showSection('setup');
             ui.contentTypeHidden.value = type;
             if (type === 'Flashcards') {
-                ui.generatorTitle.textContent = 'Générateur de Flashcards IA';
+                ui.generatorTitle.textContent = 'G├®n├®rateur de Flashcards IA';
                 ui.quizTypeContainer.classList.add('hidden');
             } else {
-                ui.generatorTitle.textContent = 'Générateur de Quiz IA';
+                ui.generatorTitle.textContent = 'G├®n├®rateur de Quiz IA';
                 ui.quizTypeContainer.classList.remove('hidden');
             }
         }
 
         async function populateCourses() {
             if(!auth.currentUser) {
-                // Si l'utilisateur n'est pas encore authentifié (cas peu probable ici mais plus sûr)
+                // Si l'utilisateur n'est pas encore authentifi├® (cas peu probable ici mais plus s├╗r)
                 return;
             }
             
@@ -507,7 +507,7 @@
                 }
             } catch (e) {
                 console.error("Erreur de chargement des cours:", e);
-                showMessage("Erreur de chargement des cours. Vérifiez votre connexion.", true);
+                showMessage("Erreur de chargement des cours. V├®rifiez votre connexion.", true);
             }
         }
 
@@ -527,7 +527,7 @@
             e.preventDefault();
             const selectedOptions = [...ui.courseSelect.selectedOptions];
             if (selectedOptions.length === 0 || selectedOptions[0].disabled) {
-                showMessage('Veuillez sélectionner au moins un cours.', true);
+                showMessage('Veuillez s├®lectionner au moins un cours.', true);
                 return;
             }
             showSection('loading');
@@ -559,7 +559,7 @@
                             }
                         }
                     };
-                    instructionPrompt = `Génère ${count} flashcards de difficulté "${difficulty}". ${instruction}`;
+                    instructionPrompt = `G├®n├¿re ${count} flashcards de difficult├® "${difficulty}". ${instruction}`;
                 } else {
                     const qType = document.querySelector('input[name="qtype"]:checked').value;
                     schema = {
@@ -580,12 +580,12 @@
                             }
                         }
                     };
-                    instructionPrompt = `Génère un quiz de type "${qType}" avec ${count} questions de difficulté "${difficulty}". Fournis 4 options pour les QCM. ${instruction}`;
+                    instructionPrompt = `G├®n├¿re un quiz de type "${qType}" avec ${count} questions de difficult├® "${difficulty}". Fournis 4 options pour les QCM. ${instruction}`;
                 }
                 
-                const finalPrompt = `Voici le contenu d'un ou plusieurs cours:\n\n${combinedText.substring(0, 30000)}\n\n---\n\nÀ partir de ce contenu, suis cette instruction: ${instructionPrompt}`;
+                const finalPrompt = `Voici le contenu d'un ou plusieurs cours:\n\n${combinedText.substring(0, 30000)}\n\n---\n\n├Ç partir de ce contenu, suis cette instruction: ${instructionPrompt}`;
 
-                // Utilisation de la clé API fournie par l'utilisateur
+                // Utilisation de la cl├® API fournie par l'utilisateur
                 const apiKey = "AIzaSyAaeATbGjXfsYLxprAJWwxIBgS3-JO8ITQ"; 
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
                 
@@ -612,14 +612,14 @@
 
                         if (response.ok) break; 
                         
-                        // Si la réponse n'est pas OK, attend et réessaie
+                        // Si la r├®ponse n'est pas OK, attend et r├®essaie
                         if (i < maxRetries - 1) {
                             await new Promise(resolve => setTimeout(resolve, delay));
                             delay *= 2; 
                         } else {
                             const errorBody = await response.json().catch(() => response.text());
                             console.error("API Error Body:", errorBody);
-                            throw new Error(`Erreur de l'API Gemini après ${maxRetries} tentatives: ${response.status} ${response.statusText}`);
+                            throw new Error(`Erreur de l'API Gemini apr├¿s ${maxRetries} tentatives: ${response.status} ${response.statusText}`);
                         }
 
                     } catch (fetchError) {
@@ -633,14 +633,14 @@
                 }
 
                 if (!response || !response.ok) {
-                    throw new Error("Échec de la connexion ou de l'API après toutes les tentatives.");
+                    throw new Error("├ëchec de la connexion ou de l'API apr├¿s toutes les tentatives.");
                 }
                 
                 const result = await response.json();
                 
                 if (!result.candidates?.[0]?.content?.parts?.[0]?.text) {
                     console.error("Invalid API response structure:", result);
-                    throw new Error("Réponse de l'API invalide ou vide.");
+                    throw new Error("R├®ponse de l'API invalide ou vide.");
                 }
 
                 let responseText = result.candidates[0].content.parts[0].text;
@@ -663,7 +663,7 @@
 
             } catch (error) {
                 console.error("Erreur:", error);
-                showMessage("Erreur lors de la génération (vérifiez la console).", true);
+                showMessage("Erreur lors de la g├®n├®ration (v├®rifiez la console).", true);
                 showSection('setup');
             }
         }
@@ -690,13 +690,13 @@
                             <input type="radio" name="q" value="${opt}" class="hidden" ${userAnswers[index] === opt ? 'checked' : ''}>
                             <span class="text-gray-300 font-medium">${opt}</span>
                         </label>
-                    `).join('') : `<input type="text" class="w-full p-4 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-indigo-500" placeholder="Votre réponse...">`}
+                    `).join('') : `<input type="text" class="w-full p-4 bg-gray-800 border border-gray-700 rounded-xl text-white outline-none focus:border-indigo-500" placeholder="Votre r├®ponse...">`}
                 </div>
             `;
             
             ui.questionsContainer.appendChild(el);
             
-            // Event listener pour sauver la réponse
+            // Event listener pour sauver la r├®ponse
             if(q.options) {
                 el.querySelectorAll('input').forEach(inp => inp.addEventListener('change', (e) => {
                     userAnswers[index] = e.target.value;
@@ -726,7 +726,7 @@
                 resEl.innerHTML = `
                     <p class="font-bold text-white mb-2">${index + 1}. ${q.question}</p>
                     <p class="text-sm text-gray-400">Vous: <span class="${isCorrect ? 'text-green-400' : 'text-red-400'}">${userAnswers[index] || 'Vide'}</span></p>
-                    ${!isCorrect ? `<p class="text-sm text-green-400">Réponse: ${q.answer}</p>` : ''}
+                    ${!isCorrect ? `<p class="text-sm text-green-400">R├®ponse: ${q.answer}</p>` : ''}
                     <p class="text-xs text-gray-500 mt-2 italic">${q.explanation || ''}</p>
                 `;
                 ui.resultsSummary.appendChild(resEl);
@@ -792,7 +792,7 @@
                             <span>${isFlash ? '' : 'Score: ' + lastScore}</span>
                         </div>
                         <button class="play-btn w-full mt-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold transition-colors">
-                            ${isFlash ? 'Réviser' : 'Lancer'}
+                            ${isFlash ? 'R├®viser' : 'Lancer'}
                         </button>
                     `;
                     
@@ -805,7 +805,7 @@
                         e.stopPropagation();
                         if(confirm('Supprimer ?')) {
                             await deleteDoc(doc(db, 'users', auth.currentUser.uid, 'quizzes', q.id));
-                            showMessage('Supprimé.');
+                            showMessage('Supprim├®.');
                         }
                     });
                     
@@ -824,10 +824,10 @@
                     document.getElementById('nav-logged-in').classList.add('flex');
                 }
                 
-                // Correction: on appelle populateCourses ici après l'authentification
+                // Correction: on appelle populateCourses ici apr├¿s l'authentification
                 await populateCourses(); 
                 
-                // Listener sur les quiz sauvegardés
+                // Listener sur les quiz sauvegard├®s
                 onSnapshot(collection(db, 'users', user.uid, 'quizzes'), (snap) => {
                     renderSavedQuizzes(snap.docs.map(d => ({id: d.id, ...d.data()})));
                 });

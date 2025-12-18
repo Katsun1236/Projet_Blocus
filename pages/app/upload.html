@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -74,14 +74,14 @@
             </a>
             <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i><span class="font-medium">Quiz IA</span></a>
             <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i><span class="font-medium">Planning</span></a>
-            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i><span class="font-medium">Synthétiseur</span></a>
+            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i><span class="font-medium">Synth├®tiseur</span></a>
             <a href="profile.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group"><i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i><span class="font-medium">Mon Profil</span></a>
         </nav>
 
         <div class="p-4 border-t border-gray-800">
             <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
                 <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">Déconnexion</span>
+                <span class="font-medium">D├®connexion</span>
             </button>
         </div>
     </aside>
@@ -108,7 +108,7 @@
                             <i class="fas fa-cloud-upload-alt text-3xl text-indigo-400"></i>
                         </div>
                         <h1 class="text-3xl font-display font-bold text-white mb-2">Importer un fichier</h1>
-                        <p class="text-gray-400">Glisse ton fichier dans un dossier ou à la racine.</p>
+                        <p class="text-gray-400">Glisse ton fichier dans un dossier ou ├á la racine.</p>
                     </div>
 
                     <form id="upload-form" class="space-y-8">
@@ -122,7 +122,7 @@
                                 <label for="folderSelect" class="block text-sm font-medium text-gray-300 mb-2 ml-1">Dossier de destination</label>
                                 <div class="relative">
                                     <select id="folderSelect" class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all appearance-none cursor-pointer">
-                                        <option value="root">📁 À la racine (Mes Cours)</option>
+                                        <option value="root">­ƒôü ├Ç la racine (Mes Cours)</option>
                                     </select>
                                     <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                                         <i class="fas fa-chevron-down"></i>
@@ -137,7 +137,7 @@
                             <div class="relative z-0 pointer-events-none">
                                 <i class="fas fa-file-pdf text-5xl text-gray-600 group-hover:text-indigo-400 transition-colors mb-4"></i>
                                 <p class="text-lg font-medium text-white mb-1">Glisse ton fichier ici</p>
-                                <p class="text-sm text-gray-500 mb-6">ou clique n'importe où</p>
+                                <p class="text-sm text-gray-500 mb-6">ou clique n'importe o├╣</p>
                                 <span class="px-4 py-2 bg-gray-700 group-hover:bg-gray-600 text-white text-sm font-bold rounded-lg transition-colors inline-block">Parcourir</span>
                             </div>
                         </div>
@@ -232,13 +232,13 @@
                 const q = query(foldersRef, orderBy('name'));
                 const snapshot = await getDocs(q);
                 
-                ui.folderSelect.innerHTML = '<option value="root">📁 À la racine (Mes Cours)</option>';
+                ui.folderSelect.innerHTML = '<option value="root">­ƒôü ├Ç la racine (Mes Cours)</option>';
                 
                 snapshot.forEach(doc => {
                     const folder = doc.data();
                     const option = document.createElement('option');
                     option.value = doc.id;
-                    option.textContent = `📂 ${folder.name}`;
+                    option.textContent = `­ƒôé ${folder.name}`;
                     ui.folderSelect.appendChild(option);
                 });
             } catch (error) {
@@ -294,7 +294,7 @@
                 ui.submitButton.disabled = false;
                 ui.submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
-                showMessage("Veuillez sélectionner un fichier PDF.", true);
+                showMessage("Veuillez s├®lectionner un fichier PDF.", true);
             }
         }
 
@@ -357,11 +357,11 @@
                             folderId: selectedFolderId
                         });
 
-                        showMessage("Succès ! Redirection...", false);
+                        showMessage("Succ├¿s ! Redirection...", false);
                         setTimeout(() => window.location.href = 'courses.html', 1500);
                     } catch (error) {
                         console.error(error);
-                        showMessage("Erreur base de données.", true);
+                        showMessage("Erreur base de donn├®es.", true);
                         resetUploadState();
                     }
                 }
