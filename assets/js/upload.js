@@ -1,6 +1,6 @@
 /*
  * Assets/js/upload.js
- * Version simplifiée : Titre + Fichier uniquement
+ * Version simplifiée : Titre + Fichier (PDF uniquement)
  */
 
 import { db, storage, auth } from './config.js';
@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupDragAndDrop();
 });
 
-// Mise à jour visuelle du header (si layout.js ne le fait pas assez vite)
+// Mise à jour visuelle du header
 function updateHeaderProfile(user) {
     if(headerUsername) headerUsername.textContent = user.displayName || user.email.split('@')[0];
     if(headerAvatar && user.photoURL) headerAvatar.src = user.photoURL;
@@ -55,9 +55,18 @@ function updateHeaderProfile(user) {
 function handleFileSelect(e) {
     const file = e.target.files[0];
     if (file) {
+        // Validation Type PDF
+        if (file.type !== 'application/pdf') {
+            showMessage("Format non supporté. Seuls les fichiers PDF sont acceptés.", "error");
+            fileInput.value = ''; // Reset input
+            fileNameContainer.classList.add('hidden');
+            return;
+        }
+
         fileNameText.textContent = file.name;
         fileNameContainer.classList.remove('hidden');
         dropZone.classList.add('border-indigo-500/50', 'bg-indigo-500/5');
+        messageBox.classList.add('hidden'); // Cacher les anciennes erreurs
     } else {
         fileNameContainer.classList.add('hidden');
         dropZone.classList.remove('border-indigo-500/50', 'bg-indigo-500/5');
@@ -74,6 +83,11 @@ form.addEventListener('submit', async (e) => {
     // Validation
     if (!file || !title) {
         showMessage("Titre et fichier sont requis.", "error");
+        return;
+    }
+
+    if (file.type !== 'application/pdf') {
+        showMessage("Seuls les fichiers PDF sont acceptés.", "error");
         return;
     }
 
@@ -110,8 +124,8 @@ form.addEventListener('submit', async (e) => {
 
                 await addDoc(collection(db, "documents"), {
                     title: title,
-                    courseId: "general", // Valeur par défaut car on a supprimé le select
-                    type: "document",    // Valeur par défaut
+                    courseId: "general", // Défaut
+                    type: "document",    // Défaut
                     fileUrl: downloadURL,
                     storagePath: storagePath,
                     fileName: file.name,
@@ -125,7 +139,7 @@ form.addEventListener('submit', async (e) => {
                     downloads: 0
                 });
 
-                showMessage("Document partagé avec succès !", "success");
+                showMessage("Document PDF partagé avec succès !", "success");
                 resetForm();
                 lockForm(false);
             }

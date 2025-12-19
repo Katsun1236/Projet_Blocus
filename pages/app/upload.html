@@ -20,8 +20,8 @@
         <div class="fixed bottom-[-10%] left-[-5%] w-72 h-72 bg-purple-600/20 rounded-full blur-3xl -z-10"></div>
 
         <!-- SIDEBAR CONTAINER (Cible pour layout.js) -->
-        <!-- Important: layout.js cherche cet ID pour injecter le menu -->
-        <aside id="sidebar-container" class="h-full z-50"></aside>
+        <!-- FIX: Ajout des classes de largeur (w-20 lg:w-64) pour réserver l'espace visuel -->
+        <aside id="sidebar-container" class="w-20 lg:w-64 h-full flex-shrink-0 z-50 transition-all duration-300"></aside>
 
         <!-- Main Content -->
         <main class="flex-1 h-full relative z-10 flex flex-col min-w-0 overflow-hidden">
@@ -41,9 +41,8 @@
                         <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900"></span>
                     </button>
                     
-                    <!-- Profil Container (Cible pour layout.js s'il injecte le profil, sinon fallback visuel) -->
+                    <!-- Profil Container -->
                     <div id="user-profile-container" class="flex items-center gap-3 pl-6 border-l border-white/10">
-                        <!-- Le contenu sera remplacé ou complété par JS, mais voici une structure par défaut propre -->
                         <div class="text-right hidden sm:block">
                             <p id="header-username" class="text-sm font-semibold text-white">Chargement...</p>
                             <p class="text-xs text-gray-400">Étudiant</p>
@@ -62,7 +61,7 @@
                     <!-- Intro -->
                     <div class="text-center space-y-2 mb-8">
                         <h2 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Partager un document</h2>
-                        <p class="text-gray-400">Ajoute tes fichiers pour enrichir la base de connaissances.</p>
+                        <p class="text-gray-400">Ajoute tes synthèses au format PDF pour enrichir la base.</p>
                     </div>
 
                     <!-- Message Box -->
@@ -81,21 +80,22 @@
                             </div>
                         </div>
 
-                        <!-- 2. Zone de Drop / Fichier -->
+                        <!-- 2. Zone de Drop / Fichier (PDF Only) -->
                         <div class="content-glass rounded-2xl p-1">
                             <div id="drop-zone" class="relative border-2 border-dashed border-white/10 rounded-xl p-10 text-center hover:border-indigo-500/50 hover:bg-indigo-500/5 transition-all cursor-pointer group min-h-[200px] flex flex-col items-center justify-center">
-                                <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf,.jpg,.png,.jpeg,.docx" required>
+                                <!-- FIX: accept=".pdf" uniquement -->
+                                <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf" required>
                                 
                                 <div class="w-16 h-16 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                                    <i class="fas fa-cloud-upload-alt text-2xl text-indigo-400"></i>
+                                    <i class="fas fa-file-pdf text-2xl text-red-400"></i>
                                 </div>
-                                <h3 class="text-lg font-medium text-white mb-1">Glisse ton fichier ici</h3>
+                                <h3 class="text-lg font-medium text-white mb-1">Glisse ton PDF ici</h3>
                                 <p class="text-sm text-gray-500">ou clique pour parcourir (Max 10MB)</p>
                                 
                                 <!-- Nom du fichier sélectionné -->
                                 <div id="file-name" class="mt-4 hidden animate-fade-in">
-                                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500/20 text-indigo-300 text-sm font-medium border border-indigo-500/30">
-                                        <i class="fas fa-file-alt"></i>
+                                    <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500/10 text-red-300 text-sm font-medium border border-red-500/30">
+                                        <i class="fas fa-file-pdf"></i>
                                         <span class="truncate max-w-[200px]" id="file-name-text">filename.pdf</span>
                                     </span>
                                 </div>
@@ -115,7 +115,7 @@
 
                         <!-- Submit Button -->
                         <button type="submit" id="submit-btn" class="w-full py-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg shadow-lg shadow-indigo-900/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
-                            <span>Publier maintenant</span>
+                            <span>Publier le PDF</span>
                             <i class="fas fa-arrow-right text-sm"></i>
                         </button>
 
