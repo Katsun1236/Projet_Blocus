@@ -279,16 +279,17 @@
                             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
                             console.log('✅ File uploaded:', downloadURL);
 
-                            // 4. Sauvegarder dans Firestore
-                            const docRef = await addDoc(collection(db, "files"), {
+                            // 4. Sauvegarder dans Firestore (dans users/{uid}/courses)
+                            const docRef = await addDoc(collection(db, "users", auth.currentUser.uid, "courses"), {
                                 title: title,
                                 fileName: file.name,
-                                url: downloadURL,
+                                fileURL: downloadURL,  // courses.html utilise fileURL
                                 storagePath: storagePath,
                                 type: file.type,
                                 size: file.size,
                                 userId: auth.currentUser.uid,
                                 userName: auth.currentUser.displayName || auth.currentUser.email,
+                                folderId: null,  // Par défaut dans la racine
                                 createdAt: serverTimestamp()
                             });
 
