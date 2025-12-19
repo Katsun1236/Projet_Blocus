@@ -11,6 +11,7 @@
 <body class="bg-gray-900 text-white font-sans antialiased overflow-hidden">
 
     <div class="flex h-screen">
+        <!-- Sidebar -->
         <aside class="w-64 sidebar-glass hidden md:flex flex-col border-r border-white/10 relative z-20">
             <div class="p-6 flex items-center gap-3">
                 <i class="fa-solid fa-graduation-cap text-2xl text-indigo-400"></i>
@@ -34,9 +35,7 @@
             
             <div class="p-4 border-t border-white/10">
                 <div class="flex items-center gap-3 px-2">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold" id="userAvatar">
-                        U
-                    </div>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold" id="userAvatar">U</div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium truncate" id="userName">Chargement...</p>
                         <p class="text-xs text-gray-500 truncate">Étudiant</p>
@@ -45,6 +44,7 @@
             </div>
         </aside>
 
+        <!-- Main Content -->
         <main class="flex-1 flex flex-col relative z-10 overflow-hidden">
             <header class="h-16 border-b border-white/10 flex items-center justify-between px-8 content-glass">
                 <h2 class="text-xl font-semibold text-display">Ajouter un Document</h2>
@@ -56,61 +56,88 @@
             </header>
 
             <div class="flex-1 overflow-y-auto p-8 relative">
+                <!-- Background Effects -->
                 <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
                     <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px] animate-pulse"></div>
                     <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px]"></div>
                 </div>
 
                 <div class="max-w-2xl mx-auto">
-                    <div id="message-box" class="hidden mb-6 p-4 rounded-xl border"></div>
+                    <!-- Message Box -->
+                    <div id="message-box" class="hidden mb-6 p-4 rounded-xl border transition-all"></div>
 
+                    <!-- Upload Form -->
                     <div class="content-glass rounded-2xl p-8 border border-white/10 shadow-xl">
                         <form id="uploadForm" class="space-y-6">
                             
+                            <!-- Nom du document -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-2">Titre du document</label>
-                                <input type="text" id="docTitle" required
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    Nom du document <span class="text-red-400">*</span>
+                                </label>
+                                <input 
+                                    type="text" 
+                                    id="docTitle" 
+                                    required
                                     class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors placeholder-gray-600"
-                                    placeholder="Ex: Synthèse Droit Civil - Chap 1">
+                                    placeholder="Ex: Cours de Mathématiques - Chapitre 1">
                             </div>
 
+                            <!-- Zone Upload -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-2">Matière / Cours</label>
-                                <select id="docCourse" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors appearance-none">
-                                    <option value="general">Général</option>
-                                    <option value="math">Mathématiques</option>
-                                    <option value="physics">Physique</option>
-                                    <option value="law">Droit</option>
-                                    <option value="history">Histoire</option>
-                                </select>
-                            </div>
-
-                            <div class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-white/10 border-dashed rounded-xl hover:border-indigo-500/50 hover:bg-white/5 transition-all cursor-pointer group relative" id="dropZone">
-                                <div class="space-y-1 text-center">
-                                    <div class="w-12 h-12 mx-auto bg-indigo-500/20 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                        <i class="fa-solid fa-cloud-arrow-up text-indigo-400 text-xl"></i>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    Fichier PDF <span class="text-red-400">*</span>
+                                </label>
+                                <div 
+                                    class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-white/10 border-dashed rounded-xl hover:border-indigo-500/50 hover:bg-white/5 transition-all cursor-pointer group relative" 
+                                    id="dropZone">
+                                    <div class="space-y-1 text-center">
+                                        <div class="w-12 h-12 mx-auto bg-indigo-500/20 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                            <i class="fa-solid fa-cloud-arrow-up text-indigo-400 text-xl"></i>
+                                        </div>
+                                        <div class="flex text-sm text-gray-400 justify-center">
+                                            <label for="fileInput" class="relative cursor-pointer rounded-md font-medium text-indigo-400 hover:text-indigo-300">
+                                                <span>Télécharger un fichier</span>
+                                                <input 
+                                                    id="fileInput" 
+                                                    type="file" 
+                                                    class="sr-only" 
+                                                    accept=".pdf"
+                                                    required>
+                                            </label>
+                                            <p class="pl-1">ou glisser-déposer</p>
+                                        </div>
+                                        <p class="text-xs text-gray-500">PDF jusqu'à 10MB</p>
+                                        <p id="fileNameDisplay" class="text-sm text-white font-semibold mt-2 hidden"></p>
                                     </div>
-                                    <div class="flex text-sm text-gray-400 justify-center">
-                                        <label for="fileInput" class="relative cursor-pointer rounded-md font-medium text-indigo-400 hover:text-indigo-300 focus-within:outline-none">
-                                            <span>Télécharger un fichier</span>
-                                            <input id="fileInput" name="fileInput" type="file" class="sr-only" accept=".pdf,.doc,.docx,.png,.jpg">
-                                        </label>
-                                        <p class="pl-1">ou glisser-déposer</p>
-                                    </div>
-                                    <p class="text-xs text-gray-500">PDF, PNG, JPG jusqu'à 10MB</p>
-                                    <p id="fileNameDisplay" class="text-sm text-white font-semibold mt-2 hidden"></p>
                                 </div>
                             </div>
 
-                            <div id="progressContainer" class="hidden w-full bg-gray-700 rounded-full h-2.5 mt-4">
-                                <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full" style="width: 0%"></div>
+                            <!-- Progress Bar -->
+                            <div id="progressContainer" class="hidden w-full bg-gray-700 rounded-full h-2.5">
+                                <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
                             </div>
 
-                            <button type="submit" id="submitBtn" class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-indigo-500/25">
+                            <!-- Submit Button -->
+                            <button 
+                                type="submit" 
+                                id="submitBtn" 
+                                class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
                                 <span>Envoyer le document</span>
                                 <i class="fa-solid fa-paper-plane text-sm"></i>
                             </button>
                         </form>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="mt-6 bg-blue-900/20 border border-blue-800/30 rounded-xl p-4">
+                        <div class="flex gap-3">
+                            <i class="fa-solid fa-info-circle text-blue-400 text-xl flex-shrink-0"></i>
+                            <div class="text-sm text-blue-200">
+                                <p class="font-medium mb-1">Format accepté</p>
+                                <p class="text-blue-300/80">Uniquement les fichiers PDF - Taille max : 10 MB</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
