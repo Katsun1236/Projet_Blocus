@@ -1,94 +1,126 @@
 import { auth } from './config.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
-document.addEventListener('DOMContentLoaded', () => {
-    initSidebar();
-    // Le profil dropdown est géré différemment selon les pages, on le laisse tranquille ici
-});
+/**
+ * Génère et injecte la Sidebar et la Topbar dans la page
+ * @param {string} activePage - L'identifiant de la page active (ex: 'dashboard', 'courses')
+ */
+export function initLayout(activePage) {
+    const appContainer = document.getElementById('app-container');
+    
+    if (!appContainer) {
+        console.error("Erreur: L'élément #app-container est introuvable.");
+        return;
+    }
 
-function initSidebar() {
-    const sidebarContainer = document.getElementById('sidebar-container');
-    // Si pas de conteneur (ex: page de login), on arrête
-    if (!sidebarContainer) return;
+    // --- 1. Définition des liens du menu ---
+    const menuItems = [
+        { id: 'dashboard', label: 'Tableau de bord', icon: 'fa-home', link: 'dashboard.html' },
+        { id: 'courses', label: 'Mes Cours', icon: 'fa-book', link: 'courses.html' },
+        { id: 'quiz', label: 'Quiz IA', icon: 'fa-brain', link: 'quiz.html' },
+        { id: 'synthesize', label: 'Synthèses', icon: 'fa-file-alt', link: 'synthesize.html' },
+        { id: 'planning', label: 'Planning', icon: 'fa-calendar-alt', link: 'planning.html' },
+        { id: 'community', label: 'Communauté', icon: 'fa-users', link: 'community.html' },
+        { id: 'profile', label: 'Mon Profil', icon: 'fa-user', link: 'profile.html' }
+    ];
 
-    // Détection page actuelle pour style actif
-    const currentPath = window.location.pathname;
-
-    // Le HTML de la sidebar
-    // Note : On utilise des chemins absolus pour être sûr que ça marche partout (/pages/...)
+    // --- 2. Construction du HTML de la Sidebar ---
     const sidebarHTML = `
-        <div class="h-full flex flex-col justify-between bg-gray-900/90 backdrop-blur-md border-r border-white/5 w-20 lg:w-64 transition-all duration-300">
+        <aside class="fixed inset-y-0 left-0 w-64 bg-[#0f1115]/90 backdrop-blur-xl border-r border-white/10 z-50 transform transition-transform duration-300 -translate-x-full md:translate-x-0" id="sidebar">
+            
             <!-- Logo -->
-            <div class="p-6 flex items-center justify-center lg:justify-start gap-4">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
-                    <i class="fas fa-cube text-white text-lg"></i>
+            <div class="h-20 flex items-center px-8 border-b border-white/5">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                        <i class="fas fa-graduation-cap text-white text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                        Projet Blocus
+                    </span>
                 </div>
-                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 hidden lg:block">Blocus</span>
             </div>
 
             <!-- Navigation -->
-            <nav class="flex-1 px-4 space-y-2 mt-8 overflow-y-auto custom-scrollbar">
-                ${createNavLink('/pages/app/dashboard.html', 'fa-home', 'Dashboard')}
-                ${createNavLink('/pages/app/courses.html', 'fa-book', 'Mes Cours')}
-                ${createNavLink('/pages/app/synthesize.html', 'fa-magic', 'Synthétiser')}
-                ${createNavLink('/pages/app/quiz.html', 'fa-brain', 'Quiz IA')}
-                ${createNavLink('/pages/app/planning.html', 'fa-calendar-alt', 'Planning')}
-                ${createNavLink('/pages/app/community.html', 'fa-users', 'Communauté')}
-                
-                <div class="pt-4 mt-4 border-t border-white/5">
-                    ${createNavLink('/pages/app/upload.html', 'fa-cloud-upload-alt', 'Upload', true)}
-                </div>
+            <nav class="p-4 space-y-2 mt-4">
+                ${menuItems.map(item => {
+                    const isActive = item.id === activePage;
+                    const activeClass = isActive 
+                        ? 'bg-indigo-600/10 text-indigo-400 border-indigo-600/50 shadow-[0_0_15px_rgba(79,70,229,0.1)]' 
+                        : 'text-gray-400 hover:text-white hover:bg-white/5 border-transparent';
+                    
+                    return `
+                        <a href="${item.link}" class="flex items-center gap-3 px-4 py-3 rounded-xl border ${activeClass} transition-all duration-200 group">
+                            <i class="fas ${item.icon} w-5 text-center ${isActive ? 'text-indigo-400' : 'text-gray-500 group-hover:text-white'} transition-colors"></i>
+                            <span class="font-medium text-sm">${item.label}</span>
+                            ${isActive ? '<div class="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_currentColor]"></div>' : ''}
+                        </a>
+                    `;
+                }).join('')}
             </nav>
 
-            <!-- User Footer -->
-            <div class="p-4 border-t border-white/5">
-                <button id="logout-btn" class="w-full flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-all group">
-                    <i class="fas fa-sign-out-alt transition-transform group-hover:-translate-x-1"></i>
-                    <span class="hidden lg:block font-medium">Déconnexion</span>
+            <!-- Bottom Actions -->
+            <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/5 bg-[#0f1115]/50">
+                <button id="logout-btn" class="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 group">
+                    <i class="fas fa-sign-out-alt w-5 text-center text-gray-500 group-hover:text-red-400 transition-colors"></i>
+                    <span class="font-medium text-sm">Déconnexion</span>
                 </button>
             </div>
-        </div>
+        </aside>
+
+        <!-- Mobile Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden backdrop-blur-sm transition-opacity"></div>
     `;
 
-    sidebarContainer.innerHTML = sidebarHTML;
+    // --- 3. Injection dans le DOM ---
+    // On crée une div wrapper pour ne pas écraser le contenu existant
+    const layoutWrapper = document.createElement('div');
+    layoutWrapper.innerHTML = sidebarHTML;
+    
+    // On insère la sidebar AU DÉBUT du container
+    appContainer.prepend(layoutWrapper);
 
-    // Gestion Déconnexion
+    // --- 4. Gestion Mobile (Menu Burger) ---
+    // On injecte aussi un bouton menu pour mobile s'il n'existe pas déjà dans le header de la page
+    const existingHeader = document.querySelector('header');
+    if (existingHeader && !document.getElementById('mobile-menu-btn')) {
+        const mobileBtnHTML = `
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-400 hover:text-white mr-4">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        `;
+        existingHeader.insertAdjacentHTML('afterbegin', mobileBtnHTML);
+    }
+
+    // Logique d'ouverture/fermeture mobile
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+
+    if (mobileBtn) {
+        mobileBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        });
+    }
+
+    // --- 5. Gestion Déconnexion ---
     const logoutBtn = document.getElementById('logout-btn');
-    if(logoutBtn) {
+    if (logoutBtn) {
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
-                window.location.href = '/pages/auth/login.html';
+                window.location.href = '../auth/login.html';
             } catch (error) {
-                console.error("Erreur déconnexion:", error);
+                console.error("Erreur lors de la déconnexion:", error);
+                alert("Erreur lors de la déconnexion");
             }
         });
     }
-}
-
-// Fonction utilitaire pour créer les liens
-function createNavLink(href, icon, text, isSpecial = false) {
-    const currentPath = window.location.pathname;
-    // Vérifie si on est sur la page exacte OU si on est à la racine et que le lien est index/dashboard
-    const isActive = currentPath.includes(href) || (href === '/pages/app/dashboard.html' && (currentPath === '/' || currentPath === '/index.html'));
-    
-    let classes = "flex items-center gap-4 p-3 rounded-xl transition-all duration-300 group relative overflow-hidden ";
-    
-    if (isActive) {
-        classes += "bg-indigo-600 text-white shadow-lg shadow-indigo-900/20";
-    } else {
-        classes += "text-gray-400 hover:bg-white/5 hover:text-white";
-    }
-
-    if (isSpecial && !isActive) {
-        classes += " border border-indigo-500/30 hover:border-indigo-500/60";
-    }
-
-    return `
-        <a href="${href}" class="${classes}">
-            <i class="fas ${icon} w-6 text-center ${isActive ? 'text-white' : 'text-gray-500 group-hover:text-indigo-400'} transition-colors"></i>
-            <span class="font-medium hidden lg:block">${text}</span>
-            ${isActive ? '<div class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>' : ''}
-        </a>
-    `;
 }
