@@ -8,96 +8,65 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
-<body class="bg-gray-900 text-white font-sans antialiased overflow-hidden">
+<body class="bg-gray-900 text-white font-sans antialiased">
+    
+    <!-- Noise Overlay -->
+    <div class="noise-overlay"></div>
 
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <aside class="w-64 sidebar-glass hidden md:flex flex-col border-r border-white/10 relative z-20">
-            <div class="p-6 flex items-center gap-3">
-                <i class="fa-solid fa-graduation-cap text-2xl text-indigo-400"></i>
-                <span class="text-xl font-bold tracking-wider">BLOCUS</span>
-            </div>
-
-            <nav class="flex-1 px-4 py-6 space-y-2">
-                <a href="dashboard.html" class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all group">
-                    <i class="fa-solid fa-chart-pie w-6 text-center group-hover:text-indigo-400 transition-colors"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="courses.html" class="flex items-center gap-3 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all group">
-                    <i class="fa-solid fa-book w-6 text-center group-hover:text-indigo-400 transition-colors"></i>
-                    <span>Mes Cours</span>
-                </a>
-                <a href="upload.html" class="flex items-center gap-3 px-4 py-3 bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 rounded-xl shadow-[0_0_15px_rgba(79,70,229,0.2)]">
-                    <i class="fa-solid fa-cloud-upload-alt w-6 text-center"></i>
-                    <span>Upload</span>
-                </a>
-            </nav>
-            
-            <div class="p-4 border-t border-white/10">
-                <div class="flex items-center gap-3 px-2">
-                    <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-xs font-bold" id="userAvatar">U</div>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-medium truncate" id="userName">Chargement...</p>
-                        <p class="text-xs text-gray-500 truncate">Étudiant</p>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
+    <!-- App Container -->
+    <div id="app-container" class="flex min-h-screen">
+        
         <!-- Main Content -->
-        <main class="flex-1 flex flex-col relative z-10 overflow-hidden">
-            <header class="h-16 border-b border-white/10 flex items-center justify-between px-8 content-glass">
-                <h2 class="text-xl font-semibold text-display">Ajouter un Document</h2>
-                <div class="flex items-center gap-4">
-                     <button id="logoutBtn" class="p-2 text-gray-400 hover:text-red-400 transition-colors">
-                        <i class="fa-solid fa-power-off"></i>
-                    </button>
+        <main class="flex-1 flex flex-col md:ml-64">
+            <header class="h-20 border-b border-white/10 flex items-center justify-between px-8 glass-nav sticky top-0 z-30">
+                <div>
+                    <h1 class="text-2xl font-bold font-display">Ajouter un Document</h1>
+                    <p class="text-sm text-gray-400 mt-1">Uploadez vos cours en PDF</p>
                 </div>
             </header>
 
             <div class="flex-1 overflow-y-auto p-8 relative">
-                <!-- Background Effects -->
-                <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none -z-10">
-                    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px] animate-pulse"></div>
-                    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-[100px]"></div>
-                </div>
+                <!-- Background Glows -->
+                <div class="glow-bg top-1/4 left-1/4 animate-float"></div>
+                <div class="glow-bg bottom-1/4 right-1/4 animate-float-delayed"></div>
 
-                <div class="max-w-2xl mx-auto">
+                <div class="max-w-2xl mx-auto relative z-10">
+                    
                     <!-- Message Box -->
                     <div id="message-box" class="hidden mb-6 p-4 rounded-xl border transition-all"></div>
 
                     <!-- Upload Form -->
-                    <div class="content-glass rounded-2xl p-8 border border-white/10 shadow-xl">
+                    <div class="feature-card rounded-2xl p-8 shadow-2xl">
                         <form id="uploadForm" class="space-y-6">
                             
                             <!-- Nom du document -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                <label for="docTitle" class="block text-sm font-medium text-gray-300 mb-2">
                                     Nom du document <span class="text-red-400">*</span>
                                 </label>
                                 <input 
                                     type="text" 
                                     id="docTitle" 
                                     required
-                                    class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors placeholder-gray-600"
+                                    class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder-gray-600"
                                     placeholder="Ex: Cours de Mathématiques - Chapitre 1">
                             </div>
 
                             <!-- Zone Upload -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
                                     Fichier PDF <span class="text-red-400">*</span>
                                 </label>
                                 <div 
-                                    class="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-white/10 border-dashed rounded-xl hover:border-indigo-500/50 hover:bg-white/5 transition-all cursor-pointer group relative" 
+                                    class="mt-2 flex justify-center px-6 pt-8 pb-8 border-2 border-white/10 border-dashed rounded-xl hover:border-indigo-500/50 hover:bg-white/5 transition-all cursor-pointer group relative" 
                                     id="dropZone">
-                                    <div class="space-y-1 text-center">
-                                        <div class="w-12 h-12 mx-auto bg-indigo-500/20 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                            <i class="fa-solid fa-cloud-arrow-up text-indigo-400 text-xl"></i>
+                                    <div class="space-y-2 text-center">
+                                        <div class="w-16 h-16 mx-auto bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                            <i class="fa-solid fa-cloud-arrow-up text-indigo-400 text-2xl"></i>
                                         </div>
-                                        <div class="flex text-sm text-gray-400 justify-center">
-                                            <label for="fileInput" class="relative cursor-pointer rounded-md font-medium text-indigo-400 hover:text-indigo-300">
-                                                <span>Télécharger un fichier</span>
+                                        <div class="text-sm text-gray-400">
+                                            <label for="fileInput" class="relative cursor-pointer rounded-md font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+                                                <span>Cliquez pour uploader</span>
                                                 <input 
                                                     id="fileInput" 
                                                     type="file" 
@@ -105,37 +74,45 @@
                                                     accept=".pdf"
                                                     required>
                                             </label>
-                                            <p class="pl-1">ou glisser-déposer</p>
+                                            <span class="text-gray-500"> ou glissez-déposez</span>
                                         </div>
                                         <p class="text-xs text-gray-500">PDF jusqu'à 10MB</p>
-                                        <p id="fileNameDisplay" class="text-sm text-white font-semibold mt-2 hidden"></p>
+                                        <div id="fileNameDisplay" class="hidden mt-4 p-3 bg-indigo-500/10 border border-indigo-500/30 rounded-lg">
+                                            <p class="text-sm text-indigo-300 font-medium"></p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Progress Bar -->
-                            <div id="progressContainer" class="hidden w-full bg-gray-700 rounded-full h-2.5">
-                                <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            <div id="progressContainer" class="hidden">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm text-gray-400">Upload en cours...</span>
+                                    <span id="progressText" class="text-sm font-semibold text-indigo-400">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                                    <div id="progressBar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
                             </div>
 
                             <!-- Submit Button -->
                             <button 
                                 type="submit" 
                                 id="submitBtn" 
-                                class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-3 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-indigo-500/25 disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="w-full flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold py-4 px-6 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg hover:shadow-indigo-500/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
                                 <span>Envoyer le document</span>
-                                <i class="fa-solid fa-paper-plane text-sm"></i>
+                                <i class="fa-solid fa-paper-plane"></i>
                             </button>
                         </form>
                     </div>
 
-                    <!-- Info -->
-                    <div class="mt-6 bg-blue-900/20 border border-blue-800/30 rounded-xl p-4">
+                    <!-- Info Box -->
+                    <div class="mt-6 bg-blue-900/20 border border-blue-500/20 rounded-xl p-4 backdrop-blur-sm">
                         <div class="flex gap-3">
-                            <i class="fa-solid fa-info-circle text-blue-400 text-xl flex-shrink-0"></i>
-                            <div class="text-sm text-blue-200">
-                                <p class="font-medium mb-1">Format accepté</p>
-                                <p class="text-blue-300/80">Uniquement les fichiers PDF - Taille max : 10 MB</p>
+                            <i class="fa-solid fa-info-circle text-blue-400 text-lg flex-shrink-0 mt-0.5"></i>
+                            <div class="text-sm">
+                                <p class="text-blue-300 font-medium mb-1">Format accepté</p>
+                                <p class="text-blue-200/70">Uniquement les fichiers PDF - Taille maximale : 10 MB</p>
                             </div>
                         </div>
                     </div>
@@ -144,7 +121,236 @@
         </main>
     </div>
 
-    <script type="module" src="../../assets/js/config.js"></script>
-    <script type="module" src="../../assets/js/upload.js"></script>
+    <!-- Scripts Firebase -->
+    <script type="module">
+        import { auth, db, storage } from '../../assets/js/config.js';
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+        import { initLayout } from '../../assets/js/layout.js';
+
+        // ========== INIT LAYOUT ==========
+        initLayout('upload');
+
+        // ========== AUTH CHECK ==========
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                window.location.href = '../auth/login.html';
+            }
+        });
+
+        // ========== DOM ELEMENTS ==========
+        const uploadForm = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const progressContainer = document.getElementById('progressContainer');
+        const submitBtn = document.getElementById('submitBtn');
+        const messageBox = document.getElementById('message-box');
+
+        // ========== FILE SELECTION ==========
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // ========== DRAG & DROP ==========
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-indigo-500', 'bg-indigo-500/5');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-500/5');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-indigo-500', 'bg-indigo-500/5');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(files[0]);
+                fileInput.files = dataTransfer.files;
+                handleFileSelect();
+            }
+        });
+
+        // ========== HANDLE FILE ==========
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                fileNameDisplay.classList.add('hidden');
+                return;
+            }
+
+            // Validation type
+            if (file.type !== 'application/pdf') {
+                showFeedback("❌ Seuls les fichiers PDF sont acceptés", "error");
+                fileInput.value = '';
+                fileNameDisplay.classList.add('hidden');
+                return;
+            }
+
+            // Validation taille (10MB)
+            const maxSize = 10 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showFeedback("❌ Le fichier ne doit pas dépasser 10 MB", "error");
+                fileInput.value = '';
+                fileNameDisplay.classList.add('hidden');
+                return;
+            }
+
+            // Afficher le fichier
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+            fileNameDisplay.querySelector('p').innerHTML = `
+                <i class="fa-solid fa-file-pdf text-red-400 mr-2"></i>
+                ${file.name} <span class="text-indigo-400/70">(${fileSize} MB)</span>
+            `;
+            fileNameDisplay.classList.remove('hidden');
+        }
+
+        // ========== FORM SUBMIT ==========
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            const title = document.getElementById('docTitle').value.trim();
+
+            if (!file || !title) {
+                showFeedback("❌ Veuillez remplir tous les champs", "error");
+                return;
+            }
+
+            if (!auth.currentUser) {
+                showFeedback("❌ Vous devez être connecté", "error");
+                setTimeout(() => window.location.href = '../auth/login.html', 2000);
+                return;
+            }
+
+            // UI Loading
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Upload en cours...';
+            progressContainer.classList.remove('hidden');
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+
+            try {
+                // 1. Préparer le stockage
+                const timestamp = Date.now();
+                const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+                const storagePath = `users/${auth.currentUser.uid}/${timestamp}_${sanitizedFileName}`;
+                
+                console.log('📤 Starting upload to:', storagePath);
+                
+                // 2. Upload Firebase Storage
+                const storageRef = ref(storage, storagePath);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                uploadTask.on('state_changed', 
+                    (snapshot) => {
+                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                        progressBar.style.width = progress + '%';
+                        progressText.textContent = progress + '%';
+                        console.log('📊 Upload progress:', progress + '%');
+                    }, 
+                    (error) => {
+                        console.error("❌ Upload error:", error);
+                        let errorMessage = "Erreur lors de l'upload";
+                        
+                        if (error.code === 'storage/unauthorized') {
+                            errorMessage = "❌ Permissions insuffisantes. Vérifiez vos règles Firebase Storage.";
+                        } else if (error.code === 'storage/canceled') {
+                            errorMessage = "❌ Upload annulé";
+                        } else if (error.code === 'storage/quota-exceeded') {
+                            errorMessage = "❌ Quota de stockage dépassé";
+                        } else {
+                            errorMessage = `❌ Erreur: ${error.message}`;
+                        }
+                        
+                        showFeedback(errorMessage, "error");
+                        resetUI();
+                    }, 
+                    async () => {
+                        try {
+                            // 3. Récupérer URL
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            console.log('✅ File uploaded:', downloadURL);
+
+                            // 4. Sauvegarder dans Firestore
+                            const docRef = await addDoc(collection(db, "files"), {
+                                title: title,
+                                fileName: file.name,
+                                url: downloadURL,
+                                storagePath: storagePath,
+                                type: file.type,
+                                size: file.size,
+                                userId: auth.currentUser.uid,
+                                userName: auth.currentUser.displayName || auth.currentUser.email,
+                                createdAt: serverTimestamp()
+                            });
+
+                            console.log('✅ Document saved with ID:', docRef.id);
+
+                            // 5. Succès
+                            showFeedback("✅ Document uploadé avec succès ! Redirection...", "success");
+                            uploadForm.reset();
+                            fileNameDisplay.classList.add('hidden');
+                            
+                            setTimeout(() => {
+                                window.location.href = 'courses.html';
+                            }, 2000);
+
+                        } catch (firestoreError) {
+                            console.error("❌ Firestore error:", firestoreError);
+                            showFeedback("❌ Erreur lors de la sauvegarde: " + firestoreError.message, "error");
+                            resetUI();
+                        }
+                    }
+                );
+
+            } catch (error) {
+                console.error("❌ Global error:", error);
+                showFeedback("❌ Erreur inattendue: " + error.message, "error");
+                resetUI();
+            }
+        });
+
+        // ========== RESET UI ==========
+        function resetUI() {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<span>Envoyer le document</span><i class="fa-solid fa-paper-plane"></i>';
+            
+            setTimeout(() => {
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+                progressContainer.classList.add('hidden');
+            }, 1000);
+        }
+
+        // ========== FEEDBACK ==========
+        function showFeedback(message, type) {
+            const isSuccess = type === 'success';
+            
+            messageBox.className = `mb-6 p-4 rounded-xl border text-center transition-all font-medium ${
+                isSuccess 
+                ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+                : 'bg-red-500/10 border-red-500/30 text-red-400'
+            }`;
+            
+            messageBox.innerHTML = `
+                <i class="fa-solid ${isSuccess ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
+                ${message}
+            `;
+            
+            messageBox.classList.remove('hidden');
+            
+            if (!isSuccess) {
+                setTimeout(() => messageBox.classList.add('hidden'), 8000);
+            }
+        }
+    </script>
 </body>
 </html>
