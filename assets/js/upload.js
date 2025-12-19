@@ -1,6 +1,6 @@
 /*
  * Assets/js/upload.js
- * Version simplifiée : Titre + Fichier (PDF uniquement)
+ * Version Debug : Logs détaillés pour identifier l'erreur
  */
 
 import { db, storage, auth } from './config.js';
@@ -19,8 +19,6 @@ const progressBar = document.getElementById('progress-bar');
 const progressText = document.getElementById('progress-text');
 const submitBtn = document.getElementById('submit-btn');
 const dropZone = document.getElementById('drop-zone');
-
-// Header Elements (pour mise à jour profil)
 const headerUsername = document.getElementById('header-username');
 const headerAvatar = document.getElementById('header-avatar');
 
@@ -28,37 +26,36 @@ let currentUser = null;
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', () => {
-    // Auth Check & Header update
+    console.log("Upload Page Loaded. Checking Auth...");
+    
     onAuthStateChanged(auth, (user) => {
         if (user) {
+            console.log("User Authenticated:", user.uid);
             currentUser = user;
             updateHeaderProfile(user);
         } else {
-            console.warn("Utilisateur non connecté.");
+            console.error("User NOT Authenticated. Redirecting...");
+            // window.location.href = '/pages/auth/login.html'; // Décommente pour forcer
         }
     });
 
-    // File Input Change
     fileInput.addEventListener('change', handleFileSelect);
-
-    // Drag & Drop
     setupDragAndDrop();
 });
 
-// Mise à jour visuelle du header
 function updateHeaderProfile(user) {
     if(headerUsername) headerUsername.textContent = user.displayName || user.email.split('@')[0];
     if(headerAvatar && user.photoURL) headerAvatar.src = user.photoURL;
 }
 
-// Gestionnaire sélection fichier
 function handleFileSelect(e) {
     const file = e.target.files[0];
     if (file) {
-        // Validation Type PDF
+        console.log("File selected:", file.name, file.type, file.size);
+        
         if (file.type !== 'application/pdf') {
-            showMessage("Format non supporté. Seuls les fichiers PDF sont acceptés.", "error");
-            fileInput.value = ''; // Reset input
+            showMessage("Erreur: Ce n'est pas un PDF (" + file.type + ")", "error");
+            fileInput.value = '';
             fileNameContainer.classList.add('hidden');
             return;
         }
@@ -66,66 +63,77 @@ function handleFileSelect(e) {
         fileNameText.textContent = file.name;
         fileNameContainer.classList.remove('hidden');
         dropZone.classList.add('border-indigo-500/50', 'bg-indigo-500/5');
-        messageBox.classList.add('hidden'); // Cacher les anciennes erreurs
-    } else {
-        fileNameContainer.classList.add('hidden');
-        dropZone.classList.remove('border-indigo-500/50', 'bg-indigo-500/5');
+        messageBox.classList.add('hidden');
     }
 }
 
-// Soumission Formulaire
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    console.log("Form submitted. Starting upload process...");
 
     const file = fileInput.files[0];
     const title = document.getElementById('doc-title').value.trim();
 
-    // Validation
+    if (!currentUser) {
+        showMessage("Erreur: Vous devez être connecté.", "error");
+        return;
+    }
+
     if (!file || !title) {
-        showMessage("Titre et fichier sont requis.", "error");
+        showMessage("Titre et fichier requis.", "error");
         return;
     }
 
-    if (file.type !== 'application/pdf') {
-        showMessage("Seuls les fichiers PDF sont acceptés.", "error");
-        return;
-    }
-
-    if (file.size > 10 * 1024 * 1024) { // 10MB
-        showMessage("Fichier trop volumineux (Max 10MB).", "error");
-        return;
-    }
-
-    // UI Loading
     lockForm(true);
     progressContainer.classList.remove('hidden');
     messageBox.classList.add('hidden');
 
     try {
-        // 1. Upload Storage
         const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
         const storagePath = `uploads/${currentUser.uid}/${Date.now()}_${cleanFileName}`;
+        console.log("Target Storage Path:", storagePath);
+
         const storageRef = ref(storage, storagePath);
+        
+        // Démarrage Upload
         const uploadTask = uploadBytesResumable(storageRef, file);
 
         uploadTask.on('state_changed', 
             (snapshot) => {
                 const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log(`Upload Progress: ${progress}%`);
                 progressBar.style.width = progress + '%';
                 progressText.textContent = Math.round(progress) + '%';
             }, 
             (error) => {
-                console.error("Erreur Upload:", error);
-                throw new Error("Erreur lors de l'upload du fichier.");
+                // ERREUR STORAGE
+                console.error("STORAGE ERROR:", error);
+                console.error("Code:", error.code);
+                console.error("Message:", error.message);
+                
+                let msg = "Erreur Upload: " + error.code;
+                if (error.code === 'storage/unauthorized') {
+                    msg = "Non autorisé ! Vérifiez les Règles Storage Firebase.";
+                } else if (error.code === 'storage/canceled') {
+                    msg = "Upload annulé.";
+                } else if (error.code === 'storage/unknown') {
+                    msg = "Erreur inconnue (Probablement CORS).";
+                }
+                
+                throw new Error(msg);
             }, 
             async () => {
-                // 2. Save Firestore
+                // SUCCÈS STORAGE
+                console.log("Storage Upload Complete. Getting URL...");
                 const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                console.log("File URL:", downloadURL);
 
+                // SAUVEGARDE FIRESTORE
+                console.log("Saving metadata to Firestore...");
                 await addDoc(collection(db, "documents"), {
                     title: title,
-                    courseId: "general", // Défaut
-                    type: "document",    // Défaut
+                    courseId: "general",
+                    type: "document",
                     fileUrl: downloadURL,
                     storagePath: storagePath,
                     fileName: file.name,
@@ -133,44 +141,40 @@ form.addEventListener('submit', async (e) => {
                     fileType: file.type,
                     uploadedBy: currentUser.uid,
                     authorName: currentUser.displayName || "Anonyme",
-                    authorPhoto: currentUser.photoURL || null,
                     createdAt: serverTimestamp(),
                     likes: 0,
                     downloads: 0
                 });
 
-                showMessage("Document PDF partagé avec succès !", "success");
+                console.log("Firestore Save Complete!");
+                showMessage("Succès ! Fichier publié.", "success");
                 resetForm();
                 lockForm(false);
             }
         );
 
     } catch (error) {
-        console.error("Erreur:", error);
-        showMessage(error.message || "Une erreur est survenue.", "error");
+        console.error("GLOBAL CATCH ERROR:", error);
+        showMessage(error.message, "error");
         lockForm(false);
         progressContainer.classList.add('hidden');
     }
 });
 
-// Utilitaires
 function showMessage(msg, type) {
-    messageBox.innerHTML = type === 'error' 
-        ? `<i class="fas fa-exclamation-circle text-red-400"></i> <span class="text-red-300">${msg}</span>`
-        : `<i class="fas fa-check-circle text-green-400"></i> <span class="text-green-300">${msg}</span>`;
-    
-    messageBox.className = `p-4 rounded-xl text-sm font-medium border flex items-center gap-3 ${type === 'error' ? 'border-red-500/30 bg-red-500/10' : 'border-green-500/30 bg-green-500/10'}`;
+    messageBox.textContent = msg;
+    messageBox.className = `p-4 rounded-xl text-sm font-medium border ${type === 'error' ? 'border-red-500/50 text-red-300 bg-red-500/10' : 'border-green-500/50 text-green-300 bg-green-500/10'}`;
     messageBox.classList.remove('hidden');
-
-    if(type === 'success') setTimeout(() => messageBox.classList.add('hidden'), 5000);
 }
 
 function lockForm(isLocked) {
     submitBtn.disabled = isLocked;
     fileInput.disabled = isLocked;
-    document.getElementById('doc-title').disabled = isLocked;
-    submitBtn.classList.toggle('opacity-50', isLocked);
-    submitBtn.classList.toggle('cursor-not-allowed', isLocked);
+    if(isLocked) {
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Traitement...';
+    } else {
+        submitBtn.textContent = 'Publier le PDF';
+    }
 }
 
 function resetForm() {
@@ -187,8 +191,6 @@ function setupDragAndDrop() {
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
         dropZone.addEventListener(evt, (e) => { e.preventDefault(); e.stopPropagation(); });
     });
-    ['dragenter', 'dragover'].forEach(evt => dropZone.classList.add('border-indigo-500', 'bg-white/5'));
-    ['dragleave', 'drop'].forEach(evt => dropZone.classList.remove('border-indigo-500', 'bg-white/5'));
     dropZone.addEventListener('drop', (e) => {
         const files = e.dataTransfer.files;
         if(files.length) {
