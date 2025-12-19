@@ -7,8 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Configuration Tailwind pour le glassmorphism -->
     <script>
         tailwind.config = {
             theme: {
@@ -23,17 +21,70 @@
 </head>
 <body class="bg-dark text-white font-sans antialiased overflow-hidden selection:bg-indigo-500 selection:text-white">
 
-    <!-- Auth Guard (Sécurité) -->
+    <!-- Auth Guard -->
     <script type="module" src="../../assets/js/auth-guard.js"></script>
 
     <div class="flex h-screen w-full relative">
         <!-- Background Elements -->
         <div class="fixed top-0 left-0 w-full h-full bg-gradient-to-br from-gray-900 via-gray-800 to-black -z-20"></div>
-        
-        <!-- SIDEBAR CONTAINER -->
-        <!-- J'ai retiré les classes CSS complexes ici pour laisser layout.js gérer le style -->
-        <!-- Si layout.js injecte une sidebar fixe, ce conteneur servira de point d'ancrage -->
-        <div id="sidebar-container" class="h-full z-50"></div>
+        <div class="fixed top-[-10%] right-[-5%] w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl -z-10"></div>
+        <div class="fixed bottom-[-10%] left-[-5%] w-72 h-72 bg-purple-600/20 rounded-full blur-3xl -z-10"></div>
+
+        <!-- SIDEBAR (Intégrée manuellement pour éviter les conflits layout.js) -->
+        <aside class="h-full flex flex-col justify-between bg-gray-900/90 backdrop-blur-md border-r border-white/5 w-20 lg:w-64 transition-all duration-300 z-50 shrink-0">
+            <!-- Logo -->
+            <div class="p-6 flex items-center justify-center lg:justify-start gap-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 shrink-0">
+                    <i class="fas fa-cube text-white text-lg"></i>
+                </div>
+                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400 hidden lg:block">Blocus</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 px-4 space-y-2 mt-8 overflow-y-auto custom-scrollbar">
+                <a href="/pages/app/dashboard.html" class="flex items-center gap-4 p-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300 group">
+                    <i class="fas fa-home w-6 text-center text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span class="font-medium hidden lg:block">Dashboard</span>
+                </a>
+                <a href="/pages/app/courses.html" class="flex items-center gap-4 p-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300 group">
+                    <i class="fas fa-book w-6 text-center text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span class="font-medium hidden lg:block">Mes Cours</span>
+                </a>
+                <a href="/pages/app/synthesize.html" class="flex items-center gap-4 p-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300 group">
+                    <i class="fas fa-magic w-6 text-center text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span class="font-medium hidden lg:block">Synthétiser</span>
+                </a>
+                <a href="/pages/app/quiz.html" class="flex items-center gap-4 p-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300 group">
+                    <i class="fas fa-brain w-6 text-center text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span class="font-medium hidden lg:block">Quiz IA</span>
+                </a>
+                <a href="/pages/app/planning.html" class="flex items-center gap-4 p-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300 group">
+                    <i class="fas fa-calendar-alt w-6 text-center text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span class="font-medium hidden lg:block">Planning</span>
+                </a>
+                <a href="/pages/app/community.html" class="flex items-center gap-4 p-3 rounded-xl text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300 group">
+                    <i class="fas fa-users w-6 text-center text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span class="font-medium hidden lg:block">Communauté</span>
+                </a>
+                
+                <!-- Lien Actif -->
+                <div class="pt-4 mt-4 border-t border-white/5">
+                    <a href="#" class="flex items-center gap-4 p-3 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-900/20 transition-all duration-300 group relative overflow-hidden">
+                        <i class="fas fa-cloud-upload-alt w-6 text-center text-white transition-colors"></i>
+                        <span class="font-medium hidden lg:block">Upload</span>
+                        <div class="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white/20 rounded-l-full"></div>
+                    </a>
+                </div>
+            </nav>
+
+            <!-- User Footer -->
+            <div class="p-4 border-t border-white/5">
+                <button id="sidebar-logout-btn" class="w-full flex items-center justify-center lg:justify-start gap-3 p-3 rounded-xl hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-all group">
+                    <i class="fas fa-sign-out-alt transition-transform group-hover:-translate-x-1"></i>
+                    <span class="hidden lg:block font-medium">Déconnexion</span>
+                </button>
+            </div>
+        </aside>
 
         <!-- Main Content -->
         <main class="flex-1 h-full relative z-10 flex flex-col min-w-0 overflow-hidden bg-gray-900/50">
@@ -58,7 +109,7 @@
                 </div>
             </header>
 
-            <!-- CONTENU UPLOAD -->
+            <!-- CONTENU -->
             <div class="flex-1 overflow-y-auto custom-scrollbar p-8">
                 <div class="max-w-2xl mx-auto mt-10">
 
@@ -66,15 +117,12 @@
                     <div id="message-box" class="hidden mb-6"></div>
 
                     <form id="upload-form" class="space-y-8">
-                        
-                        <!-- Input Titre -->
                         <div class="group">
                             <label class="block text-sm font-medium text-gray-400 mb-2 ml-1">Titre du document</label>
                             <input type="text" id="doc-title" placeholder="Ex: Synthèse Droit Romain - Q1" 
                                 class="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-4 text-white placeholder-gray-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all shadow-inner" required>
                         </div>
 
-                        <!-- Drop Zone -->
                         <div id="drop-zone" class="relative border-2 border-dashed border-gray-600 rounded-2xl p-12 text-center hover:border-indigo-500 hover:bg-white/5 transition-all cursor-pointer group">
                             <input type="file" id="file-input" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept=".pdf" required>
                             
@@ -85,7 +133,6 @@
                             <h3 class="text-xl font-medium text-white mb-2">Glisse ton PDF ici</h3>
                             <p class="text-sm text-gray-400">Taille max : 10 MB</p>
 
-                            <!-- Nom du fichier -->
                             <div id="file-name" class="mt-6 hidden">
                                 <span class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-500/20 text-indigo-300 text-sm font-medium border border-indigo-500/30">
                                     <i class="fas fa-check"></i>
@@ -94,7 +141,6 @@
                             </div>
                         </div>
 
-                        <!-- Progress Bar -->
                         <div id="progress-container" class="hidden">
                             <div class="flex justify-between text-xs text-gray-400 mb-2">
                                 <span>Upload vers le cloud...</span>
@@ -105,9 +151,8 @@
                             </div>
                         </div>
 
-                        <!-- Bouton -->
                         <button type="submit" id="submit-btn" class="w-full py-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold text-lg shadow-lg shadow-indigo-900/30 transition-all transform active:scale-[0.98]">
-                            Publier le document
+                            Publier le PDF
                         </button>
                     </form>
                 </div>
@@ -115,9 +160,7 @@
         </main>
     </div>
 
-    <!-- SCRIPTS -->
-    <!-- Ordre important : layout d'abord, puis la logique de la page -->
-    <script type="module" src="../../assets/js/layout.js"></script>
+    <!-- Script Upload Specifique -->
     <script type="module" src="../../assets/js/upload.js"></script>
 </body>
 </html>
