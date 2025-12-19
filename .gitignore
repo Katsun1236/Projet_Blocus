@@ -1,2 +1,17 @@
 node_modules/
 .env
+assets/js/api-keys.js
+# Ajoutez ces lignes à votre .gitignore existant
+
+# Clés API sensibles
+assets/js/api-keys.js
+
+# Fichiers d'environnement
+.env
+.env.local
+.env.production
+
+# Autres fichiers sensibles
+*.key
+*secret*
+config/secrets.js

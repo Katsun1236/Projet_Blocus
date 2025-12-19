@@ -6,11 +6,8 @@
     <title>Synthèses IA - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
@@ -30,7 +27,6 @@
         }
         option { background-color: #1f2937; color: white; }
         
-        /* Typography pour le contenu généré */
         .prose h2 { font-size: 1.5rem; font-weight: 700; color: white; margin-top: 1.5em; margin-bottom: 0.5em; }
         .prose h3 { font-size: 1.25rem; font-weight: 600; color: #a5b4fc; margin-top: 1.2em; margin-bottom: 0.5em; }
         .prose p { margin-bottom: 1em; line-height: 1.6; color: #d1d5db; }
@@ -38,7 +34,6 @@
         .prose li { margin-bottom: 0.5em; }
         .prose strong { color: #818cf8; font-weight: 600; }
 
-        /* Flashcards Styling */
         .flashcard-container { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
         .flashcard { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 1rem; transition: all 0.3s; }
         .flashcard:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
@@ -47,7 +42,6 @@
         .flashcard:hover .flashcard-a { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        /* Animation chargement */
         @keyframes progress-indeterminate {
             0% { width: 0%; left: 0%; }
             50% { width: 70%; left: 30%; }
@@ -57,7 +51,7 @@
             content: '';
             position: absolute;
             height: 100%;
-            background-color: #ec4899; /* Pink-500 */
+            background-color: #ec4899;
             animation: progress-indeterminate 1.5s infinite ease-in-out;
             border-radius: 9999px;
         }
@@ -66,15 +60,12 @@
 
 <body id="app-container" class="relative selection:bg-pink-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -10%; left: 10%; background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 60%);"></div>
     <div class="glow-bg" style="bottom: 10%; right: -5%; background: radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 60%);"></div>
 
-    <!-- MAIN CONTENT -->
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
                 <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -92,7 +83,6 @@
 
                 <div class="h-8 w-px bg-gray-800 hidden sm:block"></div>
 
-                <!-- Notifications & Profil -->
                 <div class="relative">
                     <button id="notif-btn" class="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 outline-none">
                         <i class="fas fa-bell text-xl"></i>
@@ -112,13 +102,10 @@
             </div>
         </header>
 
-        <!-- CONTENU SCROLLABLE -->
         <main class="flex-grow p-6 overflow-y-auto custom-scrollbar relative">
             
-            <!-- VUE DASHBOARD -->
             <div id="synth-dashboard" class="space-y-10 transition-all duration-300">
                 
-                <!-- Hero Section -->
                 <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-pink-900/40 to-purple-900/40 border border-pink-500/20 p-8 flex flex-col justify-center items-start group">
                     <div class="relative z-10">
                         <span class="inline-block px-3 py-1 rounded-full bg-pink-500/20 text-pink-300 text-xs font-bold mb-3 border border-pink-500/20">
@@ -135,7 +122,6 @@
                     </div>
                 </div>
 
-                <!-- Liste des Synthèses -->
                 <div>
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-bold text-white">Mes Synthèses</h2>
@@ -146,7 +132,6 @@
                     </div>
 
                     <div id="synth-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        <!-- Loader -->
                         <div class="col-span-full py-12 text-center flex flex-col items-center justify-center opacity-50">
                             <i class="fas fa-spinner fa-spin text-4xl mb-4 text-pink-500"></i>
                             <p class="text-gray-400">Chargement de tes fiches...</p>
@@ -155,11 +140,9 @@
                 </div>
             </div>
 
-            <!-- VUE LECTURE (Viewer) -->
             <div id="synth-viewer" class="hidden absolute inset-0 bg-[#050505] z-50 flex flex-col p-0 md:p-6 overflow-hidden">
                 <div class="max-w-4xl w-full mx-auto bg-gray-900 border border-gray-800 rounded-none md:rounded-3xl shadow-2xl flex flex-col h-full overflow-hidden">
                     
-                    <!-- Toolbar -->
                     <div class="h-16 border-b border-gray-800 flex justify-between items-center px-6 bg-gray-900/95 backdrop-blur shrink-0">
                         <button id="close-viewer-btn" class="text-gray-400 hover:text-white flex items-center gap-2 transition-colors">
                             <i class="fas fa-arrow-left"></i> <span class="hidden sm:inline">Retour</span>
@@ -174,17 +157,13 @@
                         </div>
                     </div>
 
-                    <!-- Content -->
                     <div class="flex-grow overflow-y-auto custom-scrollbar p-8 bg-[#0f1115]">
                         <div class="max-w-3xl mx-auto">
                             <span id="view-type-badge" class="inline-block px-3 py-1 rounded-full bg-pink-500/10 text-pink-400 text-xs font-bold mb-4 border border-pink-500/20">RÉSUMÉ</span>
                             <h1 id="view-title" class="text-3xl md:text-4xl font-display font-bold text-white mb-2">Titre de la Synthèse</h1>
                             <p id="view-meta" class="text-sm text-gray-500 mb-8 border-b border-gray-800 pb-4">Généré le 12/12/2024 • Basé sur "Cours Math"</p>
                             
-                            <!-- Corps de la synthèse -->
-                            <div id="view-content" class="prose prose-invert max-w-none text-gray-300">
-                                <!-- Injecté par JS -->
-                            </div>
+                            <div id="view-content" class="prose prose-invert max-w-none text-gray-300"></div>
                         </div>
                     </div>
                 </div>
@@ -193,7 +172,6 @@
         </main>
     </div>
 
-    <!-- MODAL CREATION -->
     <div id="new-synth-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             
@@ -211,14 +189,12 @@
             </div>
 
             <div class="p-6 overflow-y-auto custom-scrollbar space-y-6">
-                <!-- Titre -->
                 <div class="space-y-2">
                     <label class="text-sm text-gray-400">Titre de la fiche</label>
                     <input type="text" id="synth-title-input" placeholder="Ex: Résumé Droit Chapitre 1" 
                         class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-pink-500 focus:ring-1 focus:ring-pink-500 outline-none">
                 </div>
 
-                <!-- Source -->
                 <div class="space-y-3">
                     <label class="text-sm text-gray-400 uppercase tracking-wider font-bold">Source</label>
                     <div class="grid grid-cols-3 gap-3">
@@ -246,7 +222,6 @@
                     </div>
                 </div>
 
-                <!-- Inputs Source -->
                 <div id="source-file-container" class="space-y-2">
                     <label class="text-sm text-gray-400">Choisir un fichier</label>
                     <select id="synth-file-select" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-gray-400 focus:border-pink-500 outline-none transition-colors cursor-pointer">
@@ -262,7 +237,6 @@
                     <input type="text" id="synth-topic-input" placeholder="Ex: La Seconde Guerre Mondiale..." class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-pink-500 outline-none">
                 </div>
 
-                <!-- Options -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="space-y-2">
                         <label class="text-sm text-gray-400">Format</label>
@@ -284,7 +258,6 @@
                     </div>
                 </div>
 
-                <!-- Loading Bar -->
                 <div id="loading-bar-container" class="hidden pt-4 relative">
                     <div class="flex justify-between text-xs text-pink-400 mb-1">
                         <span>Analyse et rédaction...</span>
@@ -303,17 +276,17 @@
         </div>
     </div>
 
-    <!-- MessageBox -->
     <div id="message-box" class="fixed top-4 right-4 z-50"></div>
 
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { initLayout } from '../../assets/js/layout.js';
         import { showMessage, formatDate } from '../../assets/js/utils.js';
+        import { GEMINI_API_KEY } from '../../assets/js/api-keys.js'; // ✅ Import sécurisé
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc, deleteDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-        const apiKey = "AIzaSyBkLY1F5uDZDiNKG1kGXC81cTbQ90uybuk"; // Clé existante
+        const apiKey = GEMINI_API_KEY; // ✅ Utilise la clé importée
         let currentUserId = null;
         let currentSynthId = null;
 
@@ -322,12 +295,10 @@
             viewer: document.getElementById('synth-viewer'),
             grid: document.getElementById('synth-grid'),
             modal: document.getElementById('new-synth-modal'),
-            // View Elements
             viewTitle: document.getElementById('view-title'),
             viewMeta: document.getElementById('view-meta'),
             viewContent: document.getElementById('view-content'),
             viewBadge: document.getElementById('view-type-badge'),
-            // Form Elements
             titleInput: document.getElementById('synth-title-input'),
             sourceRadios: document.getElementsByName('synth-source'),
             containers: {
@@ -341,7 +312,6 @@
             formatSelect: document.getElementById('synth-format'),
             lengthSelect: document.getElementById('synth-length'),
             loadingBar: document.getElementById('loading-bar-container'),
-            // Buttons
             btnOpenHero: document.getElementById('btn-new-synth-hero'),
             btnOpenHeader: document.getElementById('btn-new-synth-header'),
             btnCloseModal: document.getElementById('close-modal-btn'),
@@ -350,10 +320,8 @@
             btnCloseViewer: document.getElementById('close-viewer-btn'),
             btnPrint: document.getElementById('print-btn'),
             btnDelete: document.getElementById('delete-current-synth'),
-            // User Header
             userName: document.getElementById('user-name-header'),
             userAvatar: document.getElementById('user-avatar-header'),
-            // Notifications
             notifBtn: document.getElementById('notif-btn'),
             notifBadge: document.getElementById('notif-badge'),
             notifDropdown: document.getElementById('notif-dropdown'),
@@ -363,7 +331,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             initLayout('synthesize');
             
-            // Select UX
             document.querySelectorAll('select').forEach(s => {
                 s.addEventListener('change', () => s.value ? s.classList.add('has-value') : s.classList.remove('has-value'));
             });
@@ -392,7 +359,6 @@
             } catch(e) {}
         }
 
-        // --- CHARGEMENT ---
         async function loadSyntheses() {
             const q = query(collection(db, 'users', currentUserId, 'syntheses'), orderBy('createdAt', 'desc'));
             const snapshot = await getDocs(q);
@@ -444,7 +410,6 @@
             });
         }
 
-        // --- VIEWER ---
         function openViewer(id, synth) {
             currentSynthId = id;
             ui.dashboard.classList.add('hidden');
@@ -454,7 +419,6 @@
             ui.viewBadge.textContent = (synth.formatLabel || 'RÉSUMÉ').toUpperCase();
             ui.viewMeta.textContent = `Généré le ${formatDate(synth.createdAt)} • Source: ${synth.sourceName || 'Inconnue'}`;
             
-            // Injection du HTML généré par l'IA
             ui.viewContent.innerHTML = synth.content; 
         }
 
@@ -475,7 +439,6 @@
             }
         };
 
-        // --- GENERATION GEMINI ---
         ui.btnGenerate.onclick = async () => {
             const btn = ui.btnGenerate;
             const originalHtml = btn.innerHTML;
@@ -499,8 +462,6 @@
                 const sel = ui.fileSelect;
                 if (!sel.value) return showMessage("Sélectionnez un fichier", "error");
                 sourceName = sel.options[sel.selectedIndex].text;
-                // Note: Ici on n'a que le titre du fichier car on ne peut pas lire le PDF côté client facilement sans traitement lourd
-                // Pour la démo, on dit à l'IA d'imaginer le contenu basé sur le titre, ou on simule
                 context = `Fichier intitulé : "${sourceName}". (Note système: Le contenu complet du fichier n'est pas accessible, génère une structure type basée sur ce titre de cours)`; 
             }
 
@@ -509,7 +470,6 @@
             ui.loadingBar.classList.remove('hidden');
 
             try {
-                // Prompt Engineering pour du HTML propre
                 const prompt = `
                     Agis comme un professeur expert. Rédige un contenu pédagogique structuré en format HTML pur (sans balises <html> ou <body>, juste le contenu).
                     
@@ -530,7 +490,7 @@
                     - Sois clair, précis et académique.
                 `;
 
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
@@ -542,7 +502,6 @@
                 if (data.error) throw new Error(data.error.message);
                 
                 let content = data.candidates[0].content.parts[0].text;
-                // Nettoyage Markdown éventuel si l'IA en met (```html ...)
                 content = content.replace(/```html/g, '').replace(/```/g, '');
 
                 await addDoc(collection(db, 'users', currentUserId, 'syntheses'), {
@@ -570,7 +529,6 @@
             }
         };
 
-        // --- UI LOGIC ---
         const toggleModal = (show) => ui.modal.classList.toggle('hidden', !show);
         
         ui.btnOpenHero.onclick = () => toggleModal(true);
@@ -585,7 +543,6 @@
             });
         });
 
-        // Notifications (Copie standard)
         function setupNotifications(userId) {
             const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(5));
             onSnapshot(q, (snapshot) => {
