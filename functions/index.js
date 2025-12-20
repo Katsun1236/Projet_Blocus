@@ -4,15 +4,10 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-// La clé est récupérée depuis les variables d'environnement (.env) du serveur
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-// MODIFICATION ICI : On initialise le client.
-// La version se gère souvent automatiquement.
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 exports.generateContent = onCall({cors: true}, async (request) => {
-  // 1. Vérification de l'authentification (Sécurité)
   if (!request.auth) {
     throw new HttpsError(
         "unauthenticated",
@@ -20,8 +15,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     );
   }
 
-  // 2. Récupération des données envoyées par le client
-  // J'ai retiré 'model' ici car on ne l'utilise pas (on force gemini-pro)
   const {prompt, schema, mimeType} = request.data;
 
   if (!GEMINI_API_KEY) {
@@ -33,18 +26,14 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   try {
-    // 3. Configuration du modèle
-    // On force "gemini-pro" qui est le modèle legacy stable
-    // Si "gemini-1.5-flash" échoue, "gemini-pro" est le repli sûr.
-    const modelName = "gemini-pro";
+    // On réessaie avec le modèle standard actuel.
+    // Si l'API est bien activée (Étape 1), ça DOIT marcher.
+    const modelName = "gemini-1.5-flash";
 
     const generationConfig = {
-      // Si un mimeType spécifique est demandé (ex: json), on l'utilise
-      // Sinon text/plain par défaut
       responseMimeType: mimeType || "text/plain",
     };
 
-    // Si un schéma JSON est fourni, on l'ajoute à la config
     if (schema) {
       generationConfig.responseMimeType = "application/json";
       generationConfig.responseSchema = schema;
@@ -55,7 +44,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       generationConfig: generationConfig,
     });
 
-    // 4. Génération
     const result = await genModel.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
@@ -63,7 +51,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     return {text};
   } catch (error) {
     console.error("Gemini API Error:", error);
-    // On renvoie l'erreur brute pour le debug (console navigateur F12)
     throw new HttpsError(
         "internal",
         `Erreur Gemini: ${error.message}`,
