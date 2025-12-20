@@ -3,7 +3,6 @@ import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-// Import pour appeler la Cloud Function sécurisée
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
 // --- STATE ---
@@ -284,7 +283,7 @@ if (ui.btnGenerate) {
             const response = await generateContent({ 
                 prompt: prompt,
                 schema: schema,
-                model: 'gemini-1.5-flash', // Modèle backend
+                model: 'gemini-pro', // CHANGEMENT ICI
                 mimeType: 'application/json'
             });
 

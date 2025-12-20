@@ -3,7 +3,6 @@ import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { collection, query, orderBy, getDocs, addDoc, serverTimestamp, doc, getDoc, deleteDoc, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-// Import Cloud Functions
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
 let currentUserId = null;
@@ -205,15 +204,13 @@ if (ui.btnGenerate) {
                 - Utilise <h2>, <h3>, <ul>, <strong>.
             `;
 
-            // On ne passe PAS de schema car on veut du texte/HTML libre, pas du JSON
             const response = await generateContent({
                 prompt: prompt,
-                model: 'gemini-1.5-flash',
+                model: 'gemini-pro', // CHANGEMENT ICI
                 mimeType: 'text/plain' 
             });
 
             let content = response.data.text;
-            // Nettoyage Markdown si l'IA en renvoie
             content = content.replace(/```html/g, '').replace(/```/g, '');
 
             await addDoc(collection(db, 'users', currentUserId, 'syntheses'), {

@@ -30,8 +30,8 @@ exports.generateContent = onCall({cors: true}, async (request) => {
 
   try {
     // 3. Configuration du modèle
-    // On utilise gemini-1.5-flash par défaut
-    const modelName = model || "gemini-1.5-flash";
+    // MODIFICATION ICI : On passe à gemini-pro (plus stable)
+    const modelName = model || "gemini-pro";
 
     const generationConfig = {
       // Si un mimeType spécifique est demandé (ex: json), on l'utilise
