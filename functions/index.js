@@ -4,7 +4,8 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+const GEMINI_API_KEY = "AIzaSyBX1QEw3MceWrulzuL8wCpf64Txk_q_brc"; 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 exports.generateContent = onCall({cors: true}, async (request) => {
