@@ -20,22 +20,29 @@ exports.generateContent = onCall({cors: true}, async (request) => {
 
   // 2. Vérifications de sécurité
   if (!GEMINI_API_KEY) {
-    throw new HttpsError("failed-precondition", "Clé API serveur manquante.");
+    throw new HttpsError(
+        "failed-precondition",
+        "Clé API serveur manquante.",
+    );
   }
 
   if (!prompt) {
-    throw new HttpsError("invalid-argument", "Le prompt est obligatoire.");
+    throw new HttpsError(
+        "invalid-argument",
+        "Le prompt est obligatoire.",
+    );
   }
 
   try {
-    // ✅ CORRECTION : Utiliser gemini-1.5-flash (rapide) ou gemini-1.5-pro (puissant)
-    const modelName = "gemini-1.5-flash"; // ou "gemini-1.5-pro"
+    // Utiliser gemini-1.5-flash (rapide)
+    // ou gemini-1.5-pro (puissant)
+    const modelName = "gemini-1.5-flash";
 
     const generationConfig = {
       temperature: 0.7,
     };
 
-    // Si tu veux du JSON structuré, tu peux maintenant utiliser responseMimeType
+    // Support natif du JSON avec les nouveaux modèles
     if (schema || mimeType === "application/json") {
       generationConfig.responseMimeType = "application/json";
       if (schema) {
@@ -44,10 +51,11 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     }
 
     let finalPrompt = prompt;
-    
-    // Aide supplémentaire pour le JSON (optionnel mais recommandé)
+
+    // Aide pour le JSON (optionnel mais recommandé)
     if (mimeType === "application/json" && !schema) {
-      finalPrompt += `\n\nIMPORTANT : Réponds uniquement avec un JSON valide, sans markdown.`;
+      finalPrompt += "\n\nIMPORTANT : Réponds uniquement " +
+        "avec un JSON valide, sans markdown.";
     }
 
     const genModel = genAI.getGenerativeModel({
@@ -61,14 +69,17 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     let text = response.text();
 
     // Nettoyage de sécurité
-    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+    text = text.replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
 
     return {text};
   } catch (error) {
     console.error("Gemini API Error:", error);
     throw new HttpsError(
         "internal",
-        `Erreur Gemini (${error.status || "Inconnu"}): ${error.message}`,
+        `Erreur Gemini (${error.status || "Inconnu"}): ` +
+        `${error.message}`,
         error,
     );
   }
