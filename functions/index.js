@@ -7,8 +7,8 @@ admin.initializeApp();
 // La clé est récupérée depuis les variables d'environnement (.env) du serveur
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-// MODIFICATION ICI : On initialise le client, la version se gère souvent automatiqument
-// mais on va s'assurer que le modèle appelé est bien le bon.
+// MODIFICATION ICI : On initialise le client.
+// La version se gère souvent automatiquement.
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 exports.generateContent = onCall({cors: true}, async (request) => {
@@ -21,7 +21,8 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   // 2. Récupération des données envoyées par le client
-  const {prompt, schema, model, mimeType} = request.data;
+  // J'ai retiré 'model' ici car on ne l'utilise pas (on force gemini-pro)
+  const {prompt, schema, mimeType} = request.data;
 
   if (!GEMINI_API_KEY) {
     throw new HttpsError("failed-precondition", "Clé API serveur manquante.");
@@ -35,8 +36,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     // 3. Configuration du modèle
     // On force "gemini-pro" qui est le modèle legacy stable
     // Si "gemini-1.5-flash" échoue, "gemini-pro" est le repli sûr.
-    // Assure-toi que le frontend envoie bien "gemini-pro" ou rien (pour prendre le défaut ici)
-    const modelName = "gemini-pro"; 
+    const modelName = "gemini-pro";
 
     const generationConfig = {
       // Si un mimeType spécifique est demandé (ex: json), on l'utilise
@@ -63,12 +63,11 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     return {text};
   } catch (error) {
     console.error("Gemini API Error:", error);
-    // On renvoie l'erreur brute pour que tu la voies dans la console du navigateur (F12)
-    // C'est temporaire pour le debug
+    // On renvoie l'erreur brute pour le debug (console navigateur F12)
     throw new HttpsError(
         "internal",
-        `Erreur Gemini: ${error.message}`, 
-        error
+        `Erreur Gemini: ${error.message}`,
+        error,
     );
   }
 });
