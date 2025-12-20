@@ -31,9 +31,9 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   try {
-    // 3. Configuration du modèle
-    // On utilise le modèle standard actuel
-    const modelName = "gemini-1.5-flash";
+    // TENTATIVE DE SAUVETAGE : On force le modèle le plus basique "gemini-pro"
+    // C'est souvent celui qui est activé par défaut sur les vieux comptes.
+    const modelName = "gemini-pro";
 
     const generationConfig = {
       responseMimeType: mimeType || "text/plain",
@@ -47,6 +47,9 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     const genModel = genAI.getGenerativeModel({
       model: modelName,
       generationConfig: generationConfig,
+    }, {
+      // Forcer l'utilisation de l'API v1 (stable) au lieu de v1beta
+      apiVersion: "v1",
     });
 
     // 4. Génération
@@ -59,7 +62,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     console.error("Gemini API Error:", error);
     throw new HttpsError(
         "internal",
-        `Erreur Gemini: ${error.message}`,
+        `Erreur Gemini (${error.status || "Inconnu"}): ${error.message}`,
         error,
     );
   }
