@@ -31,7 +31,8 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   try {
-    // On reste sur "gemini-pro" car c'est le seul qui passe avec ta clé actuelle.
+    // On reste sur "gemini-pro" car c'est le seul qui passe
+    // avec ta clé actuelle.
     const modelName = "gemini-pro";
 
     // CORRECTION 400 : On retire 'responseMimeType' et 'responseSchema'
