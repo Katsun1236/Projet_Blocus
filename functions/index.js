@@ -4,11 +4,14 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
+// La clé est récupérée depuis les variables d'environnement (.env)
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-const GEMINI_API_KEY = "AIzaSyBX1QEw3MceWrulzuL8wCpf64Txk_q_brc"; 
+// Initialisation du client
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 exports.generateContent = onCall({cors: true}, async (request) => {
+  // 1. Vérification de l'authentification
   if (!request.auth) {
     throw new HttpsError(
         "unauthenticated",
@@ -18,6 +21,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
 
   const {prompt, schema, mimeType} = request.data;
 
+  // 2. Vérifications de sécurité
   if (!GEMINI_API_KEY) {
     throw new HttpsError("failed-precondition", "Clé API serveur manquante.");
   }
@@ -27,8 +31,8 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   try {
-    // On réessaie avec le modèle standard actuel.
-    // Si l'API est bien activée (Étape 1), ça DOIT marcher.
+    // 3. Configuration du modèle
+    // On utilise le modèle standard actuel
     const modelName = "gemini-1.5-flash";
 
     const generationConfig = {
@@ -45,6 +49,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       generationConfig: generationConfig,
     });
 
+    // 4. Génération
     const result = await genModel.generateContent(prompt);
     const response = await result.response;
     const text = response.text();
