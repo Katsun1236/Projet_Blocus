@@ -13,7 +13,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   if (!request.auth) {
     throw new HttpsError(
         "unauthenticated",
-        "Vous devez être connecté pour utiliser cette fonction."
+        "Vous devez être connecté pour utiliser cette fonction.",
     );
   }
 
@@ -61,7 +61,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     throw new HttpsError(
         "internal",
         "Erreur lors de la génération IA",
-        error.message
+        error.message,
     );
   }
 });
