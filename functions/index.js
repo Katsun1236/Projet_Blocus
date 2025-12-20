@@ -31,22 +31,24 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   try {
-    // On utilise le modèle le plus récent et léger
-    const modelName = "gemini-1.5-flash";
+    // SOLUTION : On utilise "gemini-pro" qui est compatible avec ton compte
+    const modelName = "gemini-pro";
 
-    // Configuration de base sans fioritures pour maximiser la compatibilité
+    // IMPORTANT : On laisse la config vide car "gemini-pro" ne supporte pas
+    // "responseMimeType" ni "responseSchema".
     const generationConfig = {
-      temperature: 0.7, // Créativité standard
+      // Config vide volontairement pour éviter l'erreur 400
+      temperature: 0.7,
     };
 
-    // Si on veut du JSON, on l'ajoute dans le prompt plutôt que dans la config
-    // C'est la méthode "universelle" qui marche sur tous les modèles
+    // Adaptation manuelle : Si on veut du JSON, on l'ajoute dans le prompt
     let finalPrompt = prompt;
     if (schema || mimeType === "application/json") {
       finalPrompt += `
       
-      IMPORTANT: Réponds UNIQUEMENT avec un JSON valide. 
-      Pas de Markdown, pas de \`\`\`json, pas de texte avant ou après.
+      IMPORTANT : Tu DOIS répondre uniquement avec un JSON valide brut.
+      Pas de balises Markdown (\`\`\`json), pas d'intro, pas de conclusion.
+      Juste le JSON.
       `;
     }
 
@@ -60,7 +62,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     const response = await result.response;
     let text = response.text();
 
-    // Nettoyage de sécurité
+    // Nettoyage de sécurité si l'IA met quand même du markdown
     text = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
     return {text};
