@@ -31,33 +31,28 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   try {
-    // On reste sur "gemini-pro" car c'est le seul qui passe
-    // avec ta clé actuelle.
-    const modelName = "gemini-pro";
+    // On utilise le modèle le plus récent et léger
+    const modelName = "gemini-1.5-flash";
 
-    // CORRECTION 400 : On retire 'responseMimeType' et 'responseSchema'
-    // car l'API v1 de gemini-pro ne les supporte pas.
+    // Configuration de base sans fioritures pour maximiser la compatibilité
     const generationConfig = {
-      // Config vide pour éviter l'erreur "Unknown field"
+      temperature: 0.7, // Créativité standard
     };
 
-    // Adaptation manuelle : Si on veut du JSON, on l'ajoute dans le prompt
+    // Si on veut du JSON, on l'ajoute dans le prompt plutôt que dans la config
+    // C'est la méthode "universelle" qui marche sur tous les modèles
     let finalPrompt = prompt;
     if (schema || mimeType === "application/json") {
       finalPrompt += `
       
-      IMPORTANT : Tu DOIS répondre uniquement avec un JSON valide brut.
-      Pas de balises Markdown (\`\`\`json), pas d'intro, pas de conclusion.
-      Juste le JSON.
+      IMPORTANT: Réponds UNIQUEMENT avec un JSON valide. 
+      Pas de Markdown, pas de \`\`\`json, pas de texte avant ou après.
       `;
     }
 
     const genModel = genAI.getGenerativeModel({
       model: modelName,
       generationConfig: generationConfig,
-    }, {
-      // On garde v1 car c'est celle qui a accepté ta clé
-      apiVersion: "v1",
     });
 
     // 4. Génération
@@ -65,7 +60,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     const response = await result.response;
     let text = response.text();
 
-    // Nettoyage de sécurité si l'IA met quand même du markdown
+    // Nettoyage de sécurité
     text = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
     return {text};
