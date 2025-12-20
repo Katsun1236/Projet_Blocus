@@ -4,10 +4,7 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-// La clé est récupérée depuis les variables d'environnement (.env)
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-// Initialisation du client
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 exports.generateContent = onCall({cors: true}, async (request) => {
@@ -31,25 +28,26 @@ exports.generateContent = onCall({cors: true}, async (request) => {
   }
 
   try {
-    // SOLUTION : On utilise "gemini-pro" qui est compatible avec ton compte
-    const modelName = "gemini-pro";
+    // ✅ CORRECTION : Utiliser gemini-1.5-flash (rapide) ou gemini-1.5-pro (puissant)
+    const modelName = "gemini-1.5-flash"; // ou "gemini-1.5-pro"
 
-    // IMPORTANT : On laisse la config vide car "gemini-pro" ne supporte pas
-    // "responseMimeType" ni "responseSchema".
     const generationConfig = {
-      // Config vide volontairement pour éviter l'erreur 400
       temperature: 0.7,
     };
 
-    // Adaptation manuelle : Si on veut du JSON, on l'ajoute dans le prompt
-    let finalPrompt = prompt;
+    // Si tu veux du JSON structuré, tu peux maintenant utiliser responseMimeType
     if (schema || mimeType === "application/json") {
-      finalPrompt += `
-      
-      IMPORTANT : Tu DOIS répondre uniquement avec un JSON valide brut.
-      Pas de balises Markdown (\`\`\`json), pas d'intro, pas de conclusion.
-      Juste le JSON.
-      `;
+      generationConfig.responseMimeType = "application/json";
+      if (schema) {
+        generationConfig.responseSchema = schema;
+      }
+    }
+
+    let finalPrompt = prompt;
+    
+    // Aide supplémentaire pour le JSON (optionnel mais recommandé)
+    if (mimeType === "application/json" && !schema) {
+      finalPrompt += `\n\nIMPORTANT : Réponds uniquement avec un JSON valide, sans markdown.`;
     }
 
     const genModel = genAI.getGenerativeModel({
@@ -62,7 +60,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     const response = await result.response;
     let text = response.text();
 
-    // Nettoyage de sécurité si l'IA met quand même du markdown
+    // Nettoyage de sécurité
     text = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
     return {text};
