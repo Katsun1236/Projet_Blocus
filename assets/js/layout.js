@@ -1,9 +1,9 @@
-import { auth } from './config.js';
-import { signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { auth, db } from './config.js'; // Import db ajouté
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js"; // Import Firestore ajouté
 
 export function initLayout(activePageId) {
     // 1. Inject Sidebar if not present
-    // (Ta logique existante d'injection sidebar...)
     const sidebar = document.getElementById('sidebar-container');
     if (!sidebar && document.getElementById('app-container')) {
         injectSidebar(activePageId);
@@ -11,27 +11,27 @@ export function initLayout(activePageId) {
 
     // 2. Mobile Menu Logic
     const btn = document.getElementById('mobile-menu-btn');
-    const menu = document.getElementById('mobile-menu'); // Assure-toi que l'ID correspond à ton HTML injecté
+    const menu = document.getElementById('mobile-menu');
     if (btn && menu) {
         btn.addEventListener('click', () => {
             menu.classList.toggle('hidden');
         });
     }
 
-    // 3. CORRECTIF HEADER PROFIL CLICK
-    // On cible le conteneur du profil dans le header
-    // Souvent c'est une div qui contient #user-avatar-header et #user-name-header
-    const headerProfileContainer = document.getElementById('user-avatar-header')?.parentElement;
-    
-    if (headerProfileContainer) {
-        // On rend le curseur "pointer" pour montrer que c'est cliquable
-        headerProfileContainer.style.cursor = 'pointer';
-        headerProfileContainer.title = "Voir mon profil"; // Tooltip
+    // 3. HEADER PROFIL LOGIC (Chargement Auto)
+    // On écoute l'auth ici pour mettre à jour le header globalement
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            updateHeaderProfile(user);
+        }
+    });
 
-        // On ajoute l'event listener
+    // 4. HEADER CLICK EVENT
+    const headerProfileContainer = document.getElementById('user-avatar-header')?.parentElement;
+    if (headerProfileContainer) {
+        headerProfileContainer.style.cursor = 'pointer';
+        headerProfileContainer.title = "Voir mon profil";
         headerProfileContainer.addEventListener('click', () => {
-            // Redirection vers la page profil
-            // On gère le chemin relatif selon où on est
             const currentPath = window.location.pathname;
             if (currentPath.includes('/pages/app/')) {
                 window.location.href = 'profile.html';
@@ -42,16 +42,51 @@ export function initLayout(activePageId) {
     }
 }
 
+// Fonction dédiée à la mise à jour du header
+async function updateHeaderProfile(user) {
+    const avatarImg = document.getElementById('user-avatar-header');
+    const userNameTxt = document.getElementById('user-name-header');
+
+    if (!avatarImg && !userNameTxt) return;
+
+    try {
+        // Essayer de récupérer les données Firestore pour avoir le prénom/photo custom
+        const userDocRef = doc(db, 'users', user.uid);
+        const userSnapshot = await getDoc(userDocRef);
+
+        let photoURL = user.photoURL;
+        let displayName = user.displayName || user.email.split('@')[0];
+
+        if (userSnapshot.exists()) {
+            const data = userSnapshot.data();
+            if (data.photoURL) photoURL = data.photoURL;
+            if (data.firstName) displayName = data.firstName;
+        }
+
+        // Fallback UI Avatars si pas de photo
+        if (!photoURL) {
+            photoURL = `https://ui-avatars.com/api/?name=${displayName}&background=random&color=fff`;
+        }
+
+        if (avatarImg) avatarImg.src = photoURL;
+        if (userNameTxt) userNameTxt.textContent = displayName;
+
+    } catch (e) {
+        console.error("Erreur chargement header profil:", e);
+        // Fallback Auth simple en cas d'erreur Firestore
+        if (avatarImg) avatarImg.src = user.photoURL || `https://ui-avatars.com/api/?background=random`;
+        if (userNameTxt) userNameTxt.textContent = user.displayName || "Étudiant";
+    }
+}
+
 function injectSidebar(activePageId) {
     const container = document.createElement('div');
     container.id = 'sidebar-container';
     
-    // Déterminer le chemin relatif pour les liens (selon si on est à la racine ou dans /pages/app/)
     const inAppPages = window.location.pathname.includes('/pages/app/');
     const basePath = inAppPages ? './' : './pages/app/';
     const rootPath = inAppPages ? '../../' : './';
 
-    // HTML de la sidebar
     container.innerHTML = `
         <!-- SIDEBAR DESKTOP -->
         <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-40 hidden md:flex flex-col transition-transform duration-300">
@@ -83,7 +118,7 @@ function injectSidebar(activePageId) {
             </div>
         </aside>
 
-        <!-- MENU MOBILE OVERLAY (Injecté mais caché) -->
+        <!-- MENU MOBILE OVERLAY -->
         <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-black/95 flex flex-col p-6 md:hidden animate-fade-in">
             <div class="flex justify-between items-center mb-8">
                 <span class="text-xl font-bold text-white">Menu</span>
@@ -101,7 +136,6 @@ function injectSidebar(activePageId) {
 
     document.body.prepend(container);
 
-    // Logout Logic (Sidebar)
     document.getElementById('sidebar-logout-btn')?.addEventListener('click', async () => {
         try {
             await signOut(auth);
@@ -111,10 +145,9 @@ function injectSidebar(activePageId) {
         }
     });
 
-    // Mobile Menu Close Logic
     const closeMenuBtn = document.getElementById('close-mobile-menu');
     const mobileMenu = document.getElementById('mobile-menu');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn'); // Bouton hamburger dans la page
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 
     if (closeMenuBtn && mobileMenu) {
         closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));

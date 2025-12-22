@@ -261,21 +261,16 @@
                 <!-- Source -->
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Source du contenu</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <label class="cursor-pointer group">
-                            <input type="radio" name="quiz-source" value="synthesis" class="peer hidden">
-                            <div class="h-full px-2 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all group-hover:bg-gray-750">
-                                <i class="fas fa-file-alt text-lg mb-1 block text-gray-400 peer-checked:text-indigo-400"></i>
-                                <span class="text-xs font-bold text-gray-300">Synthèse</span>
-                            </div>
-                        </label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Option Combinée Cours & Synthèses -->
                         <label class="cursor-pointer group">
                             <input type="radio" name="quiz-source" value="file" class="peer hidden">
                             <div class="h-full px-2 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all group-hover:bg-gray-750">
                                 <i class="fas fa-folder-open text-lg mb-1 block text-gray-400 peer-checked:text-indigo-400"></i>
-                                <span class="text-xs font-bold text-gray-300">Fichier</span>
+                                <span class="text-xs font-bold text-gray-300">Cours & Synthèses</span>
                             </div>
                         </label>
+                        <!-- Option Sujet Libre -->
                         <label class="cursor-pointer group">
                             <input type="radio" name="quiz-source" value="topic" class="peer hidden" checked>
                             <div class="h-full px-2 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all group-hover:bg-gray-750">
@@ -286,16 +281,10 @@
                     </div>
                 </div>
 
-                <!-- Contenu Dynamique selon Source -->
-                <div id="source-synthesis-container" class="hidden animate-fade-in">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Choisir une synthèse</label>
-                    <select id="quiz-synthesis-select" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 appearance-none">
-                        <option value="">Chargement...</option>
-                    </select>
-                </div>
-
+                <!-- Contenu Dynamique -->
+                <!-- Container unique pour la liste déroulante -->
                 <div id="source-file-container" class="hidden animate-fade-in">
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Choisir un fichier</label>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Choisir un document</label>
                     <select id="quiz-file-select" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 appearance-none">
                         <option value="">Chargement...</option>
                     </select>

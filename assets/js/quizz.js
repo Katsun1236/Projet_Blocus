@@ -11,7 +11,7 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
 let isGenerating = false;
-let userFiles = []; // Cache des fichiers
+let userResources = []; // Cache combiné (Fichiers + Synthèses)
 
 // --- DOM ELEMENTS ---
 const ui = {
@@ -32,9 +32,9 @@ const ui = {
     // Inputs Source
     sourceRadios: document.getElementsByName('quiz-source'),
     sourceTopicContainer: document.getElementById('source-topic-container'),
-    sourceFileContainer: document.getElementById('source-file-container'),
+    sourceFileContainer: document.getElementById('source-file-container'), // Sera utilisé pour la liste combinée
     topicInput: document.getElementById('quiz-topic'),
-    fileSelect: document.getElementById('quiz-file-select'),
+    resourceSelect: document.getElementById('quiz-file-select'), // On réutilise le select existant pour tout
     // Params
     quizTitleInput: document.getElementById('quiz-title-input'),
     questionCountInput: document.getElementById('quiz-length'),
@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             loadRecentQuiz();
-            loadUserFiles(); // Pré-charger les fichiers pour le select
+            loadUserResources(); // Charge tout (Fichiers + Synthèses)
         } else {
             window.location.href = '../auth/login.html';
         }
@@ -73,31 +73,70 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 });
 
-// --- LOAD DATA ---
+// --- LOAD RESOURCES (COMBINÉ) ---
 
-async function loadUserFiles() {
+async function loadUserResources() {
     try {
-        // On cherche dans la collection 'files' globale filtrée par userId
-        // Ou 'users/{uid}/files' selon ton architecture courses.js. 
-        // D'après les règles, c'est 'files/{fileId}' avec userId.
-        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid));
-        const snapshot = await getDocs(q);
-        
-        userFiles = [];
-        ui.fileSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
-        
-        snapshot.forEach(doc => {
-            const f = { id: doc.id, ...doc.data() };
-            userFiles.push(f);
-            const option = document.createElement('option');
-            option.value = f.id; // On stocke l'ID, on récupérera l'URL/Contenu après
-            option.textContent = f.name;
-            ui.fileSelect.appendChild(option);
+        const userId = auth.currentUser.uid;
+        userResources = [];
+        ui.resourceSelect.innerHTML = '<option value="">-- Chargement... --</option>';
+
+        // 1. Récupérer les Fichiers (Cours)
+        // Note: Assure-toi que la collection 'files' contient un champ 'type' ou 'mimeType' si tu veux filtrer
+        const qFiles = query(collection(db, 'files'), where('userId', '==', userId));
+        const filesSnap = await getDocs(qFiles);
+        filesSnap.forEach(doc => {
+            const d = doc.data();
+            userResources.push({
+                id: doc.id,
+                type: 'file',
+                name: d.name,
+                url: d.url, // URL Storage
+                content: null // On n'a pas le contenu texte direct
+            });
         });
 
+        // 2. Récupérer les Synthèses
+        // Supposons une collection 'syntheses'
+        // Si elle n'existe pas encore, cette partie ne retournera rien, pas grave.
+        try {
+            const qSynth = query(collection(db, 'syntheses'), where('userId', '==', userId));
+            const synthSnap = await getDocs(qSynth);
+            synthSnap.forEach(doc => {
+                const d = doc.data();
+                userResources.push({
+                    id: doc.id,
+                    type: 'synthesis',
+                    name: `Synthèse : ${d.title || 'Sans titre'}`,
+                    url: null,
+                    content: d.content // Contenu texte Markdown
+                });
+            });
+        } catch (e) {
+            console.warn("Collection syntheses non trouvée ou erreur:", e);
+        }
+
+        // 3. Remplir le Select
+        ui.resourceSelect.innerHTML = '<option value="">-- Choisir un cours ou une synthèse --</option>';
+        if (userResources.length === 0) {
+            const opt = document.createElement('option');
+            opt.disabled = true;
+            opt.textContent = "Aucun document disponible";
+            ui.resourceSelect.appendChild(opt);
+        } else {
+            userResources.forEach(res => {
+                const option = document.createElement('option');
+                option.value = res.id;
+                // Petit icône visuel dans le texte (si supporté par browser)
+                const icon = res.type === 'file' ? '📄' : '📝';
+                option.textContent = `${icon} ${res.name}`;
+                ui.resourceSelect.appendChild(option);
+            });
+        }
+
     } catch (e) {
-        console.error("Erreur chargement fichiers:", e);
-        ui.fileSelect.innerHTML = '<option value="">Erreur chargement</option>';
+        console.error("Erreur chargement ressources:", e);
+        ui.resourceSelect.innerHTML = '<option value="">Erreur chargement</option>';
     }
 }
 
@@ -112,24 +151,33 @@ async function generateQuiz() {
     const type = ui.quizTypeInput.value;
 
     let topic = "";
-    let dataContext = ""; // Contenu du fichier ou vide
+    let dataContext = ""; 
 
     // 1. Validation & Préparation Données
     if (source === 'topic') {
+        // CAS 1: SUJET LIBRE
         topic = ui.topicInput.value.trim();
-        if (!topic) return showMessage("Veuillez entrer un sujet.", "error");
-    } else if (source === 'file') {
-        const fileId = ui.fileSelect.value;
-        if (!fileId) return showMessage("Veuillez choisir un fichier.", "error");
+        if (!topic) return showMessage("Veuillez décrire le sujet.", "error");
+    } else {
+        // CAS 2: FICHIER OU SYNTHÈSE (Combinés dans l'UI sous value="file" ou "synthesis")
+        // Note: Dans le HTML actuel, on a radio value="file" et value="synthesis".
+        // Si tu veux simplifier l'UI à 2 choix (Doc vs Sujet), on peut fusionner.
+        // Ici je gère le cas où l'utilisateur a choisi "Fichier" (qui contient notre liste combinée)
         
-        const selectedFile = userFiles.find(f => f.id === fileId);
-        if (selectedFile) {
-            topic = `Basé sur le fichier : ${selectedFile.name}`;
-            // Note: Pour un vrai PDF, il faut soit envoyer l'URL à Gemini (si public/signé), 
-            // soit extraire le texte. Ici on envoie l'URL et le nom pour que Gemini improvise 
-            // ou on suppose que c'est un fichier texte. 
-            // Pour l'instant, on envoie le nom et l'URL comme contexte.
-            dataContext = `Fichier: ${selectedFile.name}. URL: ${selectedFile.url}. (Si l'URL n'est pas accessible, génère un quiz sur le thème probable du titre).`;
+        const resourceId = ui.resourceSelect.value;
+        if (!resourceId) return showMessage("Veuillez choisir un document.", "error");
+        
+        const selectedRes = userResources.find(r => r.id === resourceId);
+        if (selectedRes) {
+            topic = `Quiz sur : ${selectedRes.name}`;
+            
+            if (selectedRes.type === 'synthesis' && selectedRes.content) {
+                // Pour une synthèse, on a le texte brut, c'est parfait pour l'IA
+                dataContext = selectedRes.content;
+            } else if (selectedRes.type === 'file') {
+                // Pour un fichier, on envoie le nom et l'URL
+                dataContext = `Document: ${selectedRes.name}. URL: ${selectedRes.url}. Génère des questions pertinentes basées sur ce type de document universitaire.`;
+            }
         }
     }
 
@@ -140,12 +188,11 @@ async function generateQuiz() {
     ui.loadingContainer.classList.remove('hidden');
 
     try {
-        // Appel Cloud Function
         const generateContent = httpsCallable(functions, 'generateContent');
         const result = await generateContent({
             mode: 'quiz',
             topic: topic,
-            data: dataContext, // Peut être vide
+            data: dataContext, 
             options: { count: count, type: type }
         });
 
@@ -155,10 +202,8 @@ async function generateQuiz() {
             throw new Error("L'IA n'a pas pu générer de questions valides.");
         }
 
-        // On force le titre choisi par l'user si présent
         quizData.title = title !== "Quiz IA" ? title : (quizData.title || title);
 
-        // Succès
         showMessage("Quiz prêt !", "success");
         startQuiz(quizData);
         closeModal();
@@ -182,7 +227,6 @@ function startQuiz(quizData) {
     userAnswers = [];
     score = 0;
 
-    // Switch View
     ui.dashboard.classList.add('hidden');
     ui.results.classList.add('hidden');
     ui.player.classList.remove('hidden');
@@ -286,19 +330,21 @@ async function finishQuiz() {
 
     // Revue des questions
     const reviewList = document.getElementById('review-list');
-    reviewList.innerHTML = '';
-    userAnswers.forEach((ans, idx) => {
-        const div = document.createElement('div');
-        div.className = `p-3 rounded-lg border ${ans.isCorrect ? 'border-green-500/30 bg-green-500/10' : 'border-red-500/30 bg-red-500/10'}`;
-        div.innerHTML = `
-            <div class="flex justify-between mb-1">
-                <span class="text-xs font-bold ${ans.isCorrect ? 'text-green-400' : 'text-red-400'}">Q${idx+1}</span>
-                <span class="text-xs text-gray-500">${ans.isCorrect ? 'Correct' : 'Erreur'}</span>
-            </div>
-            <p class="text-sm text-gray-300">${ans.question}</p>
-        `;
-        reviewList.appendChild(div);
-    });
+    if(reviewList) {
+        reviewList.innerHTML = '';
+        userAnswers.forEach((ans, idx) => {
+            const div = document.createElement('div');
+            div.className = `p-3 rounded-lg border ${ans.isCorrect ? 'border-green-500/30 bg-green-500/10' : 'border-red-500/30 bg-red-500/10'}`;
+            div.innerHTML = `
+                <div class="flex justify-between mb-1">
+                    <span class="text-xs font-bold ${ans.isCorrect ? 'text-green-400' : 'text-red-400'}">Q${idx+1}</span>
+                    <span class="text-xs text-gray-500">${ans.isCorrect ? 'Correct' : 'Erreur'}</span>
+                </div>
+                <p class="text-sm text-gray-300">${ans.question}</p>
+            `;
+            reviewList.appendChild(div);
+        });
+    }
 
     if (auth.currentUser) {
         try {
@@ -326,6 +372,7 @@ function exitQuiz() {
 // --- DASHBOARD LOGIC ---
 
 async function loadRecentQuiz() {
+    if(!ui.quizGrid) return;
     ui.quizGrid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>';
     
     try {
@@ -376,7 +423,6 @@ function setupEventListeners() {
     const toggleModal = (show) => {
         if(show) {
             ui.modal.classList.remove('hidden');
-            // Reset fields
             ui.topicInput.value = "";
             ui.quizTitleInput.value = "";
         } else {
@@ -389,18 +435,17 @@ function setupEventListeners() {
     if(ui.closeModal) ui.closeModal.onclick = () => toggleModal(false);
     if(ui.cancelBtn) ui.cancelBtn.onclick = () => toggleModal(false);
 
-    // Source Switching
+    // LOGIQUE DE SWITCH DES SOURCES (MODIFIÉE)
     ui.sourceRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
-            if(e.target.value === 'file') {
+            const val = e.target.value;
+            // On considère 'file' et 'synthesis' comme le même cas UI pour l'instant (liste déroulante)
+            if(val === 'file' || val === 'synthesis') {
                 ui.sourceTopicContainer.classList.add('hidden');
                 ui.sourceFileContainer.classList.remove('hidden');
-            } else if (e.target.value === 'topic') {
-                ui.sourceTopicContainer.classList.remove('hidden');
-                ui.sourceFileContainer.classList.add('hidden');
             } else {
-                // Synthesis (Future)
-                ui.sourceTopicContainer.classList.add('hidden');
+                // Topic
+                ui.sourceTopicContainer.classList.remove('hidden');
                 ui.sourceFileContainer.classList.add('hidden');
             }
         });
