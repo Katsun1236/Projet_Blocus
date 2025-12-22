@@ -82,7 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadUserSyntheses() {
     try {
-        const q = query(collection(db, 'syntheses'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+        // Essai sans orderBy pour éviter blocage index
+        const q = query(collection(db, 'syntheses'), where('userId', '==', auth.currentUser.uid));
         const snapshot = await getDocs(q);
         userSyntheses = [];
         ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
@@ -90,13 +91,10 @@ async function loadUserSyntheses() {
         snapshot.forEach(doc => {
             const d = doc.data();
             const s = { id: doc.id, ...d };
-            // Robustesse nom synthèse
-            s.title = s.title || s.name || s.topic || `Synthèse du ${new Date().toLocaleDateString()}`;
             userSyntheses.push(s);
-            
             const opt = document.createElement('option');
             opt.value = s.id;
-            opt.textContent = s.title;
+            opt.textContent = s.title || `Synthèse du ${new Date(s.createdAt?.toDate ? s.createdAt.toDate() : Date.now()).toLocaleDateString()}`;
             ui.synthesisSelect.appendChild(opt);
         });
         
@@ -112,7 +110,8 @@ async function loadUserSyntheses() {
 async function loadUserCourses() {
     try {
         console.log("Chargement des cours pour:", auth.currentUser.uid);
-        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+        // Simplification: requête simple sans tri pour tester
+        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid));
         
         const snapshot = await getDocs(q);
         userCourses = [];
@@ -127,20 +126,12 @@ async function loadUserCourses() {
 
         snapshot.forEach(doc => {
             const d = doc.data();
-            // DEBUG : Voir ce qui est récupéré
-            console.log("Données fichier:", d); 
-            
             const f = { id: doc.id, ...d };
-            
-            // ROBUSTESSE : On cherche le nom dans plusieurs champs possibles
-            f.name = f.name || f.fileName || f.title || "Fichier sans nom";
-            f.url = f.url || f.downloadURL || f.fileUrl || "";
-
             userCourses.push(f);
             
             const opt = document.createElement('option');
             opt.value = f.id;
-            opt.textContent = f.name;
+            opt.textContent = f.name || "Fichier sans nom";
             ui.courseSelect.appendChild(opt);
         });
 
@@ -175,7 +166,7 @@ async function generateQuiz() {
         const synth = userSyntheses.find(s => s.id === synthId);
         if (synth) {
             topic = `Synthèse : ${synth.title}`;
-            dataContext = synth.content || ""; 
+            dataContext = synth.content; 
             if (!title) title = synth.title;
         }
     } 
