@@ -238,7 +238,7 @@
         <div class="bg-[#0a0a0f] border border-gray-800 rounded-3xl w-full max-w-5xl h-[90vh] shadow-2xl flex flex-col animate-scale-up overflow-hidden">
             
             <!-- Header Groupe -->
-            <div class="h-48 relative flex-shrink-0 bg-gray-900">
+            <div class="h-48 relative flex-shrink-0 bg-gray-900 group">
                 <div id="group-cover-bg" class="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-indigo-900/50"></div>
                 <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
                 
@@ -247,9 +247,18 @@
                 </button>
 
                 <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0a0a0f] to-transparent flex items-end gap-6">
-                    <div id="group-icon-large" class="w-24 h-24 rounded-2xl bg-indigo-600 shadow-xl flex items-center justify-center text-5xl text-white transform translate-y-4 border-4 border-[#0a0a0f]">
-                        <i class="fas fa-users"></i>
+                    <!-- Icone Groupe Interactif -->
+                    <div class="relative group/icon cursor-pointer">
+                        <div id="group-icon-large" class="w-24 h-24 rounded-2xl bg-indigo-600 shadow-xl flex items-center justify-center text-5xl text-white transform translate-y-4 border-4 border-[#0a0a0f] overflow-hidden">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl transform translate-y-4 opacity-0 group-hover/icon:opacity-100 transition-opacity z-10" id="change-group-icon-btn">
+                            <i class="fas fa-camera text-white"></i>
+                        </div>
+                        <!-- Input Caché -->
+                        <input type="file" id="group-icon-upload" class="hidden" accept="image/*">
                     </div>
+
                     <div class="mb-2">
                         <h2 id="group-title-large" class="text-3xl font-display font-bold text-white mb-1">Nom du Groupe</h2>
                         <div class="flex items-center gap-4 text-sm text-gray-300">
@@ -273,13 +282,15 @@
                     
                     <div class="mt-8">
                         <h4 class="text-xs font-bold text-gray-500 uppercase mb-4">Fichiers Partagés</h4>
-                        <div class="space-y-2 text-sm text-gray-400">
-                            <div class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded cursor-pointer">
-                                <i class="fas fa-file-pdf text-red-400"></i>
-                                <span>Cours_L1.pdf</span>
-                            </div>
-                            <button class="w-full mt-2 py-2 border border-gray-800 rounded text-xs hover:bg-gray-800 transition-colors">+ Ajouter un fichier</button>
+                        <div id="group-files-list" class="space-y-2 text-sm text-gray-400">
+                            <div class="text-center py-4 text-xs italic text-gray-600">Aucun fichier</div>
                         </div>
+                        
+                        <button id="btn-add-file" class="w-full mt-4 py-2 border border-dashed border-gray-700 text-gray-400 hover:text-white hover:border-indigo-500 hover:bg-indigo-500/10 rounded text-xs transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-cloud-upload-alt"></i> Partager un fichier
+                        </button>
+                        <!-- Input Caché -->
+                        <input type="file" id="group-file-upload" class="hidden">
                     </div>
                 </div>
 
@@ -296,7 +307,7 @@
                     <!-- Input Area -->
                     <div class="p-4 bg-gray-900 border-t border-gray-800">
                         <div class="flex items-center gap-3 bg-gray-800 rounded-xl p-2 border border-gray-700 focus-within:border-indigo-500 transition-colors">
-                            <button class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors">
+                            <button id="btn-upload-chat" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors">
                                 <i class="fas fa-paperclip"></i>
                             </button>
                             <input type="text" id="group-chat-input" class="flex-grow bg-transparent text-white placeholder-gray-500 focus:outline-none px-2" placeholder="Envoyer un message au groupe...">
