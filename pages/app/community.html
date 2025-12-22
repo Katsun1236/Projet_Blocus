@@ -399,9 +399,9 @@
                     <h3 class="font-bold text-gray-400 text-xs uppercase">Paramètres du groupe</h3>
                 </div>
                 <div class="flex-grow p-2 space-y-1">
-                    <button class="w-full text-left px-3 py-2 rounded text-gray-300 hover:bg-[#3f4147] hover:text-white transition-colors text-sm font-medium">Vue d'ensemble</button>
-                    <button class="w-full text-left px-3 py-2 rounded bg-[#3f4147] text-white transition-colors text-sm font-medium">Rôles</button>
-                    <button class="w-full text-left px-3 py-2 rounded text-gray-300 hover:bg-[#3f4147] hover:text-white transition-colors text-sm font-medium">Membres</button>
+                    <button id="tab-overview" class="w-full text-left px-3 py-2 rounded bg-[#3f4147] text-white transition-colors text-sm font-medium">Vue d'ensemble</button>
+                    <button id="tab-roles" class="w-full text-left px-3 py-2 rounded text-gray-300 hover:bg-[#3f4147] hover:text-white transition-colors text-sm font-medium">Rôles</button>
+                    <button id="tab-members" class="w-full text-left px-3 py-2 rounded text-gray-300 hover:bg-[#3f4147] hover:text-white transition-colors text-sm font-medium">Membres</button>
                 </div>
                 <div class="p-4 border-t border-[#1e1f22]">
                     <button id="close-settings-modal" class="w-full text-left px-3 py-2 rounded text-red-400 hover:bg-red-500/10 transition-colors text-sm font-bold flex items-center gap-2">
@@ -410,79 +410,95 @@
                 </div>
             </div>
 
-            <!-- Content Area (Rôles) -->
-            <div class="flex-grow flex flex-col bg-[#313338]">
-                <div class="p-8 pb-4">
-                    <h2 class="text-xl font-bold text-white mb-1">Rôles</h2>
-                    <p class="text-sm text-gray-400">Utilisez les rôles pour organiser les membres de votre groupe et personnaliser leurs permissions.</p>
+            <!-- Content Area (Dynamique) -->
+            <div id="settings-content-area" class="flex-grow flex flex-col bg-[#313338] overflow-hidden">
+                
+                <!-- SECTION: VUE D'ENSEMBLE -->
+                <div id="section-overview" class="h-full flex flex-col p-8 overflow-y-auto custom-scrollbar">
+                    <h2 class="text-xl font-bold text-white mb-6">Vue d'ensemble du serveur</h2>
+                    <div class="flex gap-8">
+                        <!-- Image Upload -->
+                        <div class="flex-shrink-0">
+                            <div class="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-4xl text-white relative group cursor-pointer overflow-hidden border-4 border-[#2b2d31]">
+                                <span id="overview-icon-preview"><i class="fas fa-users"></i></span>
+                                <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span class="text-xs font-bold text-white uppercase">Modifier</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Formulaire -->
+                        <div class="flex-grow max-w-md space-y-6">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nom du groupe</label>
+                                <input type="text" id="edit-group-name" class="w-full bg-[#1e1f22] border-none rounded p-2.5 text-white focus:ring-2 focus:ring-indigo-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Description</label>
+                                <textarea id="edit-group-desc" rows="3" class="w-full bg-[#1e1f22] border-none rounded p-2.5 text-white focus:ring-2 focus:ring-indigo-500 transition-all resize-none"></textarea>
+                            </div>
+                            <div class="pt-4 border-t border-gray-700">
+                                <button id="btn-save-overview" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded text-sm font-medium transition-colors shadow-lg">Enregistrer les modifications</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="flex-grow flex min-h-0 px-8 pb-8 gap-8">
-                    
-                    <!-- Liste des Rôles (Gauche) -->
-                    <div class="w-48 flex flex-col">
-                        <div class="flex items-center justify-between mb-2">
-                            <span class="text-xs font-bold text-gray-400 uppercase">Rôles</span>
-                            <button id="btn-create-role" class="text-xs text-indigo-400 hover:underline">+ Créer</button>
+                <!-- SECTION: RÔLES (Caché par défaut) -->
+                <div id="section-roles" class="hidden h-full flex flex-col">
+                    <div class="p-8 pb-4">
+                        <h2 class="text-xl font-bold text-white mb-1">Rôles</h2>
+                        <p class="text-sm text-gray-400">Organisez les membres et leurs permissions.</p>
+                    </div>
+                    <div class="flex-grow flex min-h-0 px-8 pb-8 gap-8">
+                        <!-- Liste des Rôles (Gauche) -->
+                        <div class="w-48 flex flex-col">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Rôles</span>
+                                <button id="btn-create-role" class="text-xs text-indigo-400 hover:underline">+ Créer</button>
+                            </div>
+                            <div id="roles-list-container" class="flex-grow overflow-y-auto custom-scrollbar space-y-1 pr-2"></div>
                         </div>
-                        <div id="roles-list-container" class="flex-grow overflow-y-auto custom-scrollbar space-y-1 pr-2">
+                        <!-- Editeur de Rôle (Droite) -->
+                        <div class="flex-grow flex flex-col bg-[#2b2d31] rounded-lg p-6 overflow-y-auto custom-scrollbar relative">
+                            <!-- Header Editeur -->
+                            <div class="mb-6 border-b border-gray-700 pb-6">
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nom du rôle</label>
+                                <input type="text" id="role-name-input" class="w-full bg-[#1e1f22] border-none rounded p-2 text-white focus:ring-2 focus:ring-indigo-500 transition-all" value="Nouveau Rôle">
+                                <div class="mt-4">
+                                    <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Couleur du rôle</label>
+                                    <div class="flex gap-2 flex-wrap" id="role-color-picker"></div>
+                                </div>
+                            </div>
+                            <!-- Permissions Toggle List -->
+                            <div>
+                                <h3 class="font-bold text-gray-300 mb-4 text-sm">Permissions Générales</h3>
+                                <div id="permissions-list-container" class="space-y-4"></div>
+                            </div>
+                            <!-- Actions Bas -->
+                            <div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center">
+                                <button id="btn-delete-role" class="text-red-400 hover:text-red-300 text-sm font-medium px-3 py-2 rounded hover:bg-red-500/10">Supprimer le rôle</button>
+                                <button id="btn-save-role" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded text-sm font-medium transition-colors shadow-lg">Enregistrer les modifications</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION: MEMBRES (Caché par défaut) -->
+                <div id="section-members" class="hidden h-full flex flex-col p-8 overflow-y-auto custom-scrollbar">
+                    <h2 class="text-xl font-bold text-white mb-6">Membres du groupe</h2>
+                    <div class="bg-[#2b2d31] rounded-lg overflow-hidden">
+                        <div class="grid grid-cols-12 gap-4 p-4 border-b border-[#1e1f22] text-xs font-bold text-gray-400 uppercase">
+                            <div class="col-span-6">Utilisateur</div>
+                            <div class="col-span-4">Rôles</div>
+                            <div class="col-span-2 text-right">Actions</div>
+                        </div>
+                        <div id="members-list-settings" class="divide-y divide-[#1e1f22]">
                             <!-- Injecté par JS -->
-                            <div class="p-2 bg-[#2b2d31] rounded text-white text-sm border-l-4 border-red-500 cursor-pointer">Admin</div>
-                            <div class="p-2 hover:bg-[#2b2d31] rounded text-gray-400 text-sm border-l-4 border-blue-500 cursor-pointer">Modérateur</div>
-                            <div class="p-2 hover:bg-[#2b2d31] rounded text-gray-400 text-sm border-l-4 border-gray-500 cursor-pointer">Membre</div>
+                            <div class="text-center py-8 text-gray-500 text-sm">Chargement des membres...</div>
                         </div>
-                    </div>
-
-                    <!-- Editeur de Rôle (Droite) -->
-                    <div class="flex-grow flex flex-col bg-[#2b2d31] rounded-lg p-6 overflow-y-auto custom-scrollbar relative">
-                        
-                        <!-- Header Editeur -->
-                        <div class="mb-6 border-b border-gray-700 pb-6">
-                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nom du rôle</label>
-                            <input type="text" id="role-name-input" class="w-full bg-[#1e1f22] border-none rounded p-2 text-white focus:ring-2 focus:ring-indigo-500 transition-all" value="Nouveau Rôle">
-                            
-                            <div class="mt-4">
-                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Couleur du rôle</label>
-                                <div class="flex gap-2 flex-wrap" id="role-color-picker">
-                                    <button class="w-6 h-6 rounded-full bg-red-500 border-2 border-white ring-2 ring-indigo-500" data-color="#ef4444"></button>
-                                    <button class="w-6 h-6 rounded-full bg-orange-500 border-2 border-transparent hover:border-white" data-color="#f97316"></button>
-                                    <button class="w-6 h-6 rounded-full bg-yellow-500 border-2 border-transparent hover:border-white" data-color="#eab308"></button>
-                                    <button class="w-6 h-6 rounded-full bg-green-500 border-2 border-transparent hover:border-white" data-color="#22c55e"></button>
-                                    <button class="w-6 h-6 rounded-full bg-blue-500 border-2 border-transparent hover:border-white" data-color="#3b82f6"></button>
-                                    <button class="w-6 h-6 rounded-full bg-indigo-500 border-2 border-transparent hover:border-white" data-color="#6366f1"></button>
-                                    <button class="w-6 h-6 rounded-full bg-purple-500 border-2 border-transparent hover:border-white" data-color="#a855f7"></button>
-                                    <button class="w-6 h-6 rounded-full bg-gray-500 border-2 border-transparent hover:border-white" data-color="#6b7280"></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Permissions Toggle List -->
-                        <div>
-                            <h3 class="font-bold text-gray-300 mb-4 text-sm">Permissions Générales</h3>
-                            
-                            <div id="permissions-list-container" class="space-y-4">
-                                <!-- Injecté par JS -->
-                                <div class="flex items-center justify-between py-2 border-b border-gray-700/50">
-                                    <div>
-                                        <div class="text-white text-sm font-medium">Envoyer des messages</div>
-                                        <div class="text-gray-400 text-xs">Permet aux membres d'envoyer des messages dans le chat.</div>
-                                    </div>
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" class="sr-only peer" checked>
-                                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Actions Bas -->
-                        <div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center">
-                            <button id="btn-delete-role" class="text-red-400 hover:text-red-300 text-sm font-medium px-3 py-2 rounded hover:bg-red-500/10">Supprimer le rôle</button>
-                            <button id="btn-save-role" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded text-sm font-medium transition-colors shadow-lg">Enregistrer les modifications</button>
-                        </div>
-
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
