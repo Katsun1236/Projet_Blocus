@@ -95,10 +95,6 @@
                             <i class="fas fa-plus-circle text-emerald-600"></i>
                             <span>Créer un groupe</span>
                         </button>
-                        <button id="btn-trending" class="px-6 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 transition-all border border-gray-700 flex items-center gap-2">
-                            <i class="fas fa-fire text-orange-500"></i>
-                            <span>Sujets tendances</span>
-                        </button>
                     </div>
                 </div>
             </div>
@@ -139,21 +135,34 @@
                             <i class="fas fa-crown text-yellow-500"></i> Top Contributeurs
                         </h3>
                         <div class="space-y-4" id="contributors-list">
-                            <!-- Dynamique -->
+                            <div class="text-center py-4 opacity-50 text-xs">Chargement...</div>
                         </div>
                     </div>
 
-                    <!-- Groupes Suggérés -->
+                    <!-- Groupes Suggérés avec Recherche -->
                     <div class="content-glass p-6 rounded-2xl border border-gray-800">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-white text-sm flex items-center gap-2">
-                                <i class="fas fa-users text-blue-400"></i> Groupes pour toi
+                                <i class="fas fa-users text-blue-400"></i> Groupes
                             </h3>
                             <button id="btn-create-group-sidebar" class="text-xs text-blue-400 hover:text-blue-300 font-bold border border-blue-500/30 px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-all">
-                                <i class="fas fa-plus"></i> Créer
+                                <i class="fas fa-plus"></i>
                             </button>
                         </div>
-                        <div class="space-y-3" id="groups-list">
+                        
+                        <!-- Barre de recherche Groupes -->
+                        <div class="relative mb-4">
+                            <input type="text" id="group-search-input" class="w-full bg-gray-900 border border-gray-700 rounded-lg py-2 pl-8 pr-3 text-xs text-white focus:outline-none focus:border-blue-500 placeholder-gray-600" placeholder="Chercher un groupe...">
+                            <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-600 text-xs"></i>
+                        </div>
+
+                        <!-- Filtres Rapides Groupes -->
+                        <div class="flex gap-2 mb-4" id="group-filters">
+                            <button data-filter="all" class="flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors">Tous</button>
+                            <button data-filter="my" class="flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors">Mes Groupes</button>
+                        </div>
+
+                        <div class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar" id="groups-list">
                             <!-- Dynamique -->
                         </div>
                     </div>

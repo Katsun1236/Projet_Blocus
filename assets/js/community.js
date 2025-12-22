@@ -2,7 +2,7 @@ import { auth, db } from './config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, where, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 // --- STATE ---
@@ -10,18 +10,19 @@ let currentUserId = null;
 let currentUserData = null;
 let currentPostId = null; 
 let currentGroupId = null; // ID du groupe actif
-let currentGroupData = null; // Données complètes du groupe actif (pour vérifier admin)
+let currentGroupData = null; 
 let postsUnsubscribe = null;
 let groupsUnsubscribe = null;
 let groupChatUnsubscribe = null;
 let groupFilesUnsubscribe = null;
+let allGroups = []; // Cache pour la recherche rapide
 
 // Storage Init
 const storage = getStorage();
 
 // --- DOM ELEMENTS ---
 const ui = {
-    // ... (éléments existants) ...
+    // ... elements de base ...
     userName: document.getElementById('user-name-header'),
     userAvatar: document.getElementById('user-avatar-header'),
     postsContainer: document.getElementById('posts-container'),
@@ -30,6 +31,9 @@ const ui = {
     onlineCount: document.getElementById('online-users-count'),
     btnNewPost: document.getElementById('btn-new-post'),
     filters: document.getElementById('post-filters'),
+    // Recherche & Filtres Groupes
+    groupSearchInput: document.getElementById('group-search-input'),
+    groupFilters: document.getElementById('group-filters'),
     // Modale New Post
     newPostModal: document.getElementById('new-post-modal'),
     closePostModal: document.getElementById('close-post-modal'),
@@ -62,7 +66,7 @@ const ui = {
     changeGroupIconBtn: document.getElementById('change-group-icon-btn'),
     groupIconUpload: document.getElementById('group-icon-upload'),
     btnUploadChat: document.getElementById('btn-upload-chat'),
-    // Modale Création Groupe (Nouveau)
+    // Modale Création Groupe
     createGroupModal: document.getElementById('create-group-modal'),
     closeCreateGroupModal: document.getElementById('close-create-group-modal'),
     btnCreateGroupHero: document.getElementById('btn-create-group-hero'),
@@ -114,6 +118,58 @@ async function loadUserProfile() {
     }
 }
 
+// --- LEADERBOARD DYNAMIQUE ---
+async function loadContributors() {
+    const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(5));
+    
+    // Note: Si vous n'avez pas encore d'index sur 'points', ça peut échouer ou être vide.
+    // Assurez-vous d'initialiser le champ 'points: 0' à la création des users.
+    
+    try {
+        const snapshot = await getDocs(q);
+        
+        ui.contributorsList.innerHTML = '';
+        if (snapshot.empty) {
+            ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-gray-500">Classement en cours...</div>`;
+            return;
+        }
+
+        let rank = 1;
+        snapshot.forEach(docSnap => {
+            const user = docSnap.data();
+            // Ignorer les users sans points ou sans nom
+            if(!user.firstName) return; 
+
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-3 animate-fade-in mb-3 last:mb-0';
+            div.innerHTML = `
+                <span class="text-gray-500 text-xs font-bold w-4">${rank}</span>
+                <img src="${user.photoURL || `https://ui-avatars.com/api/?name=${user.firstName}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-white truncate">${user.firstName}</p>
+                    <p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p>
+                </div>
+            `;
+            ui.contributorsList.appendChild(div);
+            rank++;
+        });
+    } catch (e) {
+        console.error("Erreur Leaderboard:", e);
+        ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-red-400">Erreur chargement.</div>`;
+    }
+}
+
+// Fonction pour ajouter des points (à appeler lors d'actions)
+async function addPointsToUser(userId, points) {
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, {
+            points: increment(points)
+        });
+    } catch (e) { console.error("Erreur points:", e); }
+}
+
+// ... (subscribeToPosts, renderPostCard, createPost, toggleLike, sharePost, openDetailModal... -> RESTENT IDENTIQUES) ...
 function subscribeToPosts(filterType = 'all') {
     if (postsUnsubscribe) postsUnsubscribe();
     ui.postsContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>`;
@@ -131,10 +187,8 @@ function renderPostCard(post) {
     const isQuestion = post.type === 'question';
     const badgeColor = isQuestion ? 'blue' : (post.type === 'share' ? 'purple' : 'gray');
     const badgeLabel = isQuestion ? 'Question' : (post.type === 'share' ? 'Partage' : 'Discussion');
-    
     const card = document.createElement('div');
     card.className = 'content-glass post-card p-6 rounded-2xl cursor-pointer transition-all group animate-fade-in';
-    
     const userLiked = post.likesBy && post.likesBy.includes(currentUserId);
     const likeClass = userLiked ? 'text-red-500' : 'hover:text-red-400';
     const likeIcon = userLiked ? 'fas fa-heart' : 'far fa-heart';
@@ -159,14 +213,11 @@ function renderPostCard(post) {
             <button class="ml-auto hover:text-white action-btn share-btn hover:text-indigo-400"><i class="fas fa-share"></i> Republier</button>
         </div>
     `;
-
     card.querySelector('.like-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleLike(post.id, userLiked); });
     card.querySelector('.share-btn').addEventListener('click', (e) => { e.stopPropagation(); sharePost(post); });
     card.addEventListener('click', (e) => { if (!e.target.closest('.action-btn')) openDetailModal(post); });
     ui.postsContainer.appendChild(card);
 }
-
-// ... (createPost, toggleLike, sharePost, openDetailModal, subscribeToComments, submitComment: Code inchangé ou similaire) ...
 
 async function createPost() {
     const title = ui.postTitle.value.trim();
@@ -181,8 +232,10 @@ async function createPost() {
             authorName: currentUserData.firstName || 'Utilisateur', authorAvatar: currentUserData.photoURL,
             createdAt: serverTimestamp(), likesBy: [], commentsCount: 0
         });
+        await addPointsToUser(currentUserId, 10); // +10 pts pour un post
         window.togglePostModal(false); ui.postTitle.value = ""; ui.postContent.value = "";
-        showMessage("Publié !", "success");
+        showMessage("Publié ! (+10 pts)", "success");
+        loadContributors(); // Refresh leaderboard
     } catch (e) { console.error(e); } finally { ui.submitPost.disabled = false; ui.submitPost.innerHTML = `<i class="fas fa-paper-plane"></i> Publier`; }
 }
 
@@ -190,7 +243,10 @@ async function toggleLike(postId, alreadyLiked) {
     try {
         const ref = doc(db, 'community_posts', postId);
         if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) });
-        else await updateDoc(ref, { likesBy: arrayUnion(currentUserId) });
+        else {
+            await updateDoc(ref, { likesBy: arrayUnion(currentUserId) });
+            // +2 pts pour un like (optionnel, attention au spam)
+        }
     } catch(e) {}
 }
 function sharePost(post) {
@@ -218,13 +274,13 @@ async function submitComment() {
         await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), {
             content, authorId: currentUserId, authorName: currentUserData.firstName, createdAt: serverTimestamp()
         });
+        await addPointsToUser(currentUserId, 5); // +5 pts commentaire
         ui.commentInput.value = '';
     } catch(e) {}
 }
 
-// --- GROUPS LOGIC ---
+// --- GROUPS LOGIC AVEC RECHERCHE ---
 
-// Nouvelle fonction de création de groupe
 async function createNewGroup() {
     const name = ui.newGroupName.value.trim();
     const desc = ui.newGroupDesc.value.trim();
@@ -240,17 +296,18 @@ async function createNewGroup() {
             name: name,
             description: desc,
             color: color,
-            icon: 'fa-users', // Défaut
+            icon: 'fa-users',
             memberCount: 1,
-            members: [currentUserId], // Créateur est membre
-            admins: [currentUserId], // Créateur est admin
+            members: [currentUserId],
+            admins: [currentUserId],
+            searchKeywords: generateKeywords(name), // Pour recherche future
             createdAt: serverTimestamp()
         });
+        await addPointsToUser(currentUserId, 20); // +20 pts création groupe
 
         toggleCreateGroupModal(false);
-        ui.newGroupName.value = "";
-        ui.newGroupDesc.value = "";
-        showMessage("Groupe créé avec succès !", "success");
+        ui.newGroupName.value = ""; ui.newGroupDesc.value = "";
+        showMessage("Groupe créé ! (+20 pts)", "success");
     } catch (e) {
         console.error("Erreur création groupe:", e);
         showMessage("Erreur lors de la création", "error");
@@ -260,60 +317,93 @@ async function createNewGroup() {
     }
 }
 
+// Helper pour recherche simple (minuscule)
+function generateKeywords(str) {
+    return str.toLowerCase().split(' ');
+}
+
 function subscribeToGroups() {
     if (groupsUnsubscribe) groupsUnsubscribe();
-    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(10));
+    // On charge tous les groupes (avec une limite raisonnable) et on filtre en local
+    // car Firestore ne gère pas le "contains" partiel nativement sans solution externe (Algolia...)
+    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(50));
 
     groupsUnsubscribe = onSnapshot(q, (snapshot) => {
-        ui.groupsList.innerHTML = '';
-        if (snapshot.empty) { 
-            ui.groupsList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Aucun groupe. Créez le premier !</p>`; 
-            return; 
-        }
-
+        allGroups = [];
         snapshot.forEach(docSnap => {
-            const group = { id: docSnap.id, ...docSnap.data() };
-            const isMember = group.members && group.members.includes(currentUserId);
-            
-            const div = document.createElement('div');
-            div.className = 'flex items-center gap-3 p-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer group-item animate-fade-in';
-            // Icon logic: Image URL or FontAwesome Icon
-            let iconHtml = `<i class="fas ${group.icon || 'fa-users'}"></i>`;
-            let iconClass = `w-10 h-10 rounded-lg bg-${group.color || 'indigo'}-500/20 text-${group.color || 'indigo'}-400 flex items-center justify-center text-lg`;
-            if (group.photoURL) {
-                iconHtml = `<img src="${group.photoURL}" class="w-full h-full object-cover rounded-lg">`;
-                iconClass = `w-10 h-10 rounded-lg bg-gray-800`;
-            }
-
-            div.innerHTML = `
-                <div class="${iconClass}">
-                    ${iconHtml}
-                </div>
-                <div>
-                    <p class="text-sm font-bold text-white">${group.name}</p>
-                    <p class="text-xs text-gray-500">${group.memberCount || 0} membres</p>
-                </div>
-                <button class="ml-auto text-xs px-2 py-1 rounded transition-colors ${isMember ? 'bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} join-group-btn" data-id="${group.id}">
-                    ${isMember ? 'Ouvrir' : 'Rejoindre'}
-                </button>
-            `;
-            
-            const btn = div.querySelector('.join-group-btn');
-            btn.addEventListener('click', async (e) => {
-                e.stopPropagation();
-                if (isMember) {
-                    openGroupSpace(group);
-                } else {
-                    await toggleJoinGroup(group.id, false);
-                    openGroupSpace(group);
-                }
-            });
-
-            div.addEventListener('click', () => { if(isMember) openGroupSpace(group); else btn.click(); });
-            ui.groupsList.appendChild(div);
+            allGroups.push({ id: docSnap.id, ...docSnap.data() });
         });
+        renderGroupList(allGroups);
     });
 }
+
+function renderGroupList(groups) {
+    ui.groupsList.innerHTML = '';
+    if (groups.length === 0) {
+        ui.groupsList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Aucun groupe trouvé.</p>`; 
+        return; 
+    }
+
+    groups.forEach(group => {
+        const isMember = group.members && group.members.includes(currentUserId);
+        
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-3 p-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer group-item animate-fade-in';
+        
+        let iconHtml = `<i class="fas ${group.icon || 'fa-users'}"></i>`;
+        let iconClass = `w-10 h-10 rounded-lg bg-${group.color || 'indigo'}-500/20 text-${group.color || 'indigo'}-400 flex items-center justify-center text-lg`;
+        if (group.photoURL) {
+            iconHtml = `<img src="${group.photoURL}" class="w-full h-full object-cover rounded-lg">`;
+            iconClass = `w-10 h-10 rounded-lg bg-gray-800`;
+        }
+
+        div.innerHTML = `
+            <div class="${iconClass}">
+                ${iconHtml}
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-white truncate">${group.name}</p>
+                <p class="text-xs text-gray-500 truncate">${group.memberCount || 0} membres</p>
+            </div>
+            <button class="ml-auto text-xs px-2 py-1 rounded transition-colors ${isMember ? 'bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} join-group-btn" data-id="${group.id}">
+                ${isMember ? 'Ouvrir' : 'Rejoindre'}
+            </button>
+        `;
+        
+        const btn = div.querySelector('.join-group-btn');
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (isMember) {
+                openGroupSpace(group);
+            } else {
+                await toggleJoinGroup(group.id, false);
+                // On n'ouvre pas tout de suite, on attend que l'utilisateur soit membre
+                openGroupSpace(group);
+            }
+        });
+
+        div.addEventListener('click', () => { if(isMember) openGroupSpace(group); else btn.click(); });
+        ui.groupsList.appendChild(div);
+    });
+}
+
+// Fonction de filtrage local
+function filterGroups() {
+    const searchTerm = ui.groupSearchInput.value.toLowerCase();
+    const filterType = document.querySelector('#group-filters button.bg-blue-900\\/50') ? 
+                       document.querySelector('#group-filters button.bg-blue-900\\/50').dataset.filter : 'all';
+
+    const filtered = allGroups.filter(g => {
+        const matchesSearch = g.name.toLowerCase().includes(searchTerm) || (g.description && g.description.toLowerCase().includes(searchTerm));
+        const matchesType = filterType === 'all' || (filterType === 'my' && g.members.includes(currentUserId));
+        return matchesSearch && matchesType;
+    });
+
+    renderGroupList(filtered);
+}
+
+// ... (openGroupSpace, subscribeToGroupChat, sendGroupMessage, deleteGroupMessage, subscribeToGroupFiles, uploadGroupFile, uploadGroupIcon, toggleJoinGroup, timeSince, loadContributors... -> CODE EXISTANT) ...
+// Pour la lisibilité, je ne répète pas tout le bloc 'Chat' et 'Files' qui reste identique à la version précédente sauf pour les appels à 'addPoints'
 
 // OUVERTURE DU GROUPE
 function openGroupSpace(group) {
@@ -382,7 +472,6 @@ function subscribeToGroupChat(groupId) {
                 </div>
             `;
             
-            // Event listener suppression
             if(canDelete) {
                 const delBtn = msgDiv.querySelector('.delete-msg-btn');
                 delBtn.addEventListener('click', () => deleteGroupMessage(msg.id));
@@ -416,7 +505,6 @@ async function deleteGroupMessage(messageId) {
     }
 }
 
-// ... (subscribeToGroupFiles, uploadGroupFile, uploadGroupIcon: Code inchangé) ...
 function subscribeToGroupFiles(groupId) {
     if(groupFilesUnsubscribe) groupFilesUnsubscribe();
     
@@ -492,19 +580,15 @@ async function uploadGroupIcon(file) {
     }
 }
 
-// --- UTILS & EVENT LISTENERS ---
-
 async function toggleJoinGroup(groupId, isMember) {
     try {
         const ref = doc(db, 'groups', groupId);
         if (isMember) {
             await updateDoc(ref, { members: arrayRemove(currentUserId) });
-            // Decrement counter (approx)
             const g = await getDoc(ref);
             await updateDoc(ref, { memberCount: Math.max(0, (g.data().memberCount || 1) - 1) });
         } else {
             await updateDoc(ref, { members: arrayUnion(currentUserId) });
-            // Increment counter
             const g = await getDoc(ref);
             await updateDoc(ref, { memberCount: (g.data().memberCount || 0) + 1 });
         }
@@ -519,20 +603,6 @@ function timeSince(date) {
     interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + "h";
     interval = seconds / 60; if (interval > 1) return Math.floor(interval) + " min";
     return "À l'instant";
-}
-
-function loadContributors() {
-    const contributors = [ { name: 'Léa D.', points: 1240, rank: 1 }, { name: 'Karim S.', points: 980, rank: 2 }, { name: 'Alex W.', points: 850, rank: 3 } ];
-    ui.contributorsList.innerHTML = contributors.map(c => `
-        <div class="flex items-center gap-3 animate-fade-in">
-            <span class="text-gray-500 text-xs font-bold w-4">${c.rank}</span>
-            <img src="https://ui-avatars.com/api/?name=${c.name}&background=random" class="w-8 h-8 rounded-full">
-            <div class="flex-1">
-                <p class="text-sm font-bold text-white">${c.name}</p>
-                <p class="text-xs text-emerald-400">${c.points} pts</p>
-            </div>
-        </div>
-    `).join('');
 }
 
 function setupEventListeners() {
@@ -571,6 +641,7 @@ function setupEventListeners() {
     if(ui.cancelCreateGroup) ui.cancelCreateGroup.onclick = () => toggleCreateGroupModal(false);
     if(ui.submitCreateGroup) ui.submitCreateGroup.onclick = createNewGroup;
 
+    // FILTRES POSTS
     if(ui.filters) {
         ui.filters.addEventListener('click', (e) => {
             if(e.target.tagName === 'BUTTON') {
@@ -581,7 +652,29 @@ function setupEventListeners() {
         });
     }
 
-    // Expose toggle globally
+    // FILTRES GROUPES (NOUVEAU)
+    if(ui.groupSearchInput) {
+        ui.groupSearchInput.addEventListener('input', filterGroups);
+    }
+    if(ui.groupFilters) {
+        ui.groupFilters.addEventListener('click', (e) => {
+            if(e.target.tagName === 'BUTTON') {
+                // Reset styles
+                const allBtn = ui.groupFilters.querySelector('[data-filter="all"]');
+                const myBtn = ui.groupFilters.querySelector('[data-filter="my"]');
+                
+                if(e.target.dataset.filter === 'all') {
+                    allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors";
+                    myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors";
+                } else {
+                    myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors";
+                    allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors";
+                }
+                filterGroups();
+            }
+        });
+    }
+
     window.togglePostModal = togglePostModal;
     window.toggleCreateGroupModal = toggleCreateGroupModal;
 }
