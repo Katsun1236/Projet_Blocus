@@ -303,9 +303,15 @@
                 <div id="group-cover-bg" class="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-indigo-900/50"></div>
                 <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
                 
-                <button id="close-group-modal" class="absolute top-6 right-6 w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm z-20">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="absolute top-6 right-6 flex gap-3 z-20">
+                    <!-- Bouton Settings (Admin Only - géré par JS) -->
+                    <button id="btn-group-settings" class="hidden w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    <button id="close-group-modal" class="w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
 
                 <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0a0a0f] to-transparent flex items-end gap-6">
                     <!-- Icone Groupe Interactif -->
@@ -379,6 +385,104 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: PARAMÈTRES GROUPE (NOUVEAU - STYLE DISCORD) -->
+    <div id="group-settings-modal" class="hidden fixed inset-0 bg-black/95 z-[60] flex items-center justify-center animate-fade-in">
+        <div class="w-full max-w-4xl h-[85vh] bg-[#1e1f22] rounded-lg shadow-2xl flex overflow-hidden border border-[#1e1f22]">
+            
+            <!-- Sidebar Settings -->
+            <div class="w-60 bg-[#2b2d31] flex flex-col">
+                <div class="p-4 border-b border-[#1e1f22]">
+                    <h3 class="font-bold text-gray-400 text-xs uppercase">Paramètres du groupe</h3>
+                </div>
+                <div class="flex-grow p-2 space-y-1">
+                    <button class="w-full text-left px-3 py-2 rounded text-gray-300 hover:bg-[#3f4147] hover:text-white transition-colors text-sm font-medium">Vue d'ensemble</button>
+                    <button class="w-full text-left px-3 py-2 rounded bg-[#3f4147] text-white transition-colors text-sm font-medium">Rôles</button>
+                    <button class="w-full text-left px-3 py-2 rounded text-gray-300 hover:bg-[#3f4147] hover:text-white transition-colors text-sm font-medium">Membres</button>
+                </div>
+                <div class="p-4 border-t border-[#1e1f22]">
+                    <button id="close-settings-modal" class="w-full text-left px-3 py-2 rounded text-red-400 hover:bg-red-500/10 transition-colors text-sm font-bold flex items-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Fermer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content Area (Rôles) -->
+            <div class="flex-grow flex flex-col bg-[#313338]">
+                <div class="p-8 pb-4">
+                    <h2 class="text-xl font-bold text-white mb-1">Rôles</h2>
+                    <p class="text-sm text-gray-400">Utilisez les rôles pour organiser les membres de votre groupe et personnaliser leurs permissions.</p>
+                </div>
+
+                <div class="flex-grow flex min-h-0 px-8 pb-8 gap-8">
+                    
+                    <!-- Liste des Rôles (Gauche) -->
+                    <div class="w-48 flex flex-col">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-bold text-gray-400 uppercase">Rôles</span>
+                            <button id="btn-create-role" class="text-xs text-indigo-400 hover:underline">+ Créer</button>
+                        </div>
+                        <div id="roles-list-container" class="flex-grow overflow-y-auto custom-scrollbar space-y-1 pr-2">
+                            <!-- Injecté par JS -->
+                            <div class="p-2 bg-[#2b2d31] rounded text-white text-sm border-l-4 border-red-500 cursor-pointer">Admin</div>
+                            <div class="p-2 hover:bg-[#2b2d31] rounded text-gray-400 text-sm border-l-4 border-blue-500 cursor-pointer">Modérateur</div>
+                            <div class="p-2 hover:bg-[#2b2d31] rounded text-gray-400 text-sm border-l-4 border-gray-500 cursor-pointer">Membre</div>
+                        </div>
+                    </div>
+
+                    <!-- Editeur de Rôle (Droite) -->
+                    <div class="flex-grow flex flex-col bg-[#2b2d31] rounded-lg p-6 overflow-y-auto custom-scrollbar relative">
+                        
+                        <!-- Header Editeur -->
+                        <div class="mb-6 border-b border-gray-700 pb-6">
+                            <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nom du rôle</label>
+                            <input type="text" id="role-name-input" class="w-full bg-[#1e1f22] border-none rounded p-2 text-white focus:ring-2 focus:ring-indigo-500 transition-all" value="Nouveau Rôle">
+                            
+                            <div class="mt-4">
+                                <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Couleur du rôle</label>
+                                <div class="flex gap-2 flex-wrap" id="role-color-picker">
+                                    <button class="w-6 h-6 rounded-full bg-red-500 border-2 border-white ring-2 ring-indigo-500" data-color="#ef4444"></button>
+                                    <button class="w-6 h-6 rounded-full bg-orange-500 border-2 border-transparent hover:border-white" data-color="#f97316"></button>
+                                    <button class="w-6 h-6 rounded-full bg-yellow-500 border-2 border-transparent hover:border-white" data-color="#eab308"></button>
+                                    <button class="w-6 h-6 rounded-full bg-green-500 border-2 border-transparent hover:border-white" data-color="#22c55e"></button>
+                                    <button class="w-6 h-6 rounded-full bg-blue-500 border-2 border-transparent hover:border-white" data-color="#3b82f6"></button>
+                                    <button class="w-6 h-6 rounded-full bg-indigo-500 border-2 border-transparent hover:border-white" data-color="#6366f1"></button>
+                                    <button class="w-6 h-6 rounded-full bg-purple-500 border-2 border-transparent hover:border-white" data-color="#a855f7"></button>
+                                    <button class="w-6 h-6 rounded-full bg-gray-500 border-2 border-transparent hover:border-white" data-color="#6b7280"></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Permissions Toggle List -->
+                        <div>
+                            <h3 class="font-bold text-gray-300 mb-4 text-sm">Permissions Générales</h3>
+                            
+                            <div id="permissions-list-container" class="space-y-4">
+                                <!-- Injecté par JS -->
+                                <div class="flex items-center justify-between py-2 border-b border-gray-700/50">
+                                    <div>
+                                        <div class="text-white text-sm font-medium">Envoyer des messages</div>
+                                        <div class="text-gray-400 text-xs">Permet aux membres d'envoyer des messages dans le chat.</div>
+                                    </div>
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="sr-only peer" checked>
+                                        <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Actions Bas -->
+                        <div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center">
+                            <button id="btn-delete-role" class="text-red-400 hover:text-red-300 text-sm font-medium px-3 py-2 rounded hover:bg-red-500/10">Supprimer le rôle</button>
+                            <button id="btn-save-role" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded text-sm font-medium transition-colors shadow-lg">Enregistrer les modifications</button>
+                        </div>
+
+                    </div>
+                </div>
             </div>
         </div>
     </div>

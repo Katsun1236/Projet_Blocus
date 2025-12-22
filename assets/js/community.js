@@ -2,7 +2,7 @@ import { auth, db } from './config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, where, increment } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, where, increment, deleteField } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 // --- STATE ---
@@ -15,10 +15,42 @@ let postsUnsubscribe = null;
 let groupsUnsubscribe = null;
 let groupChatUnsubscribe = null;
 let groupFilesUnsubscribe = null;
-let allGroups = []; // Cache pour la recherche rapide
+let allGroups = []; 
+let editingRoleId = null; // ID du rôle en cours d'édition
+let tempRoles = {}; // Copie locale des rôles pendant l'édition
 
 // Storage Init
 const storage = getStorage();
+
+// --- CONFIGURATION DES RÔLES PAR DÉFAUT ---
+const DEFAULT_ROLES = {
+    admin: {
+        name: "Admin",
+        hexColor: "#ef4444", // Rouge
+        permissions: ["ALL"]
+    },
+    moderator: {
+        name: "Modérateur",
+        hexColor: "#3b82f6", // Bleu
+        permissions: ["KICK_MEMBERS", "DELETE_MESSAGES", "DELETE_FILES", "PIN_MESSAGES", "SEND_MESSAGES", "UPLOAD_FILES"]
+    },
+    member: {
+        name: "Membre",
+        hexColor: "#9ca3af", // Gris
+        permissions: ["SEND_MESSAGES", "UPLOAD_FILES"]
+    }
+};
+
+// --- PERMISSIONS DEFINITIONS ---
+const PERMISSIONS_DEF = [
+    { id: 'MANAGE_GROUP', label: 'Gérer le groupe', desc: 'Modifier le nom, l\'icône et la description.' },
+    { id: 'MANAGE_ROLES', label: 'Gérer les rôles', desc: 'Créer, modifier et supprimer des rôles.' },
+    { id: 'KICK_MEMBERS', label: 'Expulser des membres', desc: 'Retirer des membres du groupe.' },
+    { id: 'SEND_MESSAGES', label: 'Envoyer des messages', desc: 'Participer au chat du groupe.' },
+    { id: 'DELETE_MESSAGES', label: 'Supprimer des messages', desc: 'Supprimer les messages d\'autres membres.' },
+    { id: 'UPLOAD_FILES', label: 'Partager des fichiers', desc: 'Uploader des documents dans le groupe.' },
+    { id: 'DELETE_FILES', label: 'Supprimer des fichiers', desc: 'Supprimer les fichiers partagés par d\'autres.' }
+];
 
 // --- DOM ELEMENTS ---
 const ui = {
@@ -74,7 +106,18 @@ const ui = {
     newGroupName: document.getElementById('new-group-name'),
     newGroupDesc: document.getElementById('new-group-desc'),
     submitCreateGroup: document.getElementById('submit-create-group'),
-    cancelCreateGroup: document.getElementById('cancel-create-group')
+    cancelCreateGroup: document.getElementById('cancel-create-group'),
+    // SETTINGS MODAL ELEMENTS
+    btnGroupSettings: document.getElementById('btn-group-settings'),
+    settingsModal: document.getElementById('group-settings-modal'),
+    closeSettingsModal: document.getElementById('close-settings-modal'),
+    rolesListContainer: document.getElementById('roles-list-container'),
+    btnCreateRole: document.getElementById('btn-create-role'),
+    roleNameInput: document.getElementById('role-name-input'),
+    roleColorPicker: document.getElementById('role-color-picker'),
+    permissionsListContainer: document.getElementById('permissions-list-container'),
+    btnSaveRole: document.getElementById('btn-save-role'),
+    btnDeleteRole: document.getElementById('btn-delete-role'),
 };
 
 // --- INITIALIZATION ---
@@ -118,71 +161,39 @@ async function loadUserProfile() {
     }
 }
 
-// --- LEADERBOARD DYNAMIQUE ---
+// ... (loadContributors, addPointsToUser, subscribeToPosts, renderPostCard, createPost, toggleLike, sharePost, openDetailModal, subscribeToComments, submitComment... IDENTIQUES) ...
 async function loadContributors() {
     const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(5));
-    
-    // Note: Si vous n'avez pas encore d'index sur 'points', ça peut échouer ou être vide.
-    // Assurez-vous d'initialiser le champ 'points: 0' à la création des users.
-    
     try {
         const snapshot = await getDocs(q);
-        
         ui.contributorsList.innerHTML = '';
-        if (snapshot.empty) {
-            ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-gray-500">Classement en cours...</div>`;
-            return;
-        }
-
+        if (snapshot.empty) { ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-gray-500">Classement en cours...</div>`; return; }
         let rank = 1;
         snapshot.forEach(docSnap => {
             const user = docSnap.data();
-            // Ignorer les users sans points ou sans nom
             if(!user.firstName) return; 
-
             const div = document.createElement('div');
             div.className = 'flex items-center gap-3 animate-fade-in mb-3 last:mb-0';
-            div.innerHTML = `
-                <span class="text-gray-500 text-xs font-bold w-4">${rank}</span>
-                <img src="${user.photoURL || `https://ui-avatars.com/api/?name=${user.firstName}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700">
-                <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-white truncate">${user.firstName}</p>
-                    <p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p>
-                </div>
-            `;
+            div.innerHTML = `<span class="text-gray-500 text-xs font-bold w-4">${rank}</span><img src="${user.photoURL || `https://ui-avatars.com/api/?name=${user.firstName}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white truncate">${user.firstName}</p><p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p></div>`;
             ui.contributorsList.appendChild(div);
             rank++;
         });
-    } catch (e) {
-        console.error("Erreur Leaderboard:", e);
-        ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-red-400">Erreur chargement.</div>`;
-    }
+    } catch (e) { console.error(e); }
 }
-
-// Fonction pour ajouter des points (à appeler lors d'actions)
 async function addPointsToUser(userId, points) {
-    try {
-        const userRef = doc(db, 'users', userId);
-        await updateDoc(userRef, {
-            points: increment(points)
-        });
-    } catch (e) { console.error("Erreur points:", e); }
+    try { const userRef = doc(db, 'users', userId); await updateDoc(userRef, { points: increment(points) }); } catch (e) {}
 }
-
-// ... (subscribeToPosts, renderPostCard, createPost, toggleLike, sharePost, openDetailModal... -> RESTENT IDENTIQUES) ...
 function subscribeToPosts(filterType = 'all') {
     if (postsUnsubscribe) postsUnsubscribe();
     ui.postsContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>`;
     let q = query(collection(db, 'community_posts'), orderBy('createdAt', 'desc'), limit(20));
     if (filterType !== 'all') q = query(collection(db, 'community_posts'), where('type', '==', filterType), orderBy('createdAt', 'desc'), limit(20));
-
     postsUnsubscribe = onSnapshot(q, (snapshot) => {
         ui.postsContainer.innerHTML = '';
         if (snapshot.empty) { ui.postsContainer.innerHTML = `<div class="text-center text-gray-500 py-10">Aucune discussion.</div>`; return; }
         snapshot.forEach(docSnap => renderPostCard({ id: docSnap.id, ...docSnap.data() }));
-    }, (error) => console.error("Erreur Posts:", error));
+    }, (error) => console.error(error));
 }
-
 function renderPostCard(post) {
     const isQuestion = post.type === 'question';
     const badgeColor = isQuestion ? 'blue' : (post.type === 'share' ? 'purple' : 'gray');
@@ -193,93 +204,36 @@ function renderPostCard(post) {
     const likeClass = userLiked ? 'text-red-500' : 'hover:text-red-400';
     const likeIcon = userLiked ? 'fas fa-heart' : 'far fa-heart';
     const timeAgo = post.createdAt ? timeSince(post.createdAt.toDate()) : 'À l\'instant';
-
-    card.innerHTML = `
-        <div class="flex justify-between items-start mb-4">
-            <div class="flex items-center gap-3">
-                <img src="${post.authorAvatar || 'https://ui-avatars.com/api/?background=random'}" class="w-10 h-10 rounded-full border border-gray-600">
-                <div>
-                    <h4 class="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">${post.authorName || 'Anonyme'}</h4>
-                    <p class="text-xs text-gray-500">${timeAgo} • ${post.tag || 'Général'}</p>
-                </div>
-            </div>
-            <span class="px-2 py-1 bg-${badgeColor}-500/10 text-${badgeColor}-400 text-xs rounded border border-${badgeColor}-500/20">${badgeLabel}</span>
-        </div>
-        <h3 class="text-lg font-bold text-white mb-2">${post.title}</h3>
-        <p class="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-line">${post.content}</p>
-        <div class="flex items-center gap-6 text-xs text-gray-500 border-t border-gray-800/50 pt-4">
-            <button class="flex items-center gap-2 hover:text-emerald-400 transition-colors action-btn"><i class="far fa-comment-alt"></i> ${post.commentsCount || 0} rép.</button>
-            <button class="flex items-center gap-2 ${likeClass} transition-colors action-btn like-btn"><i class="${likeIcon}"></i> ${post.likesBy ? post.likesBy.length : 0}</button>
-            <button class="ml-auto hover:text-white action-btn share-btn hover:text-indigo-400"><i class="fas fa-share"></i> Republier</button>
-        </div>
-    `;
+    card.innerHTML = `<div class="flex justify-between items-start mb-4"><div class="flex items-center gap-3"><img src="${post.authorAvatar || 'https://ui-avatars.com/api/?background=random'}" class="w-10 h-10 rounded-full border border-gray-600"><div><h4 class="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">${post.authorName || 'Anonyme'}</h4><p class="text-xs text-gray-500">${timeAgo} • ${post.tag || 'Général'}</p></div></div><span class="px-2 py-1 bg-${badgeColor}-500/10 text-${badgeColor}-400 text-xs rounded border border-${badgeColor}-500/20">${badgeLabel}</span></div><h3 class="text-lg font-bold text-white mb-2">${post.title}</h3><p class="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-line">${post.content}</p><div class="flex items-center gap-6 text-xs text-gray-500 border-t border-gray-800/50 pt-4"><button class="flex items-center gap-2 hover:text-emerald-400 transition-colors action-btn"><i class="far fa-comment-alt"></i> ${post.commentsCount || 0} rép.</button><button class="flex items-center gap-2 ${likeClass} transition-colors action-btn like-btn"><i class="${likeIcon}"></i> ${post.likesBy ? post.likesBy.length : 0}</button><button class="ml-auto hover:text-white action-btn share-btn hover:text-indigo-400"><i class="fas fa-share"></i> Republier</button></div>`;
     card.querySelector('.like-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleLike(post.id, userLiked); });
     card.querySelector('.share-btn').addEventListener('click', (e) => { e.stopPropagation(); sharePost(post); });
     card.addEventListener('click', (e) => { if (!e.target.closest('.action-btn')) openDetailModal(post); });
     ui.postsContainer.appendChild(card);
 }
-
 async function createPost() {
-    const title = ui.postTitle.value.trim();
-    const content = ui.postContent.value.trim();
-    const tag = ui.postTag.value.trim();
-    const type = document.querySelector('input[name="post-type"]:checked').value;
+    const title = ui.postTitle.value.trim(); const content = ui.postContent.value.trim(); const tag = ui.postTag.value.trim(); const type = document.querySelector('input[name="post-type"]:checked').value;
     if (!title || !content) return showMessage("Titre et contenu requis", "error");
     ui.submitPost.disabled = true; ui.submitPost.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-    try {
-        await addDoc(collection(db, 'community_posts'), {
-            title, content, tag: tag || 'Général', type, authorId: currentUserId,
-            authorName: currentUserData.firstName || 'Utilisateur', authorAvatar: currentUserData.photoURL,
-            createdAt: serverTimestamp(), likesBy: [], commentsCount: 0
-        });
-        await addPointsToUser(currentUserId, 10); // +10 pts pour un post
-        window.togglePostModal(false); ui.postTitle.value = ""; ui.postContent.value = "";
-        showMessage("Publié ! (+10 pts)", "success");
-        loadContributors(); // Refresh leaderboard
-    } catch (e) { console.error(e); } finally { ui.submitPost.disabled = false; ui.submitPost.innerHTML = `<i class="fas fa-paper-plane"></i> Publier`; }
+    try { await addDoc(collection(db, 'community_posts'), { title, content, tag: tag || 'Général', type, authorId: currentUserId, authorName: currentUserData.firstName || 'Utilisateur', authorAvatar: currentUserData.photoURL, createdAt: serverTimestamp(), likesBy: [], commentsCount: 0 }); await addPointsToUser(currentUserId, 10); window.togglePostModal(false); ui.postTitle.value = ""; ui.postContent.value = ""; showMessage("Publié ! (+10 pts)", "success"); loadContributors(); } catch (e) { console.error(e); } finally { ui.submitPost.disabled = false; ui.submitPost.innerHTML = `<i class="fas fa-paper-plane"></i> Publier`; }
 }
+async function toggleLike(postId, alreadyLiked) { try { const ref = doc(db, 'community_posts', postId); if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) }); else await updateDoc(ref, { likesBy: arrayUnion(currentUserId) }); } catch(e) {} }
+function sharePost(post) { window.togglePostModal(true); ui.postTitle.value = `RE: ${post.title}`; ui.postContent.value = `\n\n--- De ${post.authorName} ---\n${post.content}`; ui.postContent.focus(); }
+async function openDetailModal(post) { currentPostId = post.id; ui.detailModal.classList.remove('hidden'); ui.detailContent.innerHTML = `<h2 class="text-2xl font-bold text-white mb-4">${post.title}</h2><p class="text-gray-300 whitespace-pre-line">${post.content}</p><div id="comments-list" class="mt-8 space-y-4"></div>`; subscribeToComments(post.id); }
+function subscribeToComments(postId) { const list = document.getElementById('comments-list'); onSnapshot(query(collection(db, 'community_posts', postId, 'comments'), orderBy('createdAt', 'asc')), (snap) => { list.innerHTML = ''; snap.forEach(d => { const c = d.data(); list.innerHTML += `<div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800"><span class="font-bold text-white text-sm">${c.authorName}</span><p class="text-sm text-gray-300 mt-1">${c.content}</p></div>`; }); }); }
+async function submitComment() { const content = ui.commentInput.value.trim(); if(!content) return; try { await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), { content, authorId: currentUserId, authorName: currentUserData.firstName, createdAt: serverTimestamp() }); await addPointsToUser(currentUserId, 5); ui.commentInput.value = ''; } catch(e) {} }
 
-async function toggleLike(postId, alreadyLiked) {
-    try {
-        const ref = doc(db, 'community_posts', postId);
-        if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) });
-        else {
-            await updateDoc(ref, { likesBy: arrayUnion(currentUserId) });
-            // +2 pts pour un like (optionnel, attention au spam)
-        }
-    } catch(e) {}
-}
-function sharePost(post) {
-    window.togglePostModal(true); ui.postTitle.value = `RE: ${post.title}`; ui.postContent.value = `\n\n--- De ${post.authorName} ---\n${post.content}`;
-    ui.postContent.focus();
-}
-async function openDetailModal(post) {
-    currentPostId = post.id; ui.detailModal.classList.remove('hidden');
-    ui.detailContent.innerHTML = `<h2 class="text-2xl font-bold text-white mb-4">${post.title}</h2><p class="text-gray-300 whitespace-pre-line">${post.content}</p><div id="comments-list" class="mt-8 space-y-4"></div>`;
-    subscribeToComments(post.id);
-}
-function subscribeToComments(postId) {
-    const list = document.getElementById('comments-list');
-    onSnapshot(query(collection(db, 'community_posts', postId, 'comments'), orderBy('createdAt', 'asc')), (snap) => {
-        list.innerHTML = '';
-        snap.forEach(d => {
-            const c = d.data();
-            list.innerHTML += `<div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800"><span class="font-bold text-white text-sm">${c.authorName}</span><p class="text-sm text-gray-300 mt-1">${c.content}</p></div>`;
-        });
-    });
-}
-async function submitComment() {
-    const content = ui.commentInput.value.trim(); if(!content) return;
-    try {
-        await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), {
-            content, authorId: currentUserId, authorName: currentUserData.firstName, createdAt: serverTimestamp()
-        });
-        await addPointsToUser(currentUserId, 5); // +5 pts commentaire
-        ui.commentInput.value = '';
-    } catch(e) {}
-}
+// --- GROUPS LOGIC AVEC RÔLES ---
 
-// --- GROUPS LOGIC AVEC RECHERCHE ---
+// Check Permission Helper
+function hasPermission(permission) {
+    if (!currentGroupData) return false;
+    const myRoleId = currentGroupData.memberRoles ? currentGroupData.memberRoles[currentUserId] : 'member';
+    const role = currentGroupData.roles ? currentGroupData.roles[myRoleId] : DEFAULT_ROLES[myRoleId];
+    
+    if (!role) return false;
+    if (role.permissions.includes('ALL')) return true;
+    return role.permissions.includes(permission);
+}
 
 async function createNewGroup() {
     const name = ui.newGroupName.value.trim();
@@ -292,6 +246,10 @@ async function createNewGroup() {
     ui.submitCreateGroup.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
 
     try {
+        // Préparer les rôles initiaux
+        const initialMemberRoles = {};
+        initialMemberRoles[currentUserId] = 'admin'; // Créateur = Admin
+
         await addDoc(collection(db, 'groups'), {
             name: name,
             description: desc,
@@ -299,11 +257,15 @@ async function createNewGroup() {
             icon: 'fa-users',
             memberCount: 1,
             members: [currentUserId],
-            admins: [currentUserId],
-            searchKeywords: generateKeywords(name), // Pour recherche future
+            // NOUVEAU: Structure Rôles
+            roles: DEFAULT_ROLES,
+            memberRoles: initialMemberRoles,
+            admins: [currentUserId], // Legacy fallback (pour compatibilité)
+            
+            searchKeywords: generateKeywords(name), 
             createdAt: serverTimestamp()
         });
-        await addPointsToUser(currentUserId, 20); // +20 pts création groupe
+        await addPointsToUser(currentUserId, 20); 
 
         toggleCreateGroupModal(false);
         ui.newGroupName.value = ""; ui.newGroupDesc.value = "";
@@ -317,121 +279,254 @@ async function createNewGroup() {
     }
 }
 
-// Helper pour recherche simple (minuscule)
-function generateKeywords(str) {
-    return str.toLowerCase().split(' ');
-}
-
+// ... (generateKeywords, subscribeToGroups, renderGroupList, filterGroups... -> IDENTIQUES) ...
+function generateKeywords(str) { return str.toLowerCase().split(' '); }
 function subscribeToGroups() {
     if (groupsUnsubscribe) groupsUnsubscribe();
-    // On charge tous les groupes (avec une limite raisonnable) et on filtre en local
-    // car Firestore ne gère pas le "contains" partiel nativement sans solution externe (Algolia...)
     const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(50));
-
     groupsUnsubscribe = onSnapshot(q, (snapshot) => {
-        allGroups = [];
-        snapshot.forEach(docSnap => {
-            allGroups.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        renderGroupList(allGroups);
+        allGroups = []; snapshot.forEach(docSnap => { allGroups.push({ id: docSnap.id, ...docSnap.data() }); }); renderGroupList(allGroups);
     });
 }
-
 function renderGroupList(groups) {
     ui.groupsList.innerHTML = '';
-    if (groups.length === 0) {
-        ui.groupsList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Aucun groupe trouvé.</p>`; 
-        return; 
-    }
-
+    if (groups.length === 0) { ui.groupsList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Aucun groupe trouvé.</p>`; return; }
     groups.forEach(group => {
         const isMember = group.members && group.members.includes(currentUserId);
-        
         const div = document.createElement('div');
         div.className = 'flex items-center gap-3 p-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer group-item animate-fade-in';
-        
         let iconHtml = `<i class="fas ${group.icon || 'fa-users'}"></i>`;
         let iconClass = `w-10 h-10 rounded-lg bg-${group.color || 'indigo'}-500/20 text-${group.color || 'indigo'}-400 flex items-center justify-center text-lg`;
-        if (group.photoURL) {
-            iconHtml = `<img src="${group.photoURL}" class="w-full h-full object-cover rounded-lg">`;
-            iconClass = `w-10 h-10 rounded-lg bg-gray-800`;
-        }
-
-        div.innerHTML = `
-            <div class="${iconClass}">
-                ${iconHtml}
-            </div>
-            <div class="flex-1 min-w-0">
-                <p class="text-sm font-bold text-white truncate">${group.name}</p>
-                <p class="text-xs text-gray-500 truncate">${group.memberCount || 0} membres</p>
-            </div>
-            <button class="ml-auto text-xs px-2 py-1 rounded transition-colors ${isMember ? 'bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} join-group-btn" data-id="${group.id}">
-                ${isMember ? 'Ouvrir' : 'Rejoindre'}
-            </button>
-        `;
-        
+        if (group.photoURL) { iconHtml = `<img src="${group.photoURL}" class="w-full h-full object-cover rounded-lg">`; iconClass = `w-10 h-10 rounded-lg bg-gray-800`; }
+        div.innerHTML = `<div class="${iconClass}">${iconHtml}</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white truncate">${group.name}</p><p class="text-xs text-gray-500 truncate">${group.memberCount || 0} membres</p></div><button class="ml-auto text-xs px-2 py-1 rounded transition-colors ${isMember ? 'bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} join-group-btn" data-id="${group.id}">${isMember ? 'Ouvrir' : 'Rejoindre'}</button>`;
         const btn = div.querySelector('.join-group-btn');
-        btn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (isMember) {
-                openGroupSpace(group);
-            } else {
-                await toggleJoinGroup(group.id, false);
-                // On n'ouvre pas tout de suite, on attend que l'utilisateur soit membre
-                openGroupSpace(group);
-            }
-        });
-
+        btn.addEventListener('click', async (e) => { e.stopPropagation(); if (isMember) openGroupSpace(group); else { await toggleJoinGroup(group.id, false); openGroupSpace(group); } });
         div.addEventListener('click', () => { if(isMember) openGroupSpace(group); else btn.click(); });
         ui.groupsList.appendChild(div);
     });
 }
-
-// Fonction de filtrage local
 function filterGroups() {
     const searchTerm = ui.groupSearchInput.value.toLowerCase();
-    const filterType = document.querySelector('#group-filters button.bg-blue-900\\/50') ? 
-                       document.querySelector('#group-filters button.bg-blue-900\\/50').dataset.filter : 'all';
-
+    const filterType = document.querySelector('#group-filters button.bg-blue-900\\/50') ? document.querySelector('#group-filters button.bg-blue-900\\/50').dataset.filter : 'all';
     const filtered = allGroups.filter(g => {
         const matchesSearch = g.name.toLowerCase().includes(searchTerm) || (g.description && g.description.toLowerCase().includes(searchTerm));
         const matchesType = filterType === 'all' || (filterType === 'my' && g.members.includes(currentUserId));
         return matchesSearch && matchesType;
     });
-
     renderGroupList(filtered);
 }
-
-// ... (openGroupSpace, subscribeToGroupChat, sendGroupMessage, deleteGroupMessage, subscribeToGroupFiles, uploadGroupFile, uploadGroupIcon, toggleJoinGroup, timeSince, loadContributors... -> CODE EXISTANT) ...
-// Pour la lisibilité, je ne répète pas tout le bloc 'Chat' et 'Files' qui reste identique à la version précédente sauf pour les appels à 'addPoints'
 
 // OUVERTURE DU GROUPE
 function openGroupSpace(group) {
     currentGroupId = group.id;
-    currentGroupData = group; // Stocke pour vérification admin
+    currentGroupData = group; // Stocke pour vérification permission
     ui.groupModal.classList.remove('hidden');
     
     ui.groupTitle.textContent = group.name;
     ui.groupMemberCount.textContent = group.memberCount || 0;
     
-    // Gérer l'affichage de l'icône dans la modale
     if (group.photoURL) {
          ui.groupIcon.innerHTML = `<img src="${group.photoURL}" class="w-full h-full object-cover rounded-2xl">`;
     } else {
          ui.groupIcon.innerHTML = `<i class="fas ${group.icon || 'fa-users'}"></i>`;
     }
 
-    ui.groupMembersList.innerHTML = `
-        <div class="flex items-center gap-2 text-sm text-gray-300">
-            <img src="${currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName}&background=random`}" class="w-6 h-6 rounded-full">
-            <span>Toi</span>
-        </div>
-        <p class="text-xs text-gray-500 mt-2 italic">+ ${Math.max(0, (group.memberCount || 1) - 1)} autres membres</p>
-    `;
+    // Vérifier si Admin pour afficher la roue dentée (Basé sur le rôle 'admin')
+    const myRole = group.memberRoles ? group.memberRoles[currentUserId] : 'member';
+    if (myRole === 'admin') {
+        ui.btnGroupSettings.classList.remove('hidden');
+        ui.btnGroupSettings.onclick = () => openSettingsModal(group);
+    } else {
+        ui.btnGroupSettings.classList.add('hidden');
+    }
+
+    // Charger les membres et leurs rôles
+    ui.groupMembersList.innerHTML = `<div class="text-center py-2"><i class="fas fa-circle-notch fa-spin text-gray-600"></i></div>`;
+    loadGroupMembers(group);
 
     subscribeToGroupChat(group.id);
     subscribeToGroupFiles(group.id);
 }
+
+// Nouvelle fonction pour charger les membres avec leurs rôles
+async function loadGroupMembers(group) {
+    // Note: Pour une vraie app scalable, on ne devrait pas charger tous les users si le groupe est énorme.
+    // Ici on simplifie pour le proto.
+    ui.groupMembersList.innerHTML = '';
+    
+    // On simule une liste car on ne peut pas query 'users' avec un array 'in' > 10
+    // On affiche l'utilisateur courant + un résumé
+    
+    const myRoleId = group.memberRoles ? (group.memberRoles[currentUserId] || 'member') : 'member';
+    const myRole = group.roles ? (group.roles[myRoleId] || DEFAULT_ROLES.member) : DEFAULT_ROLES.member;
+
+    // Déterminer le style du badge
+    const badgeColor = myRole.hexColor || '#9ca3af';
+
+    const divMe = document.createElement('div');
+    divMe.className = 'flex items-center gap-2 p-2 rounded hover:bg-gray-800/50';
+    divMe.innerHTML = `
+        <img src="${currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700">
+        <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-white flex items-center gap-2">
+                Toi 
+                <span class="text-[10px] px-1.5 py-0.5 rounded border" style="border-color: ${badgeColor}; color: ${badgeColor}; background-color: ${badgeColor}20;">${myRole.name}</span>
+            </p>
+        </div>
+    `;
+    ui.groupMembersList.appendChild(divMe);
+
+    // Placeholder pour les autres
+    if (group.memberCount > 1) {
+        const others = document.createElement('p');
+        others.className = "text-xs text-gray-500 mt-2 px-2 italic";
+        others.textContent = `+ ${group.memberCount - 1} autres membres`;
+        ui.groupMembersList.appendChild(others);
+    }
+}
+
+// --- LOGIQUE SETTINGS / ROLES ---
+
+function openSettingsModal(group) {
+    ui.settingsModal.classList.remove('hidden');
+    // Clone profond pour ne pas modifier l'objet original avant sauvegarde
+    tempRoles = JSON.parse(JSON.stringify(group.roles || DEFAULT_ROLES));
+    renderRolesList();
+    // Sélectionner le premier rôle par défaut (souvent 'admin' ou le premier dispo)
+    const firstRole = Object.keys(tempRoles)[0];
+    if (firstRole) selectRoleForEditing(firstRole);
+}
+
+function renderRolesList() {
+    ui.rolesListContainer.innerHTML = '';
+    Object.keys(tempRoles).forEach(roleId => {
+        const role = tempRoles[roleId];
+        const div = document.createElement('div');
+        const isActive = roleId === editingRoleId;
+        
+        div.className = `p-2 rounded text-sm border-l-4 cursor-pointer mb-1 flex justify-between items-center ${isActive ? 'bg-[#3f4147] text-white' : 'hover:bg-[#2b2d31] text-gray-400'}`;
+        div.style.borderLeftColor = role.hexColor || '#9ca3af'; // Utilise hexColor si dispo
+        div.innerHTML = `<span>${role.name}</span>`;
+        
+        div.onclick = () => selectRoleForEditing(roleId);
+        ui.rolesListContainer.appendChild(div);
+    });
+}
+
+function selectRoleForEditing(roleId) {
+    editingRoleId = roleId;
+    const role = tempRoles[roleId];
+    renderRolesList(); // Update active state
+
+    // Remplir le formulaire
+    ui.roleNameInput.value = role.name;
+    
+    // Setup Color Picker
+    const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#6366f1', '#a855f7', '#6b7280'];
+    ui.roleColorPicker.innerHTML = colors.map(c => `
+        <button class="w-6 h-6 rounded-full border-2 transition-all ${role.hexColor === c ? 'border-white ring-2 ring-indigo-500 scale-110' : 'border-transparent hover:border-gray-400'}" 
+                style="background-color: ${c};" 
+                onclick="window.updateRoleColor('${c}')">
+        </button>
+    `).join('');
+
+    // Remplir les permissions
+    ui.permissionsListContainer.innerHTML = PERMISSIONS_DEF.map(perm => {
+        const isChecked = role.permissions.includes('ALL') || role.permissions.includes(perm.id);
+        const isDisabled = role.permissions.includes('ALL') && roleId === 'admin'; // Admin a tout, non modifiable
+
+        return `
+            <div class="flex items-center justify-between py-3 border-b border-gray-700/50">
+                <div class="pr-4">
+                    <div class="text-white text-sm font-medium">${perm.label}</div>
+                    <div class="text-gray-400 text-xs mt-0.5">${perm.desc}</div>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only peer" 
+                           ${isChecked ? 'checked' : ''} 
+                           ${isDisabled ? 'disabled' : ''}
+                           onchange="window.toggleRolePermission('${perm.id}', this.checked)">
+                    <div class="w-11 h-6 bg-gray-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}"></div>
+                </label>
+            </div>
+        `;
+    }).join('');
+
+    // Bouton Delete : caché pour Admin ou roles par défaut critiques
+    if (roleId === 'admin' || roleId === 'member') {
+        ui.btnDeleteRole.style.display = 'none';
+    } else {
+        ui.btnDeleteRole.style.display = 'block';
+    }
+}
+
+// Helpers exposés globalement pour le HTML string
+window.updateRoleColor = (color) => {
+    if (tempRoles[editingRoleId]) {
+        tempRoles[editingRoleId].hexColor = color;
+        selectRoleForEditing(editingRoleId); // Re-render pour voir le ring
+    }
+};
+
+window.toggleRolePermission = (permId, checked) => {
+    if (!tempRoles[editingRoleId]) return;
+    let perms = tempRoles[editingRoleId].permissions;
+    
+    if (checked) {
+        if (!perms.includes(permId)) perms.push(permId);
+    } else {
+        tempRoles[editingRoleId].permissions = perms.filter(p => p !== permId);
+    }
+};
+
+async function saveRolesChanges() {
+    // Update du nom
+    if (tempRoles[editingRoleId]) {
+        tempRoles[editingRoleId].name = ui.roleNameInput.value;
+    }
+
+    try {
+        ui.btnSaveRole.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        const groupRef = doc(db, 'groups', currentGroupId);
+        await updateDoc(groupRef, { roles: tempRoles });
+        
+        currentGroupData.roles = tempRoles; // Update local cache
+        showMessage("Modifications enregistrées !", "success");
+        renderRolesList(); // Refresh list names
+    } catch (e) {
+        console.error("Erreur sauvegarde rôles:", e);
+        showMessage("Erreur lors de la sauvegarde", "error");
+    } finally {
+        ui.btnSaveRole.innerHTML = 'Enregistrer les modifications';
+    }
+}
+
+async function createNewRole() {
+    const newId = 'role_' + Date.now();
+    tempRoles[newId] = {
+        name: "Nouveau Rôle",
+        hexColor: "#9ca3af",
+        permissions: ["SEND_MESSAGES"]
+    };
+    renderRolesList();
+    selectRoleForEditing(newId);
+}
+
+async function deleteCurrentRole() {
+    if (editingRoleId === 'admin' || editingRoleId === 'member') return showMessage("Impossible de supprimer ce rôle système.", "error");
+    
+    if (confirm("Supprimer ce rôle ? Les membres ayant ce rôle deviendront 'Membre' par défaut.")) {
+        delete tempRoles[editingRoleId];
+        
+        const groupRef = doc(db, 'groups', currentGroupId);
+        await updateDoc(groupRef, { roles: tempRoles });
+        
+        const firstRole = Object.keys(tempRoles)[0];
+        selectRoleForEditing(firstRole);
+    }
+}
+
+// ... (sendGroupMessage, deleteGroupMessage, subscribeToGroupFiles, uploadGroupFile... ) ...
 
 function subscribeToGroupChat(groupId) {
     if(groupChatUnsubscribe) groupChatUnsubscribe();
@@ -446,23 +541,37 @@ function subscribeToGroupChat(groupId) {
             return;
         }
 
-        const isAdmin = currentGroupData && currentGroupData.admins && currentGroupData.admins.includes(currentUserId);
+        const canDeleteOthers = hasPermission('DELETE_MESSAGES');
 
         snapshot.forEach(docSnap => {
             const msg = { id: docSnap.id, ...docSnap.data() };
             const isMe = msg.authorId === currentUserId;
             
-            // Bouton supprimer visible si c'est moi OU si je suis admin
-            const canDelete = isMe || isAdmin;
+            const canDelete = isMe || canDeleteOthers;
             const deleteBtnHtml = canDelete ? 
                 `<button class="text-gray-500 hover:text-red-500 ml-2 delete-msg-btn" data-id="${msg.id}"><i class="fas fa-trash-alt text-[10px]"></i></button>` : '';
+
+            // Rôle de l'auteur
+            let authorRoleBadge = '';
+            if (currentGroupData && currentGroupData.memberRoles && currentGroupData.roles) {
+                const roleId = currentGroupData.memberRoles[msg.authorId] || 'member';
+                const role = currentGroupData.roles[roleId];
+                if (role && roleId !== 'member') { 
+                    const color = role.hexColor || '#9ca3af';
+                    authorRoleBadge = `<span class="text-[10px] ml-2 font-bold border px-1 rounded bg-black/20" style="color: ${color}; border-color: ${color};">${role.name}</span>`;
+                }
+            }
 
             const msgDiv = document.createElement('div');
             msgDiv.className = `flex gap-3 mb-4 animate-fade-in ${isMe ? 'flex-row-reverse' : ''} group/msg`;
             msgDiv.innerHTML = `
                 <img src="${msg.authorAvatar}" class="w-8 h-8 rounded-full flex-shrink-0 mt-1">
                 <div class="max-w-[70%]">
-                    <div class="${isMe ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-200'} p-3 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'} text-sm whitespace-pre-line group-hover/msg:opacity-90">
+                    <div class="flex items-center ${isMe ? 'justify-end' : ''} mb-1">
+                        <span class="text-[10px] text-gray-400">${msg.authorName}</span>
+                        ${authorRoleBadge}
+                    </div>
+                    <div class="${isMe ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-200'} p-3 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'} text-sm whitespace-pre-line group-hover/msg:opacity-90 shadow-sm">
                         ${msg.content}
                     </div>
                     <div class="flex items-center ${isMe ? 'justify-end' : ''} mt-1 gap-2">
@@ -484,6 +593,7 @@ function subscribeToGroupChat(groupId) {
 }
 
 async function sendGroupMessage() {
+    if (!hasPermission('SEND_MESSAGES')) return showMessage("Permission refusée", "error");
     const content = ui.groupChatInput.value.trim();
     if(!content || !currentGroupId) return;
     try {
@@ -497,47 +607,59 @@ async function sendGroupMessage() {
 
 async function deleteGroupMessage(messageId) {
     if(!confirm("Supprimer ce message ?")) return;
-    try {
-        await deleteDoc(doc(db, 'groups', currentGroupId, 'messages', messageId));
-    } catch(e) {
-        console.error(e);
-        showMessage("Impossible de supprimer", "error");
-    }
+    try { await deleteDoc(doc(db, 'groups', currentGroupId, 'messages', messageId)); } catch(e) { console.error(e); }
 }
 
 function subscribeToGroupFiles(groupId) {
     if(groupFilesUnsubscribe) groupFilesUnsubscribe();
-    
     const q = query(collection(db, 'groups', groupId, 'files'), orderBy('createdAt', 'desc'));
     
     groupFilesUnsubscribe = onSnapshot(q, (snapshot) => {
         ui.groupFilesList.innerHTML = '';
-        if (snapshot.empty) {
-            ui.groupFilesList.innerHTML = `<div class="text-center py-4 text-xs italic text-gray-600">Aucun fichier partagé</div>`;
-            return;
-        }
+        if (snapshot.empty) { ui.groupFilesList.innerHTML = `<div class="text-center py-4 text-xs italic text-gray-600">Aucun fichier partagé</div>`; return; }
+
+        const canDeleteFiles = hasPermission('DELETE_FILES');
 
         snapshot.forEach(docSnap => {
-            const f = docSnap.data();
+            const f = { id: docSnap.id, ...docSnap.data() };
+            const isMe = f.authorId === currentUserId;
+            const canDelete = isMe || canDeleteFiles;
+
             const div = document.createElement('div');
-            div.className = 'flex items-center gap-2 p-2 hover:bg-gray-800 rounded cursor-pointer group/file';
+            div.className = 'flex items-center gap-2 p-2 hover:bg-gray-800 rounded cursor-pointer group/file relative';
             div.innerHTML = `
                 <i class="fas fa-file-alt text-gray-400"></i>
                 <div class="flex-1 min-w-0">
                     <p class="text-xs text-gray-300 truncate">${f.name}</p>
                     <p class="text-[10px] text-gray-600">${f.size || '? KB'} • ${f.authorName}</p>
                 </div>
-                <a href="${f.url}" target="_blank" class="opacity-0 group-hover/file:opacity-100 text-indigo-400 hover:text-white transition-opacity">
-                    <i class="fas fa-download"></i>
-                </a>
+                <div class="flex items-center gap-2 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                    <a href="${f.url}" target="_blank" class="text-indigo-400 hover:text-white"><i class="fas fa-download"></i></a>
+                    ${canDelete ? `<button class="text-red-400 hover:text-red-300 delete-file-btn"><i class="fas fa-trash"></i></button>` : ''}
+                </div>
             `;
+            
+            if(canDelete) {
+                div.querySelector('.delete-file-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if(confirm("Supprimer ce fichier ?")) deleteGroupFile(f.id);
+                });
+            }
             ui.groupFilesList.appendChild(div);
         });
     });
 }
 
+async function deleteGroupFile(fileId) {
+    try { await deleteDoc(doc(db, 'groups', currentGroupId, 'files', fileId)); showMessage("Fichier supprimé", "success"); } 
+    catch(e) { console.error(e); showMessage("Erreur suppression", "error"); }
+}
+
 async function uploadGroupFile(file) {
     if (!currentGroupId) return;
+    if (!hasPermission('UPLOAD_FILES')) return showMessage("Permission refusée", "error");
+
     showMessage("Envoi du fichier...", "info");
     try {
         const storageRef = ref(storage, `groups/${currentGroupId}/${Date.now()}_${file.name}`);
@@ -545,65 +667,50 @@ async function uploadGroupFile(file) {
         const url = await getDownloadURL(snapshot.ref);
         
         await addDoc(collection(db, 'groups', currentGroupId, 'files'), {
-            name: file.name,
-            url: url,
-            size: (file.size / 1024).toFixed(1) + ' KB',
-            authorId: currentUserId,
-            authorName: currentUserData.firstName,
-            createdAt: serverTimestamp()
+            name: file.name, url: url, size: (file.size / 1024).toFixed(1) + ' KB',
+            authorId: currentUserId, authorName: currentUserData.firstName, createdAt: serverTimestamp()
         });
         showMessage("Fichier partagé !", "success");
-    } catch (e) {
-        console.error(e);
-        showMessage("Erreur upload fichier", "error");
-    }
+    } catch (e) { console.error(e); showMessage("Erreur upload fichier", "error"); }
 }
 
 async function uploadGroupIcon(file) {
     if (!currentGroupId) return;
+    if (!hasPermission('MANAGE_GROUP')) return showMessage("Seul l'admin peut changer l'icône", "error");
+
     showMessage("Mise à jour de l'icône...", "info");
     try {
         const storageRef = ref(storage, `group_icons/${currentGroupId}_${Date.now()}`);
         const snapshot = await uploadBytes(storageRef, file);
         const url = await getDownloadURL(snapshot.ref);
-        
-        await updateDoc(doc(db, 'groups', currentGroupId), {
-            photoURL: url
-        });
-        
-        // Update local UI immediately
+        await updateDoc(doc(db, 'groups', currentGroupId), { photoURL: url });
         ui.groupIcon.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-2xl">`;
         showMessage("Icône mise à jour !", "success");
-    } catch (e) {
-        console.error(e);
-        showMessage("Erreur upload icône", "error");
-    }
+    } catch (e) { console.error(e); showMessage("Erreur upload icône", "error"); }
 }
 
 async function toggleJoinGroup(groupId, isMember) {
     try {
         const ref = doc(db, 'groups', groupId);
         if (isMember) {
-            await updateDoc(ref, { members: arrayRemove(currentUserId) });
+            await updateDoc(ref, { 
+                members: arrayRemove(currentUserId),
+                [`memberRoles.${currentUserId}`]: deleteField() 
+            });
             const g = await getDoc(ref);
             await updateDoc(ref, { memberCount: Math.max(0, (g.data().memberCount || 1) - 1) });
         } else {
-            await updateDoc(ref, { members: arrayUnion(currentUserId) });
+            await updateDoc(ref, { 
+                members: arrayUnion(currentUserId),
+                [`memberRoles.${currentUserId}`]: 'member' 
+            });
             const g = await getDoc(ref);
             await updateDoc(ref, { memberCount: (g.data().memberCount || 0) + 1 });
         }
     } catch(e) { console.error(e); }
 }
 
-function timeSince(date) {
-    const seconds = Math.floor((new Date() - date) / 1000);
-    let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + " an(s)";
-    interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + " mois";
-    interval = seconds / 86400; if (interval > 1) return Math.floor(interval) + "j";
-    interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + "h";
-    interval = seconds / 60; if (interval > 1) return Math.floor(interval) + " min";
-    return "À l'instant";
-}
+function timeSince(date) { const seconds = Math.floor((new Date() - date) / 1000); let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + " an(s)"; interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + " mois"; interval = seconds / 86400; if (interval > 1) return Math.floor(interval) + "j"; interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + "h"; interval = seconds / 60; if (interval > 1) return Math.floor(interval) + " min"; return "À l'instant"; }
 
 function setupEventListeners() {
     const togglePostModal = (show) => ui.newPostModal.classList.toggle('hidden', !show);
@@ -623,17 +730,12 @@ function setupEventListeners() {
     
     // LISTENERS UPLOADS
     if(ui.btnAddFile) ui.btnAddFile.onclick = () => ui.groupFileUpload.click();
-    if(ui.btnUploadChat) ui.btnUploadChat.onclick = () => ui.groupFileUpload.click(); // Raccourci chat aussi
-    if(ui.groupFileUpload) ui.groupFileUpload.onchange = (e) => {
-        if(e.target.files.length > 0) uploadGroupFile(e.target.files[0]);
-    };
+    if(ui.btnUploadChat) ui.btnUploadChat.onclick = () => ui.groupFileUpload.click(); 
+    if(ui.groupFileUpload) ui.groupFileUpload.onchange = (e) => { if(e.target.files.length > 0) uploadGroupFile(e.target.files[0]); };
     
     if(ui.changeGroupIconBtn) ui.changeGroupIconBtn.onclick = () => ui.groupIconUpload.click();
-    if(ui.groupIconUpload) ui.groupIconUpload.onchange = (e) => {
-        if(e.target.files.length > 0) uploadGroupIcon(e.target.files[0]);
-    };
+    if(ui.groupIconUpload) ui.groupIconUpload.onchange = (e) => { if(e.target.files.length > 0) uploadGroupIcon(e.target.files[0]); };
 
-    // NOUVEAUX LISTENERS CREATION GROUPE
     const toggleCreateGroupModal = (show) => ui.createGroupModal.classList.toggle('hidden', !show);
     if(ui.btnCreateGroupHero) ui.btnCreateGroupHero.onclick = () => toggleCreateGroupModal(true);
     if(ui.btnCreateGroupSidebar) ui.btnCreateGroupSidebar.onclick = () => toggleCreateGroupModal(true);
@@ -641,39 +743,16 @@ function setupEventListeners() {
     if(ui.cancelCreateGroup) ui.cancelCreateGroup.onclick = () => toggleCreateGroupModal(false);
     if(ui.submitCreateGroup) ui.submitCreateGroup.onclick = createNewGroup;
 
-    // FILTRES POSTS
-    if(ui.filters) {
-        ui.filters.addEventListener('click', (e) => {
-            if(e.target.tagName === 'BUTTON') {
-                ui.filters.querySelectorAll('button').forEach(b => { b.classList.remove('bg-gray-700', 'text-white'); b.classList.add('text-gray-400'); });
-                e.target.classList.add('bg-gray-700', 'text-white'); e.target.classList.remove('text-gray-400');
-                subscribeToPosts(e.target.dataset.filter);
-            }
-        });
-    }
+    // SETTINGS LISTENERS
+    if (ui.closeSettingsModal) ui.closeSettingsModal.onclick = () => ui.settingsModal.classList.add('hidden');
+    if (ui.btnCreateRole) ui.btnCreateRole.onclick = createNewRole;
+    if (ui.btnSaveRole) ui.btnSaveRole.onclick = saveRolesChanges;
+    if (ui.btnDeleteRole) ui.btnDeleteRole.onclick = deleteCurrentRole;
+    if (ui.roleNameInput) ui.roleNameInput.addEventListener('input', (e) => { if (tempRoles[editingRoleId]) { tempRoles[editingRoleId].name = e.target.value; } });
 
-    // FILTRES GROUPES (NOUVEAU)
-    if(ui.groupSearchInput) {
-        ui.groupSearchInput.addEventListener('input', filterGroups);
-    }
-    if(ui.groupFilters) {
-        ui.groupFilters.addEventListener('click', (e) => {
-            if(e.target.tagName === 'BUTTON') {
-                // Reset styles
-                const allBtn = ui.groupFilters.querySelector('[data-filter="all"]');
-                const myBtn = ui.groupFilters.querySelector('[data-filter="my"]');
-                
-                if(e.target.dataset.filter === 'all') {
-                    allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors";
-                    myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors";
-                } else {
-                    myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors";
-                    allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors";
-                }
-                filterGroups();
-            }
-        });
-    }
+    if(ui.filters) { ui.filters.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON') { ui.filters.querySelectorAll('button').forEach(b => { b.classList.remove('bg-gray-700', 'text-white'); b.classList.add('text-gray-400'); }); e.target.classList.add('bg-gray-700', 'text-white'); e.target.classList.remove('text-gray-400'); subscribeToPosts(e.target.dataset.filter); } }); }
+    if(ui.groupSearchInput) { ui.groupSearchInput.addEventListener('input', filterGroups); }
+    if(ui.groupFilters) { ui.groupFilters.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON') { const allBtn = ui.groupFilters.querySelector('[data-filter="all"]'); const myBtn = ui.groupFilters.querySelector('[data-filter="my"]'); if(e.target.dataset.filter === 'all') { allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors"; myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors"; } else { myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors"; allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors"; } filterGroups(); } }); }
 
     window.togglePostModal = togglePostModal;
     window.toggleCreateGroupModal = toggleCreateGroupModal;
