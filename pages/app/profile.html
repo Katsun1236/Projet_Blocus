@@ -10,657 +10,209 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
-        .sidebar-glass {
-            background: rgba(5, 5, 5, 0.6);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
         .content-glass {
-            background: rgba(20, 20, 20, 0.3);
+            background: rgba(20, 20, 20, 0.4);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        .nav-item.active {
-            background: rgba(99, 102, 241, 0.15);
-            color: #fff;
-            border-left: 3px solid #6366f1;
+        .profile-header-gradient {
+            background: linear-gradient(to right, #4f46e5, #9333ea);
         }
-        .nav-item:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.03);
-            color: #e5e7eb;
-        }
-        /* Styles Badges */
-        .badge-item { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
-        .badge-item.locked { filter: grayscale(100%) opacity(0.4); transform: scale(0.95); }
-        .badge-item:not(.locked):hover { transform: translateY(-5px) scale(1.05); filter: drop-shadow(0 0 10px rgba(99,102,241,0.5)); }
-        
-        /* Animation barre de progression */
-        @keyframes progress { from { width: 0; } }
-        .animate-progress { animation: progress 1s ease-out forwards; }
     </style>
 </head>
-<body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
+
+<body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>
-    <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
-    <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
-
-    <!-- SIDEBAR -->
-    <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
-        <div class="p-6 flex items-center gap-3 mb-6">
-            <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
-                B.
-            </div>
-            <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
-        </div>
-
-        <nav class="flex-grow px-4 space-y-2 overflow-y-auto custom-scrollbar">
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Menu Principal</p>
-            <a href="dashboard.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-th-large w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Tableau de Bord</span>
-            </a>
-            <a href="courses.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-book w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Mes Cours</span>
-            </a>
-            <a href="quiz.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-brain w-6 group-hover:text-purple-400 transition-colors"></i>
-                <span class="font-medium">Quiz IA</span>
-            </a>
-            <a href="planning.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-calendar-alt w-6 group-hover:text-emerald-400 transition-colors"></i>
-                <span class="font-medium">Planning</span>
-            </a>
-
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Outils</p>
-            <a href="synthesize.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-magic w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Synthétiseur</span>
-            </a>
-
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Communauté</p>
-            <a href="friends.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
-                <span class="font-medium">Mes Amis</span>
-            </a>
-            <a href="chat.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
-                <span class="font-medium">Discussions</span>
-            </a>
-            <a href="community.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-globe w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Communauté</span>
-            </a>
-            <a href="forum.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-comments w-6 group-hover:text-purple-400 transition-colors"></i>
-                <span class="font-medium">Forum</span>
-            </a>
-
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Personnel</p>
-            <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-user-circle w-6 group-hover:text-indigo-400 transition-colors"></i>
-                <span class="font-medium">Mon Profil</span>
-            </a>
-
-            <!-- SECTION SUPPORT & ADMIN -->
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Zone Système</p>
-            
-            <a href="bug-report.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
-                <i class="fas fa-bug w-6 group-hover:text-red-400 transition-colors"></i>
-                <span class="font-medium">Signaler un bug</span>
-            </a>
-
-            <!-- ADMIN PANEL (Hidden by default) -->
-            <a href="admin/panel.html" id="admin-link" class="hidden nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group hover:bg-red-900/20 border border-transparent hover:border-red-500/20">
-                <i class="fas fa-shield-alt w-6 text-red-500 group-hover:animate-pulse"></i>
-                <span class="font-bold text-red-400">Panel Admin</span>
-            </a>
-        </nav>
-
-        <div class="p-4 border-t border-gray-800">
-            <button id="logout-button" class="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 transition-colors group">
-                <i class="fas fa-sign-out-alt w-6 group-hover:text-red-500 transition-colors"></i>
-                <span class="font-medium">Déconnexion</span>
-            </button>
-        </div>
-    </aside>
+    <div class="glow-bg" style="top: -10%; right: 40%; background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);"></div>
 
     <!-- MAIN CONTENT -->
-    <div class="flex-grow flex flex-col min-w-0 relative z-10">
+    <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- Header Mobile -->
-        <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
-            <div class="flex items-center gap-4">
-                <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
-                <span class="font-bold text-lg text-white">Mon Profil</span>
-            </div>
+        <!-- HEADER MOBILE -->
+        <header class="h-16 border-b border-gray-800/50 flex md:hidden items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm z-30">
+            <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+            <span class="font-bold text-lg text-white">Mon Profil</span>
+            <div class="w-6"></div> <!-- Spacer -->
         </header>
 
-        <main class="flex-grow p-6 md:p-10 overflow-y-auto">
+        <!-- SCROLLABLE CONTENT -->
+        <main class="flex-grow overflow-y-auto custom-scrollbar relative">
             
-            <div id="loading-profile" class="flex flex-col items-center justify-center py-32">
-                <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
-                <p class="text-gray-400 animate-pulse">Chargement des données...</p>
-            </div>
+            <!-- BANNER & HEADER PROFILE -->
+            <div class="relative">
+                <div class="h-48 md:h-64 w-full profile-header-gradient relative overflow-hidden">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-30"></div>
+                    <div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#050505] to-transparent"></div>
+                </div>
 
-            <div id="profile-content" class="hidden space-y-8">
-                
-                <!-- 1. Carte Profil Principale -->
-                <div class="content-glass rounded-3xl p-8 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                    
-                    <div class="flex flex-col md:flex-row items-center gap-8 relative z-10">
-                        <div class="relative group cursor-pointer" onclick="document.getElementById('edit-profile-btn').click()">
-                            <div class="absolute -inset-1 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur opacity-40 group-hover:opacity-70 transition duration-500"></div>
-                            <img id="profile-picture-display" src="" class="relative w-32 h-32 rounded-full border-4 border-gray-900 object-cover shadow-2xl">
-                            <div class="absolute bottom-0 right-0 bg-gray-900 text-indigo-400 p-2 rounded-full border border-gray-800 shadow-lg">
-                                <i class="fas fa-camera text-sm"></i>
+                <div class="max-w-5xl mx-auto px-6 sm:px-8 relative -mt-20">
+                    <div class="flex flex-col md:flex-row items-end gap-6">
+                        
+                        <!-- Avatar avec Bouton Edit -->
+                        <div class="relative group">
+                            <div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-4 border-[#050505] bg-gray-800 overflow-hidden shadow-2xl">
+                                <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover">
+                            </div>
+                            <button id="btn-change-avatar" class="absolute bottom-2 right-2 w-8 h-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center shadow-lg transition-all transform hover:scale-110 opacity-0 group-hover:opacity-100">
+                                <i class="fas fa-camera text-xs"></i>
+                            </button>
+                            <input type="file" id="avatar-upload" class="hidden" accept="image/*">
+                        </div>
+
+                        <!-- Infos Utilisateur -->
+                        <div class="flex-grow pb-2 text-center md:text-left">
+                            <h1 id="profile-name" class="text-3xl font-display font-bold text-white mb-1">Chargement...</h1>
+                            <p id="profile-email" class="text-sm text-gray-400 mb-3">...</p>
+                            <div class="flex flex-wrap justify-center md:justify-start gap-2">
+                                <span class="px-3 py-1 bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-lg text-xs font-bold flex items-center gap-2">
+                                    <i class="fas fa-star"></i> <span id="profile-points">0</span> Pts
+                                </span>
+                                <span class="px-3 py-1 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-lg text-xs font-bold">
+                                    Étudiant
+                                </span>
                             </div>
                         </div>
-                        
-                        <div class="text-center md:text-left flex-1 w-full">
-                            <div class="flex flex-col md:flex-row justify-between items-center mb-2">
-                                <div class="flex items-center gap-3">
-                                    <h1 id="user-name" class="text-4xl font-display font-bold text-white"></h1>
-                                    <span id="admin-badge" class="hidden px-2 py-1 rounded bg-red-500/20 text-red-400 border border-red-500/30 text-[10px] font-bold uppercase tracking-wider">Admin</span>
-                                </div>
-                                <button id="edit-profile-btn" class="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-sm font-bold transition-colors">
-                                    <i class="fas fa-pen"></i> Modifier
-                                </button>
-                            </div>
-                            
-                            <div class="flex flex-col md:flex-row items-center gap-4 text-gray-400 text-sm mb-4">
-                                <span class="flex items-center gap-2"><i class="fas fa-university text-indigo-400"></i> <span id="user-school"></span></span>
-                                <span class="hidden md:block w-1 h-1 rounded-full bg-gray-700"></span>
-                                <span class="flex items-center gap-2"><i class="fas fa-envelope text-indigo-400"></i> <span id="user-email"></span></span>
-                            </div>
 
-                            <!-- Barre d'XP / Niveau -->
-                            <div class="mt-4">
-                                <div class="flex justify-between items-end mb-2">
-                                    <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider" id="user-level-text">Niveau 1</span>
-                                    <span class="text-xs text-gray-500" id="user-xp-text">0 / 100 XP</span>
+                        <!-- Actions -->
+                        <div class="pb-2 flex gap-3">
+                            <button id="btn-edit-profile" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl border border-gray-700 transition-colors flex items-center gap-2">
+                                <i class="fas fa-pen"></i> <span class="hidden sm:inline">Modifier</span>
+                            </button>
+                            <button id="btn-logout" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-sm font-bold rounded-xl border border-red-500/30 transition-colors flex items-center gap-2">
+                                <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Déconnexion</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CONTENU PRINCIPAL -->
+            <div class="max-w-5xl mx-auto px-6 sm:px-8 py-8 md:py-12">
+                
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div class="content-glass p-5 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center"><i class="fas fa-file-alt"></i></div>
+                            <span class="text-xs text-gray-400 font-bold uppercase">Cours</span>
+                        </div>
+                        <p id="stat-files" class="text-2xl font-bold text-white">--</p>
+                    </div>
+                    <div class="content-glass p-5 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center"><i class="fas fa-brain"></i></div>
+                            <span class="text-xs text-gray-400 font-bold uppercase">Quiz</span>
+                        </div>
+                        <p id="stat-quiz" class="text-2xl font-bold text-white">--</p>
+                    </div>
+                    <div class="content-glass p-5 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center"><i class="fas fa-users"></i></div>
+                            <span class="text-xs text-gray-400 font-bold uppercase">Groupes</span>
+                        </div>
+                        <p id="stat-groups" class="text-2xl font-bold text-white">--</p>
+                    </div>
+                    <div class="content-glass p-5 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-1">
+                            <div class="w-8 h-8 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center"><i class="fas fa-fire"></i></div>
+                            <span class="text-xs text-gray-400 font-bold uppercase">Streak</span>
+                        </div>
+                        <p class="text-2xl font-bold text-white">3 Jours</p>
+                    </div>
+                </div>
+
+                <!-- Tabs & Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- Colonne Gauche : Bio & Badges -->
+                    <div class="lg:col-span-1 space-y-6">
+                        <!-- Bio -->
+                        <div class="content-glass p-6 rounded-2xl">
+                            <h3 class="font-bold text-white text-sm mb-4">À propos</h3>
+                            <p id="profile-bio" class="text-sm text-gray-400 leading-relaxed italic">
+                                Aucune biographie renseignée.
+                            </p>
+                        </div>
+
+                        <!-- Badges (Visuel) -->
+                        <div class="content-glass p-6 rounded-2xl">
+                            <h3 class="font-bold text-white text-sm mb-4">Badges & Succès</h3>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="w-10 h-10 rounded-full bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center text-yellow-400 text-sm" title="Pionnier"><i class="fas fa-flag"></i></div>
+                                <div class="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-sm" title="10 Quiz"><i class="fas fa-check"></i></div>
+                                <div class="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-600 text-sm"><i class="fas fa-lock"></i></div>
+                                <div class="w-10 h-10 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-gray-600 text-sm"><i class="fas fa-lock"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colonne Droite : Activité / Edit Form -->
+                    <div class="lg:col-span-2">
+                        
+                        <!-- VIEW MODE: Activité -->
+                        <div id="view-mode-content" class="content-glass p-6 rounded-2xl h-full">
+                            <h3 class="font-bold text-white text-sm mb-6 flex items-center gap-2">
+                                <i class="fas fa-history text-indigo-400"></i> Activité Récente
+                            </h3>
+                            
+                            <div class="space-y-6 relative before:absolute before:left-2 before:top-2 before:h-full before:w-0.5 before:bg-gray-800" id="activity-list">
+                                <!-- Items injectés -->
+                                <div class="text-center py-10 text-gray-500 text-sm">
+                                    Chargement de l'activité...
                                 </div>
-                                <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
-                                    <div id="user-xp-bar" class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 w-0 transition-all duration-1000 relative">
-                                        <div class="absolute inset-0 bg-white/20 animate-[pulse_2s_infinite]"></div>
+                            </div>
+                        </div>
+
+                        <!-- EDIT MODE: Formulaire -->
+                        <div id="edit-mode-content" class="hidden content-glass p-6 rounded-2xl">
+                            <h3 class="font-bold text-white text-lg mb-6">Modifier le profil</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Prénom</label>
+                                        <input type="text" id="edit-firstname" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nom</label>
+                                        <input type="text" id="edit-lastname" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none">
                                     </div>
                                 </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Biographie</label>
+                                    <textarea id="edit-bio" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-indigo-500 focus:outline-none resize-none" placeholder="Quelques mots sur vous..."></textarea>
+                                </div>
+
+                                <div class="pt-4 flex justify-end gap-3 border-t border-gray-800 mt-6">
+                                    <button id="btn-cancel-edit" class="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors">Annuler</button>
+                                    <button id="btn-save-profile" class="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-900/20 transition-all flex items-center gap-2">
+                                        <i class="fas fa-save"></i> Enregistrer
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        
-                        <!-- Bouton Modifier Mobile -->
-                        <button onclick="document.getElementById('edit-profile-btn').click()" class="md:hidden w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white font-bold">
-                            Modifier le profil
-                        </button>
-                    </div>
-                </div>
 
-                <!-- 2. Statistiques Rapides -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="content-glass p-6 rounded-2xl flex items-center gap-5 border-l-4 border-l-indigo-500 group hover:bg-white/5 transition-colors">
-                        <div class="w-14 h-14 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-2xl group-hover:scale-110 transition-transform">
-                            <i class="fas fa-file-alt"></i>
-                        </div>
-                        <div>
-                            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Cours Uploadés</p>
-                            <p id="stats-courses" class="text-3xl font-display font-bold text-white">0</p>
-                        </div>
-                    </div>
-                    <div class="content-glass p-6 rounded-2xl flex items-center gap-5 border-l-4 border-l-purple-500 group hover:bg-white/5 transition-colors">
-                        <div class="w-14 h-14 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-2xl group-hover:scale-110 transition-transform">
-                            <i class="fas fa-brain"></i>
-                        </div>
-                        <div>
-                            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Quiz Créés</p>
-                            <p id="stats-quizzes" class="text-3xl font-display font-bold text-white">0</p>
-                        </div>
-                    </div>
-                    <div class="content-glass p-6 rounded-2xl flex items-center gap-5 border-l-4 border-l-emerald-500 group hover:bg-white/5 transition-colors">
-                        <div class="w-14 h-14 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-2xl group-hover:scale-110 transition-transform">
-                            <i class="fas fa-folder-open"></i>
-                        </div>
-                        <div>
-                            <p class="text-gray-400 text-xs font-bold uppercase tracking-wider">Dossiers Actifs</p>
-                            <p id="stats-folders" class="text-3xl font-display font-bold text-white">0</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 3. Section Badges & Succès -->
-                <div class="content-glass rounded-3xl p-8 border border-gray-800">
-                    <div class="flex justify-between items-end mb-8">
-                        <div>
-                            <h2 class="text-2xl font-display font-bold text-white mb-1">Mur des Trophées</h2>
-                            <p class="text-gray-400 text-sm">Débloque des succès en utilisant l'app.</p>
-                        </div>
                     </div>
 
-                    <div id="badges-wrapper" class="max-h-40 overflow-hidden transition-all duration-500 relative">
-                        <div id="badges-container" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
-                            <!-- Badges injectés ici -->
-                        </div>
-                        <div id="badges-gradient" class="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-gray-900/90 to-transparent pointer-events-none"></div>
-                    </div>
-                    
-                    <div class="text-center mt-4">
-                        <button id="toggle-badges-btn" class="text-xs font-bold text-indigo-400 hover:text-white uppercase tracking-wider transition-colors">
-                            Voir toute la collection <i class="fas fa-chevron-down ml-1"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 4. Graphique d'Activité -->
-                <div class="content-glass rounded-3xl p-8 border border-gray-800">
-                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-                        <div>
-                            <h2 class="text-2xl font-display font-bold text-white mb-1">Activité Récente</h2>
-                            <p class="text-gray-400 text-sm">Ton rythme de travail sur les 7 derniers jours.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="h-64 w-full relative">
-                        <canvas id="activity-chart"></canvas>
-                    </div>
                 </div>
 
             </div>
+
         </main>
     </div>
 
-    <!-- MODAL EDIT PROFILE (NOUVEAU) -->
-    <div id="edit-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg shadow-2xl relative animate-float">
-            <button id="close-edit-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white"><i class="fas fa-times text-xl"></i></button>
-            
-            <h2 class="text-2xl font-bold text-white mb-6">Modifier le profil</h2>
-            
-            <form id="edit-profile-form" class="space-y-5">
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Prénom</label>
-                        <input type="text" id="edit-firstName" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nom</label>
-                        <input type="text" id="edit-lastName" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none" required>
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">École / Université</label>
-                    <input type="text" id="edit-school" class="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
+    <!-- Message Box (Toast) -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 
-                <div class="pt-4">
-                    <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-                        <span>Enregistrer</span>
-                        <i class="fas fa-save"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <!-- Script Principal -->
+    <script type="module" src="../../assets/js/profile.js"></script>
 
-    <!-- MODAL BADGE -->
-    <div id="badge-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-sm text-center relative transform transition-all scale-100 shadow-2xl shadow-indigo-500/20">
-            <div class="absolute inset-0 bg-gradient-to-b from-indigo-500/10 to-transparent rounded-3xl pointer-events-none"></div>
-            
-            <div id="badge-modal-icon" class="w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl border-4 relative z-10 shadow-xl">
-                <i class="fas fa-trophy"></i>
-            </div>
-            
-            <h2 id="badge-modal-title" class="text-2xl font-display font-bold text-white mb-2 relative z-10">Titre</h2>
-            <p id="badge-modal-description" class="text-gray-400 text-sm mb-6 relative z-10">Description</p>
-            
-            <div id="badge-modal-progress-container" class="hidden relative z-10">
-                <div class="w-full bg-gray-800 rounded-full h-3 mb-2 overflow-hidden border border-gray-700">
-                    <div id="badge-modal-progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
-                </div>
-                <p id="badge-modal-progress-text" class="text-xs font-bold text-indigo-400"></p>
-            </div>
-
-            <button id="close-badge-modal" class="mt-6 w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-colors relative z-10">Fermer</button>
-        </div>
-    </div>
-
-    <!-- Toast Notification -->
-    <div id="toast-container" class="fixed bottom-6 right-6 space-y-3 z-50 pointer-events-none"></div>
-
-    <!-- JAVASCRIPT LOGIC -->
-    <script type="module">
-        import { auth, db } from '../../assets/js/config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, updateDoc, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-        // --- Configuration Badges ---
-        const allBadges = {
-            'course1': { title: 'Premiers Pas', desc: 'Uploader son premier cours.', icon: 'fa-graduation-cap', goal: 1, type: 'courses' },
-            'course5': { title: 'Bibliothécaire', desc: 'Uploader 5 cours.', icon: 'fa-book-reader', goal: 5, type: 'courses' },
-            'course10': { title: 'Archiviste', desc: 'Uploader 10 cours.', icon: 'fa-archive', goal: 10, type: 'courses' },
-            'folder1': { title: 'Organisé', desc: 'Créer un dossier.', icon: 'fa-folder-plus', goal: 1, type: 'folders' },
-            'quiz1': { title: 'Quizzeur', desc: 'Créer un quiz.', icon: 'fa-brain', goal: 1, type: 'quizzes' },
-            'quiz5': { title: 'Maître du Jeu', desc: 'Créer 5 quiz.', icon: 'fa-gamepad', goal: 5, type: 'quizzes' },
-            'synth1': { title: 'Synthétiseur', desc: 'Générer une synthèse.', icon: 'fa-magic', goal: 1, type: 'syntheses' },
-            'legend': { title: 'Légende', desc: 'Tout débloquer (Goal fictif).', icon: 'fa-crown', goal: 50, type: 'courses' },
-        };
-
-        const ui = {
-            loading: document.getElementById('loading-profile'),
-            content: document.getElementById('profile-content'),
-            badgeModal: document.getElementById('badge-modal'),
-            editModal: document.getElementById('edit-modal'),
-            toggleBadgesBtn: document.getElementById('toggle-badges-btn'),
-            badgesWrapper: document.getElementById('badges-wrapper'),
-            chartCanvas: document.getElementById('activity-chart'),
-            adminLink: document.getElementById('admin-link'),
-            adminBadge: document.getElementById('admin-badge'),
-        };
-
-        let allData = {};
-        let myChart = null;
-        let currentUserId = null;
-
-        // --- Notifications Toast ---
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const colorClass = type === 'success' ? 'border-green-500/30 bg-gray-900' : 'border-red-500/30 bg-gray-900';
-            const icon = type === 'success' ? '<i class="fas fa-check-circle text-green-400"></i>' : '<i class="fas fa-exclamation-circle text-red-400"></i>';
-            
-            toast.className = `${colorClass} border text-white p-4 rounded-xl shadow-2xl flex items-center gap-4 transform translate-y-10 opacity-0 transition-all duration-500 pointer-events-auto`;
-            toast.innerHTML = `
-                <div class="text-xl">${icon}</div>
-                <div><p class="font-bold text-sm">${message}</p></div>
-            `;
-            container.appendChild(toast);
-            
-            requestAnimationFrame(() => toast.classList.remove('translate-y-10', 'opacity-0'));
-            setTimeout(() => { 
-                toast.classList.add('translate-y-10', 'opacity-0');
-                setTimeout(() => toast.remove(), 500);
-            }, 4000);
-        }
-
-        // --- UI Interactions ---
-        document.getElementById('close-badge-modal').addEventListener('click', () => ui.badgeModal.classList.add('hidden'));
-        document.getElementById('close-edit-modal').addEventListener('click', () => ui.editModal.classList.add('hidden'));
-        
-        // Ouverture Modale Édition
-        document.getElementById('edit-profile-btn').addEventListener('click', () => {
-            document.getElementById('edit-firstName').value = document.getElementById('user-name').textContent.split(' ')[0] || '';
-            document.getElementById('edit-lastName').value = document.getElementById('user-name').textContent.split(' ').slice(1).join(' ') || '';
-            document.getElementById('edit-school').value = document.getElementById('user-school').textContent || '';
-            ui.editModal.classList.remove('hidden');
-        });
-
-        // Soumission Édition
-        document.getElementById('edit-profile-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            const originalText = btn.innerHTML;
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sauvegarde...';
-
-            try {
-                await updateDoc(doc(db, 'users', currentUserId), {
-                    firstName: document.getElementById('edit-firstName').value,
-                    lastName: document.getElementById('edit-lastName').value,
-                    school: document.getElementById('edit-school').value
-                });
-                showToast("Profil mis à jour !");
-                ui.editModal.classList.add('hidden');
-                // Reload simple pour rafraîchir l'affichage
-                window.location.reload();
-            } catch (error) {
-                console.error(error);
-                showToast("Erreur lors de la mise à jour.", 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        });
-
-        document.getElementById('logout-button').addEventListener('click', async () => { 
-            await signOut(auth); 
-            window.location.href = '../../index.html'; 
-        });
-
-        ui.toggleBadgesBtn.addEventListener('click', () => {
-            const wrapper = ui.badgesWrapper;
-            const gradient = document.getElementById('badges-gradient');
-            
-            if (wrapper.style.maxHeight === 'none') {
-                wrapper.style.maxHeight = '160px'; 
-                gradient.classList.remove('hidden');
-                ui.toggleBadgesBtn.innerHTML = 'Voir toute la collection <i class="fas fa-chevron-down ml-1"></i>';
-            } else {
-                wrapper.style.maxHeight = 'none';
-                gradient.classList.add('hidden');
-                ui.toggleBadgesBtn.innerHTML = 'Réduire <i class="fas fa-chevron-up ml-1"></i>';
-            }
-        });
-
-        function showBadgeModal(badgeId, stats) {
-            const badge = allBadges[badgeId];
-            const count = stats[badge.type] || 0;
-            const isUnlocked = count >= badge.goal;
-            
-            const iconContainer = document.getElementById('badge-modal-icon');
-            iconContainer.className = `w-24 h-24 rounded-full mx-auto mb-6 flex items-center justify-center text-4xl border-4 relative z-10 shadow-xl ${isUnlocked ? 'bg-yellow-500/10 border-yellow-500 text-yellow-400' : 'bg-gray-800 border-gray-700 text-gray-600'}`;
-            iconContainer.innerHTML = `<i class="fas ${badge.icon}"></i>`;
-            
-            document.getElementById('badge-modal-title').textContent = badge.title;
-            document.getElementById('badge-modal-description').textContent = badge.desc;
-            
-            const progressContainer = document.getElementById('badge-modal-progress-container');
-            if (badge.goal) {
-                progressContainer.classList.remove('hidden');
-                const percentage = Math.min((count / badge.goal) * 100, 100);
-                document.getElementById('badge-modal-progress-bar').style.width = `${percentage}%`;
-                document.getElementById('badge-modal-progress-text').textContent = `${count} / ${badge.goal} (${Math.round(percentage)}%)`;
-            } else {
-                progressContainer.classList.add('hidden');
-            }
-            
-            ui.badgeModal.classList.remove('hidden');
-        }
-
-        // --- Logique Métier ---
-
-        function calculateLevel(stats) {
-            // Formule simple : 50XP par cours, 20XP par quiz, 30XP par synthèse
-            const xp = (stats.courses * 50) + (stats.quizzes * 20) + (stats.syntheses * 30);
-            const level = Math.floor(xp / 500) + 1; // Niveau monte tous les 500XP
-            const nextLevelXp = level * 500;
-            const currentLevelBaseXp = (level - 1) * 500;
-            const xpInLevel = xp - currentLevelBaseXp;
-            const xpNeeded = 500;
-            const percentage = Math.min((xpInLevel / xpNeeded) * 100, 100);
-
-            return { level, xp, percentage, xpInLevel, xpNeeded };
-        }
-
-        function renderBadges(stats) {
-            const container = document.getElementById('badges-container');
-            container.innerHTML = '';
-            
-            Object.entries(allBadges).forEach(([id, badge]) => {
-                const count = stats[badge.type] || 0;
-                const isUnlocked = count >= badge.goal;
-
-                const badgeEl = document.createElement('div');
-                badgeEl.className = `badge-item flex flex-col items-center gap-2 ${!isUnlocked ? 'locked' : ''}`;
-                badgeEl.onclick = () => showBadgeModal(id, stats);
-                badgeEl.innerHTML = `
-                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-lg border-2 ${isUnlocked ? 'bg-gray-800 border-yellow-500/50 text-yellow-400' : 'bg-gray-800 border-gray-700 text-gray-600'}">
-                        <i class="fas ${badge.icon}"></i>
-                    </div>
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide truncate w-full text-center">${badge.title}</span>
-                `;
-                container.appendChild(badgeEl);
-            });
-        }
-
-        function renderChart(dataCourses, dataQuizzes) {
-            const ctx = ui.chartCanvas.getContext('2d');
-            
-            // Préparation des données sur 7 jours
-            const labels = [];
-            const counts = [];
-            const today = new Date();
-            
-            for(let i=6; i>=0; i--) {
-                const d = new Date();
-                d.setDate(today.getDate() - i);
-                labels.push(d.toLocaleDateString('fr-FR', {weekday: 'short'}));
-                
-                // Compter les éléments créés ce jour-là
-                let dailyCount = 0;
-                const dateStr = d.toDateString();
-                
-                [...dataCourses, ...dataQuizzes].forEach(item => {
-                    const itemDate = item.createdAt ? (item.createdAt.toDate ? item.createdAt.toDate() : new Date(item.createdAt)) : null;
-                    if(itemDate && itemDate.toDateString() === dateStr) {
-                        dailyCount++;
-                    }
-                });
-                counts.push(dailyCount);
-            }
-
-            if (myChart) myChart.destroy();
-            
-            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.5)');
-            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
-
-            myChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Activité',
-                        data: counts,
-                        borderColor: '#6366f1',
-                        backgroundColor: gradient,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#1f2937',
-                        pointBorderColor: '#6366f1',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(17, 24, 39, 0.9)',
-                            titleColor: '#fff',
-                            bodyColor: '#94a3b8',
-                            borderColor: 'rgba(255,255,255,0.1)',
-                            borderWidth: 1,
-                            padding: 10,
-                            displayColors: false,
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#6b7280', stepSize: 1 }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#6b7280' }
-                        }
-                    }
-                }
-            });
-        }
-
-        // --- Chargement des données ---
-        async function fetchProfileData(userId, userEmail) {
-            try {
-                // 1. Infos Utilisateur
-                const userSnap = await getDoc(doc(db, 'users', userId));
-                if (!userSnap.exists()) { window.location.href = '../auth/login.html'; return; }
-                const userData = userSnap.data();
-
-                document.getElementById('user-name').textContent = `${userData.firstName} ${userData.lastName}`;
-                document.getElementById('user-school').textContent = userData.school || 'École non renseignée';
-                document.getElementById('user-email').textContent = userEmail;
-                document.getElementById('profile-picture-display').src = userData.photoURL || 'https://ui-avatars.com/api/?background=random';
-
-                // Vérification Admin (Simple check field, secure with backend rules)
-                if (userData.role === 'admin') {
-                    if(ui.adminLink) ui.adminLink.classList.remove('hidden');
-                    if(ui.adminBadge) ui.adminBadge.classList.remove('hidden');
-                }
-
-                // 2. Récupération des sous-collections
-                const [coursesSnap, foldersSnap, quizzesSnap, synthSnap] = await Promise.all([
-                    getDocs(collection(db, 'users', userId, 'courses')),
-                    getDocs(collection(db, 'users', userId, 'folders')),
-                    getDocs(collection(db, 'users', userId, 'quizzes')),
-                    getDocs(collection(db, 'users', userId, 'syntheses')) // Si existe
-                ]);
-
-                const stats = {
-                    courses: coursesSnap.size,
-                    folders: foldersSnap.size,
-                    quizzes: quizzesSnap.size,
-                    syntheses: synthSnap.size
-                };
-
-                // 3. Affichage Stats
-                document.getElementById('stats-courses').textContent = stats.courses;
-                document.getElementById('stats-folders').textContent = stats.folders;
-                document.getElementById('stats-quizzes').textContent = stats.quizzes;
-
-                // 4. Gamification (XP & Level)
-                const gamification = calculateLevel(stats);
-                document.getElementById('user-level-text').textContent = `Niveau ${gamification.level}`;
-                document.getElementById('user-xp-text').textContent = `${Math.floor(gamification.xpInLevel)} / ${gamification.xpNeeded} XP`;
-                document.getElementById('user-xp-bar').style.width = `${gamification.percentage}%`;
-
-                // 5. Badges & Chart
-                renderBadges(stats);
-                
-                const rawCourses = coursesSnap.docs.map(d => d.data());
-                const rawQuizzes = quizzesSnap.docs.map(d => d.data());
-                renderChart(rawCourses, rawQuizzes);
-
-                // Show Content
-                ui.loading.classList.add('hidden');
-                ui.content.classList.remove('hidden');
-
-            } catch (error) {
-                console.error("Erreur chargement profil:", error);
-            }
-        }
-
-        onAuthStateChanged(auth, (user) => {
-            if (user && !user.isAnonymous) {
-                currentUserId = user.uid;
-                fetchProfileData(user.uid, user.email);
-            } else {
-                window.location.href = '../auth/login.html';
-            }
-        });
-    </script>
 </body>
 </html>
