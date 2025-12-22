@@ -1,86 +1,108 @@
-const {onCall, HttpsError} = require("firebase-functions/v2/https");
-const {GoogleGenerativeAI} = require("@google/generative-ai");
-const admin = require("firebase-admin");
+const { onCall, HttpsError } = require("firebase-functions/v2/https");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
-admin.initializeApp();
+// Initialisation de Gemini
+// Assure-toi d'avoir défini la variable d'environnement : firebase functions:config:set gemini.key="TON_API_KEY"
+// Ou utilise process.env.GEMINI_API_KEY si tu utilises .env
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-
-exports.generateContent = onCall({cors: true}, async (request) => {
-  // 1. Vérification de l'authentification
+exports.generateContent = onCall({ cors: true }, async (request) => {
+  // 1. Sécurité : Vérifier si l'utilisateur est connecté
   if (!request.auth) {
-    throw new HttpsError(
-        "unauthenticated",
-        "Vous devez être connecté pour utiliser cette fonction.",
-    );
+    throw new HttpsError("unauthenticated", "Vous devez être connecté pour utiliser l'IA.");
   }
 
-  const {prompt, schema, mimeType} = request.data;
-
-  // 2. Vérifications de sécurité
-  if (!GEMINI_API_KEY) {
-    throw new HttpsError(
-        "failed-precondition",
-        "Clé API serveur manquante.",
-    );
-  }
-
-  if (!prompt) {
-    throw new HttpsError(
-        "invalid-argument",
-        "Le prompt est obligatoire.",
-    );
-  }
+  const { mode, topic, data, options } = request.data;
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   try {
-    // Utiliser gemini-1.5-flash (rapide)
-    // ou gemini-1.5-pro (puissant)
-    const modelName = "gemini-1.5-flash";
+    let prompt = "";
+    let systemInstruction = "";
 
-    const generationConfig = {
-      temperature: 0.7,
-    };
+    // --- MODE QUIZ ---
+    if (mode === "quiz") {
+      const count = options.count || 5;
+      const type = options.type || "qcm"; // qcm, truefalse
+      
+      systemInstruction = `
+        Tu es un professeur expert capable de créer des quiz éducatifs précis.
+        Ta réponse DOIT être exclusivement un objet JSON valide, sans Markdown (pas de \`\`\`json).
+        Structure attendue :
+        {
+          "title": "Titre du Quiz",
+          "questions": [
+            {
+              "question": "L'énoncé de la question ?",
+              "options": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
+              "correctAnswer": 0, // Index de la bonne réponse (0, 1, 2 ou 3)
+              "explanation": "Courte explication de pourquoi c'est la bonne réponse."
+            }
+          ]
+        }
+      `;
 
-    // Support natif du JSON avec les nouveaux modèles
-    if (schema || mimeType === "application/json") {
-      generationConfig.responseMimeType = "application/json";
-      if (schema) {
-        generationConfig.responseSchema = schema;
+      prompt = `
+        Génère un quiz de ${count} questions sur le sujet : "${topic}".
+        Type de questions : ${type === 'truefalse' ? 'Vrai/Faux' : 'QCM à 4 choix'}.
+        Niveau : Universitaire.
+        Langue : Français.
+        Si le sujet est un texte fourni, base-toi uniquement dessus : ${data || "Aucun texte fourni, utilise tes connaissances."}
+      `;
+    
+    // --- MODE SYNTHÈSE ---
+    } else if (mode === "synthesis") {
+      const length = options.length || "medium"; // short, medium, long
+      
+      systemInstruction = `
+        Tu es un expert en pédagogie et en synthèse de documents.
+        Ton objectif est de résumer des cours complexes de manière claire, structurée et facile à mémoriser.
+        Utilise le format Markdown pour la mise en forme (Gras, Listes à puces, Titres).
+        Adopte un ton encourageant et direct.
+      `;
+
+      prompt = `
+        Fais une synthèse ${length === 'short' ? 'très concise' : 'détaillée'} du sujet ou texte suivant :
+        "${topic}"
+        ${data ? `\nContenu du cours à résumer :\n${data}` : ''}
+        
+        Structure ta réponse comme suit :
+        1. 🎯 **Concepts Clés** (Les 3-5 points essentiels)
+        2. 📝 **Résumé Structuré** (Le corps du cours)
+        3. 💡 **À Retenir** (Une conclusion mémorable)
+      `;
+
+    } else {
+      throw new HttpsError("invalid-argument", "Mode invalide.");
+    }
+
+    // --- GÉNÉRATION ---
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      systemInstruction: { parts: [{ text: systemInstruction }] },
+      generationConfig: {
+        temperature: 0.7, // Créatif mais pas trop
+        responseMimeType: mode === "quiz" ? "application/json" : "text/plain", // Force le JSON pour le quiz
+      },
+    });
+
+    const responseText = result.response.text();
+
+    // Parsing pour le Quiz (sécurité supplémentaire)
+    if (mode === "quiz") {
+      try {
+        const jsonResponse = JSON.parse(responseText);
+        return jsonResponse;
+      } catch (e) {
+        console.error("Erreur parsing JSON Gemini:", responseText);
+        throw new HttpsError("internal", "L'IA a généré un format invalide. Réessayez.");
       }
     }
 
-    let finalPrompt = prompt;
+    // Retour texte brut pour la synthèse
+    return { content: responseText };
 
-    // Aide pour le JSON (optionnel mais recommandé)
-    if (mimeType === "application/json" && !schema) {
-      finalPrompt += "\n\nIMPORTANT : Réponds uniquement " +
-        "avec un JSON valide, sans markdown.";
-    }
-
-    const genModel = genAI.getGenerativeModel({
-      model: modelName,
-      generationConfig: generationConfig,
-    });
-
-    // 4. Génération
-    const result = await genModel.generateContent(finalPrompt);
-    const response = await result.response;
-    let text = response.text();
-
-    // Nettoyage de sécurité
-    text = text.replace(/```json/g, "")
-        .replace(/```/g, "")
-        .trim();
-
-    return {text};
   } catch (error) {
-    console.error("Gemini API Error:", error);
-    throw new HttpsError(
-        "internal",
-        `Erreur Gemini (${error.status || "Inconnu"}): ` +
-        `${error.message}`,
-        error,
-    );
+    console.error("Erreur Gemini:", error);
+    throw new HttpsError("internal", "Erreur lors de la génération. " + error.message);
   }
 });
