@@ -101,34 +101,50 @@ async function loadUserSyntheses() {
             ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse trouvée</option>';
         }
     } catch (e) {
-        console.warn("Erreur chargement synthèses (Collection vide ?)", e);
+        console.warn("Erreur chargement synthèses (Collection vide ou index manquant ?)", e);
+        // Si l'erreur est liée à un index manquant, l'UI affichera "Aucune synthèse"
         ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse disponible</option>';
     }
 }
 
 async function loadUserCourses() {
     try {
+        // CORRECTION: On interroge la collection 'files' où userId correspond à l'utilisateur courant.
+        // Assurez-vous que les règles Firestore autorisent la lecture de 'files' avec ce filtre.
         const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+        
         const snapshot = await getDocs(q);
         userCourses = [];
         ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
         
+        if (snapshot.empty) {
+            ui.courseSelect.innerHTML = '<option value="">Aucun fichier trouvé. Uploadez des cours !</option>';
+            return;
+        }
+
         snapshot.forEach(doc => {
             const d = doc.data();
             const f = { id: doc.id, ...d };
             userCourses.push(f);
+            
             const opt = document.createElement('option');
             opt.value = f.id;
-            opt.textContent = f.name;
+            // On affiche le nom du fichier
+            opt.textContent = f.name || "Fichier sans nom";
             ui.courseSelect.appendChild(opt);
         });
 
-        if (userCourses.length === 0) {
-            ui.courseSelect.innerHTML = '<option value="">Aucun fichier trouvé</option>';
-        }
     } catch (e) {
-        console.warn("Erreur chargement cours", e);
-        ui.courseSelect.innerHTML = '<option value="">Aucun fichier disponible</option>';
+        console.warn("Erreur chargement cours:", e);
+        
+        // Gestion spécifique si c'est un problème d'index
+        if (e.message.includes("indexes")) {
+             ui.courseSelect.innerHTML = '<option value="">Erreur Index Firestore (Voir Console)</option>';
+        } else if (e.code === 'permission-denied') {
+             ui.courseSelect.innerHTML = '<option value="">Erreur Permission (Règles Firestore)</option>';
+        } else {
+             ui.courseSelect.innerHTML = '<option value="">Erreur chargement des cours</option>';
+        }
     }
 }
 
@@ -169,7 +185,10 @@ async function generateQuiz() {
         const file = userCourses.find(f => f.id === fileId);
         if (file) {
             topic = `Cours : ${file.name}`;
-            dataContext = `Document: ${file.name}. URL: ${file.url}. Génère des questions pertinentes basées sur ce type de document.`;
+            // On envoie le nom et l'URL (si Gemini a accès au web ou à l'URL, sinon on compte sur le nom explicite)
+            // Pour l'instant, Gemini Flash ne télécharge pas les URL non publiques. 
+            // On lui donne un contexte fort avec le nom du fichier.
+            dataContext = `Ce quiz porte sur le document intitulé : "${file.name}". (URL pour référence : ${file.url}). Génère des questions pertinentes pour un niveau universitaire sur ce sujet.`;
             if (!title) title = file.name; // Auto-titre
         }
     }
