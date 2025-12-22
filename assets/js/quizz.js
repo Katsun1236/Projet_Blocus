@@ -11,7 +11,8 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
 let isGenerating = false;
-let userResources = []; // Cache combiné (Fichiers + Synthèses)
+let userSyntheses = []; // Cache synthèses
+let userCourses = [];   // Cache cours
 
 // --- DOM ELEMENTS ---
 const ui = {
@@ -32,9 +33,11 @@ const ui = {
     // Inputs Source
     sourceRadios: document.getElementsByName('quiz-source'),
     sourceTopicContainer: document.getElementById('source-topic-container'),
-    sourceFileContainer: document.getElementById('source-file-container'), // Sera utilisé pour la liste combinée
+    sourceSynthesisContainer: document.getElementById('source-synthesis-container'),
+    sourceCourseContainer: document.getElementById('source-course-container'),
     topicInput: document.getElementById('quiz-topic'),
-    resourceSelect: document.getElementById('quiz-file-select'), // On réutilise le select existant pour tout
+    synthesisSelect: document.getElementById('quiz-synthesis-select'),
+    courseSelect: document.getElementById('quiz-course-select'),
     // Params
     quizTitleInput: document.getElementById('quiz-title-input'),
     questionCountInput: document.getElementById('quiz-length'),
@@ -64,7 +67,9 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             loadRecentQuiz();
-            loadUserResources(); // Charge tout (Fichiers + Synthèses)
+            // Pré-chargement des ressources
+            loadUserSyntheses();
+            loadUserCourses();
         } else {
             window.location.href = '../auth/login.html';
         }
@@ -73,111 +78,99 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 });
 
-// --- LOAD RESOURCES (COMBINÉ) ---
+// --- LOAD RESOURCES ---
 
-async function loadUserResources() {
+async function loadUserSyntheses() {
     try {
-        const userId = auth.currentUser.uid;
-        userResources = [];
-        ui.resourceSelect.innerHTML = '<option value="">-- Chargement... --</option>';
-
-        // 1. Récupérer les Fichiers (Cours)
-        // Note: Assure-toi que la collection 'files' contient un champ 'type' ou 'mimeType' si tu veux filtrer
-        const qFiles = query(collection(db, 'files'), where('userId', '==', userId));
-        const filesSnap = await getDocs(qFiles);
-        filesSnap.forEach(doc => {
+        const q = query(collection(db, 'syntheses'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        userSyntheses = [];
+        ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
+        
+        snapshot.forEach(doc => {
             const d = doc.data();
-            userResources.push({
-                id: doc.id,
-                type: 'file',
-                name: d.name,
-                url: d.url, // URL Storage
-                content: null // On n'a pas le contenu texte direct
-            });
-        });
-
-        // 2. Récupérer les Synthèses
-        // Supposons une collection 'syntheses'
-        // Si elle n'existe pas encore, cette partie ne retournera rien, pas grave.
-        try {
-            const qSynth = query(collection(db, 'syntheses'), where('userId', '==', userId));
-            const synthSnap = await getDocs(qSynth);
-            synthSnap.forEach(doc => {
-                const d = doc.data();
-                userResources.push({
-                    id: doc.id,
-                    type: 'synthesis',
-                    name: `Synthèse : ${d.title || 'Sans titre'}`,
-                    url: null,
-                    content: d.content // Contenu texte Markdown
-                });
-            });
-        } catch (e) {
-            console.warn("Collection syntheses non trouvée ou erreur:", e);
-        }
-
-        // 3. Remplir le Select
-        ui.resourceSelect.innerHTML = '<option value="">-- Choisir un cours ou une synthèse --</option>';
-        if (userResources.length === 0) {
+            const s = { id: doc.id, ...d };
+            userSyntheses.push(s);
             const opt = document.createElement('option');
-            opt.disabled = true;
-            opt.textContent = "Aucun document disponible";
-            ui.resourceSelect.appendChild(opt);
-        } else {
-            userResources.forEach(res => {
-                const option = document.createElement('option');
-                option.value = res.id;
-                // Petit icône visuel dans le texte (si supporté par browser)
-                const icon = res.type === 'file' ? '📄' : '📝';
-                option.textContent = `${icon} ${res.name}`;
-                ui.resourceSelect.appendChild(option);
-            });
+            opt.value = s.id;
+            opt.textContent = s.title || `Synthèse du ${new Date(s.createdAt.toDate()).toLocaleDateString()}`;
+            ui.synthesisSelect.appendChild(opt);
+        });
+        
+        if (userSyntheses.length === 0) {
+            ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse trouvée</option>';
         }
-
     } catch (e) {
-        console.error("Erreur chargement ressources:", e);
-        ui.resourceSelect.innerHTML = '<option value="">Erreur chargement</option>';
+        console.warn("Erreur chargement synthèses (Collection vide ?)", e);
+        ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse disponible</option>';
     }
 }
 
-// --- CORE LOGIC : GENERATION ---
+async function loadUserCourses() {
+    try {
+        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+        const snapshot = await getDocs(q);
+        userCourses = [];
+        ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
+        
+        snapshot.forEach(doc => {
+            const d = doc.data();
+            const f = { id: doc.id, ...d };
+            userCourses.push(f);
+            const opt = document.createElement('option');
+            opt.value = f.id;
+            opt.textContent = f.name;
+            ui.courseSelect.appendChild(opt);
+        });
+
+        if (userCourses.length === 0) {
+            ui.courseSelect.innerHTML = '<option value="">Aucun fichier trouvé</option>';
+        }
+    } catch (e) {
+        console.warn("Erreur chargement cours", e);
+        ui.courseSelect.innerHTML = '<option value="">Aucun fichier disponible</option>';
+    }
+}
+
+// --- GENERATION LOGIC ---
 
 async function generateQuiz() {
     if (isGenerating) return;
 
     const source = document.querySelector('input[name="quiz-source"]:checked').value;
-    const title = ui.quizTitleInput.value.trim() || "Quiz IA";
+    let title = ui.quizTitleInput.value.trim(); // Peut être vide
     const count = parseInt(ui.questionCountInput.value);
     const type = ui.quizTypeInput.value;
 
     let topic = "";
-    let dataContext = ""; 
+    let dataContext = "";
 
-    // 1. Validation & Préparation Données
+    // Validation stricte selon la source choisie
     if (source === 'topic') {
-        // CAS 1: SUJET LIBRE
         topic = ui.topicInput.value.trim();
         if (!topic) return showMessage("Veuillez décrire le sujet.", "error");
-    } else {
-        // CAS 2: FICHIER OU SYNTHÈSE (Combinés dans l'UI sous value="file" ou "synthesis")
-        // Note: Dans le HTML actuel, on a radio value="file" et value="synthesis".
-        // Si tu veux simplifier l'UI à 2 choix (Doc vs Sujet), on peut fusionner.
-        // Ici je gère le cas où l'utilisateur a choisi "Fichier" (qui contient notre liste combinée)
+        if (!title) title = topic.substring(0, 30) + "..."; // Auto-titre
+    } 
+    else if (source === 'synthesis') {
+        const synthId = ui.synthesisSelect.value;
+        if (!synthId) return showMessage("Veuillez sélectionner une synthèse.", "error");
         
-        const resourceId = ui.resourceSelect.value;
-        if (!resourceId) return showMessage("Veuillez choisir un document.", "error");
+        const synth = userSyntheses.find(s => s.id === synthId);
+        if (synth) {
+            topic = `Synthèse : ${synth.title}`;
+            dataContext = synth.content; // Texte complet
+            if (!title) title = synth.title; // Auto-titre
+        }
+    } 
+    else if (source === 'course') {
+        const fileId = ui.courseSelect.value;
+        if (!fileId) return showMessage("Veuillez sélectionner un cours.", "error");
         
-        const selectedRes = userResources.find(r => r.id === resourceId);
-        if (selectedRes) {
-            topic = `Quiz sur : ${selectedRes.name}`;
-            
-            if (selectedRes.type === 'synthesis' && selectedRes.content) {
-                // Pour une synthèse, on a le texte brut, c'est parfait pour l'IA
-                dataContext = selectedRes.content;
-            } else if (selectedRes.type === 'file') {
-                // Pour un fichier, on envoie le nom et l'URL
-                dataContext = `Document: ${selectedRes.name}. URL: ${selectedRes.url}. Génère des questions pertinentes basées sur ce type de document universitaire.`;
-            }
+        const file = userCourses.find(f => f.id === fileId);
+        if (file) {
+            topic = `Cours : ${file.name}`;
+            dataContext = `Document: ${file.name}. URL: ${file.url}. Génère des questions pertinentes basées sur ce type de document.`;
+            if (!title) title = file.name; // Auto-titre
         }
     }
 
@@ -199,10 +192,11 @@ async function generateQuiz() {
         const quizData = result.data;
         
         if (!quizData || !quizData.questions || quizData.questions.length === 0) {
-            throw new Error("L'IA n'a pas pu générer de questions valides.");
+            throw new Error("L'IA n'a pas renvoyé de questions valides.");
         }
 
-        quizData.title = title !== "Quiz IA" ? title : (quizData.title || title);
+        // On assigne le titre final
+        quizData.title = title;
 
         showMessage("Quiz prêt !", "success");
         startQuiz(quizData);
@@ -232,13 +226,11 @@ function startQuiz(quizData) {
     ui.player.classList.remove('hidden');
     
     ui.quizTitle.textContent = quizData.title;
-    
     showQuestion();
 }
 
 function showQuestion() {
     const q = currentQuiz.questions[currentQuestionIndex];
-    
     ui.questionText.textContent = q.question;
     ui.progressText.textContent = `${currentQuestionIndex + 1}/${currentQuiz.questions.length}`;
     const progressPercent = ((currentQuestionIndex) / currentQuiz.questions.length) * 100;
@@ -257,7 +249,6 @@ function showQuestion() {
             </div>
             <span class="text-gray-200 font-medium">${opt}</span>
         `;
-        
         btn.onclick = () => handleAnswer(index, btn);
         ui.optionsGrid.appendChild(btn);
     });
@@ -265,7 +256,6 @@ function showQuestion() {
 
 function handleAnswer(selectedIndex, btnElement) {
     if (!ui.btnNext.disabled) return;
-
     const q = currentQuiz.questions[currentQuestionIndex];
     const isCorrect = selectedIndex === q.correctAnswer;
 
@@ -277,13 +267,11 @@ function handleAnswer(selectedIndex, btnElement) {
     } else {
         btnElement.classList.remove('bg-gray-800', 'border-gray-700');
         btnElement.classList.add('bg-red-500/20', 'border-red-500');
-        
         const correctBtn = ui.optionsGrid.children[q.correctAnswer];
         if(correctBtn) {
             correctBtn.classList.remove('bg-gray-800', 'border-gray-700');
             correctBtn.classList.add('bg-green-500/20', 'border-green-500', 'opacity-50');
         }
-        
         showFeedback(false, "Faux. " + (q.explanation || ""));
     }
 
@@ -293,7 +281,6 @@ function handleAnswer(selectedIndex, btnElement) {
         correct: q.correctAnswer,
         isCorrect: isCorrect
     });
-
     ui.btnNext.disabled = false;
 }
 
@@ -302,7 +289,6 @@ function showFeedback(isSuccess, message) {
     ui.feedbackBox.className = isSuccess 
         ? "p-4 rounded-xl mb-6 text-sm font-medium bg-green-500/10 border border-green-500/30 text-green-400"
         : "p-4 rounded-xl mb-6 text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";
-    
     ui.feedbackBox.innerHTML = `<div class="flex gap-2"><i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-times-circle'} mt-0.5"></i><div>${message}</div></div>`;
 }
 
@@ -317,7 +303,6 @@ function nextQuestion() {
 
 async function finishQuiz() {
     const percentage = Math.round((score / currentQuiz.questions.length) * 100);
-    
     ui.player.classList.add('hidden');
     ui.results.classList.remove('hidden');
     ui.finalScore.textContent = `${percentage}%`;
@@ -325,10 +310,9 @@ async function finishQuiz() {
     let msg = "Peut mieux faire...";
     if (percentage >= 50) msg = "Pas mal !";
     if (percentage >= 80) msg = "Excellent travail !";
-    if (percentage === 100) msg = "Parfait ! Maître du sujet.";
+    if (percentage === 100) msg = "Parfait !";
     ui.resultMessage.textContent = msg;
 
-    // Revue des questions
     const reviewList = document.getElementById('review-list');
     if(reviewList) {
         reviewList.innerHTML = '';
@@ -361,7 +345,7 @@ async function finishQuiz() {
 }
 
 function exitQuiz() {
-    if(confirm("Quitter le quiz ? Progression perdue.")) {
+    if(confirm("Quitter le quiz ?")) {
         ui.player.classList.add('hidden');
         ui.results.classList.add('hidden');
         ui.dashboard.classList.remove('hidden');
@@ -369,55 +353,29 @@ function exitQuiz() {
     }
 }
 
-// --- DASHBOARD LOGIC ---
-
 async function loadRecentQuiz() {
     if(!ui.quizGrid) return;
     ui.quizGrid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>';
-    
     try {
         const q = query(collection(db, 'quiz_results'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'), limit(8));
         const snapshot = await getDocs(q);
-        
         ui.quizGrid.innerHTML = '';
-        
         if (snapshot.empty) {
-            ui.quizGrid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500">Aucun quiz récent. Lancez-vous !</div>';
+            ui.quizGrid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500">Aucun quiz récent.</div>';
             return;
         }
-
         snapshot.forEach(doc => {
             const data = doc.data();
             const div = document.createElement('div');
             div.className = "content-glass p-5 rounded-2xl flex flex-col gap-3 group hover:bg-gray-800 transition-colors";
-            
             let colorClass = "text-red-400";
             if (data.percentage >= 50) colorClass = "text-orange-400";
             if (data.percentage >= 80) colorClass = "text-green-400";
-
-            div.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div class="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg">
-                        <i class="fas fa-brain"></i>
-                    </div>
-                    <span class="text-lg font-bold ${colorClass}">${data.percentage}%</span>
-                </div>
-                <div>
-                    <h4 class="font-bold text-white truncate">${data.topic || 'Quiz sans titre'}</h4>
-                    <p class="text-xs text-gray-500">${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'Date inconnue'}</p>
-                </div>
-            `;
+            div.innerHTML = `<div class="flex justify-between items-start"><div class="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg"><i class="fas fa-brain"></i></div><span class="text-lg font-bold ${colorClass}">${data.percentage}%</span></div><div><h4 class="font-bold text-white truncate">${data.topic || 'Quiz sans titre'}</h4><p class="text-xs text-gray-500">${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'Date inconnue'}</p></div>`;
             ui.quizGrid.appendChild(div);
         });
-
-    } catch (e) {
-        console.error("Erreur historique:", e);
-        // Fallback si index manquant
-        ui.quizGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-xs">Historique indisponible (Index manquant).</div>';
-    }
+    } catch (e) { console.error("Erreur historique:", e); ui.quizGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-xs">Historique indisponible.</div>'; }
 }
-
-// --- EVENT LISTENERS ---
 
 function setupEventListeners() {
     const toggleModal = (show) => {
@@ -435,35 +393,24 @@ function setupEventListeners() {
     if(ui.closeModal) ui.closeModal.onclick = () => toggleModal(false);
     if(ui.cancelBtn) ui.cancelBtn.onclick = () => toggleModal(false);
 
-    // LOGIQUE DE SWITCH DES SOURCES (MODIFIÉE)
+    // SWITCH SOURCE LOGIC (3 OPTIONS)
     ui.sourceRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             const val = e.target.value;
-            // On considère 'file' et 'synthesis' comme le même cas UI pour l'instant (liste déroulante)
-            if(val === 'file' || val === 'synthesis') {
-                ui.sourceTopicContainer.classList.add('hidden');
-                ui.sourceFileContainer.classList.remove('hidden');
-            } else {
-                // Topic
-                ui.sourceTopicContainer.classList.remove('hidden');
-                ui.sourceFileContainer.classList.add('hidden');
-            }
+            ui.sourceTopicContainer.classList.add('hidden');
+            ui.sourceSynthesisContainer.classList.add('hidden');
+            ui.sourceCourseContainer.classList.add('hidden');
+
+            if (val === 'topic') ui.sourceTopicContainer.classList.remove('hidden');
+            if (val === 'synthesis') ui.sourceSynthesisContainer.classList.remove('hidden');
+            if (val === 'course') ui.sourceCourseContainer.classList.remove('hidden');
         });
     });
 
-    if(ui.questionCountInput) {
-        ui.questionCountInput.oninput = (e) => ui.questionCountVal.textContent = e.target.value;
-    }
-
+    if(ui.questionCountInput) ui.questionCountInput.oninput = (e) => ui.questionCountVal.textContent = e.target.value;
     if(ui.generateBtn) ui.generateBtn.onclick = generateQuiz;
-
     if(ui.btnNext) ui.btnNext.onclick = nextQuestion;
     if(ui.btnExit) ui.btnExit.onclick = exitQuiz;
-
     if(ui.btnRetry) ui.btnRetry.onclick = () => startQuiz(currentQuiz);
-    if(ui.btnBack) ui.btnBack.onclick = () => {
-        ui.results.classList.add('hidden');
-        ui.dashboard.classList.remove('hidden');
-        loadRecentQuiz();
-    };
+    if(ui.btnBack) ui.btnBack.onclick = () => { ui.results.classList.add('hidden'); ui.dashboard.classList.remove('hidden'); loadRecentQuiz(); };
 }
