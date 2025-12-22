@@ -9,6 +9,7 @@ let currentUserId = null;
 let currentUserData = null;
 let currentPostId = null; // Pour la vue détail
 let postsUnsubscribe = null;
+let groupsUnsubscribe = null;
 
 // --- DOM ELEMENTS ---
 const ui = {
@@ -48,8 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUserId = user.uid;
             await loadUserProfile();
             subscribeToPosts(); // Real-time listener
-            loadContributors();
-            loadGroups();
+            loadContributors(); // Mock data pour l'instant (calcul complexe)
+            subscribeToGroups(); // Real-time groups
         } else {
             window.location.href = '../auth/login.html';
         }
@@ -69,12 +70,17 @@ async function loadUserProfile() {
             const avatarUrl = currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName || 'User'}&background=random`;
             if(ui.userAvatar) ui.userAvatar.src = avatarUrl;
             if(ui.currentUserAvatarComment) ui.currentUserAvatarComment.src = avatarUrl;
+        } else {
+            currentUserData = { firstName: "Étudiant", photoURL: null };
         }
-    } catch(e) { console.error("Erreur profil:", e); }
+    } catch(e) { 
+        console.error("Erreur profil:", e); 
+        currentUserData = { firstName: "Étudiant", photoURL: null };
+    }
 }
 
 function subscribeToPosts(filterType = 'all') {
-    if (postsUnsubscribe) postsUnsubscribe(); // Stop old listener
+    if (postsUnsubscribe) postsUnsubscribe();
 
     ui.postsContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement en direct...</p></div>`;
 
@@ -96,9 +102,16 @@ function subscribeToPosts(filterType = 'all') {
             renderPostCard(post);
         });
     }, (error) => {
-        console.error("Erreur Posts:", error);
-        // Fallback UI si permission denied (ex: règles firestore pas à jour)
-        ui.postsContainer.innerHTML = `<div class="text-center text-red-400 p-4 border border-red-900 rounded-xl bg-red-900/20">Impossible de charger les posts (Erreur: ${error.code}). Vérifiez votre connexion.</div>`;
+        console.error("Erreur Posts (Firestore):", error);
+        if (error.code === 'permission-denied') {
+             ui.postsContainer.innerHTML = `
+                <div class="text-center text-red-400 p-6 border border-red-900 rounded-xl bg-red-900/20">
+                    <p class="font-bold mb-2"><i class="fas fa-lock"></i> Accès Refusé</p>
+                    <p class="text-sm">Vérifiez les règles de sécurité Firestore.</p>
+                </div>`;
+        } else {
+            ui.postsContainer.innerHTML = `<div class="text-center text-red-400">Erreur de chargement (${error.code})</div>`;
+        }
     });
 }
 
@@ -110,13 +123,11 @@ function renderPostCard(post) {
     const card = document.createElement('div');
     card.className = 'content-glass post-card p-6 rounded-2xl cursor-pointer transition-all group animate-fade-in';
     
-    // Check si l'user a liké
     const userLiked = post.likesBy && post.likesBy.includes(currentUserId);
     const likeClass = userLiked ? 'text-red-500' : 'hover:text-red-400';
     const likeIcon = userLiked ? 'fas fa-heart' : 'far fa-heart';
     const likesCount = post.likesBy ? post.likesBy.length : 0;
     const commentsCount = post.commentsCount || 0;
-
     const timeAgo = post.createdAt ? timeSince(post.createdAt.toDate()) : 'À l\'instant';
 
     card.innerHTML = `
@@ -131,7 +142,7 @@ function renderPostCard(post) {
             <span class="px-2 py-1 bg-${badgeColor}-500/10 text-${badgeColor}-400 text-xs rounded border border-${badgeColor}-500/20">${badgeLabel}</span>
         </div>
         <h3 class="text-lg font-bold text-white mb-2">${post.title}</h3>
-        <p class="text-gray-400 text-sm mb-4 line-clamp-3">${post.content}</p>
+        <p class="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-line">${post.content}</p>
         
         <div class="flex items-center gap-6 text-xs text-gray-500 border-t border-gray-800/50 pt-4">
             <button class="flex items-center gap-2 hover:text-emerald-400 transition-colors action-btn comment-trigger">
@@ -140,7 +151,9 @@ function renderPostCard(post) {
             <button class="flex items-center gap-2 ${likeClass} transition-colors action-btn like-btn">
                 <i class="${likeIcon}"></i> <span class="like-count">${likesCount}</span>
             </button>
-            <button class="ml-auto hover:text-white action-btn share-btn"><i class="fas fa-share"></i> Partager</button>
+            <button class="ml-auto hover:text-white action-btn share-btn transition-colors hover:text-indigo-400">
+                <i class="fas fa-share"></i> Republier
+            </button>
         </div>
     `;
 
@@ -151,9 +164,16 @@ function renderPostCard(post) {
         toggleLike(post.id, userLiked);
     });
 
+    // Interaction Share
+    const shareBtn = card.querySelector('.share-btn');
+    shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sharePost(post);
+    });
+
     // Interaction Detail/Comment
     card.addEventListener('click', (e) => {
-        if (!e.target.closest('.like-btn') && !e.target.closest('.share-btn')) {
+        if (!e.target.closest('.action-btn')) {
             openDetailModal(post);
         }
     });
@@ -161,7 +181,7 @@ function renderPostCard(post) {
     ui.postsContainer.appendChild(card);
 }
 
-// --- ACTIONS ---
+// --- ACTIONS POST ---
 
 async function createPost() {
     const title = ui.postTitle.value.trim();
@@ -188,7 +208,7 @@ async function createPost() {
             commentsCount: 0
         });
 
-        togglePostModal(false);
+        window.togglePostModal(false);
         // Reset form
         ui.postTitle.value = "";
         ui.postContent.value = "";
@@ -216,13 +236,27 @@ async function toggleLike(postId, alreadyLiked) {
     }
 }
 
+function sharePost(post) {
+    // On ouvre la modale de création pré-remplie
+    window.togglePostModal(true);
+    
+    ui.postTitle.value = `RE: ${post.title}`;
+    ui.postContent.value = `\n\n--- Publication originale de ${post.authorName} ---\n${post.content}`;
+    ui.postTag.value = post.tag;
+    
+    // On focus au début du contenu pour que l'user écrive son message
+    ui.postContent.setSelectionRange(0, 0);
+    ui.postContent.focus();
+    
+    showMessage("Vous republiez ce post. Ajoutez votre commentaire au début !", "info");
+}
+
 // --- DETAIL & COMMENTS ---
 
 async function openDetailModal(post) {
     currentPostId = post.id;
     ui.detailModal.classList.remove('hidden');
     
-    // Render Post content in modal
     const timeAgo = post.createdAt ? timeSince(post.createdAt.toDate()) : 'À l\'instant';
     ui.detailContent.innerHTML = `
         <div class="mb-8">
@@ -243,7 +277,6 @@ async function openDetailModal(post) {
         </div>
     `;
 
-    // Load comments
     subscribeToComments(post.id);
 }
 
@@ -261,7 +294,7 @@ function subscribeToComments(postId) {
         snapshot.forEach(docSnap => {
             const c = docSnap.data();
             const div = document.createElement('div');
-            div.className = 'flex gap-3 bg-gray-800/30 p-3 rounded-xl border border-gray-800';
+            div.className = 'flex gap-3 bg-gray-800/30 p-3 rounded-xl border border-gray-800 animate-fade-in';
             div.innerHTML = `
                 <img src="${c.authorAvatar}" class="w-8 h-8 rounded-full flex-shrink-0">
                 <div>
@@ -269,7 +302,7 @@ function subscribeToComments(postId) {
                         <span class="text-sm font-bold text-white">${c.authorName}</span>
                         <span class="text-[10px] text-gray-500">${c.createdAt ? timeSince(c.createdAt.toDate()) : ''}</span>
                     </div>
-                    <p class="text-sm text-gray-300 mt-1">${c.content}</p>
+                    <p class="text-sm text-gray-300 mt-1 whitespace-pre-line">${c.content}</p>
                 </div>
             `;
             commentsList.appendChild(div);
@@ -282,7 +315,6 @@ async function submitComment() {
     if (!content || !currentPostId) return;
 
     try {
-        // Add comment subcollection
         await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), {
             content,
             authorId: currentUserId,
@@ -291,10 +323,7 @@ async function submitComment() {
             createdAt: serverTimestamp()
         });
 
-        // Update count on main post
-        // Note: Idéalement via Cloud Function ou transaction pour atomicité, ici simple increment client
         const postRef = doc(db, 'community_posts', currentPostId);
-        // On récupère le doc pour avoir le compteur actuel (méthode simple sans transaction lourde)
         const p = await getDoc(postRef);
         if(p.exists()) {
             await updateDoc(postRef, { commentsCount: (p.data().commentsCount || 0) + 1 });
@@ -304,6 +333,92 @@ async function submitComment() {
     } catch(e) {
         console.error(e);
         showMessage("Erreur envoi commentaire", "error");
+    }
+}
+
+// --- GROUPS LOGIC (NEW) ---
+
+function subscribeToGroups() {
+    if (groupsUnsubscribe) groupsUnsubscribe();
+
+    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(5));
+
+    groupsUnsubscribe = onSnapshot(q, (snapshot) => {
+        ui.groupsList.innerHTML = '';
+        if (snapshot.empty) {
+            // Créer des groupes par défaut si vide (juste pour la démo, en vrai admin only)
+            createDefaultGroups(); 
+            ui.groupsList.innerHTML = `<p class="text-xs text-gray-500 text-center">Initialisation des groupes...</p>`;
+            return;
+        }
+
+        snapshot.forEach(docSnap => {
+            const group = { id: docSnap.id, ...docSnap.data() };
+            const isMember = group.members && group.members.includes(currentUserId);
+            
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-3 p-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer group-item animate-fade-in';
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-lg bg-${group.color || 'indigo'}-500/20 text-${group.color || 'indigo'}-400 flex items-center justify-center text-lg">
+                    <i class="fas ${group.icon || 'fa-users'}"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-white">${group.name}</p>
+                    <p class="text-xs text-gray-500">${group.memberCount || 0} membres</p>
+                </div>
+                <button class="ml-auto text-xs px-2 py-1 rounded transition-colors ${isMember ? 'bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} join-group-btn" data-id="${group.id}">
+                    ${isMember ? 'Rejoint' : 'Rejoindre'}
+                </button>
+            `;
+            
+            div.querySelector('.join-group-btn').addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleJoinGroup(group.id, isMember);
+            });
+
+            ui.groupsList.appendChild(div);
+        });
+    });
+}
+
+async function createDefaultGroups() {
+    // Cette fonction ne devrait s'exécuter qu'une fois si la collection est vide
+    const defaultGroups = [
+        { name: 'Droit L1 - Paris', icon: 'fa-balance-scale', color: 'blue', memberCount: 0, members: [] },
+        { name: 'Dev Web & Code', icon: 'fa-code', color: 'purple', memberCount: 0, members: [] },
+        { name: 'Médecine PACES', icon: 'fa-user-md', color: 'red', memberCount: 0, members: [] }
+    ];
+
+    for (const g of defaultGroups) {
+        await addDoc(collection(db, 'groups'), g);
+    }
+}
+
+async function toggleJoinGroup(groupId, isMember) {
+    const groupRef = doc(db, 'groups', groupId);
+    try {
+        if (isMember) {
+            await updateDoc(groupRef, { 
+                members: arrayRemove(currentUserId)
+                // Note: Firestore n'a pas d'incrément atomique simple ici sans transaction, 
+                // pour simplifier on ne met pas à jour le compteur manuellement ici, 
+                // mais idéalement il faudrait utiliser increment(-1)
+            });
+            // Update manuel du compteur (approximatif pour démo)
+            const g = await getDoc(groupRef);
+            await updateDoc(groupRef, { memberCount: Math.max(0, (g.data().memberCount || 1) - 1) });
+            showMessage("Groupe quitté", "info");
+        } else {
+            await updateDoc(groupRef, { 
+                members: arrayUnion(currentUserId)
+            });
+            const g = await getDoc(groupRef);
+            await updateDoc(groupRef, { memberCount: (g.data().memberCount || 0) + 1 });
+            showMessage("Groupe rejoint !", "success");
+        }
+    } catch(e) {
+        console.error("Erreur groupe:", e);
+        if(e.code === 'permission-denied') showMessage("Erreur de permission (Règles Firestore)", "error");
     }
 }
 
@@ -325,7 +440,6 @@ function timeSince(date) {
 }
 
 function loadContributors() {
-    // Note: Pour une vraie app, calculer ça via Cloud Functions agrégées
     const contributors = [
         { name: 'Léa D.', points: 1240, rank: 1 },
         { name: 'Karim S.', points: 980, rank: 2 },
@@ -343,57 +457,29 @@ function loadContributors() {
     `).join('');
 }
 
-function loadGroups() {
-    const groups = [
-        { name: 'Droit L1 - Paris', members: 145, icon: 'fa-balance-scale', color: 'blue' },
-        { name: 'Dev Web', members: 89, icon: 'fa-code', color: 'purple' },
-        { name: 'Médecine PACES', members: 210, icon: 'fa-user-md', color: 'red' }
-    ];
-    ui.groupsList.innerHTML = groups.map(g => `
-        <div class="flex items-center gap-3 p-2 hover:bg-gray-800 rounded-lg transition-colors cursor-pointer group-item animate-fade-in">
-            <div class="w-10 h-10 rounded-lg bg-${g.color}-500/20 text-${g.color}-400 flex items-center justify-center text-lg">
-                <i class="fas ${g.icon}"></i>
-            </div>
-            <div>
-                <p class="text-sm font-bold text-white">${g.name}</p>
-                <p class="text-xs text-gray-500">${g.members} membres</p>
-            </div>
-            <button class="ml-auto text-xs bg-${g.color}-600 hover:bg-${g.color}-500 text-white px-2 py-1 rounded join-btn">Rejoindre</button>
-        </div>
-    `).join('');
-
-    document.querySelectorAll('.join-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            btn.textContent = btn.textContent === 'Rejoindre' ? 'Rejoint' : 'Rejoindre';
-            btn.classList.toggle('bg-gray-600');
-            showMessage("Groupe rejoint !", "success");
-        });
-    });
-}
-
 // --- EVENT LISTENERS ---
 
 function setupEventListeners() {
-    // Toggle New Post Modal
     const togglePostModal = (show) => ui.newPostModal.classList.toggle('hidden', !show);
-    if(ui.btnNewPost) ui.btnNewPost.onclick = () => togglePostModal(true);
+    if(ui.btnNewPost) ui.btnNewPost.onclick = () => {
+        // Reset form pour nouveau post
+        ui.postTitle.value = "";
+        ui.postContent.value = "";
+        ui.postTag.value = "";
+        togglePostModal(true);
+    };
     if(ui.closePostModal) ui.closePostModal.onclick = () => togglePostModal(false);
     if(ui.cancelPost) ui.cancelPost.onclick = () => togglePostModal(false);
     
-    // Create Post
     if(ui.submitPost) ui.submitPost.onclick = createPost;
 
-    // Toggle Detail Modal
     if(ui.closeDetailModal) ui.closeDetailModal.onclick = () => ui.detailModal.classList.add('hidden');
     
-    // Submit Comment
     if(ui.submitComment) ui.submitComment.onclick = submitComment;
     if(ui.commentInput) ui.commentInput.addEventListener('keypress', (e) => {
         if(e.key === 'Enter') submitComment();
     });
 
-    // Filters
     if(ui.filters) {
         ui.filters.addEventListener('click', (e) => {
             if(e.target.tagName === 'BUTTON') {
@@ -409,6 +495,5 @@ function setupEventListeners() {
         });
     }
 
-    // Expose toggle for internal use
     window.togglePostModal = togglePostModal;
 }
