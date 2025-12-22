@@ -2,7 +2,7 @@ import { auth, db } from './config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 // --- STATE ---
@@ -10,6 +10,7 @@ let currentUserId = null;
 let currentUserData = null;
 let currentPostId = null; 
 let currentGroupId = null; // ID du groupe actif
+let currentGroupData = null; // Données complètes du groupe actif (pour vérifier admin)
 let postsUnsubscribe = null;
 let groupsUnsubscribe = null;
 let groupChatUnsubscribe = null;
@@ -60,7 +61,16 @@ const ui = {
     groupFileUpload: document.getElementById('group-file-upload'),
     changeGroupIconBtn: document.getElementById('change-group-icon-btn'),
     groupIconUpload: document.getElementById('group-icon-upload'),
-    btnUploadChat: document.getElementById('btn-upload-chat')
+    btnUploadChat: document.getElementById('btn-upload-chat'),
+    // Modale Création Groupe (Nouveau)
+    createGroupModal: document.getElementById('create-group-modal'),
+    closeCreateGroupModal: document.getElementById('close-create-group-modal'),
+    btnCreateGroupHero: document.getElementById('btn-create-group-hero'),
+    btnCreateGroupSidebar: document.getElementById('btn-create-group-sidebar'),
+    newGroupName: document.getElementById('new-group-name'),
+    newGroupDesc: document.getElementById('new-group-desc'),
+    submitCreateGroup: document.getElementById('submit-create-group'),
+    cancelCreateGroup: document.getElementById('cancel-create-group')
 };
 
 // --- INITIALIZATION ---
@@ -157,7 +167,6 @@ function renderPostCard(post) {
 }
 
 // ... (createPost, toggleLike, sharePost, openDetailModal, subscribeToComments, submitComment: Code inchangé ou similaire) ...
-// Pour alléger la réponse, je me concentre sur les GROUPES et UPLOADS ci-dessous.
 
 async function createPost() {
     const title = ui.postTitle.value.trim();
@@ -213,8 +222,43 @@ async function submitComment() {
     } catch(e) {}
 }
 
-
 // --- GROUPS LOGIC ---
+
+// Nouvelle fonction de création de groupe
+async function createNewGroup() {
+    const name = ui.newGroupName.value.trim();
+    const desc = ui.newGroupDesc.value.trim();
+    const color = document.querySelector('input[name="new-group-color"]:checked').value;
+
+    if (!name) return showMessage("Le nom du groupe est requis", "error");
+
+    ui.submitCreateGroup.disabled = true;
+    ui.submitCreateGroup.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+
+    try {
+        await addDoc(collection(db, 'groups'), {
+            name: name,
+            description: desc,
+            color: color,
+            icon: 'fa-users', // Défaut
+            memberCount: 1,
+            members: [currentUserId], // Créateur est membre
+            admins: [currentUserId], // Créateur est admin
+            createdAt: serverTimestamp()
+        });
+
+        toggleCreateGroupModal(false);
+        ui.newGroupName.value = "";
+        ui.newGroupDesc.value = "";
+        showMessage("Groupe créé avec succès !", "success");
+    } catch (e) {
+        console.error("Erreur création groupe:", e);
+        showMessage("Erreur lors de la création", "error");
+    } finally {
+        ui.submitCreateGroup.disabled = false;
+        ui.submitCreateGroup.innerHTML = `<i class="fas fa-check"></i> Créer`;
+    }
+}
 
 function subscribeToGroups() {
     if (groupsUnsubscribe) groupsUnsubscribe();
@@ -222,7 +266,10 @@ function subscribeToGroups() {
 
     groupsUnsubscribe = onSnapshot(q, (snapshot) => {
         ui.groupsList.innerHTML = '';
-        if (snapshot.empty) { createDefaultGroups(); return; }
+        if (snapshot.empty) { 
+            ui.groupsList.innerHTML = `<p class="text-xs text-gray-500 text-center py-4">Aucun groupe. Créez le premier !</p>`; 
+            return; 
+        }
 
         snapshot.forEach(docSnap => {
             const group = { id: docSnap.id, ...docSnap.data() };
@@ -271,6 +318,7 @@ function subscribeToGroups() {
 // OUVERTURE DU GROUPE
 function openGroupSpace(group) {
     currentGroupId = group.id;
+    currentGroupData = group; // Stocke pour vérification admin
     ui.groupModal.classList.remove('hidden');
     
     ui.groupTitle.textContent = group.name;
@@ -292,7 +340,7 @@ function openGroupSpace(group) {
     `;
 
     subscribeToGroupChat(group.id);
-    subscribeToGroupFiles(group.id); // NOUVEAU
+    subscribeToGroupFiles(group.id);
 }
 
 function subscribeToGroupChat(groupId) {
@@ -308,18 +356,38 @@ function subscribeToGroupChat(groupId) {
             return;
         }
 
+        const isAdmin = currentGroupData && currentGroupData.admins && currentGroupData.admins.includes(currentUserId);
+
         snapshot.forEach(docSnap => {
-            const msg = docSnap.data();
+            const msg = { id: docSnap.id, ...docSnap.data() };
             const isMe = msg.authorId === currentUserId;
+            
+            // Bouton supprimer visible si c'est moi OU si je suis admin
+            const canDelete = isMe || isAdmin;
+            const deleteBtnHtml = canDelete ? 
+                `<button class="text-gray-500 hover:text-red-500 ml-2 delete-msg-btn" data-id="${msg.id}"><i class="fas fa-trash-alt text-[10px]"></i></button>` : '';
+
             const msgDiv = document.createElement('div');
-            msgDiv.className = `flex gap-3 mb-4 animate-fade-in ${isMe ? 'flex-row-reverse' : ''}`;
+            msgDiv.className = `flex gap-3 mb-4 animate-fade-in ${isMe ? 'flex-row-reverse' : ''} group/msg`;
             msgDiv.innerHTML = `
                 <img src="${msg.authorAvatar}" class="w-8 h-8 rounded-full flex-shrink-0 mt-1">
                 <div class="max-w-[70%]">
-                    <div class="${isMe ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-200'} p-3 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'} text-sm whitespace-pre-line">${msg.content}</div>
-                    <p class="text-[10px] text-gray-600 mt-1 ${isMe ? 'text-right' : ''}">${msg.createdAt ? timeSince(msg.createdAt.toDate()) : 'Envoi...'}</p>
+                    <div class="${isMe ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-200'} p-3 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'} text-sm whitespace-pre-line group-hover/msg:opacity-90">
+                        ${msg.content}
+                    </div>
+                    <div class="flex items-center ${isMe ? 'justify-end' : ''} mt-1 gap-2">
+                        <p class="text-[10px] text-gray-600">${msg.createdAt ? timeSince(msg.createdAt.toDate()) : 'Envoi...'}</p>
+                        ${deleteBtnHtml}
+                    </div>
                 </div>
             `;
+            
+            // Event listener suppression
+            if(canDelete) {
+                const delBtn = msgDiv.querySelector('.delete-msg-btn');
+                delBtn.addEventListener('click', () => deleteGroupMessage(msg.id));
+            }
+
             ui.groupMessagesContainer.appendChild(msgDiv);
         });
         ui.groupMessagesContainer.scrollTop = ui.groupMessagesContainer.scrollHeight;
@@ -338,8 +406,17 @@ async function sendGroupMessage() {
     } catch(e) { console.error(e); showMessage("Erreur envoi message", "error"); }
 }
 
-// --- FICHIERS GROUPE ---
+async function deleteGroupMessage(messageId) {
+    if(!confirm("Supprimer ce message ?")) return;
+    try {
+        await deleteDoc(doc(db, 'groups', currentGroupId, 'messages', messageId));
+    } catch(e) {
+        console.error(e);
+        showMessage("Impossible de supprimer", "error");
+    }
+}
 
+// ... (subscribeToGroupFiles, uploadGroupFile, uploadGroupIcon: Code inchangé) ...
 function subscribeToGroupFiles(groupId) {
     if(groupFilesUnsubscribe) groupFilesUnsubscribe();
     
@@ -417,15 +494,6 @@ async function uploadGroupIcon(file) {
 
 // --- UTILS & EVENT LISTENERS ---
 
-async function createDefaultGroups() {
-    const defaultGroups = [
-        { name: 'Droit L1', icon: 'fa-balance-scale', color: 'blue', memberCount: 0, members: [] },
-        { name: 'Dev Web', icon: 'fa-code', color: 'purple', memberCount: 0, members: [] },
-        { name: 'Médecine', icon: 'fa-user-md', color: 'red', memberCount: 0, members: [] }
-    ];
-    for (const g of defaultGroups) await addDoc(collection(db, 'groups'), g);
-}
-
 async function toggleJoinGroup(groupId, isMember) {
     try {
         const ref = doc(db, 'groups', groupId);
@@ -495,6 +563,14 @@ function setupEventListeners() {
         if(e.target.files.length > 0) uploadGroupIcon(e.target.files[0]);
     };
 
+    // NOUVEAUX LISTENERS CREATION GROUPE
+    const toggleCreateGroupModal = (show) => ui.createGroupModal.classList.toggle('hidden', !show);
+    if(ui.btnCreateGroupHero) ui.btnCreateGroupHero.onclick = () => toggleCreateGroupModal(true);
+    if(ui.btnCreateGroupSidebar) ui.btnCreateGroupSidebar.onclick = () => toggleCreateGroupModal(true);
+    if(ui.closeCreateGroupModal) ui.closeCreateGroupModal.onclick = () => toggleCreateGroupModal(false);
+    if(ui.cancelCreateGroup) ui.cancelCreateGroup.onclick = () => toggleCreateGroupModal(false);
+    if(ui.submitCreateGroup) ui.submitCreateGroup.onclick = createNewGroup;
+
     if(ui.filters) {
         ui.filters.addEventListener('click', (e) => {
             if(e.target.tagName === 'BUTTON') {
@@ -505,5 +581,7 @@ function setupEventListeners() {
         });
     }
 
+    // Expose toggle globally
     window.togglePostModal = togglePostModal;
+    window.toggleCreateGroupModal = toggleCreateGroupModal;
 }

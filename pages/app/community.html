@@ -91,9 +91,9 @@
                     </p>
                     
                     <div class="flex gap-4">
-                        <button id="btn-find-group" class="px-6 py-3 bg-white text-emerald-950 font-bold rounded-xl hover:bg-emerald-50 transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2 transform hover:-translate-y-1">
-                            <i class="fas fa-search"></i>
-                            <span>Trouver un groupe</span>
+                        <button id="btn-create-group-hero" class="px-6 py-3 bg-white text-emerald-950 font-bold rounded-xl hover:bg-emerald-50 transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2 transform hover:-translate-y-1">
+                            <i class="fas fa-plus-circle text-emerald-600"></i>
+                            <span>Créer un groupe</span>
                         </button>
                         <button id="btn-trending" class="px-6 py-3 bg-gray-800 text-white font-bold rounded-xl hover:bg-gray-700 transition-all border border-gray-700 flex items-center gap-2">
                             <i class="fas fa-fire text-orange-500"></i>
@@ -145,9 +145,14 @@
 
                     <!-- Groupes Suggérés -->
                     <div class="content-glass p-6 rounded-2xl border border-gray-800">
-                        <h3 class="font-bold text-white text-sm mb-4 flex items-center gap-2">
-                            <i class="fas fa-users text-blue-400"></i> Groupes pour toi
-                        </h3>
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-white text-sm flex items-center gap-2">
+                                <i class="fas fa-users text-blue-400"></i> Groupes pour toi
+                            </h3>
+                            <button id="btn-create-group-sidebar" class="text-xs text-blue-400 hover:text-blue-300 font-bold border border-blue-500/30 px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20 transition-all">
+                                <i class="fas fa-plus"></i> Créer
+                            </button>
+                        </div>
                         <div class="space-y-3" id="groups-list">
                             <!-- Dynamique -->
                         </div>
@@ -207,6 +212,53 @@
         </div>
     </div>
 
+    <!-- MODAL: CRÉATION GROUPE (NOUVEAU) -->
+    <div id="create-group-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl flex flex-col animate-scale-up">
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900 rounded-t-2xl">
+                <h3 class="font-bold text-white text-lg"><i class="fas fa-users text-indigo-500 mr-2"></i>Créer un Groupe</h3>
+                <button id="close-create-group-modal" class="text-gray-500 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Nom du Groupe</label>
+                    <input type="text" id="new-group-name" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-gray-600" placeholder="Ex: Master Droit Public">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Thème / Couleur</label>
+                    <div class="flex gap-2">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="new-group-color" value="blue" checked class="peer hidden">
+                            <div class="w-8 h-8 rounded-full bg-blue-500/20 border-2 border-transparent peer-checked:border-blue-500 hover:bg-blue-500/40 transition-all"></div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="new-group-color" value="purple" class="peer hidden">
+                            <div class="w-8 h-8 rounded-full bg-purple-500/20 border-2 border-transparent peer-checked:border-purple-500 hover:bg-purple-500/40 transition-all"></div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="new-group-color" value="emerald" class="peer hidden">
+                            <div class="w-8 h-8 rounded-full bg-emerald-500/20 border-2 border-transparent peer-checked:border-emerald-500 hover:bg-emerald-500/40 transition-all"></div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="new-group-color" value="orange" class="peer hidden">
+                            <div class="w-8 h-8 rounded-full bg-orange-500/20 border-2 border-transparent peer-checked:border-orange-500 hover:bg-orange-500/40 transition-all"></div>
+                        </label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Description courte</label>
+                    <textarea id="new-group-desc" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none placeholder-gray-600" placeholder="Objectif du groupe..."></textarea>
+                </div>
+            </div>
+            <div class="p-6 border-t border-gray-800 flex justify-end gap-3 bg-gray-900 rounded-b-2xl">
+                <button id="cancel-create-group" class="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors">Annuler</button>
+                <button id="submit-create-group" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-900/20 transition-all flex items-center gap-2">
+                    <i class="fas fa-check"></i> Créer
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: DÉTAIL POST (Commentaires) -->
     <div id="post-detail-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] animate-scale-up">
@@ -233,7 +285,7 @@
         </div>
     </div>
 
-    <!-- MODAL: ESPACE GROUPE (NOUVEAU) -->
+    <!-- MODAL: ESPACE GROUPE -->
     <div id="group-space-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#0a0a0f] border border-gray-800 rounded-3xl w-full max-w-5xl h-[90vh] shadow-2xl flex flex-col animate-scale-up overflow-hidden">
             
