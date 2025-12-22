@@ -233,6 +233,84 @@
         </div>
     </div>
 
+    <!-- MODAL: ESPACE GROUPE (NOUVEAU) -->
+    <div id="group-space-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-[#0a0a0f] border border-gray-800 rounded-3xl w-full max-w-5xl h-[90vh] shadow-2xl flex flex-col animate-scale-up overflow-hidden">
+            
+            <!-- Header Groupe -->
+            <div class="h-48 relative flex-shrink-0 bg-gray-900">
+                <div id="group-cover-bg" class="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-indigo-900/50"></div>
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+                
+                <button id="close-group-modal" class="absolute top-6 right-6 w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm z-20">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0a0a0f] to-transparent flex items-end gap-6">
+                    <div id="group-icon-large" class="w-24 h-24 rounded-2xl bg-indigo-600 shadow-xl flex items-center justify-center text-5xl text-white transform translate-y-4 border-4 border-[#0a0a0f]">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="mb-2">
+                        <h2 id="group-title-large" class="text-3xl font-display font-bold text-white mb-1">Nom du Groupe</h2>
+                        <div class="flex items-center gap-4 text-sm text-gray-300">
+                            <span class="flex items-center gap-1"><i class="fas fa-users text-indigo-400"></i> <span id="group-member-count">0</span> membres</span>
+                            <span class="w-1 h-1 bg-gray-600 rounded-full"></span>
+                            <span class="text-emerald-400 font-bold"><i class="fas fa-circle text-[8px] mr-1"></i>Actif</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body Groupe -->
+            <div class="flex-grow flex min-h-0 bg-[#0a0a0f]">
+                
+                <!-- Sidebar Groupe -->
+                <div class="w-64 border-r border-gray-800 p-6 flex-shrink-0 hidden md:block overflow-y-auto custom-scrollbar">
+                    <h4 class="text-xs font-bold text-gray-500 uppercase mb-4">Membres en ligne</h4>
+                    <div id="group-members-list" class="space-y-3">
+                        <!-- Liste membres injectée -->
+                    </div>
+                    
+                    <div class="mt-8">
+                        <h4 class="text-xs font-bold text-gray-500 uppercase mb-4">Fichiers Partagés</h4>
+                        <div class="space-y-2 text-sm text-gray-400">
+                            <div class="flex items-center gap-2 p-2 hover:bg-gray-800 rounded cursor-pointer">
+                                <i class="fas fa-file-pdf text-red-400"></i>
+                                <span>Cours_L1.pdf</span>
+                            </div>
+                            <button class="w-full mt-2 py-2 border border-gray-800 rounded text-xs hover:bg-gray-800 transition-colors">+ Ajouter un fichier</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat / Mur -->
+                <div class="flex-grow flex flex-col min-w-0">
+                    <!-- Messages Area -->
+                    <div id="group-messages-container" class="flex-grow overflow-y-auto custom-scrollbar p-6 space-y-4 bg-[#0a0a0f]">
+                        <div class="text-center text-gray-500 py-10">
+                            <i class="fas fa-comments text-4xl mb-3 opacity-20"></i>
+                            <p>Bienvenue dans le groupe !<br>Commencez la discussion.</p>
+                        </div>
+                    </div>
+
+                    <!-- Input Area -->
+                    <div class="p-4 bg-gray-900 border-t border-gray-800">
+                        <div class="flex items-center gap-3 bg-gray-800 rounded-xl p-2 border border-gray-700 focus-within:border-indigo-500 transition-colors">
+                            <button class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors">
+                                <i class="fas fa-paperclip"></i>
+                            </button>
+                            <input type="text" id="group-chat-input" class="flex-grow bg-transparent text-white placeholder-gray-500 focus:outline-none px-2" placeholder="Envoyer un message au groupe...">
+                            <button id="send-group-message" class="w-10 h-10 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg flex items-center justify-center shadow-lg transition-colors">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <!-- Message Box (Toast) -->
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 

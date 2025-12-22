@@ -7,9 +7,11 @@ import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, do
 // --- STATE ---
 let currentUserId = null;
 let currentUserData = null;
-let currentPostId = null; // Pour la vue détail
+let currentPostId = null; 
+let currentGroupId = null; // ID du groupe actif
 let postsUnsubscribe = null;
 let groupsUnsubscribe = null;
+let groupChatUnsubscribe = null;
 
 // --- DOM ELEMENTS ---
 const ui = {
@@ -29,13 +31,23 @@ const ui = {
     postTitle: document.getElementById('post-title'),
     postContent: document.getElementById('post-content'),
     postTag: document.getElementById('post-tag'),
-    // Modale Détail
+    // Modale Détail Post
     detailModal: document.getElementById('post-detail-modal'),
     closeDetailModal: document.getElementById('close-detail-modal'),
     detailContent: document.getElementById('detail-content'),
     commentInput: document.getElementById('comment-input'),
     submitComment: document.getElementById('submit-comment'),
-    currentUserAvatarComment: document.getElementById('current-user-avatar-comment')
+    currentUserAvatarComment: document.getElementById('current-user-avatar-comment'),
+    // Modale Groupe (Nouveau)
+    groupModal: document.getElementById('group-space-modal'),
+    closeGroupModal: document.getElementById('close-group-modal'),
+    groupTitle: document.getElementById('group-title-large'),
+    groupIcon: document.getElementById('group-icon-large'),
+    groupMemberCount: document.getElementById('group-member-count'),
+    groupMembersList: document.getElementById('group-members-list'),
+    groupMessagesContainer: document.getElementById('group-messages-container'),
+    groupChatInput: document.getElementById('group-chat-input'),
+    sendGroupMessageBtn: document.getElementById('send-group-message')
 };
 
 // --- INITIALIZATION ---
@@ -48,9 +60,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             currentUserId = user.uid;
             await loadUserProfile();
-            subscribeToPosts(); // Real-time listener
-            loadContributors(); // Mock data pour l'instant (calcul complexe)
-            subscribeToGroups(); // Real-time groups
+            subscribeToPosts(); 
+            loadContributors(); 
+            subscribeToGroups(); 
         } else {
             window.location.href = '../auth/login.html';
         }
@@ -102,16 +114,7 @@ function subscribeToPosts(filterType = 'all') {
             renderPostCard(post);
         });
     }, (error) => {
-        console.error("Erreur Posts (Firestore):", error);
-        if (error.code === 'permission-denied') {
-             ui.postsContainer.innerHTML = `
-                <div class="text-center text-red-400 p-6 border border-red-900 rounded-xl bg-red-900/20">
-                    <p class="font-bold mb-2"><i class="fas fa-lock"></i> Accès Refusé</p>
-                    <p class="text-sm">Vérifiez les règles de sécurité Firestore.</p>
-                </div>`;
-        } else {
-            ui.postsContainer.innerHTML = `<div class="text-center text-red-400">Erreur de chargement (${error.code})</div>`;
-        }
+        console.error("Erreur Posts:", error);
     });
 }
 
@@ -157,26 +160,9 @@ function renderPostCard(post) {
         </div>
     `;
 
-    // Interaction Like
-    const likeBtn = card.querySelector('.like-btn');
-    likeBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleLike(post.id, userLiked);
-    });
-
-    // Interaction Share
-    const shareBtn = card.querySelector('.share-btn');
-    shareBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        sharePost(post);
-    });
-
-    // Interaction Detail/Comment
-    card.addEventListener('click', (e) => {
-        if (!e.target.closest('.action-btn')) {
-            openDetailModal(post);
-        }
-    });
+    card.querySelector('.like-btn').addEventListener('click', (e) => { e.stopPropagation(); toggleLike(post.id, userLiked); });
+    card.querySelector('.share-btn').addEventListener('click', (e) => { e.stopPropagation(); sharePost(post); });
+    card.addEventListener('click', (e) => { if (!e.target.closest('.action-btn')) openDetailModal(post); });
 
     ui.postsContainer.appendChild(card);
 }
@@ -196,10 +182,7 @@ async function createPost() {
 
     try {
         await addDoc(collection(db, 'community_posts'), {
-            title,
-            content,
-            tag: tag || 'Général',
-            type,
+            title, content, tag: tag || 'Général', type,
             authorId: currentUserId,
             authorName: currentUserData.firstName || 'Utilisateur',
             authorAvatar: currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName}&background=random`,
@@ -207,16 +190,12 @@ async function createPost() {
             likesBy: [],
             commentsCount: 0
         });
-
         window.togglePostModal(false);
-        // Reset form
-        ui.postTitle.value = "";
-        ui.postContent.value = "";
-        ui.postTag.value = "";
+        ui.postTitle.value = ""; ui.postContent.value = ""; ui.postTag.value = "";
         showMessage("Discussion publiée !", "success");
     } catch (e) {
         console.error(e);
-        showMessage("Erreur lors de la publication", "error");
+        showMessage("Erreur publication", "error");
     } finally {
         ui.submitPost.disabled = false;
         ui.submitPost.innerHTML = `<i class="fas fa-paper-plane"></i> Publier`;
@@ -226,29 +205,18 @@ async function createPost() {
 async function toggleLike(postId, alreadyLiked) {
     const postRef = doc(db, 'community_posts', postId);
     try {
-        if (alreadyLiked) {
-            await updateDoc(postRef, { likesBy: arrayRemove(currentUserId) });
-        } else {
-            await updateDoc(postRef, { likesBy: arrayUnion(currentUserId) });
-        }
-    } catch(e) {
-        console.error("Erreur like:", e);
-    }
+        if (alreadyLiked) await updateDoc(postRef, { likesBy: arrayRemove(currentUserId) });
+        else await updateDoc(postRef, { likesBy: arrayUnion(currentUserId) });
+    } catch(e) { console.error("Erreur like:", e); }
 }
 
 function sharePost(post) {
-    // On ouvre la modale de création pré-remplie
     window.togglePostModal(true);
-    
     ui.postTitle.value = `RE: ${post.title}`;
     ui.postContent.value = `\n\n--- Publication originale de ${post.authorName} ---\n${post.content}`;
     ui.postTag.value = post.tag;
-    
-    // On focus au début du contenu pour que l'user écrive son message
     ui.postContent.setSelectionRange(0, 0);
     ui.postContent.focus();
-    
-    showMessage("Vous republiez ce post. Ajoutez votre commentaire au début !", "info");
 }
 
 // --- DETAIL & COMMENTS ---
@@ -270,11 +238,8 @@ async function openDetailModal(post) {
             <h2 class="text-2xl font-bold text-white mb-4">${post.title}</h2>
             <p class="text-gray-300 leading-relaxed whitespace-pre-line">${post.content}</p>
         </div>
-        
         <h3 class="text-sm font-bold text-gray-500 uppercase mb-4 border-b border-gray-800 pb-2">Commentaires</h3>
-        <div id="comments-list" class="space-y-4">
-            <div class="text-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-600"></i></div>
-        </div>
+        <div id="comments-list" class="space-y-4"><div class="text-center py-4"><i class="fas fa-circle-notch fa-spin text-gray-600"></i></div></div>
     `;
 
     subscribeToComments(post.id);
@@ -286,11 +251,7 @@ function subscribeToComments(postId) {
 
     onSnapshot(q, (snapshot) => {
         commentsList.innerHTML = '';
-        if (snapshot.empty) {
-            commentsList.innerHTML = `<p class="text-center text-gray-600 italic text-sm">Aucune réponse. Sois le premier !</p>`;
-            return;
-        }
-
+        if (snapshot.empty) { commentsList.innerHTML = `<p class="text-center text-gray-600 italic text-sm">Aucune réponse. Sois le premier !</p>`; return; }
         snapshot.forEach(docSnap => {
             const c = docSnap.data();
             const div = document.createElement('div');
@@ -313,44 +274,29 @@ function subscribeToComments(postId) {
 async function submitComment() {
     const content = ui.commentInput.value.trim();
     if (!content || !currentPostId) return;
-
     try {
         await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), {
-            content,
-            authorId: currentUserId,
+            content, authorId: currentUserId,
             authorName: currentUserData.firstName || 'User',
             authorAvatar: currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName}&background=random`,
             createdAt: serverTimestamp()
         });
-
         const postRef = doc(db, 'community_posts', currentPostId);
         const p = await getDoc(postRef);
-        if(p.exists()) {
-            await updateDoc(postRef, { commentsCount: (p.data().commentsCount || 0) + 1 });
-        }
-
+        if(p.exists()) await updateDoc(postRef, { commentsCount: (p.data().commentsCount || 0) + 1 });
         ui.commentInput.value = '';
-    } catch(e) {
-        console.error(e);
-        showMessage("Erreur envoi commentaire", "error");
-    }
+    } catch(e) { console.error(e); }
 }
 
-// --- GROUPS LOGIC (NEW) ---
+// --- GROUPS LOGIC ---
 
 function subscribeToGroups() {
     if (groupsUnsubscribe) groupsUnsubscribe();
-
-    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(5));
+    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(10));
 
     groupsUnsubscribe = onSnapshot(q, (snapshot) => {
         ui.groupsList.innerHTML = '';
-        if (snapshot.empty) {
-            // Créer des groupes par défaut si vide (juste pour la démo, en vrai admin only)
-            createDefaultGroups(); 
-            ui.groupsList.innerHTML = `<p class="text-xs text-gray-500 text-center">Initialisation des groupes...</p>`;
-            return;
-        }
+        if (snapshot.empty) { createDefaultGroups(); return; }
 
         snapshot.forEach(docSnap => {
             const group = { id: docSnap.id, ...docSnap.data() };
@@ -367,13 +313,25 @@ function subscribeToGroups() {
                     <p class="text-xs text-gray-500">${group.memberCount || 0} membres</p>
                 </div>
                 <button class="ml-auto text-xs px-2 py-1 rounded transition-colors ${isMember ? 'bg-gray-700 text-gray-300' : 'bg-indigo-600 hover:bg-indigo-500 text-white'} join-group-btn" data-id="${group.id}">
-                    ${isMember ? 'Rejoint' : 'Rejoindre'}
+                    ${isMember ? 'Ouvrir' : 'Rejoindre'}
                 </button>
             `;
             
-            div.querySelector('.join-group-btn').addEventListener('click', (e) => {
+            const btn = div.querySelector('.join-group-btn');
+            btn.addEventListener('click', async (e) => {
                 e.stopPropagation();
-                toggleJoinGroup(group.id, isMember);
+                if (isMember) {
+                    openGroupSpace(group); // Ouvrir si déjà membre
+                } else {
+                    await toggleJoinGroup(group.id, false);
+                    openGroupSpace(group); // Rejoindre et ouvrir
+                }
+            });
+
+            // Click sur la ligne aussi ouvre le groupe si membre, sinon demande de rejoindre
+            div.addEventListener('click', () => {
+                if(isMember) openGroupSpace(group);
+                else btn.click();
             });
 
             ui.groupsList.appendChild(div);
@@ -381,45 +339,110 @@ function subscribeToGroups() {
     });
 }
 
+// Ouverture de la Modale Groupe
+function openGroupSpace(group) {
+    currentGroupId = group.id;
+    ui.groupModal.classList.remove('hidden');
+    
+    ui.groupTitle.textContent = group.name;
+    ui.groupMemberCount.textContent = group.memberCount || 0;
+    ui.groupIcon.innerHTML = `<i class="fas ${group.icon || 'fa-users'}"></i>`;
+    ui.groupIcon.className = `w-24 h-24 rounded-2xl bg-${group.color || 'indigo'}-600 shadow-xl flex items-center justify-center text-5xl text-white transform translate-y-4 border-4 border-[#0a0a0f]`;
+
+    // Charger les membres (juste une liste partielle pour l'instant)
+    // Ici on pourrait faire une query users where id in group.members mais Firestore limite les 'in'
+    // Pour l'UI, on va simuler ou afficher le current user + un placeholder
+    ui.groupMembersList.innerHTML = `
+        <div class="flex items-center gap-2 text-sm text-gray-300">
+            <img src="${currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName}&background=random`}" class="w-6 h-6 rounded-full">
+            <span>Toi</span>
+        </div>
+        <p class="text-xs text-gray-500 mt-2 italic">+ ${Math.max(0, (group.memberCount || 1) - 1)} autres membres invisibles</p>
+    `;
+
+    subscribeToGroupChat(group.id);
+}
+
+function subscribeToGroupChat(groupId) {
+    if(groupChatUnsubscribe) groupChatUnsubscribe();
+    
+    ui.groupMessagesContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement du chat...</p></div>`;
+
+    const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt', 'asc'), limit(50));
+    
+    groupChatUnsubscribe = onSnapshot(q, (snapshot) => {
+        ui.groupMessagesContainer.innerHTML = '';
+        if (snapshot.empty) {
+            ui.groupMessagesContainer.innerHTML = `
+                <div class="text-center text-gray-500 py-10">
+                    <i class="fas fa-comments text-4xl mb-3 opacity-20"></i>
+                    <p>Bienvenue dans le groupe !<br>Commencez la discussion.</p>
+                </div>`;
+            return;
+        }
+
+        snapshot.forEach(docSnap => {
+            const msg = docSnap.data();
+            const isMe = msg.authorId === currentUserId;
+            
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `flex gap-3 mb-4 animate-fade-in ${isMe ? 'flex-row-reverse' : ''}`;
+            
+            msgDiv.innerHTML = `
+                <img src="${msg.authorAvatar}" class="w-8 h-8 rounded-full flex-shrink-0 mt-1">
+                <div class="max-w-[70%]">
+                    <div class="${isMe ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-200'} p-3 rounded-2xl ${isMe ? 'rounded-tr-none' : 'rounded-tl-none'} text-sm">
+                        ${msg.content}
+                    </div>
+                    <p class="text-[10px] text-gray-600 mt-1 ${isMe ? 'text-right' : ''}">${msg.createdAt ? timeSince(msg.createdAt.toDate()) : 'Envoi...'}</p>
+                </div>
+            `;
+            ui.groupMessagesContainer.appendChild(msgDiv);
+        });
+        
+        // Scroll to bottom
+        ui.groupMessagesContainer.scrollTop = ui.groupMessagesContainer.scrollHeight;
+    });
+}
+
+async function sendGroupMessage() {
+    const content = ui.groupChatInput.value.trim();
+    if(!content || !currentGroupId) return;
+    
+    try {
+        await addDoc(collection(db, 'groups', currentGroupId, 'messages'), {
+            content,
+            authorId: currentUserId,
+            authorName: currentUserData.firstName || 'User',
+            authorAvatar: currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName}&background=random`,
+            createdAt: serverTimestamp()
+        });
+        ui.groupChatInput.value = '';
+    } catch(e) { console.error(e); showMessage("Erreur envoi message", "error"); }
+}
+
 async function createDefaultGroups() {
-    // Cette fonction ne devrait s'exécuter qu'une fois si la collection est vide
     const defaultGroups = [
         { name: 'Droit L1 - Paris', icon: 'fa-balance-scale', color: 'blue', memberCount: 0, members: [] },
         { name: 'Dev Web & Code', icon: 'fa-code', color: 'purple', memberCount: 0, members: [] },
         { name: 'Médecine PACES', icon: 'fa-user-md', color: 'red', memberCount: 0, members: [] }
     ];
-
-    for (const g of defaultGroups) {
-        await addDoc(collection(db, 'groups'), g);
-    }
+    for (const g of defaultGroups) await addDoc(collection(db, 'groups'), g);
 }
 
 async function toggleJoinGroup(groupId, isMember) {
     const groupRef = doc(db, 'groups', groupId);
     try {
         if (isMember) {
-            await updateDoc(groupRef, { 
-                members: arrayRemove(currentUserId)
-                // Note: Firestore n'a pas d'incrément atomique simple ici sans transaction, 
-                // pour simplifier on ne met pas à jour le compteur manuellement ici, 
-                // mais idéalement il faudrait utiliser increment(-1)
-            });
-            // Update manuel du compteur (approximatif pour démo)
+            await updateDoc(groupRef, { members: arrayRemove(currentUserId) });
             const g = await getDoc(groupRef);
             await updateDoc(groupRef, { memberCount: Math.max(0, (g.data().memberCount || 1) - 1) });
-            showMessage("Groupe quitté", "info");
         } else {
-            await updateDoc(groupRef, { 
-                members: arrayUnion(currentUserId)
-            });
+            await updateDoc(groupRef, { members: arrayUnion(currentUserId) });
             const g = await getDoc(groupRef);
             await updateDoc(groupRef, { memberCount: (g.data().memberCount || 0) + 1 });
-            showMessage("Groupe rejoint !", "success");
         }
-    } catch(e) {
-        console.error("Erreur groupe:", e);
-        if(e.code === 'permission-denied') showMessage("Erreur de permission (Règles Firestore)", "error");
-    }
+    } catch(e) { console.error("Erreur groupe:", e); }
 }
 
 // --- HELPERS ---
@@ -440,11 +463,7 @@ function timeSince(date) {
 }
 
 function loadContributors() {
-    const contributors = [
-        { name: 'Léa D.', points: 1240, rank: 1 },
-        { name: 'Karim S.', points: 980, rank: 2 },
-        { name: 'Alex W.', points: 850, rank: 3 }
-    ];
+    const contributors = [ { name: 'Léa D.', points: 1240, rank: 1 }, { name: 'Karim S.', points: 980, rank: 2 }, { name: 'Alex W.', points: 850, rank: 3 } ];
     ui.contributorsList.innerHTML = contributors.map(c => `
         <div class="flex items-center gap-3 animate-fade-in">
             <span class="text-gray-500 text-xs font-bold w-4">${c.rank}</span>
@@ -461,35 +480,25 @@ function loadContributors() {
 
 function setupEventListeners() {
     const togglePostModal = (show) => ui.newPostModal.classList.toggle('hidden', !show);
-    if(ui.btnNewPost) ui.btnNewPost.onclick = () => {
-        // Reset form pour nouveau post
-        ui.postTitle.value = "";
-        ui.postContent.value = "";
-        ui.postTag.value = "";
-        togglePostModal(true);
-    };
+    if(ui.btnNewPost) ui.btnNewPost.onclick = () => { ui.postTitle.value = ""; ui.postContent.value = ""; ui.postTag.value = ""; togglePostModal(true); };
     if(ui.closePostModal) ui.closePostModal.onclick = () => togglePostModal(false);
     if(ui.cancelPost) ui.cancelPost.onclick = () => togglePostModal(false);
-    
     if(ui.submitPost) ui.submitPost.onclick = createPost;
-
-    if(ui.closeDetailModal) ui.closeDetailModal.onclick = () => ui.detailModal.classList.add('hidden');
     
+    if(ui.closeDetailModal) ui.closeDetailModal.onclick = () => ui.detailModal.classList.add('hidden');
     if(ui.submitComment) ui.submitComment.onclick = submitComment;
-    if(ui.commentInput) ui.commentInput.addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') submitComment();
-    });
+    if(ui.commentInput) ui.commentInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') submitComment(); });
+
+    // NEW GROUP LISTENERS
+    if(ui.closeGroupModal) ui.closeGroupModal.onclick = () => ui.groupModal.classList.add('hidden');
+    if(ui.sendGroupMessageBtn) ui.sendGroupMessageBtn.onclick = sendGroupMessage;
+    if(ui.groupChatInput) ui.groupChatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendGroupMessage(); });
 
     if(ui.filters) {
         ui.filters.addEventListener('click', (e) => {
             if(e.target.tagName === 'BUTTON') {
-                ui.filters.querySelectorAll('button').forEach(b => {
-                    b.classList.remove('bg-gray-700', 'text-white');
-                    b.classList.add('text-gray-400');
-                });
-                e.target.classList.add('bg-gray-700', 'text-white');
-                e.target.classList.remove('text-gray-400');
-                
+                ui.filters.querySelectorAll('button').forEach(b => { b.classList.remove('bg-gray-700', 'text-white'); b.classList.add('text-gray-400'); });
+                e.target.classList.add('bg-gray-700', 'text-white'); e.target.classList.remove('text-gray-400');
                 subscribeToPosts(e.target.dataset.filter);
             }
         });
