@@ -1,4 +1,4 @@
-import { auth, db, functions } from './config.js'; // Assure-toi que 'functions' est exporté de config.js
+import { auth, db, functions } from './config.js';
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
@@ -11,6 +11,7 @@ let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
 let isGenerating = false;
+let userFiles = []; // Cache des fichiers
 
 // --- DOM ELEMENTS ---
 const ui = {
@@ -28,10 +29,17 @@ const ui = {
     cancelBtn: document.getElementById('cancel-quiz-btn'),
     generateBtn: document.getElementById('generate-quiz-btn'),
     loadingContainer: document.getElementById('loading-bar-container'),
-    // Inputs
+    // Inputs Source
+    sourceRadios: document.getElementsByName('quiz-source'),
+    sourceTopicContainer: document.getElementById('source-topic-container'),
+    sourceFileContainer: document.getElementById('source-file-container'),
     topicInput: document.getElementById('quiz-topic'),
+    fileSelect: document.getElementById('quiz-file-select'),
+    // Params
+    quizTitleInput: document.getElementById('quiz-title-input'),
     questionCountInput: document.getElementById('quiz-length'),
     questionCountVal: document.getElementById('quiz-length-val'),
+    quizTypeInput: document.getElementById('quiz-type'),
     // Player
     questionText: document.getElementById('question-text'),
     optionsGrid: document.getElementById('options-grid'),
@@ -56,6 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, (user) => {
         if (user) {
             loadRecentQuiz();
+            loadUserFiles(); // Pré-charger les fichiers pour le select
         } else {
             window.location.href = '../auth/login.html';
         }
@@ -64,16 +73,65 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 });
 
+// --- LOAD DATA ---
+
+async function loadUserFiles() {
+    try {
+        // On cherche dans la collection 'files' globale filtrée par userId
+        // Ou 'users/{uid}/files' selon ton architecture courses.js. 
+        // D'après les règles, c'est 'files/{fileId}' avec userId.
+        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid));
+        const snapshot = await getDocs(q);
+        
+        userFiles = [];
+        ui.fileSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
+        
+        snapshot.forEach(doc => {
+            const f = { id: doc.id, ...doc.data() };
+            userFiles.push(f);
+            const option = document.createElement('option');
+            option.value = f.id; // On stocke l'ID, on récupérera l'URL/Contenu après
+            option.textContent = f.name;
+            ui.fileSelect.appendChild(option);
+        });
+
+    } catch (e) {
+        console.error("Erreur chargement fichiers:", e);
+        ui.fileSelect.innerHTML = '<option value="">Erreur chargement</option>';
+    }
+}
+
 // --- CORE LOGIC : GENERATION ---
 
 async function generateQuiz() {
     if (isGenerating) return;
 
-    const topic = ui.topicInput.value.trim();
+    const source = document.querySelector('input[name="quiz-source"]:checked').value;
+    const title = ui.quizTitleInput.value.trim() || "Quiz IA";
     const count = parseInt(ui.questionCountInput.value);
-    
-    // Validation basique
-    if (!topic) return showMessage("Veuillez entrer un sujet.", "error");
+    const type = ui.quizTypeInput.value;
+
+    let topic = "";
+    let dataContext = ""; // Contenu du fichier ou vide
+
+    // 1. Validation & Préparation Données
+    if (source === 'topic') {
+        topic = ui.topicInput.value.trim();
+        if (!topic) return showMessage("Veuillez entrer un sujet.", "error");
+    } else if (source === 'file') {
+        const fileId = ui.fileSelect.value;
+        if (!fileId) return showMessage("Veuillez choisir un fichier.", "error");
+        
+        const selectedFile = userFiles.find(f => f.id === fileId);
+        if (selectedFile) {
+            topic = `Basé sur le fichier : ${selectedFile.name}`;
+            // Note: Pour un vrai PDF, il faut soit envoyer l'URL à Gemini (si public/signé), 
+            // soit extraire le texte. Ici on envoie l'URL et le nom pour que Gemini improvise 
+            // ou on suppose que c'est un fichier texte. 
+            // Pour l'instant, on envoie le nom et l'URL comme contexte.
+            dataContext = `Fichier: ${selectedFile.name}. URL: ${selectedFile.url}. (Si l'URL n'est pas accessible, génère un quiz sur le thème probable du titre).`;
+        }
+    }
 
     // UI Loading
     isGenerating = true;
@@ -87,23 +145,27 @@ async function generateQuiz() {
         const result = await generateContent({
             mode: 'quiz',
             topic: topic,
-            options: { count: count, type: 'qcm' }
+            data: dataContext, // Peut être vide
+            options: { count: count, type: type }
         });
 
         const quizData = result.data;
         
         if (!quizData || !quizData.questions || quizData.questions.length === 0) {
-            throw new Error("Format de quiz invalide reçu.");
+            throw new Error("L'IA n'a pas pu générer de questions valides.");
         }
 
+        // On force le titre choisi par l'user si présent
+        quizData.title = title !== "Quiz IA" ? title : (quizData.title || title);
+
         // Succès
-        showMessage("Quiz généré avec succès !", "success");
+        showMessage("Quiz prêt !", "success");
         startQuiz(quizData);
         closeModal();
 
     } catch (error) {
         console.error("Erreur Génération:", error);
-        showMessage("Erreur IA : " + error.message, "error");
+        showMessage("Erreur IA : " + (error.message || "Réessayez plus tard."), "error");
     } finally {
         isGenerating = false;
         ui.generateBtn.disabled = false;
@@ -125,7 +187,7 @@ function startQuiz(quizData) {
     ui.results.classList.add('hidden');
     ui.player.classList.remove('hidden');
     
-    ui.quizTitle.textContent = quizData.title || "Quiz Généré";
+    ui.quizTitle.textContent = quizData.title;
     
     showQuestion();
 }
@@ -133,18 +195,15 @@ function startQuiz(quizData) {
 function showQuestion() {
     const q = currentQuiz.questions[currentQuestionIndex];
     
-    // UI Updates
     ui.questionText.textContent = q.question;
     ui.progressText.textContent = `${currentQuestionIndex + 1}/${currentQuiz.questions.length}`;
     const progressPercent = ((currentQuestionIndex) / currentQuiz.questions.length) * 100;
     ui.progressBar.style.width = `${progressPercent}%`;
     
-    // Reset Feedback & Next Button
     ui.feedbackArea.classList.add('hidden');
     ui.btnNext.disabled = true;
     ui.optionsGrid.innerHTML = '';
 
-    // Generate Options
     q.options.forEach((opt, index) => {
         const btn = document.createElement('button');
         btn.className = "w-full p-4 text-left bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl transition-all flex items-center group";
@@ -161,13 +220,11 @@ function showQuestion() {
 }
 
 function handleAnswer(selectedIndex, btnElement) {
-    // Prevent multiple clicks
     if (!ui.btnNext.disabled) return;
 
     const q = currentQuiz.questions[currentQuestionIndex];
     const isCorrect = selectedIndex === q.correctAnswer;
 
-    // Style selection
     if (isCorrect) {
         btnElement.classList.remove('bg-gray-800', 'border-gray-700');
         btnElement.classList.add('bg-green-500/20', 'border-green-500');
@@ -177,10 +234,11 @@ function handleAnswer(selectedIndex, btnElement) {
         btnElement.classList.remove('bg-gray-800', 'border-gray-700');
         btnElement.classList.add('bg-red-500/20', 'border-red-500');
         
-        // Highlight correct answer
         const correctBtn = ui.optionsGrid.children[q.correctAnswer];
-        correctBtn.classList.remove('bg-gray-800', 'border-gray-700');
-        correctBtn.classList.add('bg-green-500/20', 'border-green-500', 'opacity-50');
+        if(correctBtn) {
+            correctBtn.classList.remove('bg-gray-800', 'border-gray-700');
+            correctBtn.classList.add('bg-green-500/20', 'border-green-500', 'opacity-50');
+        }
         
         showFeedback(false, "Faux. " + (q.explanation || ""));
     }
@@ -201,12 +259,7 @@ function showFeedback(isSuccess, message) {
         ? "p-4 rounded-xl mb-6 text-sm font-medium bg-green-500/10 border border-green-500/30 text-green-400"
         : "p-4 rounded-xl mb-6 text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";
     
-    ui.feedbackBox.innerHTML = `
-        <div class="flex gap-2">
-            <i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-times-circle'} mt-0.5"></i>
-            <div>${message}</div>
-        </div>
-    `;
+    ui.feedbackBox.innerHTML = `<div class="flex gap-2"><i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-times-circle'} mt-0.5"></i><div>${message}</div></div>`;
 }
 
 function nextQuestion() {
@@ -219,10 +272,8 @@ function nextQuestion() {
 }
 
 async function finishQuiz() {
-    // Calcul score
     const percentage = Math.round((score / currentQuiz.questions.length) * 100);
     
-    // UI Update
     ui.player.classList.add('hidden');
     ui.results.classList.remove('hidden');
     ui.finalScore.textContent = `${percentage}%`;
@@ -233,32 +284,42 @@ async function finishQuiz() {
     if (percentage === 100) msg = "Parfait ! Maître du sujet.";
     ui.resultMessage.textContent = msg;
 
-    // Save Result to Firestore
+    // Revue des questions
+    const reviewList = document.getElementById('review-list');
+    reviewList.innerHTML = '';
+    userAnswers.forEach((ans, idx) => {
+        const div = document.createElement('div');
+        div.className = `p-3 rounded-lg border ${ans.isCorrect ? 'border-green-500/30 bg-green-500/10' : 'border-red-500/30 bg-red-500/10'}`;
+        div.innerHTML = `
+            <div class="flex justify-between mb-1">
+                <span class="text-xs font-bold ${ans.isCorrect ? 'text-green-400' : 'text-red-400'}">Q${idx+1}</span>
+                <span class="text-xs text-gray-500">${ans.isCorrect ? 'Correct' : 'Erreur'}</span>
+            </div>
+            <p class="text-sm text-gray-300">${ans.question}</p>
+        `;
+        reviewList.appendChild(div);
+    });
+
     if (auth.currentUser) {
         try {
             await addDoc(collection(db, 'quiz_results'), {
                 userId: auth.currentUser.uid,
-                topic: currentQuiz.title, // Ou topic input
+                topic: currentQuiz.title,
                 score: score,
                 total: currentQuiz.questions.length,
                 percentage: percentage,
                 createdAt: serverTimestamp()
             });
-            
-            // TODO: Update User Points here if wanted (+ X pts)
-            
-        } catch (e) {
-            console.error("Erreur sauvegarde résultat:", e);
-        }
+        } catch (e) { console.error("Erreur sauvegarde:", e); }
     }
 }
 
 function exitQuiz() {
-    if(confirm("Quitter le quiz ? Votre progression sera perdue.")) {
+    if(confirm("Quitter le quiz ? Progression perdue.")) {
         ui.player.classList.add('hidden');
         ui.results.classList.add('hidden');
         ui.dashboard.classList.remove('hidden');
-        loadRecentQuiz(); // Refresh history
+        loadRecentQuiz();
     }
 }
 
@@ -281,7 +342,6 @@ async function loadRecentQuiz() {
         snapshot.forEach(doc => {
             const data = doc.data();
             const div = document.createElement('div');
-            // Carte Quiz Historique
             div.className = "content-glass p-5 rounded-2xl flex flex-col gap-3 group hover:bg-gray-800 transition-colors";
             
             let colorClass = "text-red-400";
@@ -305,17 +365,23 @@ async function loadRecentQuiz() {
 
     } catch (e) {
         console.error("Erreur historique:", e);
-        ui.quizGrid.innerHTML = '<div class="col-span-full text-red-400 text-center">Erreur chargement historique.</div>';
+        // Fallback si index manquant
+        ui.quizGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-xs">Historique indisponible (Index manquant).</div>';
     }
 }
 
 // --- EVENT LISTENERS ---
 
 function setupEventListeners() {
-    // Modale Open/Close
     const toggleModal = (show) => {
-        if(show) ui.modal.classList.remove('hidden');
-        else ui.modal.classList.add('hidden');
+        if(show) {
+            ui.modal.classList.remove('hidden');
+            // Reset fields
+            ui.topicInput.value = "";
+            ui.quizTitleInput.value = "";
+        } else {
+            ui.modal.classList.add('hidden');
+        }
     };
 
     if(ui.btnNewQuizHeader) ui.btnNewQuizHeader.onclick = () => toggleModal(true);
@@ -323,23 +389,33 @@ function setupEventListeners() {
     if(ui.closeModal) ui.closeModal.onclick = () => toggleModal(false);
     if(ui.cancelBtn) ui.cancelBtn.onclick = () => toggleModal(false);
 
-    // Range Slider Value
+    // Source Switching
+    ui.sourceRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            if(e.target.value === 'file') {
+                ui.sourceTopicContainer.classList.add('hidden');
+                ui.sourceFileContainer.classList.remove('hidden');
+            } else if (e.target.value === 'topic') {
+                ui.sourceTopicContainer.classList.remove('hidden');
+                ui.sourceFileContainer.classList.add('hidden');
+            } else {
+                // Synthesis (Future)
+                ui.sourceTopicContainer.classList.add('hidden');
+                ui.sourceFileContainer.classList.add('hidden');
+            }
+        });
+    });
+
     if(ui.questionCountInput) {
         ui.questionCountInput.oninput = (e) => ui.questionCountVal.textContent = e.target.value;
     }
 
-    // Generate
     if(ui.generateBtn) ui.generateBtn.onclick = generateQuiz;
 
-    // Player
     if(ui.btnNext) ui.btnNext.onclick = nextQuestion;
     if(ui.btnExit) ui.btnExit.onclick = exitQuiz;
 
-    // Results
-    if(ui.btnRetry) ui.btnRetry.onclick = () => {
-        // Rejouer le même quiz
-        startQuiz(currentQuiz);
-    };
+    if(ui.btnRetry) ui.btnRetry.onclick = () => startQuiz(currentQuiz);
     if(ui.btnBack) ui.btnBack.onclick = () => {
         ui.results.classList.add('hidden');
         ui.dashboard.classList.remove('hidden');
