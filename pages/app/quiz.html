@@ -57,12 +57,13 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <button id="btn-new-quiz-header" class="hidden sm:flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-indigo-900/20">
+                <!-- Bouton header visible uniquement sur Desktop -->
+                <button id="btn-new-quiz-header" class="hidden md:flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-indigo-900/20">
                     <i class="fas fa-plus"></i>
                     <span>Nouveau Quiz</span>
                 </button>
 
-                <div class="h-8 w-px bg-gray-800 hidden sm:block"></div>
+                <div class="h-8 w-px bg-gray-800 hidden md:block"></div>
 
                 <div class="flex items-center gap-3">
                     <div class="text-right hidden sm:block">
@@ -79,78 +80,112 @@
             <!-- VUE 1 : DASHBOARD (Liste des Quiz) -->
             <div id="quiz-dashboard" class="animate-fade-in">
                 
+                <!-- BANNIÈRE HERO (La fameuse "bande") -->
+                <div class="relative rounded-3xl bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/20 p-8 mb-10 overflow-hidden group">
+                    <!-- Déco de fond -->
+                    <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
+                        <i class="fas fa-brain text-[10rem] text-white transform rotate-12 translate-x-10 -translate-y-10"></i>
+                    </div>
+                    <div class="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#050505]/50 to-transparent"></div>
+                    
+                    <div class="relative z-10 max-w-2xl">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-4">
+                            <i class="fas fa-sparkles"></i>
+                            <span>Boosté par l'IA</span>
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-3">Prêt à tester ton niveau ?</h2>
+                        <p class="text-gray-400 mb-8 text-sm md:text-base leading-relaxed">
+                            Génère des quiz illimités basés sur tes fichiers de cours ou n'importe quel sujet. 
+                            L'IA analyse tes lacunes pour t'aider à progresser plus vite.
+                        </p>
+                        
+                        <!-- J'utilise l'ID 'btn-new-quiz-hero' pour que le JS existant fonctionne direct -->
+                        <button id="btn-new-quiz-hero" class="px-8 py-3.5 bg-white text-indigo-950 font-bold rounded-xl hover:bg-indigo-50 transition-all shadow-lg shadow-indigo-500/10 flex items-center gap-3 transform hover:-translate-y-1">
+                            <i class="fas fa-magic text-indigo-600"></i>
+                            <span>Générer un Quiz maintenant</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Stats Row -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div class="content-glass p-4 rounded-xl flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-lg bg-indigo-500/20 flex items-center justify-center text-indigo-400">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-xl border border-indigo-500/20">
                             <i class="fas fa-trophy"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400">Score Moyen</p>
-                            <p id="stat-avg-score" class="text-xl font-bold text-white">--%</p>
+                            <p class="text-xs text-gray-500 uppercase font-bold">Score Moyen</p>
+                            <p id="stat-avg-score" class="text-2xl font-display font-bold text-white">--%</p>
                         </div>
                     </div>
                     <div class="content-glass p-4 rounded-xl flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400">
-                            <i class="fas fa-list-ol"></i>
+                        <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 text-xl border border-purple-500/20">
+                            <i class="fas fa-layer-group"></i>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400">Quiz Totaux</p>
-                            <p id="stat-total-quiz" class="text-xl font-bold text-white">--</p>
+                            <p class="text-xs text-gray-500 uppercase font-bold">Quiz Totaux</p>
+                            <p id="stat-total-quiz" class="text-2xl font-display font-bold text-white">--</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Hero Action Mobile/Desktop -->
-                <div class="sm:hidden mb-6">
-                    <button id="btn-new-quiz-hero" class="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
-                        <i class="fas fa-magic"></i> Générer un Quiz
-                    </button>
-                </div>
-
                 <!-- Liste des Quiz -->
-                <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <i class="fas fa-history text-indigo-400"></i> Tes Quiz Récents
-                </h2>
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-history text-gray-500"></i> Tes Quiz Récents
+                    </h2>
+                    <!-- Filtres (visuel pour l'instant) -->
+                    <div class="flex gap-2">
+                        <select class="bg-gray-900 border border-gray-800 text-xs text-gray-400 rounded-lg px-3 py-1.5 focus:outline-none focus:border-indigo-500">
+                            <option>Les plus récents</option>
+                            <option>Meilleurs scores</option>
+                        </select>
+                    </div>
+                </div>
                 
-                <div id="quiz-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div id="quiz-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
                     <!-- Les cartes seront injectées ici par JS -->
-                    <div class="col-span-full py-12 text-center text-gray-500 opacity-50">
-                        <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-                        <p>Chargement des quiz...</p>
+                    <div class="col-span-full py-12 text-center">
+                        <div class="inline-block p-4 rounded-full bg-gray-800/50 mb-3 text-gray-500">
+                            <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+                        </div>
+                        <p class="text-gray-500 text-sm">Chargement de tes quiz...</p>
                     </div>
                 </div>
             </div>
 
             <!-- VUE 2 : PLAYER (Interface de Jeu) -->
-            <div id="quiz-player" class="hidden max-w-3xl mx-auto animate-fade-in">
+            <div id="quiz-player" class="hidden max-w-3xl mx-auto animate-fade-in py-10">
                 <!-- Header Player -->
                 <div class="flex items-center justify-between mb-6">
-                    <button id="exit-quiz-btn" class="text-gray-400 hover:text-white flex items-center gap-2 text-sm font-medium">
-                        <i class="fas fa-arrow-left"></i> Quitter
+                    <button id="exit-quiz-btn" class="group text-gray-400 hover:text-white flex items-center gap-2 text-sm font-medium transition-colors">
+                        <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-gray-700 transition-colors">
+                            <i class="fas fa-arrow-left text-xs"></i>
+                        </div>
+                        <span>Quitter</span>
                     </button>
-                    <span id="question-type-badge" class="px-2 py-1 rounded bg-gray-800 border border-gray-700 text-xs text-gray-300 font-mono uppercase">QCM</span>
+                    <span id="question-type-badge" class="px-3 py-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-xs text-indigo-300 font-bold tracking-wider uppercase">QCM</span>
                 </div>
 
                 <!-- Card Question -->
-                <div id="question-container" class="content-glass rounded-2xl p-6 md:p-10 relative overflow-hidden">
+                <div id="question-container" class="content-glass rounded-3xl p-6 md:p-10 relative overflow-hidden border border-gray-800 shadow-2xl">
                     <!-- Progress Bar -->
-                    <div class="absolute top-0 left-0 w-full h-1 bg-gray-800">
-                        <div id="progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300" style="width: 0%"></div>
+                    <div class="absolute top-0 left-0 w-full h-1.5 bg-gray-900/50">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(99,102,241,0.5)]" style="width: 0%"></div>
                     </div>
 
-                    <div class="mb-2 flex justify-between items-end">
-                        <h2 id="player-quiz-title" class="text-sm font-bold text-indigo-400 uppercase tracking-wider">Titre du Quiz</h2>
-                        <span id="player-progress" class="text-xs text-gray-500 font-mono">01/10</span>
+                    <div class="mb-4 flex justify-between items-end mt-2">
+                        <h2 id="player-quiz-title" class="text-xs font-bold text-gray-500 uppercase tracking-widest">Titre du Quiz</h2>
+                        <span id="player-progress" class="px-2 py-1 rounded bg-gray-800 text-xs font-mono text-white border border-gray-700">01/10</span>
                     </div>
 
-                    <p id="question-text" class="text-xl md:text-2xl font-display font-bold text-white mb-8 leading-relaxed">
+                    <p id="question-text" class="text-xl md:text-2xl font-display font-bold text-white mb-10 leading-relaxed">
                         Chargement de la question...
                     </p>
 
                     <!-- Feedback Box (Success/Error) -->
                     <div id="feedback-area" class="hidden animate-slide-down">
-                        <div id="feedback-box" class="p-4 rounded-xl mb-6 text-sm font-medium"></div>
+                        <div id="feedback-box" class="p-4 rounded-xl mb-6 text-sm font-medium border"></div>
                     </div>
 
                     <!-- Grid Réponses -->
@@ -159,37 +194,40 @@
                     </div>
 
                     <!-- Next Button -->
-                    <div class="flex justify-end">
-                        <button id="next-question-btn" class="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-                            Suivant <i class="fas fa-arrow-right ml-2"></i>
+                    <div class="flex justify-end pt-4 border-t border-gray-800/50">
+                        <button id="next-question-btn" class="px-8 py-3 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+                            <span>Suivant</span> <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
 
                 <!-- VUE 3 : RÉSULTATS (Après le quiz) -->
-                <div id="results-container" class="hidden text-center animate-fade-in">
-                    <div class="w-24 h-24 mx-auto bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-4xl text-white font-bold shadow-2xl mb-6">
+                <div id="results-container" class="hidden text-center animate-fade-in py-10">
+                    <div class="w-32 h-32 mx-auto bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-5xl text-white font-bold shadow-[0_0_50px_rgba(99,102,241,0.3)] mb-8 relative">
                         <span id="final-score">--%</span>
+                        <div class="absolute inset-0 border-4 border-white/20 rounded-full animate-pulse"></div>
                     </div>
                     
-                    <h2 class="text-3xl font-display font-bold text-white mb-2">Quiz Terminé !</h2>
-                    <p id="result-message" class="text-gray-400 mb-8">Analyse de tes performances...</p>
+                    <h2 class="text-4xl font-display font-bold text-white mb-3">Quiz Terminé !</h2>
+                    <p id="result-message" class="text-gray-400 mb-10 text-lg">Analyse de tes performances...</p>
 
-                    <div class="flex justify-center gap-4 mb-10">
-                        <button id="retry-quiz-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition-all border border-gray-700">
-                            <i class="fas fa-redo mr-2"></i> Recommencer
+                    <div class="flex flex-col sm:flex-row justify-center gap-4 mb-12">
+                        <button id="retry-quiz-btn" class="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-bold transition-all border border-gray-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-redo"></i> Recommencer
                         </button>
-                        <button id="back-to-dashboard-btn" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-indigo-900/20">
-                            Retour au menu
+                        <button id="back-to-dashboard-btn" class="px-6 py-3 bg-white text-black hover:bg-gray-200 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2">
+                            <i class="fas fa-th-large"></i> Retour au menu
                         </button>
                     </div>
                     
-                    <button id="retry-errors-btn" class="hidden text-red-400 text-sm hover:underline mb-8">
-                        <i class="fas fa-exclamation-circle"></i> Réessayer uniquement les erreurs
+                    <button id="retry-errors-btn" class="hidden text-red-400 text-sm hover:text-red-300 mb-8 transition-colors underline decoration-red-500/30 underline-offset-4">
+                        <i class="fas fa-exclamation-circle mr-1"></i> Réessayer uniquement les erreurs
                     </button>
 
-                    <div class="text-left max-w-2xl mx-auto">
-                        <h3 class="text-sm font-bold text-gray-500 uppercase mb-4 border-b border-gray-800 pb-2">Revue des questions</h3>
+                    <div class="text-left max-w-2xl mx-auto bg-gray-900/50 border border-gray-800 rounded-2xl p-6">
+                        <h3 class="text-xs font-bold text-gray-500 uppercase mb-6 flex items-center gap-2">
+                            <i class="fas fa-list"></i> Revue des questions
+                        </h3>
                         <div id="review-list" class="space-y-4">
                             <!-- Revue injectée par JS -->
                         </div>
@@ -203,12 +241,12 @@
 
     <!-- MODAL : GÉNÉRER UN QUIZ -->
     <div id="new-quiz-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
+        <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] animate-scale-up">
             
             <!-- Header Modal -->
             <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900 rounded-t-2xl">
                 <h3 class="font-bold text-white text-lg"><i class="fas fa-magic text-indigo-500 mr-2"></i>Générer un Quiz IA</h3>
-                <button id="close-modal-btn" class="text-gray-500 hover:text-white"><i class="fas fa-times text-xl"></i></button>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-white transition-colors"><i class="fas fa-times text-xl"></i></button>
             </div>
 
             <!-- Body Modal -->
@@ -217,30 +255,30 @@
                 <!-- Titre -->
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Titre du Quiz</label>
-                    <input type="text" id="quiz-title-input" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors" placeholder="Ex: Droit Constitutionnel - L1">
+                    <input type="text" id="quiz-title-input" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 transition-colors placeholder-gray-600" placeholder="Ex: Droit Constitutionnel - L1">
                 </div>
 
                 <!-- Source -->
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Source du contenu</label>
                     <div class="grid grid-cols-3 gap-2">
-                        <label class="cursor-pointer">
+                        <label class="cursor-pointer group">
                             <input type="radio" name="quiz-source" value="synthesis" class="peer hidden">
-                            <div class="h-full px-3 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all hover:bg-gray-750">
+                            <div class="h-full px-2 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all group-hover:bg-gray-750">
                                 <i class="fas fa-file-alt text-lg mb-1 block text-gray-400 peer-checked:text-indigo-400"></i>
                                 <span class="text-xs font-bold text-gray-300">Synthèse</span>
                             </div>
                         </label>
-                        <label class="cursor-pointer">
+                        <label class="cursor-pointer group">
                             <input type="radio" name="quiz-source" value="file" class="peer hidden">
-                            <div class="h-full px-3 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all hover:bg-gray-750">
+                            <div class="h-full px-2 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all group-hover:bg-gray-750">
                                 <i class="fas fa-folder-open text-lg mb-1 block text-gray-400 peer-checked:text-indigo-400"></i>
                                 <span class="text-xs font-bold text-gray-300">Fichier</span>
                             </div>
                         </label>
-                        <label class="cursor-pointer">
+                        <label class="cursor-pointer group">
                             <input type="radio" name="quiz-source" value="topic" class="peer hidden" checked>
-                            <div class="h-full px-3 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all hover:bg-gray-750">
+                            <div class="h-full px-2 py-3 rounded-xl bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all group-hover:bg-gray-750">
                                 <i class="fas fa-lightbulb text-lg mb-1 block text-gray-400 peer-checked:text-indigo-400"></i>
                                 <span class="text-xs font-bold text-gray-300">Sujet Libre</span>
                             </div>
@@ -249,47 +287,55 @@
                 </div>
 
                 <!-- Contenu Dynamique selon Source -->
-                <div id="source-synthesis-container" class="hidden">
+                <div id="source-synthesis-container" class="hidden animate-fade-in">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Choisir une synthèse</label>
                     <select id="quiz-synthesis-select" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 appearance-none">
                         <option value="">Chargement...</option>
                     </select>
                 </div>
 
-                <div id="source-file-container" class="hidden">
+                <div id="source-file-container" class="hidden animate-fade-in">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Choisir un fichier</label>
                     <select id="quiz-file-select" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 appearance-none">
                         <option value="">Chargement...</option>
                     </select>
                 </div>
 
-                <div id="source-topic-container">
+                <div id="source-topic-container" class="animate-fade-in">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Sujet du Quiz</label>
-                    <textarea id="quiz-topic" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none" placeholder="Ex: La Seconde Guerre Mondiale, Les matrices en maths..."></textarea>
+                    <textarea id="quiz-topic" rows="2" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none placeholder-gray-600" placeholder="Ex: La Seconde Guerre Mondiale, Les matrices en maths..."></textarea>
                 </div>
 
                 <!-- Paramètres -->
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Type</label>
-                        <select id="quiz-type" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-3 text-white text-sm focus:outline-none focus:border-indigo-500">
-                            <option value="qcm">QCM Classique</option>
-                            <option value="truefalse">Vrai / Faux</option>
-                            <option value="fill">Texte à trous</option>
-                        </select>
+                        <div class="relative">
+                            <select id="quiz-type" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 appearance-none">
+                                <option value="qcm">QCM Classique</option>
+                                <option value="truefalse">Vrai / Faux</option>
+                                <option value="fill">Texte à trous</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Questions: <span id="quiz-length-val" class="text-indigo-400">5</span></label>
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Questions: <span id="quiz-length-val" class="text-indigo-400 font-mono">5</span></label>
                         <input type="range" id="quiz-length" min="3" max="15" value="5" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                     </div>
                 </div>
 
                 <!-- Loading Bar -->
-                <div id="loading-bar-container" class="hidden mt-4">
-                    <div class="h-1 w-full bg-gray-800 rounded-full overflow-hidden">
+                <div id="loading-bar-container" class="hidden mt-4 bg-gray-800/50 p-4 rounded-xl border border-indigo-500/20">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs text-indigo-400 font-bold">L'IA rédige vos questions...</span>
+                        <i class="fas fa-circle-notch fa-spin text-indigo-400 text-xs"></i>
+                    </div>
+                    <div class="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
                         <div class="h-full bg-indigo-500 animate-loading-bar"></div>
                     </div>
-                    <p class="text-center text-xs text-indigo-400 mt-2 animate-pulse">L'IA rédige vos questions...</p>
                 </div>
 
             </div>
@@ -297,8 +343,8 @@
             <!-- Footer Modal -->
             <div class="p-6 border-t border-gray-800 flex justify-end gap-3 bg-gray-900 rounded-b-2xl">
                 <button id="cancel-quiz-btn" class="px-5 py-2.5 text-sm font-medium text-gray-400 hover:text-white transition-colors">Annuler</button>
-                <button id="generate-quiz-btn" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-900/20 transition-all transform hover:-translate-y-0.5">
-                    <i class="fas fa-bolt mr-2"></i> Générer
+                <button id="generate-quiz-btn" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-900/20 transition-all transform hover:-translate-y-0.5 flex items-center gap-2">
+                    <i class="fas fa-bolt"></i> Générer
                 </button>
             </div>
         </div>
@@ -319,6 +365,13 @@
         }
         .animate-loading-bar {
             animation: loading-bar 1.5s infinite linear;
+        }
+        @keyframes scale-up {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .animate-scale-up {
+            animation: scale-up 0.2s ease-out forwards;
         }
     </style>
 </body>
