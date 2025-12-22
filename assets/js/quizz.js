@@ -82,7 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadUserSyntheses() {
     try {
-        const q = query(collection(db, 'syntheses'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+        // Essai sans orderBy pour éviter blocage index
+        const q = query(collection(db, 'syntheses'), where('userId', '==', auth.currentUser.uid));
         const snapshot = await getDocs(q);
         userSyntheses = [];
         ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
@@ -93,7 +94,7 @@ async function loadUserSyntheses() {
             userSyntheses.push(s);
             const opt = document.createElement('option');
             opt.value = s.id;
-            opt.textContent = s.title || `Synthèse du ${new Date(s.createdAt.toDate()).toLocaleDateString()}`;
+            opt.textContent = s.title || `Synthèse du ${new Date(s.createdAt?.toDate ? s.createdAt.toDate() : Date.now()).toLocaleDateString()}`;
             ui.synthesisSelect.appendChild(opt);
         });
         
@@ -101,22 +102,23 @@ async function loadUserSyntheses() {
             ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse trouvée</option>';
         }
     } catch (e) {
-        console.warn("Erreur chargement synthèses (Collection vide ou index manquant ?)", e);
-        // Si l'erreur est liée à un index manquant, l'UI affichera "Aucune synthèse"
-        ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse disponible</option>';
+        console.warn("Erreur chargement synthèses:", e);
+        ui.synthesisSelect.innerHTML = '<option value="">Erreur (Voir Console)</option>';
     }
 }
 
 async function loadUserCourses() {
     try {
-        // CORRECTION: On interroge la collection 'files' où userId correspond à l'utilisateur courant.
-        // Assurez-vous que les règles Firestore autorisent la lecture de 'files' avec ce filtre.
-        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'));
+        console.log("Chargement des cours pour:", auth.currentUser.uid);
+        // Simplification: requête simple sans tri pour tester
+        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid));
         
         const snapshot = await getDocs(q);
         userCourses = [];
         ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
         
+        console.log("Cours trouvés:", snapshot.size);
+
         if (snapshot.empty) {
             ui.courseSelect.innerHTML = '<option value="">Aucun fichier trouvé. Uploadez des cours !</option>';
             return;
@@ -129,22 +131,13 @@ async function loadUserCourses() {
             
             const opt = document.createElement('option');
             opt.value = f.id;
-            // On affiche le nom du fichier
             opt.textContent = f.name || "Fichier sans nom";
             ui.courseSelect.appendChild(opt);
         });
 
     } catch (e) {
-        console.warn("Erreur chargement cours:", e);
-        
-        // Gestion spécifique si c'est un problème d'index
-        if (e.message.includes("indexes")) {
-             ui.courseSelect.innerHTML = '<option value="">Erreur Index Firestore (Voir Console)</option>';
-        } else if (e.code === 'permission-denied') {
-             ui.courseSelect.innerHTML = '<option value="">Erreur Permission (Règles Firestore)</option>';
-        } else {
-             ui.courseSelect.innerHTML = '<option value="">Erreur chargement des cours</option>';
-        }
+        console.error("Erreur chargement cours:", e);
+        ui.courseSelect.innerHTML = `<option value="">Erreur: ${e.code || e.message}</option>`;
     }
 }
 
@@ -154,42 +147,37 @@ async function generateQuiz() {
     if (isGenerating) return;
 
     const source = document.querySelector('input[name="quiz-source"]:checked').value;
-    let title = ui.quizTitleInput.value.trim(); // Peut être vide
+    let title = ui.quizTitleInput.value.trim(); 
     const count = parseInt(ui.questionCountInput.value);
     const type = ui.quizTypeInput.value;
 
     let topic = "";
     let dataContext = "";
 
-    // Validation stricte selon la source choisie
+    // Validation stricte
     if (source === 'topic') {
         topic = ui.topicInput.value.trim();
         if (!topic) return showMessage("Veuillez décrire le sujet.", "error");
-        if (!title) title = topic.substring(0, 30) + "..."; // Auto-titre
+        if (!title) title = topic.substring(0, 30) + "...";
     } 
     else if (source === 'synthesis') {
         const synthId = ui.synthesisSelect.value;
         if (!synthId) return showMessage("Veuillez sélectionner une synthèse.", "error");
-        
         const synth = userSyntheses.find(s => s.id === synthId);
         if (synth) {
             topic = `Synthèse : ${synth.title}`;
-            dataContext = synth.content; // Texte complet
-            if (!title) title = synth.title; // Auto-titre
+            dataContext = synth.content; 
+            if (!title) title = synth.title;
         }
     } 
     else if (source === 'course') {
         const fileId = ui.courseSelect.value;
         if (!fileId) return showMessage("Veuillez sélectionner un cours.", "error");
-        
         const file = userCourses.find(f => f.id === fileId);
         if (file) {
             topic = `Cours : ${file.name}`;
-            // On envoie le nom et l'URL (si Gemini a accès au web ou à l'URL, sinon on compte sur le nom explicite)
-            // Pour l'instant, Gemini Flash ne télécharge pas les URL non publiques. 
-            // On lui donne un contexte fort avec le nom du fichier.
-            dataContext = `Ce quiz porte sur le document intitulé : "${file.name}". (URL pour référence : ${file.url}). Génère des questions pertinentes pour un niveau universitaire sur ce sujet.`;
-            if (!title) title = file.name; // Auto-titre
+            dataContext = `Document: ${file.name}. URL: ${file.url}. Génère des questions pertinentes basées sur ce type de document.`;
+            if (!title) title = file.name;
         }
     }
 
@@ -214,7 +202,6 @@ async function generateQuiz() {
             throw new Error("L'IA n'a pas renvoyé de questions valides.");
         }
 
-        // On assigne le titre final
         quizData.title = title;
 
         showMessage("Quiz prêt !", "success");
