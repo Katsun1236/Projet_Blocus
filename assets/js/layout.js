@@ -76,8 +76,11 @@ function setupMobileMenu() {
 
 // Fonction pour ajouter le bouton retour à l'accueil
 function addHomeButton() {
-    const headerNav = document.querySelector('header .max-w-7xl');
-    if (!headerNav) return;
+    const header = document.querySelector('header');
+    if (!header) {
+        console.debug('[layout] Header not found');
+        return;
+    }
 
     // Vérifier si le bouton existe déjà
     if (document.getElementById('home-btn-header')) return;
@@ -85,15 +88,12 @@ function addHomeButton() {
     const homeBtn = document.createElement('a');
     homeBtn.id = 'home-btn-header';
     homeBtn.href = '/';
-    homeBtn.className = 'flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-300 hover:text-white text-sm font-medium';
+    homeBtn.className = 'hidden md:flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-300 hover:text-white text-sm font-medium absolute right-8';
     homeBtn.title = "Retour à l'accueil";
     homeBtn.innerHTML = '<i class="fas fa-home mr-2"></i> Accueil';
 
-    // Insérer dans la section de navigation
-    const navLinksContainer = headerNav.querySelector('[class*="justify"]');
-    if (navLinksContainer) {
-        navLinksContainer.insertBefore(homeBtn, navLinksContainer.firstChild);
-    }
+    // Insérer le bouton à la fin du header
+    header.appendChild(homeBtn);
 }
 
 // Fonction dédiée à la mise à jour du header
