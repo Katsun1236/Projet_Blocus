@@ -31,8 +31,7 @@ exports.generateContent = onCall(
       }
 
       try {
-        let prompt = "";
-        let systemInstruction = "";
+        let fullPrompt = "";
 
         // --- MODE QUIZ ---
         if (mode === "quiz") {
@@ -40,13 +39,16 @@ exports.generateContent = onCall(
           const count = quizOptions.count || 5;
           const type = quizOptions.type || "qcm";
 
-          systemInstruction = "Tu es un professeur expert universitaire. " +
-        "Ta réponse DOIT être exclusivement un objet JSON valide. " +
-        "Structure : { \"title\": \"...\", \"questions\": [...] }";
+          const systemInstruction =
+            "Tu es un professeur expert universitaire. " +
+            "Ta réponse DOIT être exclusivement un objet JSON valide. " +
+            "Structure : { \"title\": \"...\", \"questions\": [...] }";
 
-          prompt = `Sujet: "${topic || "Général"}". ` +
-        `Contexte: ${data ? String(data).substring(0, 5000) : "Aucun"}. ` +
-        `Génère ${count} questions de type ${type}. Langue: Français.`;
+          const userPrompt = `Sujet: "${topic || "Général"}". ` +
+            `Contexte: ${data ? String(data).substring(0, 5000) : "Aucun"}. ` +
+            `Génère ${count} questions de type ${type}. Langue: Français.`;
+
+          fullPrompt = systemInstruction + "\n\n" + userPrompt;
 
           // --- MODE SYNTHÈSE ---
         } else if (mode === "synthesis") {
@@ -54,17 +56,18 @@ exports.generateContent = onCall(
           const length = synthOptions.length || "medium";
           const format = synthOptions.format || "summary";
 
-          systemInstruction = "Expert en pédagogie. Output HTML pur. " +
-        "Utilise <h2>, <ul>, <strong>. Pas de Markdown. " +
-        "Pas de balises <html>, <head>.";
+          const systemInstruction = "Expert en pédagogie. Output HTML pur. " +
+            "Utilise <h2>, <ul>, <strong>. Pas de Markdown. " +
+            "Pas de balises <html>, <head>.";
 
           let formatInstruction = "";
           switch (format) {
             case "flashcards":
-              formatInstruction = "Format: <div class=\"flashcard p-4 mb-4 " +
-            "bg-gray-800 border border-gray-700 rounded-lg\">" +
-            "<h4 class=\"text-indigo-400 font-bold mb-2\">Question</h4>" +
-            "<p class=\"text-gray-300\">Réponse</p></div>";
+              formatInstruction =
+                "Format: <div class=\"flashcard p-4 mb-4 " +
+                "bg-gray-800 border border-gray-700 rounded-lg\">" +
+                "<h4 class=\"text-indigo-400 font-bold mb-2\">Question</h4>" +
+                "<p class=\"text-gray-300\">Réponse</p></div>";
               break;
             case "plan":
               formatInstruction = "Format: Plan détaillé (I. II. III.)";
@@ -77,30 +80,27 @@ exports.generateContent = onCall(
               break;
             default:
               formatInstruction = "Format: <h2>Concepts</h2>, " +
-            "<h2>Résumé</h2>, <h2>Conclusion</h2>";
+                "<h2>Résumé</h2>, <h2>Conclusion</h2>";
           }
 
-          prompt = `Rédige un contenu type "${format}" sur "${topic}". ` +
-        `Longueur: ${length}. ` +
-        `${data ? `Basé sur: ${String(data).substring(0, 10000)}` : ""} ` +
-        `Consignes: ${formatInstruction}`;
+          const userPrompt =
+            `Rédige un contenu type "${format}" sur "${topic}". ` +
+            `Longueur: ${length}. ` +
+            `${data ? `Basé sur: ${String(data).substring(0, 10000)}` : ""} ` +
+            `Consignes: ${formatInstruction}`;
+
+          fullPrompt = systemInstruction + "\n\n" + userPrompt;
         } else {
           throw new HttpsError("invalid-argument", "Mode invalide.");
         }
 
-        // --- APPEL GEMINI API REST v1 ---
+        // --- APPEL GEMINI API REST v1 (format simplifié) ---
         const requestBody = {
           contents: [{
-            role: "user",
-            parts: [{text: prompt}],
+            parts: [{text: fullPrompt}],
           }],
-          systemInstruction: {
-            parts: [{text: systemInstruction}],
-          },
           generationConfig: {
             temperature: 0.7,
-            responseMimeType:
-              mode === "quiz" ? "application/json" : "text/plain",
           },
         };
 
