@@ -1,3 +1,4 @@
+
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
