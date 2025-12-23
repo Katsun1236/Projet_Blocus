@@ -55,7 +55,7 @@
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 relative">
             <div class="flex items-center gap-4 md:hidden">
                 <!-- Mobile menu btn sera géré par layout.js s'il n'existe pas, mais ici tu l'as déjà -->
-                <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Dashboard</span>
             </div>
             
@@ -235,6 +235,8 @@
         import { auth, db } from '../../assets/js/config.js';
         // Ajout de l'import initLayout
         import { initLayout } from '../../assets/js/layout.js';
+        // Import du tutoriel onboarding
+        import { onboarding } from '../../assets/js/onboarding.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { doc, getDoc, collection, query, orderBy, limit, onSnapshot, where, getDocs, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
@@ -500,6 +502,9 @@
                 // Lancer les écouteurs
                 setupNotifications(currentUserId);
                 loadDashboardData(currentUserId);
+
+                // Démarrer le tutoriel pour les nouveaux utilisateurs
+                setTimeout(() => onboarding.start(), 1000);
 
             } else {
                 window.location.href = '../auth/login.html';

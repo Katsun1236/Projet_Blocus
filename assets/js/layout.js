@@ -119,9 +119,7 @@ function injectSidebar(activePageId) {
         <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-40 hidden md:flex flex-col transition-transform duration-300">
             <!-- Logo -->
             <div class="h-20 flex items-center px-8 border-b border-gray-800/50">
-                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
-                    <i class="fas fa-cube text-white text-lg"></i>
-                </div>
+                <img src="${rootPath}assets/images/owl-logo.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
                 <span class="text-xl font-display font-bold text-white tracking-wide">Blocus<span class="text-indigo-500">.</span></span>
             </div>
 
@@ -184,7 +182,7 @@ function renderNavLink(id, label, icon, href, activeId) {
     const iconClass = isActive ? "text-white" : "text-gray-500 group-hover:text-indigo-400 transition-colors";
 
     return `
-        <a href="${href}" class="${baseClass} ${isActive ? activeClass : inactiveClass}">
+        <a id="${id}-link" href="${href}" class="${baseClass} ${isActive ? activeClass : inactiveClass}">
             <i class="fas ${icon} w-5 ${iconClass}"></i>
             <span>${label}</span>
             ${isActive ? '<i class="fas fa-chevron-right ml-auto text-xs opacity-50"></i>' : ''}

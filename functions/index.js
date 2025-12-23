@@ -1,17 +1,19 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
 
-// Configuration Gemini API REST v1 (sans SDK)
+// Configuration Gemini API REST v1beta (sans SDK)
 // Dernière mise à jour: 2025-12-23
+// Utilise v1beta avec modèles Gemini 2.0 et 1.5 Flash
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 // Essayer plusieurs noms de modèles pour maximiser la compatibilité
+// Utilise v1beta avec les noms de modèles complets incluant les versions
 const GEMINI_MODELS = [
+  "gemini-2.0-flash-001",
+  "gemini-1.5-flash-002",
+  "gemini-1.5-flash-001",
   "gemini-1.5-flash",
   "gemini-1.5-pro",
-  "gemini-pro",
-  "models/gemini-1.5-flash",
-  "models/gemini-pro",
 ];
 
 // Fonction pour obtenir l'URL de l'API avec fallback
@@ -23,7 +25,7 @@ const GEMINI_MODELS = [
  */
 function getGeminiApiUrl(apiKey, modelIndex = 0) {
   const model = GEMINI_MODELS[modelIndex];
-  const baseUrl = "https://generativelanguage.googleapis.com/v1";
+  const baseUrl = "https://generativelanguage.googleapis.com/v1beta";
   return `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
 }
 
