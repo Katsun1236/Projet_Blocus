@@ -1,10 +1,8 @@
 import { auth, db } from './config.js'; // Import db ajouté
-console.debug('[debug] /assets/js/layout.js loaded');
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js"; // Import Firestore ajouté
 
 export function initLayout(activePageId) {
-    console.debug('[debug] initLayout called', activePageId, 'location=', window.location.pathname);
     // 1. Inject Sidebar if not present
     const sidebar = document.getElementById('sidebar-container');
     if (!sidebar && document.getElementById('app-container')) {
@@ -78,7 +76,6 @@ function setupMobileMenu() {
 function addHomeButton() {
     const header = document.querySelector('header');
     if (!header) {
-        console.debug('[layout] Header not found');
         return;
     }
 
@@ -98,7 +95,6 @@ function addHomeButton() {
 
 // Fonction dédiée à la mise à jour du header
 async function updateHeaderProfile(user) {
-    console.debug('[debug] updateHeaderProfile user', user && user.uid);
     const avatarImg = document.getElementById('user-avatar-header');
     const userNameTxt = document.getElementById('user-name-header');
 
