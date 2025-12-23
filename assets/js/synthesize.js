@@ -157,7 +157,7 @@ ui.btnDelete.onclick = async () => {
     }
 };
 
-// --- SECURE GENERATION ---
+// --- SECURE GENERATION (UPDATED) ---
 if (ui.btnGenerate) {
     ui.btnGenerate.onclick = async () => {
         const btn = ui.btnGenerate;
@@ -182,7 +182,8 @@ if (ui.btnGenerate) {
             const sel = ui.fileSelect;
             if (!sel.value) return showMessage("Sélectionnez un fichier", "error");
             sourceName = sel.options[sel.selectedIndex].text;
-            context = `Fichier intitulé : "${sourceName}". (Note système: Le contenu complet du fichier n'est pas accessible, génère une structure type basée sur ce titre de cours)`; 
+            // TODO: Fetch file content here later if needed
+            context = `Fichier intitulé : "${sourceName}". (Le contenu complet n'est pas encore accessible, baser sur le titre)`; 
         }
 
         btn.disabled = true;
@@ -190,28 +191,21 @@ if (ui.btnGenerate) {
         ui.loadingBar.classList.remove('hidden');
 
         try {
-            // Appel Cloud Function
             const generateContent = httpsCallable(functions, 'generateContent');
             
-            const prompt = `
-                Agis comme un professeur expert. Rédige un contenu pédagogique structuré en format HTML pur (sans balises <html> ou <body>, juste le contenu).
-                Sujet/Contexte : ${context}
-                Format demandé : ${format} (summary, revision, flashcards, glossary, plan)
-                Longueur : ${length}
-                Langue : Français
-                Règles: 
-                - Si format='flashcards', utilise <div class="flashcard">...</div>
-                - Utilise <h2>, <h3>, <ul>, <strong>.
-            `;
-
+            // Appel sécurisé : on envoie les données brutes, pas le prompt
             const response = await generateContent({
-                prompt: prompt,
-                model: 'gemini-pro', // CHANGEMENT ICI
-                mimeType: 'text/plain' 
+                mode: 'synthesis',
+                topic: sourceName,
+                data: context,
+                options: {
+                    format: format,
+                    length: length
+                }
             });
 
-            let content = response.data.text;
-            content = content.replace(/```html/g, '').replace(/```/g, '');
+            // Le backend renvoie maintenant directement l'objet avec .content
+            const content = response.data.content;
 
             await addDoc(collection(db, 'users', currentUserId, 'syntheses'), {
                 title: title,
@@ -230,7 +224,7 @@ if (ui.btnGenerate) {
 
         } catch (e) {
             console.error(e);
-            showMessage("Erreur IA : " + e.message, "error");
+            showMessage("Erreur IA : " + (e.message || "Une erreur est survenue"), "error");
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalHtml;

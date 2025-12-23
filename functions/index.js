@@ -3,7 +3,6 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // Initialisation de Gemini
 // Assure-toi d'avoir défini la variable d'environnement : firebase functions:config:set gemini.key="TON_API_KEY"
-// Ou utilise process.env.GEMINI_API_KEY si tu utilises .env
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 exports.generateContent = onCall({ cors: true }, async (request) => {
@@ -12,7 +11,11 @@ exports.generateContent = onCall({ cors: true }, async (request) => {
     throw new HttpsError("unauthenticated", "Vous devez être connecté pour utiliser l'IA.");
   }
 
+  // Récupération des paramètres sécurisés (plus de 'prompt' direct venant du client)
   const { mode, topic, data, options } = request.data;
+  
+  // 2. Sécurité : Force l'utilisation du modèle Flash (rapide & pas cher) pour tout le monde
+  // Impossible pour un utilisateur de forcer 'gemini-pro' ou 'gemini-ultra'
   const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
   try {
@@ -25,50 +28,81 @@ exports.generateContent = onCall({ cors: true }, async (request) => {
       const type = options.type || "qcm"; // qcm, truefalse
       
       systemInstruction = `
-        Tu es un professeur expert capable de créer des quiz éducatifs précis.
-        Ta réponse DOIT être exclusivement un objet JSON valide, sans Markdown (pas de \`\`\`json).
-        Structure attendue :
-        {
-          "title": "Titre du Quiz",
-          "questions": [
-            {
-              "question": "L'énoncé de la question ?",
-              "options": ["Réponse A", "Réponse B", "Réponse C", "Réponse D"],
-              "correctAnswer": 0, // Index de la bonne réponse (0, 1, 2 ou 3)
-              "explanation": "Courte explication de pourquoi c'est la bonne réponse."
-            }
-          ]
-        }
+        Tu es un professeur expert universitaire.
+        Ta réponse DOIT être exclusivement un objet JSON valide, sans Markdown.
+        Structure : { "title": "Titre", "questions": [{ "question": "...", "options": ["..."], "correctAnswer": 0, "explanation": "..." }] }
       `;
 
       prompt = `
-        Génère un quiz de ${count} questions sur le sujet : "${topic}".
-        Type de questions : ${type === 'truefalse' ? 'Vrai/Faux' : 'QCM à 4 choix'}.
-        Niveau : Universitaire.
-        Langue : Français.
-        Si le sujet est un texte fourni, base-toi uniquement dessus : ${data || "Aucun texte fourni, utilise tes connaissances."}
+        Sujet : "${topic}".
+        Contexte : ${data ? data.substring(0, 10000) : "Connaissances générales"}.
+        Génère ${count} questions de type ${type}.
+        Niveau : Universitaire. Langue : Français.
       `;
     
-    // --- MODE SYNTHÈSE ---
+    // --- MODE SYNTHÈSE (Sécurisé & Amélioré) ---
     } else if (mode === "synthesis") {
       const length = options.length || "medium"; // short, medium, long
+      const format = options.format || "summary"; // summary, flashcards, plan, glossary
       
       systemInstruction = `
-        Tu es un expert en pédagogie et en synthèse de documents.
-        Ton objectif est de résumer des cours complexes de manière claire, structurée et facile à mémoriser.
-        Utilise le format Markdown pour la mise en forme (Gras, Listes à puces, Titres).
-        Adopte un ton encourageant et direct.
+        Tu es un expert en pédagogie et en synthèse de documents pour étudiants.
+        Ton objectif est de produire du contenu de révision structuré en HTML pur (sans balises <html>, <head> ou <body>).
+        
+        Règles de formatage HTML obligatoires :
+        - Utilise des balises <h2>, <h3> pour les titres.
+        - Utilise <ul> et <li> pour les listes.
+        - Utilise <strong> pour les mots-clés.
+        - N'utilise PAS de Markdown (\`**gras**\`), uniquement du HTML.
+        - Ton output sera injecté directement dans une <div>.
       `;
 
+      // Construction du prompt spécifique selon le format demandé (Backend logic)
+      let formatInstruction = "";
+      switch (format) {
+        case 'flashcards':
+            formatInstruction = `
+                Génère une liste de concepts clés sous forme de cartes.
+                Pour chaque concept, utilise EXACTEMENT cette structure HTML :
+                <div class="flashcard p-4 mb-4 bg-gray-800 border border-gray-700 rounded-lg">
+                    <h4 class="text-indigo-400 font-bold mb-2">Concept / Question</h4>
+                    <p class="text-gray-300">Explication ou réponse concise.</p>
+                </div>
+            `;
+            break;
+        case 'plan':
+            formatInstruction = "Génère un plan de cours détaillé et structuré (I. II. III.) avec des titres clairs.";
+            break;
+        case 'glossary':
+            formatInstruction = `
+                Génère un glossaire des termes techniques.
+                Utilise cette structure :
+                <dl class="space-y-4">
+                    <div class="bg-gray-800/50 p-3 rounded">
+                        <dt class="text-indigo-400 font-bold">Terme</dt>
+                        <dd class="text-gray-300 text-sm mt-1">Définition</dd>
+                    </div>
+                </dl>
+            `;
+            break;
+        default: // summary
+            formatInstruction = `
+                Structure la réponse ainsi :
+                <h2>🎯 Concepts Clés</h2> (Liste à puces)
+                <h2>📝 Résumé du Cours</h2> (Paragraphes structurés)
+                <h2>💡 Conclusion</h2> (Phrase mémorable)
+            `;
+      }
+
       prompt = `
-        Fais une synthèse ${length === 'short' ? 'très concise' : 'détaillée'} du sujet ou texte suivant :
-        "${topic}"
-        ${data ? `\nContenu du cours à résumer :\n${data}` : ''}
+        Rédige un contenu de type "${format}" sur le sujet suivant :
+        Sujet : "${topic}"
+        Longueur souhaitée : ${length} (short=concis, long=détaillé)
         
-        Structure ta réponse comme suit :
-        1. 🎯 **Concepts Clés** (Les 3-5 points essentiels)
-        2. 📝 **Résumé Structuré** (Le corps du cours)
-        3. 💡 **À Retenir** (Une conclusion mémorable)
+        ${data ? `Basé sur le contenu suivant :\n${data.substring(0, 20000)}` : ''}
+        
+        Consignes spécifiques au format :
+        ${formatInstruction}
       `;
 
     } else {
@@ -80,29 +114,31 @@ exports.generateContent = onCall({ cors: true }, async (request) => {
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       systemInstruction: { parts: [{ text: systemInstruction }] },
       generationConfig: {
-        temperature: 0.7, // Créatif mais pas trop
-        responseMimeType: mode === "quiz" ? "application/json" : "text/plain", // Force le JSON pour le quiz
+        temperature: 0.7,
+        responseMimeType: mode === "quiz" ? "application/json" : "text/plain",
       },
     });
 
     const responseText = result.response.text();
 
-    // Parsing pour le Quiz (sécurité supplémentaire)
+    // Traitement post-génération
     if (mode === "quiz") {
       try {
-        const jsonResponse = JSON.parse(responseText);
-        return jsonResponse;
+        // Nettoyage au cas où l'IA mettrait quand même du markdown json
+        const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanJson);
       } catch (e) {
-        console.error("Erreur parsing JSON Gemini:", responseText);
-        throw new HttpsError("internal", "L'IA a généré un format invalide. Réessayez.");
+        console.error("JSON Error:", responseText);
+        throw new HttpsError("internal", "Format de quiz invalide généré.");
       }
+    } else {
+      // Pour la synthèse, on nettoie les balises markdown éventuelles
+      let cleanHtml = responseText.replace(/```html/g, '').replace(/```/g, '').trim();
+      return { content: cleanHtml };
     }
-
-    // Retour texte brut pour la synthèse
-    return { content: responseText };
 
   } catch (error) {
     console.error("Erreur Gemini:", error);
-    throw new HttpsError("internal", "Erreur lors de la génération. " + error.message);
+    throw new HttpsError("internal", error.message);
   }
 });
