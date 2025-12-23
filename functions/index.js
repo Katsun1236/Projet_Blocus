@@ -3,7 +3,7 @@ const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-1.5-flash";
 
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 exports.generateContent = onCall({cors: true}, async (request) => {
   if (!request.auth) {
@@ -73,19 +73,26 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       throw new HttpsError("invalid-argument", "Mode invalide.");
     }
 
+    const fullPrompt = `${systemInstruction}\n\n${prompt}`;
+
     const requestBody = {
       contents: [{
-        role: "user",
-        parts: [{text: prompt}],
+        parts: [{text: fullPrompt}],
       }],
-      systemInstruction: {
-        parts: [{text: systemInstruction}],
-      },
       generationConfig: {
         temperature: 0.7,
-        responseMimeType: mode === "quiz" ? "application/json" : "text/plain",
+        topK: 40,
+        topP: 0.95,
       },
     };
+
+    // For JSON responses, add response format instruction to prompt
+    if (mode === "quiz") {
+      const jsonInstruction =
+        `${systemInstruction}\n\nRéponds UNIQUEMENT avec un JSON valide ` +
+        `(sans bloc \`\`\`json):\n\n${prompt}`;
+      requestBody.contents[0].parts[0].text = jsonInstruction;
+    }
 
     const response = await fetch(GEMINI_API_URL, {
       method: "POST",
