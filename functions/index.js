@@ -21,9 +21,9 @@ exports.generateContent = onCall({cors: true}, async (request) => {
         "Le paramètre 'mode' est manquant.");
   }
 
-  // Utilisation du modèle Gemini Pro (stable et fiable)
+  // Utilisation de Gemini Pro (seul modèle compatible avec SDK v0.24.0)
   const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-pro",
   });
 
   try {
