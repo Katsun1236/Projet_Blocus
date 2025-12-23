@@ -11,6 +11,9 @@ export function initLayout(activePageId) {
         injectSidebar(activePageId);
     }
 
+    // 1.5 Add Home Button
+    addHomeButton();
+
     // 2. Mobile Menu Logic - Configuration après injection ou si existant
     setupMobileMenu();
 
@@ -68,6 +71,28 @@ function setupMobileMenu() {
                 mobileMenu.classList.add('hidden');
             }
         });
+    }
+}
+
+// Fonction pour ajouter le bouton retour à l'accueil
+function addHomeButton() {
+    const headerNav = document.querySelector('header .max-w-7xl');
+    if (!headerNav) return;
+
+    // Vérifier si le bouton existe déjà
+    if (document.getElementById('home-btn-header')) return;
+
+    const homeBtn = document.createElement('a');
+    homeBtn.id = 'home-btn-header';
+    homeBtn.href = '/';
+    homeBtn.className = 'flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-300 hover:text-white text-sm font-medium';
+    homeBtn.title = "Retour à l'accueil";
+    homeBtn.innerHTML = '<i class="fas fa-home mr-2"></i> Accueil';
+
+    // Insérer dans la section de navigation
+    const navLinksContainer = headerNav.querySelector('[class*="justify"]');
+    if (navLinksContainer) {
+        navLinksContainer.insertBefore(homeBtn, navLinksContainer.firstChild);
     }
 }
 

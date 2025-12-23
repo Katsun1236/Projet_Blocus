@@ -97,25 +97,26 @@ class OnboardingTutorial {
         // Overlay assombrissant
         this.overlay = document.createElement('div');
         this.overlay.id = 'onboarding-overlay';
-        this.overlay.className = 'fixed inset-0 bg-black/80 z-[999] transition-all duration-300';
+        this.overlay.className = 'fixed inset-0 bg-black/80 z-[9998] transition-all duration-300';
         document.body.appendChild(this.overlay);
 
         // Spotlight circulaire
         this.spotlight = document.createElement('div');
         this.spotlight.id = 'onboarding-spotlight';
-        this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)] pointer-events-none z-[1000] transition-all duration-500';
+        this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)] pointer-events-none z-[9999] transition-all duration-500';
         document.body.appendChild(this.spotlight);
     }
 
     createMascot() {
         this.mascot = document.createElement('div');
         this.mascot.id = 'onboarding-mascot';
-        this.mascot.className = 'fixed z-[1001] bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
+        this.mascot.className = 'fixed z-[10000] bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
 
         this.mascot.innerHTML = `
             <div class="flex items-start gap-4 mb-4">
-                <div class="flex-shrink-0 w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center">
-                    <span class="text-3xl">🦉</span>
+                <div class="flex-shrink-0 w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center overflow-hidden">
+                    <img id="onboarding-mascot-image" src="" alt="Locus" class="w-full h-full object-cover" style="display: none;">
+                    <span id="onboarding-mascot-emoji" class="text-3xl">🦉</span>
                 </div>
                 <div class="flex-grow">
                     <h3 id="onboarding-title" class="text-xl font-bold text-white mb-2"></h3>
