@@ -1,17 +1,66 @@
+# Dependencies
 node_modules/
-.env
-assets/js/api-keys.js
-# Ajoutez ces lignes à votre .gitignore existant
+package-lock.json
+.pnp
+.pnp.js
 
-# Clés API sensibles
-assets/js/api-keys.js
+# Testing
+coverage/
+*.test.js.snap
 
-# Fichiers d'environnement
+# Production
+build/
+dist/
+*.tgz
+
+# Environment variables
 .env
 .env.local
-.env.production
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
 
-# Autres fichiers sensibles
-*.key
-*secret*
-config/secrets.js
+# Firebase
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+.runtimeconfig.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.history/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Build output (Tailwind si migration)
+assets/css/output.css
+
+# Firebase functions
+functions/node_modules/
+functions/lib/
+functions/.runtimeconfig.json
+
+# Public folder temp
+public/
