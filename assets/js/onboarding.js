@@ -98,17 +98,14 @@ class OnboardingTutorial {
         this.overlay = document.createElement('div');
         this.overlay.id = 'onboarding-overlay';
         this.overlay.className = 'fixed inset-0 bg-black/80 transition-all duration-300';
-        this.overlay.style.zIndex = '999999';
-        this.overlay.style.pointerEvents = 'auto';
+        this.overlay.style.cssText = 'z-index: 999999 !important; pointer-events: auto !important;';
         document.body.appendChild(this.overlay);
 
         // Spotlight circulaire
         this.spotlight = document.createElement('div');
         this.spotlight.id = 'onboarding-spotlight';
         this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 transition-all duration-500';
-        this.spotlight.style.zIndex = '1000000';
-        this.spotlight.style.pointerEvents = 'none';
-        this.spotlight.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.8)';
+        this.spotlight.style.cssText = 'z-index: 1000000 !important; pointer-events: none !important; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8);';
         document.body.appendChild(this.spotlight);
     }
 
@@ -116,8 +113,7 @@ class OnboardingTutorial {
         this.mascot = document.createElement('div');
         this.mascot.id = 'onboarding-mascot';
         this.mascot.className = 'fixed bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
-        this.mascot.style.zIndex = '1000001';
-        this.mascot.style.pointerEvents = 'auto';
+        this.mascot.style.cssText = 'z-index: 1000001 !important; pointer-events: auto !important;';
 
         // Utiliser une vraie image si disponible, sinon emoji
         const mascotImage = '../../assets/images/owl-logo.png';
