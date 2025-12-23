@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Plateforme d'étude avec IA pour étudiants",
   "scripts": {
-    "build:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/output.css --minify",
-    "watch:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/output.css --watch",
+    "build:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --minify",
+    "watch:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch",
     "dev": "npm run watch:css"
   },
   "devDependencies": {

@@ -19,9 +19,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 // Initialisation des Cloud Functions (region par défaut us-central1)
-const functions = getFunctions(app); 
-
-console.debug('[debug] /assets/js/config.js initialized', { projectId: firebaseConfig.projectId });
+const functions = getFunctions(app);
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({

@@ -65,7 +65,6 @@ class OnboardingTutorial {
     async shouldShowTutorial() {
         const user = auth.currentUser;
         if (!user) {
-            console.debug('[onboarding] User not authenticated');
             return false;
         }
 
@@ -74,11 +73,9 @@ class OnboardingTutorial {
             if (userDoc.exists()) {
                 const data = userDoc.data();
                 const hasCompleted = data.hasCompletedOnboarding === true;
-                console.debug('[onboarding] User exists, hasCompletedOnboarding:', hasCompleted);
                 // Vérifier si l'utilisateur a déjà vu le tutoriel
                 return !hasCompleted;
             }
-            console.debug('[onboarding] New user (no doc)');
             return true; // Nouvel utilisateur
         } catch (error) {
             console.error("Erreur vérification tutoriel:", error);
@@ -88,18 +85,14 @@ class OnboardingTutorial {
 
     async start() {
         if (this.isActive) {
-            console.debug('[onboarding] Already active, skipping');
             return;
         }
 
-        console.debug('[onboarding] Starting tutorial check...');
         const shouldShow = await this.shouldShowTutorial();
         if (!shouldShow) {
-            console.debug('[onboarding] User already completed tutorial, skipping');
             return;
         }
 
-        console.debug('[onboarding] Showing tutorial...');
         this.isActive = true;
         this.currentStep = 0;
         this.createOverlay();
