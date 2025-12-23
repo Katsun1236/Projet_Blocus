@@ -1,4 +1,3 @@
-
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -36,7 +35,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       prompt = `Sujet: "${topic || "Général"}". ` +
         `Contexte: ${data ? String(data).substring(0, 5000) : "Aucun"}. ` +
         `Génère ${count} questions de type ${type}. Langue: Français.`;
-
     } else if (mode === "synthesis") {
       const synthOptions = options || {};
       const length = synthOptions.length || "medium";
@@ -105,8 +103,10 @@ exports.generateContent = onCall({cors: true}, async (request) => {
 
     const result = await response.json();
 
-    if (!result.candidates || !result.candidates[0] || !result.candidates[0].content) {
-         throw new Error("Réponse vide de l'IA (Filtrage de sécurité possible)");
+    if (!result.candidates || !result.candidates[0] ||
+        !result.candidates[0].content) {
+      throw new Error(
+          "Réponse vide de l'IA (Filtrage de sécurité possible)");
     }
 
     const responseText = result.candidates[0].content.parts[0].text;
