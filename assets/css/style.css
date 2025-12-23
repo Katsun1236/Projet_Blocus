@@ -114,3 +114,37 @@ h1, h2, h3, .font-display {
 ::-webkit-scrollbar-track { background: var(--bg-dark); }
 ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* --- ACCESSIBILITY --- */
+/* Focus visible pour navigation clavier */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Amélioration du contraste des textes gris */
+.text-gray-400 {
+    color: #9ca3af !important; /* Meilleur contraste */
+}
+
+.text-gray-500 {
+    color: #6b7280 !important;
+}
+
+/* Skip to main content link (hidden by default) */
+.skip-to-main {
+    position: absolute;
+    left: -9999px;
+    z-index: 999;
+    padding: 1em;
+    background-color: var(--accent-primary);
+    color: white;
+    text-decoration: none;
+}
+
+.skip-to-main:focus {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 1em;
+}
