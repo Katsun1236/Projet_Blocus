@@ -4,17 +4,43 @@ const {defineSecret} = require("firebase-functions/params");
 // Configuration Gemini API REST v1 (sans SDK)
 // Dernière mise à jour: 2025-12-23
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
-const GEMINI_MODEL = "gemini-1.5-flash";
+
+// Essayer plusieurs noms de modèles pour maximiser la compatibilité
+const GEMINI_MODELS = [
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-pro",
+  "models/gemini-1.5-flash",
+  "models/gemini-pro",
+];
+
+// Fonction pour obtenir l'URL de l'API avec fallback
+/**
+ * Génère l'URL de l'API Gemini pour un modèle donné
+ * @param {string} apiKey - Clé API Gemini
+ * @param {number} modelIndex - Index du modèle à utiliser
+ * @return {string} URL de l'API
+ */
+function getGeminiApiUrl(apiKey, modelIndex = 0) {
+  const model = GEMINI_MODELS[modelIndex];
+  const baseUrl = "https://generativelanguage.googleapis.com/v1";
+  return `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
+}
 
 exports.generateContent = onCall(
     {cors: true, secrets: [geminiApiKey]},
     async (request) => {
       // Récupération sécurisée de la clé API depuis les secrets
       const GEMINI_API_KEY = geminiApiKey.value();
-      const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
-      // Log pour debug (ne log JAMAIS la clé complète en prod)
-      console.log("API Key configured:", GEMINI_API_KEY ? "✓" : "✗");
+      // Validation de la clé API
+      if (!GEMINI_API_KEY) {
+        console.error("GEMINI_API_KEY is not configured!");
+        throw new HttpsError("failed-precondition",
+            "Configuration de l'API Gemini manquante.");
+      }
+
+      console.log("API Key configured: ✓");
       // 1. Sécurité : Vérifier si l'utilisateur est connecté
       if (!request.auth) {
         throw new HttpsError("unauthenticated",
@@ -104,21 +130,60 @@ exports.generateContent = onCall(
           },
         };
 
-        const response = await fetch(GEMINI_API_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestBody),
-        });
+        // Essayer avec différents modèles jusqu'à ce qu'un fonctionne
+        let response;
+        let lastError;
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          const msg = `Gemini API error (${response.status}): ${errorText}`;
-          throw new Error(msg);
+        for (let i = 0; i < GEMINI_MODELS.length; i++) {
+          const apiUrl = getGeminiApiUrl(GEMINI_API_KEY, i);
+          console.log(`Tentative avec le modèle: ${GEMINI_MODELS[i]}`);
+
+          try {
+            response = await fetch(apiUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(requestBody),
+            });
+
+            if (response.ok) {
+              console.log(`✓ Succès avec le modèle: ${GEMINI_MODELS[i]}`);
+              break; // Modèle fonctionnel trouvé
+            }
+
+            // Récupérer l'erreur pour le log
+            const errorText = await response.text();
+            const modelName = GEMINI_MODELS[i];
+            lastError =
+              `${modelName}: ${response.status} - ${errorText}`;
+            console.warn(`✗ Échec avec ${GEMINI_MODELS[i]}:`, errorText);
+          } catch (fetchError) {
+            lastError = `${GEMINI_MODELS[i]}: ${fetchError.message}`;
+            console.warn(`✗ Erreur réseau avec ${GEMINI_MODELS[i]}:`,
+                fetchError.message);
+          }
+        }
+
+        // Si aucun modèle n'a fonctionné
+        if (!response || !response.ok) {
+          const errorMsg =
+            `Tous les modèles Gemini ont échoué. Dernière erreur: ${lastError}`;
+          console.error(errorMsg);
+          throw new Error(errorMsg);
         }
 
         const result = await response.json();
+
+        // Vérifier que la réponse a le bon format
+        if (!result.candidates || !result.candidates[0] ||
+            !result.candidates[0].content ||
+            !result.candidates[0].content.parts ||
+            !result.candidates[0].content.parts[0]) {
+          console.error("Format de réponse invalide:", JSON.stringify(result));
+          throw new Error("Format de réponse Gemini invalide");
+        }
+
         const responseText = result.candidates[0].content.parts[0].text;
 
         if (mode === "quiz") {

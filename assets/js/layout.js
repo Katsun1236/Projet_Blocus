@@ -9,14 +9,8 @@ export function initLayout(activePageId) {
         injectSidebar(activePageId);
     }
 
-    // 2. Mobile Menu Logic
-    const btn = document.getElementById('mobile-menu-btn');
-    const menu = document.getElementById('mobile-menu');
-    if (btn && menu) {
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
-    }
+    // 2. Mobile Menu Logic - Configuration après injection ou si existant
+    setupMobileMenu();
 
     // 3. HEADER PROFIL LOGIC (Chargement Auto)
     // On écoute l'auth ici pour mettre à jour le header globalement
@@ -37,6 +31,39 @@ export function initLayout(activePageId) {
                 window.location.href = 'profile.html';
             } else {
                 window.location.href = 'pages/app/profile.html';
+            }
+        });
+    }
+}
+
+// Fonction pour configurer le menu mobile
+function setupMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const closeMenuBtn = document.getElementById('close-mobile-menu');
+
+    if (mobileMenuBtn && mobileMenu) {
+        // Retirer les listeners existants
+        mobileMenuBtn.replaceWith(mobileMenuBtn.cloneNode(true));
+        const newBtn = document.getElementById('mobile-menu-btn');
+
+        newBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
+    if (closeMenuBtn && mobileMenu) {
+        closeMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+        });
+    }
+
+    // Fermer le menu en cliquant en dehors
+    if (mobileMenu) {
+        mobileMenu.addEventListener('click', (e) => {
+            if (e.target === mobileMenu) {
+                mobileMenu.classList.add('hidden');
             }
         });
     }
@@ -145,16 +172,8 @@ function injectSidebar(activePageId) {
         }
     });
 
-    const closeMenuBtn = document.getElementById('close-mobile-menu');
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-
-    if (closeMenuBtn && mobileMenu) {
-        closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-    }
-    if (mobileMenuBtn && mobileMenu) {
-        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
-    }
+    // Configuration du menu mobile après injection
+    setupMobileMenu();
 }
 
 function renderNavLink(id, label, icon, href, activeId) {
