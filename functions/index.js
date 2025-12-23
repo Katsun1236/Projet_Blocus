@@ -1,9 +1,13 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
-const {GoogleGenerativeAI} = require("@google/generative-ai");
 
-// Initialisation de Gemini
-// Version Node 20 Force Update
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Configuration Gemini API REST v1beta (Nécessaire pour systemInstruction & JSON mode)
+// Dernière mise à jour: 2025-12-23
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Utilisation du tag stable plutôt que 'latest' pour éviter les surprises
+const GEMINI_MODEL = "gemini-1.5-flash"; 
+
+// 🔴 FIX : Passage en 'v1beta' au lieu de 'v1' pour supporter les instructions système
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 exports.generateContent = onCall({cors: true}, async (request) => {
   // 1. Sécurité : Vérifier si l'utilisateur est connecté
@@ -20,9 +24,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     throw new HttpsError("invalid-argument",
         "Le paramètre 'mode' est manquant.");
   }
-
-  // Utilisation du modèle Flash standard (alias stable)
-  const model = genAI.getGenerativeModel({model: "gemini-1.5-flash"});
 
   try {
     let prompt = "";
@@ -81,17 +82,46 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       throw new HttpsError("invalid-argument", "Mode invalide.");
     }
 
-    // --- APPEL GEMINI ---
-    const result = await model.generateContent({
-      contents: [{role: "user", parts: [{text: prompt}]}],
-      systemInstruction: {parts: [{text: systemInstruction}]},
+    // --- APPEL GEMINI API REST v1beta ---
+    const requestBody = {
+      contents: [{
+        role: "user",
+        parts: [{text: prompt}],
+      }],
+      // Ce champ nécessite v1beta
+      systemInstruction: {
+        parts: [{text: systemInstruction}],
+      },
       generationConfig: {
         temperature: 0.7,
+        // Ce champ nécessite v1beta pour 'application/json'
         responseMimeType: mode === "quiz" ? "application/json" : "text/plain",
       },
+    };
+
+    const response = await fetch(GEMINI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
     });
 
-    const responseText = result.response.text();
+    if (!response.ok) {
+      const errorText = await response.text();
+      // On loggue l'erreur brute pour le debug
+      console.error("Gemini API Error details:", errorText); 
+      throw new Error(`Gemini API error (${response.status}): ${errorText}`);
+    }
+
+    const result = await response.json();
+    
+    // Vérification de sécurité si la réponse est vide
+    if (!result.candidates || !result.candidates[0] || !result.candidates[0].content) {
+         throw new Error("Réponse vide de l'IA (Filtrage de sécurité possible)");
+    }
+
+    const responseText = result.candidates[0].content.parts[0].text;
 
     if (mode === "quiz") {
       try {
@@ -99,6 +129,7 @@ exports.generateContent = onCall({cors: true}, async (request) => {
             .replace(/```/g, "").trim();
         return JSON.parse(cleanJson);
       } catch (e) {
+        console.error("JSON Parse Error:", responseText);
         throw new HttpsError("internal", "Format invalide généré par l'IA.");
       }
     } else {
@@ -107,6 +138,30 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       return {content: cleanHtml};
     }
   } catch (error) {
-    throw new HttpsError("internal", error.message);
+    // Logging détaillé pour debugging
+    console.error("Error in generateContent:", {
+      errorMessage: error.message,
+      errorCode: error.code,
+      mode,
+      topic,
+    });
+
+    // Messages d'erreur spécifiques
+    if (error.message?.includes("API key")) {
+      throw new HttpsError("failed-precondition",
+          "Clé API Gemini invalide ou manquante.");
+    }
+    if (error.message?.includes("quota")) {
+      throw new HttpsError("resource-exhausted",
+          "Quota API dépassé. Réessayez plus tard.");
+    }
+    if (error.message?.includes("not found") ||
+        error.message?.includes("404")) {
+      throw new HttpsError("failed-precondition",
+          "Modèle IA non disponible. Contactez le support.");
+    }
+
+    throw new HttpsError("internal",
+        `Erreur de génération: ${error.message}`);
   }
 });
