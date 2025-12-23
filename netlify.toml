@@ -1,0 +1,30 @@
+[build]
+  # Commande de build (génère le CSS Tailwind)
+  command = "npm run build:css"
+
+  # Dossier à publier (racine du projet)
+  publish = "."
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Headers de sécurité
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Cache pour les assets statiques
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Redirects (si besoin)
+# [[redirects]]
+#   from = "/old-page"
+#   to = "/new-page"
+#   status = 301
