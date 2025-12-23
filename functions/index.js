@@ -21,8 +21,11 @@ exports.generateContent = onCall({cors: true}, async (request) => {
         "Le paramètre 'mode' est manquant.");
   }
 
-  // Utilisation du modèle Flash standard (alias stable)
-  const model = genAI.getGenerativeModel({model: "gemini-1.5-flash"});
+  // Utilisation du modèle Flash latest stable
+  // Note: Ne pas utiliser de suffixe de version (-001, etc.)
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash-latest",
+  });
 
   try {
     let prompt = "";
@@ -107,6 +110,31 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       return {content: cleanHtml};
     }
   } catch (error) {
-    throw new HttpsError("internal", error.message);
+    // Logging détaillé pour debugging
+    console.error("Error in generateContent:", {
+      errorMessage: error.message,
+      errorCode: error.code,
+      errorStack: error.stack,
+      mode,
+      topic,
+    });
+
+    // Messages d'erreur spécifiques
+    if (error.message?.includes("API key")) {
+      throw new HttpsError("failed-precondition",
+          "Clé API Gemini invalide ou manquante.");
+    }
+    if (error.message?.includes("quota")) {
+      throw new HttpsError("resource-exhausted",
+          "Quota API dépassé. Réessayez plus tard.");
+    }
+    if (error.message?.includes("not found") ||
+        error.message?.includes("404")) {
+      throw new HttpsError("failed-precondition",
+          "Modèle IA non disponible. Contactez le support.");
+    }
+
+    throw new HttpsError("internal",
+        `Erreur de génération: ${error.message}`);
   }
 });
