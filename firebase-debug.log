@@ -198,3 +198,106 @@
 [debug] [2025-12-23T10:27:46.178Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed [none]
 [debug] [2025-12-23T10:27:46.837Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed 200
 [debug] [2025-12-23T10:27:46.837Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed {"name":"projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2025-12-23T10:26:56.693152936Z","target":"projects/projet-blocus-v2/locations/us-central1/functions/generateContent","verb":"update","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/projet-blocus-v2/locations/us-central1/functions/generateContent","buildConfig":{"runtime":"nodejs20","entryPoint":"generateContent","source":{"storageSource":{"bucket":"gcf-v2-sources-12006785680-us-central1","object":"generateContent/function-source.zip","generation":"1766485616648056"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/projet-blocus-v2/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-12006785680-us-central1","object":"generateContent/function-source.zip","generation":"1766484762079066"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/projet-blocus-v2/serviceAccounts/12006785680-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/projet-blocus-v2/locations/us-central1/services/generatecontent","timeoutSeconds":60,"environmentVariables":{"GEMINI_API_KEY":"AIzaSyCe06LI6bodwrMjjSXqDSKJnPN_LtDYAdo","FIREBASE_CONFIG":"{\"projectId\":\"projet-blocus-v2\",\"storageBucket\":\"projet-blocus-v2.firebasestorage.app\"}","GCLOUD_PROJECT":"projet-blocus-v2","EVENTARC_CLOUD_EVENT_SOURCE":"projects/projet-blocus-v2/locations/us-central1/services/generateContent","FUNCTION_TARGET":"generateContent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","uri":"https://generatecontent-oht6vlj32q-uc.a.run.app","serviceAccountEmail":"12006785680-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"generatecontent-00015-cuz","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","labels":{"deployment-tool":"cli-firebase","deployment-callable":"true","firebase-functions-hash":"df2fce9d3011818103160f9f283608a68741f505"},"environment":"GEN_2","url":"https://us-central1-projet-blocus-v2.cloudfunctions.net/generateContent","satisfiesPzi":true},"stages":[{"name":"BUILD","message":"Build in progress","state":"IN_PROGRESS","resource":"projects/12006785680/locations/us-central1/builds/89522233-c5f6-4ba8-bd2d-de0f67040310","resourceUri":"https://console.cloud.google.com/cloud-build/builds;region=us-central1/89522233-c5f6-4ba8-bd2d-de0f67040310?project=12006785680"},{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"UPDATE_FUNCTION","buildName":"projects/12006785680/locations/us-central1/builds/89522233-c5f6-4ba8-bd2d-de0f67040310"},"done":false}
+[debug] [2025-12-23T10:27:56.837Z] [update-default-us-central1-generateContent] Retrying task index 0
+[debug] [2025-12-23T10:27:56.837Z] Checked if tokens are valid: true, expires at: 1766487757666
+[debug] [2025-12-23T10:27:56.837Z] Checked if tokens are valid: true, expires at: 1766487757666
+[debug] [2025-12-23T10:27:56.837Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed [none]
+[debug] [2025-12-23T10:27:57.520Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed 200
+[debug] [2025-12-23T10:27:57.521Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed {"name":"projects/projet-blocus-v2/locations/us-central1/operations/operation-1766485615966-6469bfba3f999-df086540-6f080eed","metadata":{"@type":"type.googleapis.com/google.cloud.functions.v2.OperationMetadata","createTime":"2025-12-23T10:26:56.693152936Z","endTime":"2025-12-23T10:27:48.242434876Z","target":"projects/projet-blocus-v2/locations/us-central1/functions/generateContent","verb":"update","cancelRequested":false,"apiVersion":"v2","requestResource":{"@type":"type.googleapis.com/google.cloud.functions.v2.Function","name":"projects/projet-blocus-v2/locations/us-central1/functions/generateContent","buildConfig":{"runtime":"nodejs20","entryPoint":"generateContent","source":{"storageSource":{"bucket":"gcf-v2-sources-12006785680-us-central1","object":"generateContent/function-source.zip","generation":"1766485616648056"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/projet-blocus-v2/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-12006785680-us-central1","object":"generateContent/function-source.zip","generation":"1766484762079066"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/projet-blocus-v2/serviceAccounts/12006785680-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/projet-blocus-v2/locations/us-central1/services/generatecontent","timeoutSeconds":60,"environmentVariables":{"GEMINI_API_KEY":"AIzaSyCe06LI6bodwrMjjSXqDSKJnPN_LtDYAdo","FIREBASE_CONFIG":"{\"projectId\":\"projet-blocus-v2\",\"storageBucket\":\"projet-blocus-v2.firebasestorage.app\"}","GCLOUD_PROJECT":"projet-blocus-v2","EVENTARC_CLOUD_EVENT_SOURCE":"projects/projet-blocus-v2/locations/us-central1/services/generateContent","FUNCTION_TARGET":"generateContent","LOG_EXECUTION_ID":"true"},"ingressSettings":"ALLOW_ALL","uri":"https://generatecontent-oht6vlj32q-uc.a.run.app","serviceAccountEmail":"12006785680-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"generatecontent-00015-cuz","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","labels":{"deployment-tool":"cli-firebase","deployment-callable":"true","firebase-functions-hash":"df2fce9d3011818103160f9f283608a68741f505"},"environment":"GEN_2","url":"https://us-central1-projet-blocus-v2.cloudfunctions.net/generateContent","satisfiesPzi":true},"stages":[{"name":"SERVICE","state":"NOT_STARTED"}],"operationType":"UPDATE_FUNCTION"},"done":true,"error":{"code":3,"message":"Build failed with status: FAILURE and message: npm error code EUSAGE\nnpm error\nnpm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.\nnpm error\nnpm error Missing: @types/markdown-it@14.1.2 from lock file\nnpm error Missing: markdown-it@14.1.0 from lock file\nnpm error\nnpm error Clean install a project\nnpm error\nnpm error Usage:\nnpm error npm ci\nnpm error\nnpm error Options:\nnpm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]\nnpm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]\nnpm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]\nnpm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]\nnpm error [--no-bin-links] [--no-fund] [--dry-run]\nnpm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]\nnpm error [-ws|--workspaces] [--include-workspace-root] [--install-links]\nnpm error\nnpm error aliases: clean-install, ic, install-clean, isntall-clean\nnpm error\nnpm error Run \"npm help ci\" for more info\nnpm error A complete log of this run can be found in: /www-data-home/.npm/_logs/2025-12-23T10_27_19_748Z-debug-0.log. For more details see the logs at https://console.cloud.google.com/cloud-build/builds;region=us-central1/89522233-c5f6-4ba8-bd2d-de0f67040310?project=12006785680."}}
+[debug] [2025-12-23T10:27:57.521Z] Got source token undefined for region us-central1
+[error] Build failed with status: FAILURE and message: npm error code EUSAGE
+npm error
+npm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.
+npm error
+npm error Missing: @types/markdown-it@14.1.2 from lock file
+npm error Missing: markdown-it@14.1.0 from lock file
+npm error
+npm error Clean install a project
+npm error
+npm error Usage:
+npm error npm ci
+npm error
+npm error Options:
+npm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]
+npm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]
+npm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]
+npm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]
+npm error [--no-bin-links] [--no-fund] [--dry-run]
+npm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]
+npm error [-ws|--workspaces] [--include-workspace-root] [--install-links]
+npm error
+npm error aliases: clean-install, ic, install-clean, isntall-clean
+npm error
+npm error Run "npm help ci" for more info
+npm error A complete log of this run can be found in: /www-data-home/.npm/_logs/2025-12-23T10_27_19_748Z-debug-0.log. For more details see the logs at https://console.cloud.google.com/cloud-build/builds;region=us-central1/89522233-c5f6-4ba8-bd2d-de0f67040310?project=12006785680.
+[debug] [2025-12-23T10:27:57.525Z] Total Function Deployment time: 62230
+[debug] [2025-12-23T10:27:57.525Z] 1 Functions Deployed
+[debug] [2025-12-23T10:27:57.526Z] 1 Functions Errored
+[debug] [2025-12-23T10:27:57.526Z] 0 Function Deployments Aborted
+[debug] [2025-12-23T10:27:57.526Z] Average Function Deployment time: 62230
+[info] 
+[info] Functions deploy had errors with the following functions:
+	generateContent(us-central1)
+[debug] [2025-12-23T10:27:57.558Z] Checked if tokens are valid: true, expires at: 1766487757666
+[debug] [2025-12-23T10:27:57.558Z] Checked if tokens are valid: true, expires at: 1766487757666
+[debug] [2025-12-23T10:27:57.558Z] >>> [apiv2][query] GET https://artifactregistry.googleapis.com/v1/projects/projet-blocus-v2/locations/us-central1/repositories/gcf-artifacts [none]
+[debug] [2025-12-23T10:27:58.277Z] <<< [apiv2][status] GET https://artifactregistry.googleapis.com/v1/projects/projet-blocus-v2/locations/us-central1/repositories/gcf-artifacts 200
+[debug] [2025-12-23T10:27:58.277Z] <<< [apiv2][body] GET https://artifactregistry.googleapis.com/v1/projects/projet-blocus-v2/locations/us-central1/repositories/gcf-artifacts {"name":"projects/projet-blocus-v2/locations/us-central1/repositories/gcf-artifacts","format":"DOCKER","description":"This repository is created and used by Cloud Functions for storing function docker images.","labels":{"goog-managed-by":"cloudfunctions"},"createTime":"2025-12-20T13:16:22.364491Z","updateTime":"2025-12-23T10:13:11.924542Z","mode":"STANDARD_REPOSITORY","cleanupPolicies":{"firebase-functions-cleanup":{"id":"firebase-functions-cleanup","action":"DELETE","condition":{"tagState":"ANY","olderThan":"86400s"}}},"sizeBytes":"126399935","vulnerabilityScanningConfig":{"lastEnableTime":"2025-12-20T13:16:08.023739883Z","enablementState":"SCANNING_DISABLED","enablementStateReason":"API containerscanning.googleapis.com is not enabled."},"satisfiesPzi":true,"registryUri":"us-central1-docker.pkg.dev/projet-blocus-v2/gcf-artifacts"}
+[debug] [2025-12-23T10:27:58.278Z] Functions deploy failed.
+[debug] [2025-12-23T10:27:58.278Z] {
+  "endpoint": {
+    "id": "generateContent",
+    "project": "projet-blocus-v2",
+    "region": "us-central1",
+    "entryPoint": "generateContent",
+    "platform": "gcfv2",
+    "runtime": "nodejs20",
+    "callableTrigger": {},
+    "labels": {
+      "deployment-tool": "cli-firebase"
+    },
+    "serviceAccount": null,
+    "ingressSettings": null,
+    "availableMemoryMb": null,
+    "timeoutSeconds": null,
+    "maxInstances": null,
+    "minInstances": null,
+    "concurrency": 80,
+    "vpc": null,
+    "environmentVariables": {
+      "GEMINI_API_KEY": "AIzaSyCe06LI6bodwrMjjSXqDSKJnPN_LtDYAdo",
+      "FIREBASE_CONFIG": "{\"projectId\":\"projet-blocus-v2\",\"storageBucket\":\"projet-blocus-v2.firebasestorage.app\"}",
+      "GCLOUD_PROJECT": "projet-blocus-v2",
+      "EVENTARC_CLOUD_EVENT_SOURCE": "projects/projet-blocus-v2/locations/us-central1/services/generateContent",
+      "FUNCTION_TARGET": "generateContent",
+      "LOG_EXECUTION_ID": "true"
+    },
+    "codebase": "default",
+    "runServiceId": "generatecontent",
+    "cpu": 1,
+    "securityLevel": "SECURE_ALWAYS",
+    "targetedByOnly": false,
+    "hash": "df2fce9d3011818103160f9f283608a68741f505"
+  },
+  "op": "update",
+  "original": {
+    "name": "FirebaseError",
+    "children": [],
+    "exit": 1,
+    "message": "Build failed with status: FAILURE and message: npm error code EUSAGE\nnpm error\nnpm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.\nnpm error\nnpm error Missing: @types/markdown-it@14.1.2 from lock file\nnpm error Missing: markdown-it@14.1.0 from lock file\nnpm error\nnpm error Clean install a project\nnpm error\nnpm error Usage:\nnpm error npm ci\nnpm error\nnpm error Options:\nnpm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]\nnpm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]\nnpm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]\nnpm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]\nnpm error [--no-bin-links] [--no-fund] [--dry-run]\nnpm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]\nnpm error [-ws|--workspaces] [--include-workspace-root] [--install-links]\nnpm error\nnpm error aliases: clean-install, ic, install-clean, isntall-clean\nnpm error\nnpm error Run \"npm help ci\" for more info\nnpm error A complete log of this run can be found in: /www-data-home/.npm/_logs/2025-12-23T10_27_19_748Z-debug-0.log. For more details see the logs at https://console.cloud.google.com/cloud-build/builds;region=us-central1/89522233-c5f6-4ba8-bd2d-de0f67040310?project=12006785680.",
+    "original": {
+      "code": 3,
+      "message": "Build failed with status: FAILURE and message: npm error code EUSAGE\nnpm error\nnpm error `npm ci` can only install packages when your package.json and package-lock.json or npm-shrinkwrap.json are in sync. Please update your lock file with `npm install` before continuing.\nnpm error\nnpm error Missing: @types/markdown-it@14.1.2 from lock file\nnpm error Missing: markdown-it@14.1.0 from lock file\nnpm error\nnpm error Clean install a project\nnpm error\nnpm error Usage:\nnpm error npm ci\nnpm error\nnpm error Options:\nnpm error [--install-strategy <hoisted|nested|shallow|linked>] [--legacy-bundling]\nnpm error [--global-style] [--omit <dev|optional|peer> [--omit <dev|optional|peer> ...]]\nnpm error [--include <prod|dev|optional|peer> [--include <prod|dev|optional|peer> ...]]\nnpm error [--strict-peer-deps] [--foreground-scripts] [--ignore-scripts] [--no-audit]\nnpm error [--no-bin-links] [--no-fund] [--dry-run]\nnpm error [-w|--workspace <workspace-name> [-w|--workspace <workspace-name> ...]]\nnpm error [-ws|--workspaces] [--include-workspace-root] [--install-links]\nnpm error\nnpm error aliases: clean-install, ic, install-clean, isntall-clean\nnpm error\nnpm error Run \"npm help ci\" for more info\nnpm error A complete log of this run can be found in: /www-data-home/.npm/_logs/2025-12-23T10_27_19_748Z-debug-0.log. For more details see the logs at https://console.cloud.google.com/cloud-build/builds;region=us-central1/89522233-c5f6-4ba8-bd2d-de0f67040310?project=12006785680."
+    },
+    "status": 3,
+    "code": 3
+  }
+}
+[debug] [2025-12-23T10:27:58.286Z] Error: Failed to update function generateContent in region us-central1
+    at /usr/local/share/nvm/versions/node/v24.11.1/lib/node_modules/firebase-tools/lib/deploy/functions/release/fabricator.js:411:19
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async Fabricator.updateV2Function (/usr/local/share/nvm/versions/node/v24.11.1/lib/node_modules/firebase-tools/lib/deploy/functions/release/fabricator.js:400:32)
+    at async Fabricator.updateEndpoint (/usr/local/share/nvm/versions/node/v24.11.1/lib/node_modules/firebase-tools/lib/deploy/functions/release/fabricator.js:160:13)
+    at async handle (/usr/local/share/nvm/versions/node/v24.11.1/lib/node_modules/firebase-tools/lib/deploy/functions/release/fabricator.js:89:17)
+[error] 
+[error] Error: There was an error deploying functions
