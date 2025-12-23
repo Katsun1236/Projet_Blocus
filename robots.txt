@@ -1,0 +1,11 @@
+# robots.txt pour Projet Blocus
+
+User-agent: *
+Allow: /
+Disallow: /pages/app/
+Disallow: /pages/admin/
+Disallow: /assets/js/
+Disallow: /functions/
+
+# Sitemap
+Sitemap: https://projet-blocus-v2.web.app/sitemap.xml
