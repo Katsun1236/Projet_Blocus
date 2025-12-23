@@ -124,6 +124,39 @@ service cloud.firestore {
                                resource.data.authorId == request.auth.uid;
     }
 
+    // Groupes/Study Groups
+    match /groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() &&
+                               (resource.data.ownerId == request.auth.uid ||
+                                request.auth.uid in resource.data.admins);
+
+      // Messages dans les groupes
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() &&
+                       request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow create: if isAuthenticated() &&
+                         request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members &&
+                         request.resource.data.authorId == request.auth.uid;
+        allow delete: if isAuthenticated() &&
+                         (resource.data.authorId == request.auth.uid ||
+                          request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.admins);
+      }
+
+      // Fichiers dans les groupes
+      match /files/{fileId} {
+        allow read: if isAuthenticated() &&
+                       request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+        allow create: if isAuthenticated() &&
+                         request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members &&
+                         request.resource.data.authorId == request.auth.uid;
+        allow delete: if isAuthenticated() &&
+                         (resource.data.authorId == request.auth.uid ||
+                          request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.admins);
+      }
+    }
+
     // Communauté - discussions
     match /discussions/{discussionId} {
       allow read: if isAuthenticated();
