@@ -97,20 +97,27 @@ class OnboardingTutorial {
         // Overlay assombrissant
         this.overlay = document.createElement('div');
         this.overlay.id = 'onboarding-overlay';
-        this.overlay.className = 'fixed inset-0 bg-black/80 z-[9998] transition-all duration-300';
+        this.overlay.className = 'fixed inset-0 bg-black/80 transition-all duration-300';
+        this.overlay.style.zIndex = '999999';
+        this.overlay.style.pointerEvents = 'auto';
         document.body.appendChild(this.overlay);
 
         // Spotlight circulaire
         this.spotlight = document.createElement('div');
         this.spotlight.id = 'onboarding-spotlight';
-        this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)] pointer-events-none z-[9999] transition-all duration-500';
+        this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 transition-all duration-500';
+        this.spotlight.style.zIndex = '1000000';
+        this.spotlight.style.pointerEvents = 'none';
+        this.spotlight.style.boxShadow = '0 0 0 9999px rgba(0, 0, 0, 0.8)';
         document.body.appendChild(this.spotlight);
     }
 
     createMascot() {
         this.mascot = document.createElement('div');
         this.mascot.id = 'onboarding-mascot';
-        this.mascot.className = 'fixed z-[10000] bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
+        this.mascot.className = 'fixed bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
+        this.mascot.style.zIndex = '1000001';
+        this.mascot.style.pointerEvents = 'auto';
 
         // Utiliser une vraie image si disponible, sinon emoji
         const mascotImage = '../../assets/images/owl-logo.png';
