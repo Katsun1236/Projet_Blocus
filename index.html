@@ -3,27 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Projet Blocus | Hack tes études</title>
+    <title>Projet Blocus | Hack tes études avec l'IA</title>
+    <meta name="description" content="L'outil ultime qui transforme tes notes en synthèses IA, quiz instantanés et fiches de révision. Révise plus efficacement avec Projet Blocus.">
+    <meta name="keywords" content="révision, étudiant, IA, synthèse, quiz, blocus, étude, fiches, apprentissage">
     <link rel="icon" type="image/png" href="assets/images/logo.png">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://projet-blocus-v2.web.app/">
+    <meta property="og:title" content="Projet Blocus | Hack tes études avec l'IA">
+    <meta property="og:description" content="Transforme tes notes en synthèses IA, quiz instantanés et fiches de révision. Révise plus efficacement.">
+    <meta property="og:image" content="https://projet-blocus-v2.web.app/assets/images/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://projet-blocus-v2.web.app/">
+    <meta property="twitter:title" content="Projet Blocus | Hack tes études avec l'IA">
+    <meta property="twitter:description" content="Transforme tes notes en synthèses IA, quiz instantanés et fiches de révision.">
+    <meta property="twitter:image" content="https://projet-blocus-v2.web.app/assets/images/og-image.png">
+
+    <!-- Tailwind CSS (Build optimisé - 98% plus léger) -->
+    <link rel="stylesheet" href="assets/css/output.css">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white bg-[#050505] text-white">
 
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="skip-to-main">Aller au contenu principal</a>
+
     <!-- Texture de grain (Effet Cinéma) -->
-    <div class="noise-overlay"></div>
+    <div class="noise-overlay" aria-hidden="true"></div>
 
     <!-- Lumières d'ambiance -->
     <div class="glow-bg" style="top: -20%; left: -10%; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: 10%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);"></div>
 
     <!-- NAVIGATION -->
-    <nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300 border-b border-white/5">
+    <nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300 border-b border-white/5" role="navigation" aria-label="Navigation principale">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <!-- Logo -->
             <a href="#" class="flex items-center gap-3 group z-50">
@@ -54,7 +71,7 @@
                     
                     <!-- User Dropdown Trigger -->
                     <div class="relative">
-                        <button id="user-menu-button" class="flex items-center gap-3 focus:outline-none">
+                        <button id="user-menu-button" class="flex items-center gap-3 focus:outline-none" aria-label="Menu utilisateur" aria-expanded="false" aria-haspopup="true">
                             <span id="user-name-header" class="hidden lg:block text-sm font-bold text-white">Étudiant</span>
                             <div class="relative group">
                                 <div class="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full opacity-75 group-hover:opacity-100 blur transition duration-200"></div>
@@ -63,7 +80,7 @@
                         </button>
 
                         <!-- Dropdown Menu -->
-                        <div id="user-menu" class="hidden absolute top-14 right-0 w-56 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl overflow-hidden py-1 z-50 animate-fade-in-up">
+                        <div id="user-menu" class="hidden absolute top-14 right-0 w-56 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl overflow-hidden py-1 z-50 animate-fade-in-up" role="menu" aria-labelledby="user-menu-button">
                             <div class="px-4 py-3 border-b border-gray-800">
                                 <p class="text-xs text-gray-500 uppercase font-bold">Mon Compte</p>
                             </div>
@@ -83,13 +100,13 @@
             </div>
 
             <!-- Mobile Menu Button -->
-            <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white text-2xl focus:outline-none">
+            <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white text-2xl focus:outline-none" aria-label="Ouvrir le menu mobile" aria-expanded="false" aria-controls="mobile-menu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
 
         <!-- Mobile Menu Overlay -->
-        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-gray-900 border-b border-gray-800 p-6 shadow-2xl animate-slide-down">
+        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-gray-900 border-b border-gray-800 p-6 shadow-2xl animate-slide-down" role="menu">
             <div class="flex flex-col gap-4">
                 <a href="#features" class="text-gray-300 hover:text-white py-2">Concept</a>
                 <div class="h-px bg-gray-800 my-2"></div>
@@ -100,7 +117,7 @@
     </nav>
 
     <!-- HERO SECTION -->
-    <main class="relative pt-32 lg:pt-48 px-6 overflow-hidden min-h-screen flex flex-col justify-center">
+    <main id="main-content" class="relative pt-32 lg:pt-48 px-6 overflow-hidden min-h-screen flex flex-col justify-center" role="main">
         <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             
             <!-- Left: Text -->

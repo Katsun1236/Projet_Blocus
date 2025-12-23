@@ -1,0 +1,61 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Fonction helper: vérifier si l'utilisateur est authentifié
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Fonction helper: vérifier la taille du fichier (max 10MB)
+    function isValidSize() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+
+    // Fonction helper: vérifier le type MIME (PDF et images uniquement)
+    function isValidContentType() {
+      return request.resource.contentType.matches('application/pdf') ||
+             request.resource.contentType.matches('image/.*');
+    }
+
+    // --- RÈGLES POUR LES FICHIERS UTILISATEURS ---
+    match /users/{userId}/{allPaths=**} {
+      // Lecture: autorisée pour l'utilisateur lui-même
+      allow read: if isAuthenticated() && request.auth.uid == userId;
+
+      // Upload: autorisée uniquement pour son propre dossier avec validation
+      allow write: if isAuthenticated() &&
+                      request.auth.uid == userId &&
+                      isValidSize() &&
+                      isValidContentType();
+
+      // Suppression: autorisée uniquement pour l'utilisateur lui-même
+      allow delete: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // --- RÈGLES POUR LES AVATARS ---
+    match /avatars/{userId} {
+      allow read: if true; // Lecture publique des avatars
+
+      allow write: if isAuthenticated() &&
+                      request.auth.uid == userId &&
+                      request.resource.size < 2 * 1024 * 1024 && // Max 2MB
+                      request.resource.contentType.matches('image/.*');
+    }
+
+    // --- RÈGLES POUR LES FICHIERS COMMUNAUTAIRES (si implémenté) ---
+    match /communities/{communityId}/{allPaths=**} {
+      allow read: if isAuthenticated();
+
+      allow write: if isAuthenticated() &&
+                      isValidSize() &&
+                      isValidContentType();
+    }
+
+    // --- BLOQUER TOUT LE RESTE ---
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

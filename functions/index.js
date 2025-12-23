@@ -1,5 +1,6 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 
+<<<<<<< HEAD
 // Configuration Gemini API REST v1beta (Nécessaire pour systemInstruction & JSON mode)
 // Dernière mise à jour: 2025-12-23
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
@@ -8,6 +9,13 @@ const GEMINI_MODEL = "gemini-1.5-flash";
 
 // 🔴 FIX : Passage en 'v1beta' au lieu de 'v1' pour supporter les instructions système
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+=======
+// Configuration Gemini API REST v1 (sans SDK)
+// Dernière mise à jour: 2025-12-23
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = "gemini-1.5-flash-latest";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+>>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
 
 exports.generateContent = onCall({cors: true}, async (request) => {
   // 1. Sécurité : Vérifier si l'utilisateur est connecté
@@ -82,13 +90,20 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       throw new HttpsError("invalid-argument", "Mode invalide.");
     }
 
+<<<<<<< HEAD
     // --- APPEL GEMINI API REST v1beta ---
+=======
+    // --- APPEL GEMINI API REST v1 ---
+>>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
     const requestBody = {
       contents: [{
         role: "user",
         parts: [{text: prompt}],
       }],
+<<<<<<< HEAD
       // Ce champ nécessite v1beta
+=======
+>>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
       systemInstruction: {
         parts: [{text: systemInstruction}],
       },
@@ -109,18 +124,24 @@ exports.generateContent = onCall({cors: true}, async (request) => {
 
     if (!response.ok) {
       const errorText = await response.text();
+<<<<<<< HEAD
       // On loggue l'erreur brute pour le debug
       console.error("Gemini API Error details:", errorText); 
+=======
+>>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
       throw new Error(`Gemini API error (${response.status}): ${errorText}`);
     }
 
     const result = await response.json();
+<<<<<<< HEAD
     
     // Vérification de sécurité si la réponse est vide
     if (!result.candidates || !result.candidates[0] || !result.candidates[0].content) {
          throw new Error("Réponse vide de l'IA (Filtrage de sécurité possible)");
     }
 
+=======
+>>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
     const responseText = result.candidates[0].content.parts[0].text;
 
     if (mode === "quiz") {
@@ -142,6 +163,10 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     console.error("Error in generateContent:", {
       errorMessage: error.message,
       errorCode: error.code,
+<<<<<<< HEAD
+=======
+      errorStack: error.stack,
+>>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
       mode,
       topic,
     });

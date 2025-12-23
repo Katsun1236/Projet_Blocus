@@ -1,7 +1,11 @@
-/* assets/css/style.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
 
+/* Variables CSS */
 :root {
     --bg-dark: #050505;
     --accent-primary: #6366f1;
@@ -22,7 +26,7 @@ body {
 
 /* --- TYPOGRAPHY --- */
 h1, h2, h3, .font-display {
-    font-family: 'Space Grotesk', sans-serif; /* Police plus "Tech/Futur" */
+    font-family: 'Space Grotesk', sans-serif;
     letter-spacing: -0.02em;
 }
 
@@ -125,7 +129,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 /* Amélioration du contraste des textes gris */
 .text-gray-400 {
-    color: #9ca3af !important; /* Meilleur contraste */
+    color: #9ca3af !important;
 }
 
 .text-gray-500 {

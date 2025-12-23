@@ -30,9 +30,7 @@ async function updateUserCount() {
         const count = snapshot.data().count;
         
         // Affichage formaté (ex: "+ 150 étudiants")
-        // On ajoute une base fictive pour faire "pro" si peu d'inscrits au début ;)
-        const displayCount = count > 10 ? count : count + 42; 
-        dom.userCountDisplay.textContent = `Rejoint par +${displayCount} étudiants`;
+        dom.userCountDisplay.textContent = count > 0 ? `Rejoint par +${count} étudiants` : "Rejoins la communauté d'étudiants";
     } catch (error) {
         console.error("Erreur comptage utilisateurs:", error);
         dom.userCountDisplay.textContent = "Rejoint par des étudiants motivés";
