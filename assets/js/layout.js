@@ -143,13 +143,17 @@ function injectSidebar(activePageId) {
         <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-30 hidden md:flex flex-col transition-transform duration-300">
             <!-- Logo -->
             <div class="h-20 flex items-center px-8 border-b border-gray-800/50">
-                <img src="${rootPath}assets/images/owl-logo.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
+                <img src="${rootPath}assets/images/locus-profile-sidebar.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
                 <span class="text-xl font-display font-bold text-white tracking-wide">Blocus<span class="text-indigo-500">.</span></span>
             </div>
 
             <!-- Nav Links -->
             <nav class="flex-grow p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                ${renderNavLink('dashboard', 'Dashboard', 'fa-home', basePath + 'dashboard.html', activePageId)}
+                <a href="${rootPath}index.html" id="home-link" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group text-gray-400 hover:text-white hover:bg-white/5 border-b border-gray-800/50 mb-2">
+                    <i class="fas fa-arrow-left w-5 text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span>Retour à l'accueil</span>
+                </a>
+                ${renderNavLink('dashboard', 'Dashboard', 'fa-th-large', basePath + 'dashboard.html', activePageId)}
                 ${renderNavLink('courses', 'Mes Cours', 'fa-folder-open', basePath + 'courses.html', activePageId)}
                 ${renderNavLink('quiz', 'Quiz & IA', 'fa-brain', basePath + 'quiz.html', activePageId)}
                 ${renderNavLink('flashcards', 'Flashcards', 'fa-layer-group', basePath + 'flashcards.html', activePageId)}
@@ -176,6 +180,9 @@ function injectSidebar(activePageId) {
                 <button id="close-mobile-menu" class="text-gray-400 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
             </div>
             <nav class="space-y-4">
+                <a href="${rootPath}index.html" class="block text-lg text-indigo-400 hover:text-indigo-300 border-b border-gray-800 pb-4 mb-4">
+                    <i class="fas fa-arrow-left mr-2"></i> Retour à l'accueil
+                </a>
                 <a href="${basePath}dashboard.html" class="block text-lg text-gray-300 hover:text-white">Dashboard</a>
                 <a href="${basePath}courses.html" class="block text-lg text-gray-300 hover:text-white">Mes Cours</a>
                 <a href="${basePath}quiz.html" class="block text-lg text-gray-300 hover:text-white">Quiz IA</a>
