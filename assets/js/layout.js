@@ -144,7 +144,7 @@ function injectSidebar(activePageId) {
 
     container.innerHTML = `
         <!-- SIDEBAR DESKTOP -->
-        <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-40 hidden md:flex flex-col transition-transform duration-300">
+        <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-30 hidden md:flex flex-col transition-transform duration-300">
             <!-- Logo -->
             <div class="h-20 flex items-center px-8 border-b border-gray-800/50">
                 <img src="${rootPath}assets/images/owl-logo.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
@@ -172,7 +172,7 @@ function injectSidebar(activePageId) {
         </aside>
 
         <!-- MENU MOBILE OVERLAY -->
-        <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-black/95 flex flex-col p-6 md:hidden animate-fade-in">
+        <div id="mobile-menu" class="hidden fixed inset-0 z-20 bg-black/95 flex flex-col p-6 md:hidden animate-fade-in">
             <div class="flex justify-between items-center mb-8">
                 <span class="text-xl font-bold text-white">Menu</span>
                 <button id="close-mobile-menu" class="text-gray-400 hover:text-white"><i class="fas fa-times text-2xl"></i></button>

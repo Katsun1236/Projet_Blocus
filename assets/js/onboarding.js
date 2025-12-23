@@ -64,15 +64,21 @@ class OnboardingTutorial {
 
     async shouldShowTutorial() {
         const user = auth.currentUser;
-        if (!user) return false;
+        if (!user) {
+            console.debug('[onboarding] User not authenticated');
+            return false;
+        }
 
         try {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
                 const data = userDoc.data();
+                const hasCompleted = data.hasCompletedOnboarding === true;
+                console.debug('[onboarding] User exists, hasCompletedOnboarding:', hasCompleted);
                 // Vérifier si l'utilisateur a déjà vu le tutoriel
-                return !data.hasCompletedOnboarding;
+                return !hasCompleted;
             }
+            console.debug('[onboarding] New user (no doc)');
             return true; // Nouvel utilisateur
         } catch (error) {
             console.error("Erreur vérification tutoriel:", error);
@@ -81,11 +87,19 @@ class OnboardingTutorial {
     }
 
     async start() {
-        if (this.isActive) return;
+        if (this.isActive) {
+            console.debug('[onboarding] Already active, skipping');
+            return;
+        }
 
+        console.debug('[onboarding] Starting tutorial check...');
         const shouldShow = await this.shouldShowTutorial();
-        if (!shouldShow) return;
+        if (!shouldShow) {
+            console.debug('[onboarding] User already completed tutorial, skipping');
+            return;
+        }
 
+        console.debug('[onboarding] Showing tutorial...');
         this.isActive = true;
         this.currentStep = 0;
         this.createOverlay();
@@ -97,20 +111,20 @@ class OnboardingTutorial {
         // Overlay assombrissant
         this.overlay = document.createElement('div');
         this.overlay.id = 'onboarding-overlay';
-        this.overlay.className = 'fixed inset-0 bg-black/80 z-[9998] transition-all duration-300';
+        this.overlay.className = 'fixed inset-0 bg-black/80 z-[99997] transition-all duration-300';
         document.body.appendChild(this.overlay);
 
         // Spotlight circulaire
         this.spotlight = document.createElement('div');
         this.spotlight.id = 'onboarding-spotlight';
-        this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)] pointer-events-none z-[9999] transition-all duration-500';
+        this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 shadow-[0_0_0_9999px_rgba(0,0,0,0.8)] pointer-events-none z-[99998] transition-all duration-500';
         document.body.appendChild(this.spotlight);
     }
 
     createMascot() {
         this.mascot = document.createElement('div');
         this.mascot.id = 'onboarding-mascot';
-        this.mascot.className = 'fixed z-[10000] bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
+        this.mascot.className = 'fixed z-[99999] bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
 
         this.mascot.innerHTML = `
             <div class="flex items-start gap-4 mb-4">
