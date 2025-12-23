@@ -116,7 +116,7 @@ class OnboardingTutorial {
         this.mascot.style.cssText = 'z-index: 1000001 !important; pointer-events: auto !important;';
 
         // Utiliser une vraie image si disponible, sinon emoji
-        const mascotImage = '../../assets/images/owl-logo.png';
+        const mascotImage = '../../assets/images/locus-happy-mascot.png';
 
         this.mascot.innerHTML = `
             <div class="flex items-start gap-4 mb-4">

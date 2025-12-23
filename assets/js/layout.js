@@ -122,7 +122,7 @@ function injectSidebar(activePageId) {
         <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-40 hidden md:flex flex-col transition-transform duration-300">
             <!-- Logo -->
             <div class="h-20 flex items-center px-8 border-b border-gray-800/50">
-                <img src="${rootPath}assets/images/owl-logo.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
+                <img src="${rootPath}assets/images/locus-profile-sidebar.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
                 <span class="text-xl font-display font-bold text-white tracking-wide">Blocus<span class="text-indigo-500">.</span></span>
             </div>
 
