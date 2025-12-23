@@ -4,7 +4,7 @@ const {defineSecret} = require("firebase-functions/params");
 // Configuration Gemini API REST v1 (sans SDK)
 // Dernière mise à jour: 2025-12-23
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
-const GEMINI_MODEL = "gemini-1.5-flash-latest";
+const GEMINI_MODEL = "gemini-1.5-flash";
 
 exports.generateContent = onCall(
     {cors: true, secrets: [geminiApiKey]},
