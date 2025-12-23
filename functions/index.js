@@ -1,30 +1,16 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 
-<<<<<<< HEAD
-// Configuration Gemini API REST v1beta (Nécessaire pour systemInstruction & JSON mode)
-// Dernière mise à jour: 2025-12-23
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Utilisation du tag stable plutôt que 'latest' pour éviter les surprises
-const GEMINI_MODEL = "gemini-1.5-flash"; 
+const GEMINI_MODEL = "gemini-1.5-flash";
 
-// 🔴 FIX : Passage en 'v1beta' au lieu de 'v1' pour supporter les instructions système
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
-=======
-// Configuration Gemini API REST v1 (sans SDK)
-// Dernière mise à jour: 2025-12-23
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_MODEL = "gemini-1.5-flash-latest";
-const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
->>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
 
 exports.generateContent = onCall({cors: true}, async (request) => {
-  // 1. Sécurité : Vérifier si l'utilisateur est connecté
   if (!request.auth) {
     throw new HttpsError("unauthenticated",
         "Vous devez être connecté pour utiliser l'IA.");
   }
 
-  // 2. Validation des données entrantes
   const inputData = request.data || {};
   const {mode, topic, data, options} = inputData;
 
@@ -37,7 +23,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     let prompt = "";
     let systemInstruction = "";
 
-    // --- MODE QUIZ ---
     if (mode === "quiz") {
       const quizOptions = options || {};
       const count = quizOptions.count || 5;
@@ -51,7 +36,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
         `Contexte: ${data ? String(data).substring(0, 5000) : "Aucun"}. ` +
         `Génère ${count} questions de type ${type}. Langue: Français.`;
 
-    // --- MODE SYNTHÈSE ---
     } else if (mode === "synthesis") {
       const synthOptions = options || {};
       const length = synthOptions.length || "medium";
@@ -90,26 +74,16 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       throw new HttpsError("invalid-argument", "Mode invalide.");
     }
 
-<<<<<<< HEAD
-    // --- APPEL GEMINI API REST v1beta ---
-=======
-    // --- APPEL GEMINI API REST v1 ---
->>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
     const requestBody = {
       contents: [{
         role: "user",
         parts: [{text: prompt}],
       }],
-<<<<<<< HEAD
-      // Ce champ nécessite v1beta
-=======
->>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
       systemInstruction: {
         parts: [{text: systemInstruction}],
       },
       generationConfig: {
         temperature: 0.7,
-        // Ce champ nécessite v1beta pour 'application/json'
         responseMimeType: mode === "quiz" ? "application/json" : "text/plain",
       },
     };
@@ -124,24 +98,16 @@ exports.generateContent = onCall({cors: true}, async (request) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-<<<<<<< HEAD
-      // On loggue l'erreur brute pour le debug
-      console.error("Gemini API Error details:", errorText); 
-=======
->>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
+      console.error("Gemini API Error details:", errorText);
       throw new Error(`Gemini API error (${response.status}): ${errorText}`);
     }
 
     const result = await response.json();
-<<<<<<< HEAD
-    
-    // Vérification de sécurité si la réponse est vide
+
     if (!result.candidates || !result.candidates[0] || !result.candidates[0].content) {
          throw new Error("Réponse vide de l'IA (Filtrage de sécurité possible)");
     }
 
-=======
->>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
     const responseText = result.candidates[0].content.parts[0].text;
 
     if (mode === "quiz") {
@@ -159,29 +125,23 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       return {content: cleanHtml};
     }
   } catch (error) {
-    // Logging détaillé pour debugging
     console.error("Error in generateContent:", {
       errorMessage: error.message,
       errorCode: error.code,
-<<<<<<< HEAD
-=======
-      errorStack: error.stack,
->>>>>>> 93da784ab6191f583fb9382118aab231360f93d5
       mode,
       topic,
     });
 
-    // Messages d'erreur spécifiques
-    if (error.message?.includes("API key")) {
+    if (error.message && error.message.includes("API key")) {
       throw new HttpsError("failed-precondition",
           "Clé API Gemini invalide ou manquante.");
     }
-    if (error.message?.includes("quota")) {
+    if (error.message && error.message.includes("quota")) {
       throw new HttpsError("resource-exhausted",
           "Quota API dépassé. Réessayez plus tard.");
     }
-    if (error.message?.includes("not found") ||
-        error.message?.includes("404")) {
+    if ((error.message && error.message.includes("not found")) ||
+        (error.message && error.message.includes("404"))) {
       throw new HttpsError("failed-precondition",
           "Modèle IA non disponible. Contactez le support.");
     }
