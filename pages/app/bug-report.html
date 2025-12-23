@@ -6,21 +6,9 @@
     <title>Signaler un Bug - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="../../assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex flex-col items-center justify-center">
-    <!-- Script pour masquer lavertissement Tailwind CDN -->
-    <script>
-        const originalWarn = console.warn;
-        console.warn = function(...args) {
-            if (args[0] && args[0].includes && args[0].includes("cdn.tailwindcss.com")) {
-                return; // Masquer lavertissement Tailwind
-            }
-            originalWarn.apply(console, args);
-        };
-    </script>
 
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -10%; right: -10%; background: radial-gradient(circle, rgba(239, 68, 68, 0.15) 0%, transparent 70%);"></div>
@@ -139,6 +127,5 @@
                 btn.innerHTML = originalHTML;
             }
         });
-    </script>
 </body>
 </html>

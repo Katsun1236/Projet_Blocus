@@ -10,16 +10,6 @@
     <link rel="stylesheet" href="../../../assets/css/style.css">
 </head>
 <body class="bg-black text-white min-h-screen font-sans selection:bg-red-500 selection:text-white">
-    <!-- Script pour masquer lavertissement Tailwind CDN -->
-    <script>
-        const originalWarn = console.warn;
-        console.warn = function(...args) {
-            if (args[0] && args[0].includes && args[0].includes("cdn.tailwindcss.com")) {
-                return; // Masquer lavertissement Tailwind
-            }
-            originalWarn.apply(console, args);
-        };
-    </script>
 
     <nav class="border-b border-gray-800 bg-gray-900/50 backdrop-blur-md sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -170,6 +160,5 @@
                 window.location.href = '../../auth/login.html';
             }
         });
-    </script>
 </body>
 </html>

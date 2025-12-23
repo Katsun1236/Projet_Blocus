@@ -7,8 +7,6 @@
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="../../assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
@@ -60,16 +58,6 @@
 </head>
 
 <body id="app-container" class="relative selection:bg-pink-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
-    <!-- Script pour masquer lavertissement Tailwind CDN -->
-    <script>
-        const originalWarn = console.warn;
-        console.warn = function(...args) {
-            if (args[0] && args[0].includes && args[0].includes("cdn.tailwindcss.com")) {
-                return; // Masquer lavertissement Tailwind
-            }
-            originalWarn.apply(console, args);
-        };
-    </script>
 
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -10%; left: 10%; background: radial-gradient(circle, rgba(236, 72, 153, 0.1) 0%, transparent 60%);"></div>
@@ -290,6 +278,5 @@
     <div id="message-box" class="fixed top-4 right-4 z-50"></div>
 
     <!-- Script de logique externalisé -->
-    <script type="module" src="../../assets/js/synthesize.js"></script>
 </body>
 </html>
