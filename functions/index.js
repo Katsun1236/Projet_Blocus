@@ -20,8 +20,8 @@ exports.generateContent = onCall({cors: true}, async (request) => {
         "Le paramètre 'mode' est manquant.");
   }
 
-  // Force l'utilisation du modèle Flash version stable 001
-  const model = genAI.getGenerativeModel({model: "gemini-1.5-flash-001"});
+  // Utilisation du modèle Flash standard (alias stable)
+  const model = genAI.getGenerativeModel({model: "gemini-1.5-flash"});
 
   try {
     let prompt = "";
