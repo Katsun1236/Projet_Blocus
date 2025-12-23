@@ -1,8 +1,8 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {GoogleGenerativeAI} = require("@google/generative-ai");
 
-// Initialisation de Gemini
-// Version Node 20 Force Update
+// Initialisation de Gemini avec nouvelle clé API sécurisée
+// Dernière mise à jour: 2025-12-23
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 exports.generateContent = onCall({cors: true}, async (request) => {
