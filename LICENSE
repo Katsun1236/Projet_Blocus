@@ -1,0 +1,106 @@
+Copyright (c) 2025 Projet Blocus. Tous droits réservés.
+
+================================================================================
+LICENCE PROPRIÉTAIRE - PROJET BLOCUS
+================================================================================
+
+Ce projet et tous ses composants (code source, design, logo, contenu, etc.) sont la propriété exclusive de Projet Blocus.
+
+DROITS D'AUTEUR ET MARQUES
+--------------------------
+
+1. LOGO ET IDENTITÉ VISUELLE
+   - Le logo "Projet Blocus" (symbole "B." et typographie associée)
+   - La charte graphique et le design de l'interface
+   - Les couleurs et éléments visuels distinctifs
+   Tous ces éléments sont protégés par le droit d'auteur et ne peuvent être reproduits, modifiés ou utilisés sans autorisation écrite préalable.
+
+2. CODE SOURCE
+   - L'architecture logicielle
+   - Le code JavaScript, HTML, CSS
+   - Les algorithmes et fonctionnalités
+   Sont protégés par le droit d'auteur et ne peuvent être copiés, modifiés ou redistribués sans autorisation.
+
+3. CONTENU
+   - Les textes, descriptions et documentation
+   - Les exemples et tutoriels
+   - La structure et l'organisation du contenu
+   Sont la propriété intellectuelle de Projet Blocus.
+
+RESTRICTIONS
+------------
+
+Sans autorisation écrite préalable de Projet Blocus, vous NE POUVEZ PAS :
+
+❌ Copier, reproduire ou dupliquer tout ou partie du code
+❌ Modifier, adapter ou créer des œuvres dérivées
+❌ Distribuer, vendre ou louer le code ou le service
+❌ Utiliser le logo, le nom ou l'identité visuelle pour d'autres projets
+❌ Extraire ou réutiliser des composants pour d'autres applications
+❌ Créer des services concurrents basés sur ce code
+❌ Supprimer ou modifier les mentions de copyright
+
+UTILISATION AUTORISÉE
+---------------------
+
+✅ Consulter le code source à des fins éducatives personnelles
+✅ Étudier l'architecture et les patterns de développement
+✅ Créer un fork privé pour contribuer au projet (sous réserve d'acceptation)
+
+PROPRIÉTÉ INTELLECTUELLE
+------------------------
+
+Projet Blocus revendique la propriété intellectuelle complète sur :
+- Le concept et l'idée du service
+- L'implémentation technique
+- Le design et l'expérience utilisateur
+- Les algorithmes et la logique métier
+- La base de données et sa structure
+- Les intégrations avec les services tiers
+
+DÉPÔT DE MARQUE ET COPYRIGHT
+----------------------------
+
+Le nom "Projet Blocus" et son logo sont en cours de dépôt auprès de :
+- L'INPI (Institut National de la Propriété Industrielle) pour la marque
+- Le droit d'auteur français et européen pour les créations originales
+
+TECHNOLOGIES TIERCES
+--------------------
+
+Ce projet utilise des bibliothèques et services tiers qui ont leurs propres licences :
+- Firebase (Google) - Soumis aux conditions d'utilisation de Google
+- Tailwind CSS - Licence MIT
+- Font Awesome - Licence Font Awesome Free
+- Google Gemini AI - Soumis aux conditions d'utilisation de Google AI
+
+L'utilisation de ces technologies tierces ne confère aucun droit sur le code propriétaire de Projet Blocus.
+
+VIOLATIONS
+----------
+
+Toute violation de cette licence peut entraîner :
+- Des poursuites judiciaires pour contrefaçon
+- Des dommages et intérêts
+- Des injonctions de cessation
+
+CONTACT
+-------
+
+Pour toute demande d'autorisation d'utilisation ou de licence :
+Email : contact@projet-blocus.fr
+
+CLAUSE DE NON-GARANTIE
+----------------------
+
+CE LOGICIEL EST FOURNI "TEL QUEL", SANS GARANTIE D'AUCUNE SORTE, EXPRESSE OU IMPLICITE, Y COMPRIS, MAIS SANS S'Y LIMITER, LES GARANTIES DE QUALITÉ MARCHANDE, D'ADÉQUATION À UN USAGE PARTICULIER ET D'ABSENCE DE CONTREFAÇON. EN AUCUN CAS, LES AUTEURS OU LES DÉTENTEURS DU COPYRIGHT NE PEUVENT ÊTRE TENUS RESPONSABLES DE TOUTE RÉCLAMATION, DOMMAGE OU AUTRE RESPONSABILITÉ.
+
+================================================================================
+
+Date d'effet : 23 décembre 2025
+
+Pour plus d'informations sur vos droits et obligations :
+https://www.inpi.fr (propriété intellectuelle en France)
+https://www.cnil.fr (protection des données)
+
+©️ 2025 Projet Blocus. Tous droits réservés.

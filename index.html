@@ -47,9 +47,7 @@
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <!-- Logo -->
             <a href="#" class="flex items-center gap-3 group z-50">
-                <div class="w-9 h-9 bg-white text-black rounded-lg flex items-center justify-center font-bold text-xl tracking-tighter group-hover:rotate-12 transition-transform">
-                    B.
-                </div>
+                <img src="assets/images/owl-logo.png" alt="Projet Blocus Logo" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform">
                 <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
             </a>
 
@@ -103,7 +101,7 @@
             </div>
 
             <!-- Mobile Menu Button -->
-            <button id="mobile-menu-btn" class="md:hidden text-gray-300 hover:text-white text-2xl focus:outline-none" aria-label="Ouvrir le menu mobile" aria-expanded="false" aria-controls="mobile-menu">
+            <button id="mobile-menu-btn" class="relative z-50 md:hidden text-gray-300 hover:text-white text-2xl focus:outline-none" aria-label="Ouvrir le menu mobile" aria-expanded="false" aria-controls="mobile-menu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
@@ -269,14 +267,15 @@
     </section>
 
     <footer class="py-12 text-center text-gray-600 border-t border-gray-900 bg-black">
-        <p class="text-sm font-mono">&copy; 2025 PROJET BLOCUS. SYSTEME ACTIF.</p>
+        <p class="text-sm font-mono">&copy; 2025 PROJET BLOCUS. TOUS DROITS RÉSERVÉS.</p>
         <div class="flex justify-center gap-4 mt-4 text-xs uppercase tracking-widest opacity-50">
-            <a href="#" class="hover:text-white">CGU</a>
+            <a href="pages/legal/cgu.html" class="hover:text-white transition-colors">CGU</a>
             <span>•</span>
-            <a href="#" class="hover:text-white">Confidentialité</a>
+            <a href="pages/legal/confidentialite.html" class="hover:text-white transition-colors">Confidentialité</a>
             <span>•</span>
-            <a href="#" class="hover:text-white">Contact</a>
+            <a href="pages/legal/contact.html" class="hover:text-white transition-colors">Contact</a>
         </div>
+        <p class="text-xs mt-4 opacity-30">Logo et marque déposés. Voir LICENSE pour plus d'informations.</p>
     </footer>
 
     <!-- Script de gestion d'état -->

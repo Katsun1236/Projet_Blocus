@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Profil - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    <script src//assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../../assets/css/output.css">
     <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    
+    <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
         .content-glass {
@@ -34,7 +34,6 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
         }
     </style>
-    <script src//assets/js/suppress-warnings.js"></script>
 </head>
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
@@ -48,7 +47,7 @@
         
         <!-- HEADER MOBILE -->
         <header class="h-16 border-b border-gray-800/50 flex md:hidden items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm z-30">
-            <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+            <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
             <span class="font-bold text-lg text-white">Mon Profil</span>
             <div class="w-6"></div> 
         </header>
@@ -244,6 +243,7 @@
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 
     <!-- Script Principal -->
+    <script type="module" src="../../assets/js/profile.js"></script>
 
 </body>
 </html>

@@ -25,16 +25,14 @@ service cloud.firestore {
 
     // --- RÈGLES POUR LES UTILISATEURS ---
     match /users/{userId} {
-      // Lecture: autorisée pour l'utilisateur lui-même
-      allow read: if isOwner(userId);
+      // Lecture: autorisée pour l'utilisateur lui-même ou publique (profils)
+      allow read: if isAuthenticated();
 
       // Création: autorisée uniquement pour son propre compte avec validation
       allow create: if isOwner(userId) && isValidUserData();
 
       // Mise à jour: autorisée uniquement pour son propre compte
-      // Ne peut pas modifier email et createdAt
-      allow update: if isOwner(userId) &&
-                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['email', 'createdAt']);
+      allow update: if isOwner(userId);
 
       // Suppression: autorisée uniquement pour son propre compte
       allow delete: if isOwner(userId);
@@ -64,25 +62,77 @@ service cloud.firestore {
       // Notifications de l'utilisateur
       match /notifications/{notifId} {
         allow read, update, delete: if isOwner(userId);
-        // Création réservée aux Cloud Functions
-        allow create: if false;
+        allow create: if isOwner(userId);
+      }
+
+      // Planning/événements de l'utilisateur
+      match /planning/{eventId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /events/{eventId} {
+        allow read, write: if isOwner(userId);
       }
     }
 
-    // --- RÈGLES POUR LES COMMUNAUTÉS (si implémenté) ---
-    match /communities/{communityId} {
-      // Lecture publique des communautés
-      allow read: if isAuthenticated();
+    // --- COLLECTIONS TOP-LEVEL (utilisées par le code) ---
 
-      // Création: nécessite authentification
+    // Synthèses (collection top-level)
+    match /syntheses/{synthesisId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
       allow create: if isAuthenticated() &&
-                       request.resource.data.ownerId == request.auth.uid;
-
-      // Mise à jour/suppression: uniquement par le propriétaire
+                       request.resource.data.userId == request.auth.uid;
       allow update, delete: if isAuthenticated() &&
-                               resource.data.ownerId == request.auth.uid;
+                               resource.data.userId == request.auth.uid;
+    }
 
-      // Messages de la communauté
+    // Fichiers/Cours (collection top-level)
+    match /files/{fileId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // Résultats de quiz (collection top-level)
+    match /quiz_results/{resultId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // Communauté - contributeurs
+    match /community_contributors/{contributorId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.userId == request.auth.uid;
+    }
+
+    // Communauté - posts
+    match /community_posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.authorId == request.auth.uid;
+    }
+
+    // Communauté - discussions
+    match /discussions/{discussionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.authorId == request.auth.uid;
+
+      // Messages dans les discussions
       match /messages/{messageId} {
         allow read: if isAuthenticated();
         allow create: if isAuthenticated() &&
@@ -92,10 +142,52 @@ service cloud.firestore {
       }
     }
 
-    // --- RÈGLES POUR LES STATISTIQUES GLOBALES (lecture seule) ---
+    // Forums
+    match /forums/{forumId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.ownerId == request.auth.uid;
+
+      // Topics dans les forums
+      match /topics/{topicId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() &&
+                         request.resource.data.authorId == request.auth.uid;
+        allow update, delete: if isAuthenticated() &&
+                                 resource.data.authorId == request.auth.uid;
+
+        // Réponses dans les topics
+        match /replies/{replyId} {
+          allow read: if isAuthenticated();
+          allow create: if isAuthenticated() &&
+                           request.resource.data.authorId == request.auth.uid;
+          allow update, delete: if isAuthenticated() &&
+                                   resource.data.authorId == request.auth.uid;
+        }
+      }
+    }
+
+    // --- RÈGLES POUR LES STATISTIQUES GLOBALES ---
     match /stats/{statId} {
-      allow read: if true; // Public
+      allow read: if isAuthenticated();
       allow write: if false; // Uniquement via Cloud Functions
+    }
+
+    // Statistiques utilisateur
+    match /user_stats/{userId} {
+      allow read: if isAuthenticated() && userId == request.auth.uid;
+      allow write: if isAuthenticated() && userId == request.auth.uid;
+    }
+
+    // Activité récente
+    match /recent_activity/{activityId} {
+      allow read: if isAuthenticated() &&
+                     resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() &&
+                               resource.data.userId == request.auth.uid;
     }
 
     // --- BLOQUER TOUT LE RESTE ---

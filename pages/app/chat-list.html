@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Discussions - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    <script src//assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../../assets/css/output.css">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    
+    <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
         .sidebar-glass {
@@ -35,7 +34,6 @@
             color: #e5e7eb;
         }
     </style>
-    <script src//assets/js/suppress-warnings.js"></script>
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
@@ -150,7 +148,7 @@
 
     <!-- JAVASCRIPT -->
     <script type="module">
-        import { auth, db } from/assets/js/config.js';
+        import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { doc, getDoc, collection, onSnapshot, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
@@ -338,5 +336,6 @@
                 window.location.href = '../auth/login.html';
             }
         });
+    </script>
 </body>
 </html>

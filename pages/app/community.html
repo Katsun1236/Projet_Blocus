@@ -5,14 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Communauté - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    <script src//assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../../assets/css/output.css">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    
+    <link rel="stylesheet" href="../../assets/css/style.css">
     
     <style>
         .content-glass {
@@ -33,7 +32,6 @@
             animation: scale-up 0.2s ease-out forwards;
         }
     </style>
-    <script src//assets/js/suppress-warnings.js"></script>
 </head>
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
@@ -46,7 +44,7 @@
         <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30">
             <div class="flex items-center gap-4 md:hidden">
-                <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Communauté</span>
             </div>
             
@@ -509,6 +507,7 @@
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 
     <!-- Script Principal -->
+    <script type="module" src="../../assets/js/community.js"></script>
 
 </body>
 </html>

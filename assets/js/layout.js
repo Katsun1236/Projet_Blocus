@@ -11,14 +11,8 @@ export function initLayout(activePageId) {
         injectSidebar(activePageId);
     }
 
-    // 2. Mobile Menu Logic
-    const btn = document.getElementById('mobile-menu-btn');
-    const menu = document.getElementById('mobile-menu');
-    if (btn && menu) {
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
-    }
+    // 2. Mobile Menu Logic - Configuration après injection ou si existant
+    setupMobileMenu();
 
     // 3. HEADER PROFIL LOGIC (Chargement Auto)
     // On écoute l'auth ici pour mettre à jour le header globalement
@@ -39,6 +33,39 @@ export function initLayout(activePageId) {
                 window.location.href = 'profile.html';
             } else {
                 window.location.href = 'pages/app/profile.html';
+            }
+        });
+    }
+}
+
+// Fonction pour configurer le menu mobile
+function setupMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const closeMenuBtn = document.getElementById('close-mobile-menu');
+
+    if (mobileMenuBtn && mobileMenu) {
+        // Retirer les listeners existants
+        mobileMenuBtn.replaceWith(mobileMenuBtn.cloneNode(true));
+        const newBtn = document.getElementById('mobile-menu-btn');
+
+        newBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
+    if (closeMenuBtn && mobileMenu) {
+        closeMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+        });
+    }
+
+    // Fermer le menu en cliquant en dehors
+    if (mobileMenu) {
+        mobileMenu.addEventListener('click', (e) => {
+            if (e.target === mobileMenu) {
+                mobileMenu.classList.add('hidden');
             }
         });
     }
@@ -95,9 +122,7 @@ function injectSidebar(activePageId) {
         <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-40 hidden md:flex flex-col transition-transform duration-300">
             <!-- Logo -->
             <div class="h-20 flex items-center px-8 border-b border-gray-800/50">
-                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
-                    <i class="fas fa-cube text-white text-lg"></i>
-                </div>
+                <img src="${rootPath}assets/images/owl-logo.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
                 <span class="text-xl font-display font-bold text-white tracking-wide">Blocus<span class="text-indigo-500">.</span></span>
             </div>
 
@@ -148,16 +173,8 @@ function injectSidebar(activePageId) {
         }
     });
 
-    const closeMenuBtn = document.getElementById('close-mobile-menu');
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-
-    if (closeMenuBtn && mobileMenu) {
-        closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-    }
-    if (mobileMenuBtn && mobileMenu) {
-        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
-    }
+    // Configuration du menu mobile après injection
+    setupMobileMenu();
 }
 
 function renderNavLink(id, label, icon, href, activeId) {
@@ -168,7 +185,7 @@ function renderNavLink(id, label, icon, href, activeId) {
     const iconClass = isActive ? "text-white" : "text-gray-500 group-hover:text-indigo-400 transition-colors";
 
     return `
-        <a href="${href}" class="${baseClass} ${isActive ? activeClass : inactiveClass}">
+        <a id="${id}-link" href="${href}" class="${baseClass} ${isActive ? activeClass : inactiveClass}">
             <i class="fas ${icon} w-5 ${iconClass}"></i>
             <span>${label}</span>
             ${isActive ? '<i class="fas fa-chevron-right ml-auto text-xs opacity-50"></i>' : ''}
