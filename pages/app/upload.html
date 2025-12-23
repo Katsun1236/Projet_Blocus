@@ -5,10 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload - Projet Blocus</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../../assets/js/suppress-warnings.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
 </head>
 <body class="bg-gray-900 text-white font-sans antialiased">
+    <!-- Script pour masquer lavertissement Tailwind CDN -->
+    <script>
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && args[0].includes && args[0].includes("cdn.tailwindcss.com")) {
+                return; // Masquer lavertissement Tailwind
+            }
+            originalWarn.apply(console, args);
+        };
+    </script>
     
     <!-- Noise Overlay -->
     <div class="noise-overlay"></div>

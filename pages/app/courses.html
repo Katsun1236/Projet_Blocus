@@ -10,6 +10,7 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
+    <script src="../../assets/js/suppress-warnings.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
     
@@ -38,6 +39,16 @@
 </head>
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+    <!-- Script pour masquer lavertissement Tailwind CDN -->
+    <script>
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && args[0].includes && args[0].includes("cdn.tailwindcss.com")) {
+                return; // Masquer lavertissement Tailwind
+            }
+            originalWarn.apply(console, args);
+        };
+    </script>
 
     <!-- FOND ANIMÉ -->
     <div class="noise-overlay"></div>

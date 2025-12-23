@@ -29,6 +29,17 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white bg-[#050505] text-white">
 
+    <!-- Script pour masquer l'avertissement Tailwind CDN -->
+    <script>
+        const originalWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && args[0].includes && args[0].includes('cdn.tailwindcss.com')) {
+                return; // Masquer l'avertissement Tailwind
+            }
+            originalWarn.apply(console, args);
+        };
+    </script>
+
     <!-- Skip to main content for accessibility -->
     <a href="#main-content" class="skip-to-main">Aller au contenu principal</a>
 
