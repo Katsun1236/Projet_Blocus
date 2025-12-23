@@ -1,9 +1,10 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
-const {GoogleGenerativeAI} = require("@google/generative-ai");
 
-// Initialisation de Gemini avec nouvelle clé API sécurisée
+// Configuration Gemini API REST v1 (sans SDK)
 // Dernière mise à jour: 2025-12-23
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_MODEL = "gemini-1.5-flash-latest";
+const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
 
 exports.generateContent = onCall({cors: true}, async (request) => {
   // 1. Sécurité : Vérifier si l'utilisateur est connecté
@@ -20,11 +21,6 @@ exports.generateContent = onCall({cors: true}, async (request) => {
     throw new HttpsError("invalid-argument",
         "Le paramètre 'mode' est manquant.");
   }
-
-  // Utilisation de Gemini Pro (seul modèle compatible avec SDK v0.24.0)
-  const model = genAI.getGenerativeModel({
-    model: "gemini-pro",
-  });
 
   try {
     let prompt = "";
@@ -83,17 +79,36 @@ exports.generateContent = onCall({cors: true}, async (request) => {
       throw new HttpsError("invalid-argument", "Mode invalide.");
     }
 
-    // --- APPEL GEMINI ---
-    const result = await model.generateContent({
-      contents: [{role: "user", parts: [{text: prompt}]}],
-      systemInstruction: {parts: [{text: systemInstruction}]},
+    // --- APPEL GEMINI API REST v1 ---
+    const requestBody = {
+      contents: [{
+        role: "user",
+        parts: [{text: prompt}],
+      }],
+      systemInstruction: {
+        parts: [{text: systemInstruction}],
+      },
       generationConfig: {
         temperature: 0.7,
         responseMimeType: mode === "quiz" ? "application/json" : "text/plain",
       },
+    };
+
+    const response = await fetch(GEMINI_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
     });
 
-    const responseText = result.response.text();
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Gemini API error (${response.status}): ${errorText}`);
+    }
+
+    const result = await response.json();
+    const responseText = result.candidates[0].content.parts[0].text;
 
     if (mode === "quiz") {
       try {
