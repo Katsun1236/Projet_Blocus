@@ -128,7 +128,11 @@ function injectSidebar(activePageId) {
 
             <!-- Nav Links -->
             <nav class="flex-grow p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                ${renderNavLink('dashboard', 'Dashboard', 'fa-home', basePath + 'dashboard.html', activePageId)}
+                <a href="${rootPath}index.html" id="home-link" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group text-gray-400 hover:text-white hover:bg-white/5 border-b border-gray-800/50 mb-2">
+                    <i class="fas fa-arrow-left w-5 text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span>Retour à l'accueil</span>
+                </a>
+                ${renderNavLink('dashboard', 'Dashboard', 'fa-th-large', basePath + 'dashboard.html', activePageId)}
                 ${renderNavLink('courses', 'Mes Cours', 'fa-folder-open', basePath + 'courses.html', activePageId)}
                 ${renderNavLink('quiz', 'Quiz & IA', 'fa-brain', basePath + 'quiz.html', activePageId)}
                 ${renderNavLink('synthesize', 'Synthèses', 'fa-magic', basePath + 'synthesize.html', activePageId)}
@@ -153,6 +157,9 @@ function injectSidebar(activePageId) {
                 <button id="close-mobile-menu" class="text-gray-400 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
             </div>
             <nav class="space-y-4">
+                <a href="${rootPath}index.html" class="block text-lg text-indigo-400 hover:text-indigo-300 border-b border-gray-800 pb-4 mb-4">
+                    <i class="fas fa-arrow-left mr-2"></i> Retour à l'accueil
+                </a>
                 <a href="${basePath}dashboard.html" class="block text-lg text-gray-300 hover:text-white">Dashboard</a>
                 <a href="${basePath}courses.html" class="block text-lg text-gray-300 hover:text-white">Mes Cours</a>
                 <a href="${basePath}quiz.html" class="block text-lg text-gray-300 hover:text-white">Quiz IA</a>
