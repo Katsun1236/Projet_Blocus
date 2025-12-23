@@ -1,0 +1,78 @@
+{
+  "name": "Projet Blocus - Révision Assistée par IA",
+  "short_name": "Blocus",
+  "description": "L'outil ultime qui transforme tes notes en synthèses IA, quiz instantanés et fiches de révision. Révise plus efficacement avec Projet Blocus.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#050505",
+  "theme_color": "#6366f1",
+  "orientation": "portrait-primary",
+  "categories": ["education", "productivity"],
+  "lang": "fr-FR",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/assets/images/owl-logo.png",
+      "sizes": "311x311",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/images/locus_logo.png",
+      "sizes": "119x119",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/images/locus_asset1.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "label": "Dashboard principal"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Accueil",
+      "description": "Accéder au tableau de bord",
+      "url": "/pages/app/dashboard.html",
+      "icons": [{ "src": "/assets/images/locus_logo.png", "sizes": "119x119" }]
+    },
+    {
+      "name": "Quiz",
+      "short_name": "Quiz",
+      "description": "Créer un quiz",
+      "url": "/pages/app/quiz.html",
+      "icons": [{ "src": "/assets/images/locus_question.png", "sizes": "223x223" }]
+    },
+    {
+      "name": "Synthèses",
+      "short_name": "Synthèses",
+      "description": "Générer une synthèse IA",
+      "url": "/pages/app/synthesize.html",
+      "icons": [{ "src": "/assets/images/locus_lecture.png", "sizes": "237x237" }]
+    },
+    {
+      "name": "Communauté",
+      "short_name": "Communauté",
+      "description": "Voir la communauté",
+      "url": "/pages/app/community.html",
+      "icons": [{ "src": "/assets/images/locus_heureux.png", "sizes": "212x212" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "permissions": [
+    "storage",
+    "notifications"
+  ],
+  "offline_enabled": true,
+  "features": [
+    "Cross-Platform",
+    "Offline Support",
+    "Push Notifications"
+  ]
+}
