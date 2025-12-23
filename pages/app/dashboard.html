@@ -503,8 +503,8 @@
                 setupNotifications(currentUserId);
                 loadDashboardData(currentUserId);
 
-                // Démarrer le tutoriel pour les nouveaux utilisateurs
-                setTimeout(() => onboarding.start(), 1000);
+                // Démarrer le tutoriel pour les nouveaux utilisateurs (délai augmenté pour attendre le sidebar)
+                setTimeout(() => onboarding.start(), 2500);
 
             } else {
                 window.location.href = '../auth/login.html';

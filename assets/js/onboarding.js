@@ -6,7 +6,7 @@ const TUTORIAL_STEPS = [
     {
         target: '#dashboard-link',
         title: "Bienvenue sur Projet Blocus ! 🦉",
-        message: "Je suis Hoot, ta mascotte ! Je vais te guider pour découvrir toutes les fonctionnalités. Clique sur 'Suivant' pour commencer !",
+        message: "Je suis Locus, ta mascotte ! Je vais te guider pour découvrir toutes les fonctionnalités. Clique sur 'Suivant' pour commencer !",
         position: 'right'
     },
     {
@@ -198,7 +198,12 @@ class OnboardingTutorial {
         if (step.target) {
             const target = document.querySelector(step.target);
             if (!target) {
-                console.warn(`Target not found: ${step.target}`);
+                console.warn(`Target not found: ${step.target}, centering mascot instead`);
+                // Si l'élément n'existe pas, centrer la mascotte
+                this.spotlight.style.opacity = '0';
+                this.mascot.style.top = '50%';
+                this.mascot.style.left = '50%';
+                this.mascot.style.transform = 'translate(-50%, -50%)';
                 return;
             }
 
