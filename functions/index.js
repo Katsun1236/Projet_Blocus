@@ -1,25 +1,13 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
 const {defineSecret} = require("firebase-functions/params");
-
-// Configuration Gemini API REST v1beta (sans SDK)
-// Dernière mise à jour: 2025-12-23
-// Utilise v1beta avec modèles Gemini 2.0 et 1.5 Flash
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
-// Noms de modèles Gemini valides (API v1)
 const GEMINI_MODELS = [
   "gemini-1.5-flash-latest",
   "gemini-1.5-pro-latest",
   "gemini-pro",
 ];
 
-// Fonction pour obtenir l'URL de l'API avec fallback
-/**
- * Génère l'URL de l'API Gemini pour un modèle donné
- * @param {string} apiKey - Clé API Gemini
- * @param {number} modelIndex - Index du modèle à utiliser
- * @return {string} URL de l'API
- */
 function getGeminiApiUrl(apiKey, modelIndex = 0) {
   const model = GEMINI_MODELS[modelIndex];
   const baseUrl = "https://generativelanguage.googleapis.com/v1";
@@ -29,10 +17,8 @@ function getGeminiApiUrl(apiKey, modelIndex = 0) {
 exports.generateContent = onCall(
     {cors: true, secrets: [geminiApiKey]},
     async (request) => {
-      // Récupération sécurisée de la clé API depuis les secrets
       const GEMINI_API_KEY = geminiApiKey.value();
 
-      // Validation de la clé API
       if (!GEMINI_API_KEY) {
         console.error("GEMINI_API_KEY is not configured!");
         throw new HttpsError("failed-precondition",
@@ -40,13 +26,11 @@ exports.generateContent = onCall(
       }
 
       console.log("API Key configured: ✓");
-      // 1. Sécurité : Vérifier si l'utilisateur est connecté
       if (!request.auth) {
         throw new HttpsError("unauthenticated",
             "Vous devez être connecté pour utiliser l'IA.");
       }
 
-      // 2. Validation des données entrantes
       const inputData = request.data || {};
       const {mode, topic, data, options} = inputData;
 
@@ -58,7 +42,6 @@ exports.generateContent = onCall(
       try {
         let fullPrompt = "";
 
-        // --- MODE QUIZ ---
         if (mode === "quiz") {
           const quizOptions = options || {};
           const count = quizOptions.count || 5;
@@ -75,7 +58,6 @@ exports.generateContent = onCall(
 
           fullPrompt = systemInstruction + "\n\n" + userPrompt;
 
-          // --- MODE SYNTHÈSE ---
         } else if (mode === "synthesis") {
           const synthOptions = options || {};
           const length = synthOptions.length || "medium";
@@ -119,7 +101,6 @@ exports.generateContent = onCall(
           throw new HttpsError("invalid-argument", "Mode invalide.");
         }
 
-        // --- APPEL GEMINI API REST v1 (format simplifié) ---
         const requestBody = {
           contents: [{
             parts: [{text: fullPrompt}],
@@ -129,7 +110,6 @@ exports.generateContent = onCall(
           },
         };
 
-        // Essayer avec différents modèles jusqu'à ce qu'un fonctionne
         let response;
         let lastError;
 
@@ -148,10 +128,9 @@ exports.generateContent = onCall(
 
             if (response.ok) {
               console.log(`✓ Succès avec le modèle: ${GEMINI_MODELS[i]}`);
-              break; // Modèle fonctionnel trouvé
+              break; 
             }
 
-            // Récupérer l'erreur pour le log
             const errorText = await response.text();
             const modelName = GEMINI_MODELS[i];
             lastError =
@@ -164,7 +143,6 @@ exports.generateContent = onCall(
           }
         }
 
-        // Si aucun modèle n'a fonctionné
         if (!response || !response.ok) {
           const errorMsg =
             `Tous les modèles Gemini ont échoué. Dernière erreur: ${lastError}`;
@@ -174,7 +152,6 @@ exports.generateContent = onCall(
 
         const result = await response.json();
 
-        // Vérifier que la réponse a le bon format
         if (!result.candidates || !result.candidates[0] ||
             !result.candidates[0].content ||
             !result.candidates[0].content.parts ||
@@ -200,7 +177,6 @@ exports.generateContent = onCall(
           return {content: cleanHtml};
         }
       } catch (error) {
-        // Logging détaillé pour debugging
         console.error("Error in generateContent:", {
           errorMessage: error.message,
           errorCode: error.code,
@@ -209,7 +185,6 @@ exports.generateContent = onCall(
           topic,
         });
 
-        // Messages d'erreur spécifiques
         if (error.message?.includes("API key")) {
           throw new HttpsError("failed-precondition",
               "Clé API Gemini invalide ou manquante.");
