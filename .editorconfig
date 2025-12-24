@@ -1,0 +1,42 @@
+# EditorConfig - Cohérence du code
+# https://editorconfig.org
+
+root = true
+
+# Tous les fichiers
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# JavaScript, JSON
+[*.{js,json}]
+indent_size = 4
+
+# HTML
+[*.html]
+indent_size = 2
+
+# CSS
+[*.css]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+indent_size = 2
+
+# YAML
+[*.{yml,yaml}]
+indent_size = 2
+
+# Fichiers de config
+[{package.json,.prettierrc,.eslintrc,.babelrc}]
+indent_size = 2
+
+# Makefiles (doivent utiliser tabs)
+[Makefile]
+indent_style = tab

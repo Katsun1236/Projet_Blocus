@@ -285,23 +285,28 @@ Voir le fichier complet : [`docs/FEATURES_ROADMAP.md`](docs/FEATURES_ROADMAP.md)
 
 ## 🤝 Contribution
 
-Toutes les contributions sont les bienvenues ! Pour contribuer :
+Toutes les contributions sont les bienvenues ! **Consultez le [Guide de Contribution](docs/CONTRIBUTING.md) pour les détails complets.**
+
+### Quick start
 
 1. **Fork** le projet
-2. Créez une **branche** pour votre feature (`git checkout -b feature/AmazingFeature`)
-3. **Committez** vos changements (`git commit -m 'Add some AmazingFeature'`)
-4. **Push** vers la branche (`git push origin feature/AmazingFeature`)
+2. Créez une **branche** (`git checkout -b feature/AmazingFeature`)
+3. **Committez** (`git commit -m 'feat: add some AmazingFeature'`)
+4. **Push** (`git push origin feature/AmazingFeature`)
 5. Ouvrez une **Pull Request**
 
-### Guidelines de contribution
-- Suivre la structure modulaire existante (un fichier JS par feature)
-- Utiliser ES6+ et modules natifs
-- Tester sur Chrome, Firefox et Safari
-- Documenter les nouvelles fonctionnalités
-- Maintenir la compatibilité PWA
+### Guidelines principales
+- ✅ Suivre la structure modulaire
+- ✅ Utiliser ES6+ et modules natifs
+- ✅ Tester sur Chrome, Firefox et Safari
+- ✅ Documenter les nouvelles fonctionnalités
+- ✅ Maintenir la compatibilité PWA
+- ✅ Respecter les [conventions de code](docs/CONTRIBUTING.md)
 
 ## 📝 Documentation
 
+- **Guide de contribution :** [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md)
+- **Organisation fichiers :** [`docs/FILE_ORGANIZATION.md`](docs/FILE_ORGANIZATION.md)
 - **Roadmap produit :** [`docs/FEATURES_ROADMAP.md`](docs/FEATURES_ROADMAP.md)
 - **État d'implémentation :** [`docs/IMPLEMENTATION_STATUS.md`](docs/IMPLEMENTATION_STATUS.md)
 - **Optimisations :** [`docs/OPTIMIZATIONS.md`](docs/OPTIMIZATIONS.md)
