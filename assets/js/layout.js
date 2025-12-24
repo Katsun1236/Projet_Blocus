@@ -184,12 +184,14 @@ function injectSidebar(activePageId) {
                 <a href="${rootPath}index.html" class="block text-lg text-indigo-400 hover:text-indigo-300 border-b border-gray-800 pb-4 mb-4">
                     <i class="fas fa-arrow-left mr-2"></i> Retour à l'accueil
                 </a>
-                <a href="${basePath}search.html" class="block text-lg text-gray-300 hover:text-white">Recherche</a>
                 <a href="${basePath}dashboard.html" class="block text-lg text-gray-300 hover:text-white">Dashboard</a>
+                <a href="${basePath}search.html" class="block text-lg text-gray-300 hover:text-white">Recherche</a>
                 <a href="${basePath}courses.html" class="block text-lg text-gray-300 hover:text-white">Mes Cours</a>
                 <a href="${basePath}quiz.html" class="block text-lg text-gray-300 hover:text-white">Quiz IA</a>
                 <a href="${basePath}flashcards.html" class="block text-lg text-gray-300 hover:text-white">Flashcards</a>
+                <a href="${basePath}synthesize.html" class="block text-lg text-gray-300 hover:text-white">Synthèses</a>
                 <a href="${basePath}community.html" class="block text-lg text-gray-300 hover:text-white">Communauté</a>
+                <a href="${basePath}planning.html" class="block text-lg text-gray-300 hover:text-white">Planning</a>
                 <a href="${basePath}analytics.html" class="block text-lg text-gray-300 hover:text-white">Statistiques</a>
                 <a href="${basePath}profile.html" class="block text-lg text-gray-300 hover:text-white">Profil</a>
             </nav>
