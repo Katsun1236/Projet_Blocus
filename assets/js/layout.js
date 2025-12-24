@@ -154,14 +154,11 @@ function injectSidebar(activePageId) {
                     <span>Retour à l'accueil</span>
                 </a>
                 ${renderNavLink('dashboard', 'Dashboard', 'fa-th-large', basePath + 'dashboard.html', activePageId)}
-                ${renderNavLink("search", "Recherche", "fa-search", basePath + "search.html", activePageId)}
                 ${renderNavLink('courses', 'Mes Cours', 'fa-folder-open', basePath + 'courses.html', activePageId)}
                 ${renderNavLink('quiz', 'Quiz & IA', 'fa-brain', basePath + 'quiz.html', activePageId)}
-                ${renderNavLink('flashcards', 'Flashcards', 'fa-layer-group', basePath + 'flashcards.html', activePageId)}
                 ${renderNavLink('synthesize', 'Synthèses', 'fa-magic', basePath + 'synthesize.html', activePageId)}
                 ${renderNavLink('community', 'Communauté', 'fa-users', basePath + 'community.html', activePageId)}
                 ${renderNavLink('planning', 'Planning', 'fa-calendar-alt', basePath + 'planning.html', activePageId)}
-                ${renderNavLink('analytics', 'Statistiques', 'fa-chart-line', basePath + 'analytics.html', activePageId)}
             </nav>
 
             <!-- Bottom Actions -->
@@ -185,14 +182,11 @@ function injectSidebar(activePageId) {
                     <i class="fas fa-arrow-left mr-2"></i> Retour à l'accueil
                 </a>
                 <a href="${basePath}dashboard.html" class="block text-lg text-gray-300 hover:text-white">Dashboard</a>
-                <a href="${basePath}search.html" class="block text-lg text-gray-300 hover:text-white">Recherche</a>
                 <a href="${basePath}courses.html" class="block text-lg text-gray-300 hover:text-white">Mes Cours</a>
                 <a href="${basePath}quiz.html" class="block text-lg text-gray-300 hover:text-white">Quiz IA</a>
-                <a href="${basePath}flashcards.html" class="block text-lg text-gray-300 hover:text-white">Flashcards</a>
                 <a href="${basePath}synthesize.html" class="block text-lg text-gray-300 hover:text-white">Synthèses</a>
                 <a href="${basePath}community.html" class="block text-lg text-gray-300 hover:text-white">Communauté</a>
                 <a href="${basePath}planning.html" class="block text-lg text-gray-300 hover:text-white">Planning</a>
-                <a href="${basePath}analytics.html" class="block text-lg text-gray-300 hover:text-white">Statistiques</a>
                 <a href="${basePath}profile.html" class="block text-lg text-gray-300 hover:text-white">Profil</a>
             </nav>
         </div>
