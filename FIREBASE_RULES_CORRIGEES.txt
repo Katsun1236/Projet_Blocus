@@ -1,0 +1,239 @@
+═══════════════════════════════════════════════════════════════════════════════
+  🔥 RÈGLES FIREBASE CORRIGÉES - À COPIER MAINTENANT
+═══════════════════════════════════════════════════════════════════════════════
+
+⚠️  LES ANCIENNES RÈGLES ÉTAIENT FAUSSES ! Utilise ces nouvelles règles.
+
+═══════════════════════════════════════════════════════════════════════════════
+  1️⃣  FIRESTORE DATABASE RULES (CORRIGÉES)
+═══════════════════════════════════════════════════════════════════════════════
+
+📍 Firebase Console → Firestore Database → Règles
+📝 REMPLACE TOUT par :
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================================
+    // COLLECTION: users
+    // ============================================================================
+    match /users/{userId} {
+      // Lire/écrire son propre document user
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      // Sous-collection: courses
+      match /courses/{courseId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Sous-collection: planning (PAS events !)
+      match /planning/{eventId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Sous-collection: syntheses (sous users)
+      match /syntheses/{synthesisId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Sous-collection: notifications
+      match /notifications/{notifId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+
+      // Sous-collection: quizzes
+      match /quizzes/{quizId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+
+    // ============================================================================
+    // COLLECTION: community_posts (PAS community !)
+    // ============================================================================
+    match /community_posts/{postId} {
+      // Tout le monde peut lire
+      allow read: if request.auth != null;
+      // Créer un post
+      allow create: if request.auth != null;
+      // Modifier/supprimer son propre post OU liker
+      allow update: if request.auth != null &&
+        (request.auth.uid == resource.data.userId ||
+         request.auth.uid in get(/databases/$(database)/documents/community_posts/$(postId)).data.likes);
+      allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
+
+      // Sous-collection: comments
+      match /comments/{commentId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      }
+    }
+
+    // ============================================================================
+    // COLLECTION: groups
+    // ============================================================================
+    match /groups/{groupId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.creatorId;
+
+      // Sous-collection: files
+      match /files/{fileId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null;
+      }
+
+      // Sous-collection: messages
+      match /messages/{messageId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null;
+      }
+    }
+
+    // ============================================================================
+    // COLLECTION ROOT: syntheses
+    // ============================================================================
+    match /syntheses/{synthesisId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================================================
+    // COLLECTION ROOT: files
+    // ============================================================================
+    match /files/{fileId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================================================
+    // COLLECTION ROOT: quiz_results
+    // ============================================================================
+    match /quiz_results/{resultId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+
+    // ============================================================================
+    // Deny all par défaut
+    // ============================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+═══════════════════════════════════════════════════════════════════════════════
+  2️⃣  STORAGE RULES (INCHANGÉES)
+═══════════════════════════════════════════════════════════════════════════════
+
+📍 Firebase Console → Storage → Règles
+📝 REMPLACE TOUT par :
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidSize(maxSizeMB) {
+      return request.resource.size < maxSizeMB * 1024 * 1024;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function isPDF() {
+      return request.resource.contentType == 'application/pdf';
+    }
+
+    function isDocument() {
+      return isPDF() ||
+             request.resource.contentType.matches('application/vnd.*') ||
+             request.resource.contentType.matches('text/.*');
+    }
+
+    // Photos de profil
+    match /avatars/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImage() && isValidSize(5);
+    }
+
+    // Fichiers de cours
+    match /courses/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) &&
+        (isDocument() || isImage()) &&
+        isValidSize(50);
+    }
+
+    // Fichiers communautaires
+    match /community/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) && isImage() && isValidSize(10);
+    }
+
+    // Fichiers de synthèses
+    match /syntheses/{userId}/{fileName} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isPDF() && isValidSize(20);
+    }
+
+    // Pièces jointes de messages
+    match /messages/{userId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId) &&
+        (isImage() || isDocument()) &&
+        isValidSize(10);
+    }
+
+    // Fichiers de groupes
+    match /groups/{groupId}/{fileName} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() &&
+        (isImage() || isDocument()) &&
+        isValidSize(20);
+    }
+
+    // Deny all par défaut
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+═══════════════════════════════════════════════════════════════════════════════
+  ⚠️  DIFFÉRENCES CRITIQUES AVEC LES ANCIENNES RÈGLES
+═══════════════════════════════════════════════════════════════════════════════
+
+❌ AVANT (FAUX) :
+- match /events/{eventId}          → ✅ MAINTENANT: match /planning/{eventId}
+- match /community/{postId}         → ✅ MAINTENANT: match /community_posts/{postId}
+- Manquait: files (root)            → ✅ AJOUTÉ
+- Manquait: syntheses (root)        → ✅ AJOUTÉ
+- Manquait: quiz_results (root)     → ✅ AJOUTÉ
+
+═══════════════════════════════════════════════════════════════════════════════
+  🚀 INSTRUCTIONS - FAIS ÇA MAINTENANT
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Va sur : https://console.firebase.google.com/project/projet-blocus-v2/firestore/rules
+2. SUPPRIME TOUTES les anciennes règles
+3. COPIE les nouvelles règles Firestore (1️⃣) ci-dessus
+4. COLLE dans l'éditeur
+5. Clique sur "PUBLIER"
+6. Attends 30 secondes
+7. Vide le cache (Ctrl+Shift+R)
+8. TESTE → Toutes les erreurs "Missing permissions" doivent disparaître !
+
+═══════════════════════════════════════════════════════════════════════════════
