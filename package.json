@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Plateforme d'étude avec IA pour étudiants",
   "scripts": {
+    "start": "node server.js",
     "build:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --minify",
     "watch:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch",
     "dev": "npm run watch:css",
