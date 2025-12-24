@@ -154,6 +154,7 @@ function injectSidebar(activePageId) {
                     <span>Retour à l'accueil</span>
                 </a>
                 ${renderNavLink('dashboard', 'Dashboard', 'fa-th-large', basePath + 'dashboard.html', activePageId)}
+                ${renderNavLink("search", "Recherche", "fa-search", basePath + "search.html", activePageId)}
                 ${renderNavLink('courses', 'Mes Cours', 'fa-folder-open', basePath + 'courses.html', activePageId)}
                 ${renderNavLink('quiz', 'Quiz & IA', 'fa-brain', basePath + 'quiz.html', activePageId)}
                 ${renderNavLink('flashcards', 'Flashcards', 'fa-layer-group', basePath + 'flashcards.html', activePageId)}
@@ -183,6 +184,7 @@ function injectSidebar(activePageId) {
                 <a href="${rootPath}index.html" class="block text-lg text-indigo-400 hover:text-indigo-300 border-b border-gray-800 pb-4 mb-4">
                     <i class="fas fa-arrow-left mr-2"></i> Retour à l'accueil
                 </a>
+                <a href="${basePath}search.html" class="block text-lg text-gray-300 hover:text-white">Recherche</a>
                 <a href="${basePath}dashboard.html" class="block text-lg text-gray-300 hover:text-white">Dashboard</a>
                 <a href="${basePath}courses.html" class="block text-lg text-gray-300 hover:text-white">Mes Cours</a>
                 <a href="${basePath}quiz.html" class="block text-lg text-gray-300 hover:text-white">Quiz IA</a>
