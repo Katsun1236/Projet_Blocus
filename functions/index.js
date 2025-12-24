@@ -128,7 +128,11 @@ exports.generateContent = onCall(
 
             if (response.ok) {
               console.log(`✓ Succès avec le modèle: ${GEMINI_MODELS[i]}`);
+claude/website-help-QSRVH
+              break;
+
               break; 
+ main
             }
 
             const errorText = await response.text();
