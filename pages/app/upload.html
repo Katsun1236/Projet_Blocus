@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload - Projet Blocus</title>
+<<<<<<< HEAD
     <link rel="stylesheet" href="../../assets/css/output.css">
+=======
+>>>>>>> 46f4c9ab8faf6786bcfc172445d10a427ded7eaa
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <script src//assets/js/suppress-warnings.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans antialiased">
     
@@ -123,11 +128,11 @@
 
     <!-- Scripts Firebase -->
     <script type="module">
-        import { auth, db, storage } from '../../assets/js/config.js';
+        import { auth, db, storage } from/assets/js/config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
         import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
-        import { initLayout } from '../../assets/js/layout.js';
+        import { initLayout } from/assets/js/layout.js';
 
         // ========== INIT LAYOUT ==========
         initLayout('upload');
@@ -352,6 +357,5 @@
                 setTimeout(() => messageBox.classList.add('hidden'), 8000);
             }
         }
-    </script>
 </body>
 </html>

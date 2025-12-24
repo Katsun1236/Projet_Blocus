@@ -21,6 +21,8 @@ const storage = getStorage(app);
 // Initialisation des Cloud Functions (region par défaut us-central1)
 const functions = getFunctions(app); 
 
+console.debug('[debug] /assets/js/config.js initialized', { projectId: firebaseConfig.projectId });
+
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({
     prompt: 'select_account'
