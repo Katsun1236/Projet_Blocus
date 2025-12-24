@@ -6,14 +6,11 @@ const {defineSecret} = require("firebase-functions/params");
 // Utilise v1beta avec modèles Gemini 2.0 et 1.5 Flash
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
-// Essayer plusieurs noms de modèles pour maximiser la compatibilité
-// Utilise v1beta avec les noms de modèles complets incluant les versions
+// Noms de modèles Gemini valides (API v1)
 const GEMINI_MODELS = [
-  "gemini-2.0-flash-001",
-  "gemini-1.5-flash-002",
-  "gemini-1.5-flash-001",
-  "gemini-1.5-flash",
-  "gemini-1.5-pro",
+  "gemini-1.5-flash-latest",
+  "gemini-1.5-pro-latest",
+  "gemini-pro",
 ];
 
 // Fonction pour obtenir l'URL de l'API avec fallback
@@ -25,7 +22,7 @@ const GEMINI_MODELS = [
  */
 function getGeminiApiUrl(apiKey, modelIndex = 0) {
   const model = GEMINI_MODELS[modelIndex];
-  const baseUrl = "https://generativelanguage.googleapis.com/v1beta";
+  const baseUrl = "https://generativelanguage.googleapis.com/v1";
   return `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
 }
 
