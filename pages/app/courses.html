@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mes Cours - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    <script src//assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
     <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
-    
     
     <style>
         .content-glass {
@@ -36,7 +34,6 @@
             opacity: 1;
         }
     </style>
-    <script src//assets/js/suppress-warnings.js"></script>
 </head>
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
@@ -52,7 +49,7 @@
         <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
-                <button id="mobile-menu-btn" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <button id="mobile-menu-btn" class="relative z-50 md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <div class="hidden md:block">
                     <h1 class="text-xl font-display font-bold text-white">Mes Cours</h1>
                     <p class="text-sm text-gray-400" id="date-display">Chargement...</p>
@@ -181,9 +178,9 @@
     </div>
 
     <script type="module">
-        import { auth, db } from/assets/js/config.js';
-        import { initLayout } from/assets/js/layout.js';
-        import { showMessage, formatDate } from/assets/js/utils.js';
+        import { auth, db } from '../../assets/js/config.js';
+        import { initLayout } from '../../assets/js/layout.js';
+        import { showMessage, formatDate } from '../../assets/js/utils.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { 
             collection, query, where, getDocs, addDoc, orderBy, 
@@ -490,5 +487,6 @@
                 showMessage('Dossier créé !', 'success'); loadFolders();
             } catch (error) { showMessage('Erreur création dossier', 'error'); }
         });
+    </script>
 </body>
 </html>

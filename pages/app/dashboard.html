@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de Bord - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    <script src//assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS + Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
-    
     
     <style>
         /* Ajustements spécifiques au dashboard */
@@ -37,7 +34,6 @@
             opacity: 1;
         }
     </style>
-    <script src//assets/js/suppress-warnings.js"></script>
 </head>
 <!-- Ajout de id="app-container" pour le layout.js -->
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
@@ -57,7 +53,7 @@
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 relative">
             <div class="flex items-center gap-4 md:hidden">
                 <!-- Mobile menu btn sera géré par layout.js s'il n'existe pas, mais ici tu l'as déjà -->
-                <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Dashboard</span>
             </div>
             
@@ -234,9 +230,11 @@
 
     <!-- LOGIQUE PRINCIPALE -->
     <script type="module">
-        import { auth, db } from/assets/js/config.js';
+        import { auth, db } from '../../assets/js/config.js';
         // Ajout de l'import initLayout
-        import { initLayout } from/assets/js/layout.js';
+        import { initLayout } from '../../assets/js/layout.js';
+        // Import du tutoriel onboarding
+        import { onboarding } from '../../assets/js/onboarding.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
         import { doc, getDoc, collection, query, orderBy, limit, onSnapshot, where, getDocs, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
@@ -503,10 +501,14 @@
                 setupNotifications(currentUserId);
                 loadDashboardData(currentUserId);
 
+                // Démarrer le tutoriel pour les nouveaux utilisateurs (délai augmenté pour attendre le sidebar)
+                setTimeout(() => onboarding.start(), 2500);
+
             } else {
                 window.location.href = '../auth/login.html';
             }
         });
 
+    </script>
 </body>
 </html>

@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-package-lock.json
 .pnp
 .pnp.js
 
@@ -64,3 +63,20 @@ functions/.runtimeconfig.json
 
 # Public folder temp
 public/
+
+# Netlify
+.netlify/
+
+# Image optimization output (si généré)
+*.webp.backup
+assets/images/optimized/
+
+# Cache
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# Backup files
+*.bak
+*.backup

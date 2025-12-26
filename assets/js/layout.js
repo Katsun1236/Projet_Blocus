@@ -1,24 +1,19 @@
 import { auth, db } from './config.js'; // Import db ajouté
-console.debug('[debug] /assets/js/layout.js loaded');
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js"; // Import Firestore ajouté
 
 export function initLayout(activePageId) {
-    console.debug('[debug] initLayout called', activePageId, 'location=', window.location.pathname);
     // 1. Inject Sidebar if not present
     const sidebar = document.getElementById('sidebar-container');
     if (!sidebar && document.getElementById('app-container')) {
         injectSidebar(activePageId);
     }
 
-    // 2. Mobile Menu Logic
-    const btn = document.getElementById('mobile-menu-btn');
-    const menu = document.getElementById('mobile-menu');
-    if (btn && menu) {
-        btn.addEventListener('click', () => {
-            menu.classList.toggle('hidden');
-        });
-    }
+    // 1.5 Add Home Button
+    addHomeButton();
+
+    // 2. Mobile Menu Logic - Configuration après injection ou si existant
+    setupMobileMenu();
 
     // 3. HEADER PROFIL LOGIC (Chargement Auto)
     // On écoute l'auth ici pour mettre à jour le header globalement
@@ -44,9 +39,62 @@ export function initLayout(activePageId) {
     }
 }
 
+// Fonction pour configurer le menu mobile
+function setupMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const closeMenuBtn = document.getElementById('close-mobile-menu');
+
+    if (mobileMenuBtn && mobileMenu) {
+        // Retirer les listeners existants
+        mobileMenuBtn.replaceWith(mobileMenuBtn.cloneNode(true));
+        const newBtn = document.getElementById('mobile-menu-btn');
+
+        newBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
+    if (closeMenuBtn && mobileMenu) {
+        closeMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.add('hidden');
+        });
+    }
+
+    // Fermer le menu en cliquant en dehors
+    if (mobileMenu) {
+        mobileMenu.addEventListener('click', (e) => {
+            if (e.target === mobileMenu) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    }
+}
+
+// Fonction pour ajouter le bouton retour à l'accueil
+function addHomeButton() {
+    const header = document.querySelector('header');
+    if (!header) {
+        return;
+    }
+
+    // Vérifier si le bouton existe déjà
+    if (document.getElementById('home-btn-header')) return;
+
+    const homeBtn = document.createElement('a');
+    homeBtn.id = 'home-btn-header';
+    homeBtn.href = '/';
+    homeBtn.className = 'hidden md:flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-300 hover:text-white text-sm font-medium absolute right-8';
+    homeBtn.title = "Retour à l'accueil";
+    homeBtn.innerHTML = '<i class="fas fa-home mr-2"></i> Accueil';
+
+    // Insérer le bouton à la fin du header
+    header.appendChild(homeBtn);
+}
+
 // Fonction dédiée à la mise à jour du header
 async function updateHeaderProfile(user) {
-    console.debug('[debug] updateHeaderProfile user', user && user.uid);
     const avatarImg = document.getElementById('user-avatar-header');
     const userNameTxt = document.getElementById('user-name-header');
 
@@ -92,18 +140,20 @@ function injectSidebar(activePageId) {
 
     container.innerHTML = `
         <!-- SIDEBAR DESKTOP -->
-        <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-40 hidden md:flex flex-col transition-transform duration-300">
+        <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-30 hidden md:flex flex-col transition-transform duration-300">
             <!-- Logo -->
             <div class="h-20 flex items-center px-8 border-b border-gray-800/50">
-                <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center mr-3 shadow-lg shadow-indigo-500/20">
-                    <i class="fas fa-cube text-white text-lg"></i>
-                </div>
+                <img src="${rootPath}assets/images/locus-profile-sidebar.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
                 <span class="text-xl font-display font-bold text-white tracking-wide">Blocus<span class="text-indigo-500">.</span></span>
             </div>
 
             <!-- Nav Links -->
             <nav class="flex-grow p-4 space-y-2 overflow-y-auto custom-scrollbar">
-                ${renderNavLink('dashboard', 'Dashboard', 'fa-home', basePath + 'dashboard.html', activePageId)}
+                <a href="${rootPath}index.html" id="home-link" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group text-gray-400 hover:text-white hover:bg-white/5 border-b border-gray-800/50 mb-2">
+                    <i class="fas fa-arrow-left w-5 text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
+                    <span>Retour à l'accueil</span>
+                </a>
+                ${renderNavLink('dashboard', 'Dashboard', 'fa-th-large', basePath + 'dashboard.html', activePageId)}
                 ${renderNavLink('courses', 'Mes Cours', 'fa-folder-open', basePath + 'courses.html', activePageId)}
                 ${renderNavLink('quiz', 'Quiz & IA', 'fa-brain', basePath + 'quiz.html', activePageId)}
                 ${renderNavLink('synthesize', 'Synthèses', 'fa-magic', basePath + 'synthesize.html', activePageId)}
@@ -122,16 +172,21 @@ function injectSidebar(activePageId) {
         </aside>
 
         <!-- MENU MOBILE OVERLAY -->
-        <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-black/95 flex flex-col p-6 md:hidden animate-fade-in">
+        <div id="mobile-menu" class="hidden fixed inset-0 z-20 bg-black/95 flex flex-col p-6 md:hidden animate-fade-in">
             <div class="flex justify-between items-center mb-8">
                 <span class="text-xl font-bold text-white">Menu</span>
                 <button id="close-mobile-menu" class="text-gray-400 hover:text-white"><i class="fas fa-times text-2xl"></i></button>
             </div>
             <nav class="space-y-4">
+                <a href="${rootPath}index.html" class="block text-lg text-indigo-400 hover:text-indigo-300 border-b border-gray-800 pb-4 mb-4">
+                    <i class="fas fa-arrow-left mr-2"></i> Retour à l'accueil
+                </a>
                 <a href="${basePath}dashboard.html" class="block text-lg text-gray-300 hover:text-white">Dashboard</a>
                 <a href="${basePath}courses.html" class="block text-lg text-gray-300 hover:text-white">Mes Cours</a>
                 <a href="${basePath}quiz.html" class="block text-lg text-gray-300 hover:text-white">Quiz IA</a>
+                <a href="${basePath}synthesize.html" class="block text-lg text-gray-300 hover:text-white">Synthèses</a>
                 <a href="${basePath}community.html" class="block text-lg text-gray-300 hover:text-white">Communauté</a>
+                <a href="${basePath}planning.html" class="block text-lg text-gray-300 hover:text-white">Planning</a>
                 <a href="${basePath}profile.html" class="block text-lg text-gray-300 hover:text-white">Profil</a>
             </nav>
         </div>
@@ -148,16 +203,8 @@ function injectSidebar(activePageId) {
         }
     });
 
-    const closeMenuBtn = document.getElementById('close-mobile-menu');
-    const mobileMenu = document.getElementById('mobile-menu');
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-
-    if (closeMenuBtn && mobileMenu) {
-        closeMenuBtn.addEventListener('click', () => mobileMenu.classList.add('hidden'));
-    }
-    if (mobileMenuBtn && mobileMenu) {
-        mobileMenuBtn.addEventListener('click', () => mobileMenu.classList.remove('hidden'));
-    }
+    // Configuration du menu mobile après injection
+    setupMobileMenu();
 }
 
 function renderNavLink(id, label, icon, href, activeId) {
@@ -168,7 +215,7 @@ function renderNavLink(id, label, icon, href, activeId) {
     const iconClass = isActive ? "text-white" : "text-gray-500 group-hover:text-indigo-400 transition-colors";
 
     return `
-        <a href="${href}" class="${baseClass} ${isActive ? activeClass : inactiveClass}">
+        <a id="${id}-link" href="${href}" class="${baseClass} ${isActive ? activeClass : inactiveClass}">
             <i class="fas ${icon} w-5 ${iconClass}"></i>
             <span>${label}</span>
             ${isActive ? '<i class="fas fa-chevron-right ml-auto text-xs opacity-50"></i>' : ''}

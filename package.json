@@ -3,16 +3,16 @@
   "version": "1.0.0",
   "description": "Plateforme d'étude avec IA pour étudiants",
   "scripts": {
-    "build:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/output.css --minify",
-    "watch:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/output.css --watch",
-    "dev": "npm run watch:css"
+    "start": "node server.js",
+    "build:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --minify",
+    "watch:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch",
+    "dev": "npm run watch:css",
+    "optimize:images": "node scripts/optimize-images.js"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.23",
     "postcss": "^8.5.6",
+    "sharp": "^0.33.1",
     "tailwindcss": "^3.4.1"
-  },
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1"
   }
 }

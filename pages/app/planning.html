@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning - Projet Blocus</title>
-    <link rel="icon" type="image/png" href="../../assets/images/logo.png">
-    <script src//assets/js/suppress-warnings.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
     <!-- Tailwind CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- FullCalendar CSS (Custom overrides below) -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     
     <!-- Custom CSS -->
-    
     
     <style>
         .content-glass {
@@ -98,7 +97,6 @@
             animation: scale-up 0.2s ease-out forwards;
         }
     </style>
-    <script src//assets/js/suppress-warnings.js"></script>
 </head>
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
@@ -113,7 +111,7 @@
         <!-- HEADER -->
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30">
             <div class="flex items-center gap-4 md:hidden">
-                <button id="mobile-menu-btn" class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Planning</span>
             </div>
             
@@ -236,6 +234,7 @@
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 
     <!-- Script Principal -->
+    <script type="module" src="../../assets/js/planning.js"></script>
 
 </body>
 </html>

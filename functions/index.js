@@ -23,6 +23,7 @@ exports.generateContent = onCall(
         console.error("GEMINI_API_KEY is not configured!");
         throw new HttpsError("failed-precondition",
             "Configuration de l'API Gemini manquante.");
+ codespace-legendary-space-system-gv46r59x946f9qj7
       }
 
       console.log("API Key configured: ✓");
@@ -230,6 +231,10 @@ exports.generateContent = onCall(
             "Configuration de l'API Gemini manquante.");
       }
 
+
+      }
+
+main
       console.log("API Key configured: ✓");
       if (!request.auth) {
         throw new HttpsError("unauthenticated",
@@ -333,7 +338,14 @@ exports.generateContent = onCall(
 
             if (response.ok) {
               console.log(`✓ Succès avec le modèle: ${GEMINI_MODELS[i]}`);
+codespace-legendary-space-system-gv46r59x946f9qj7
               break;
+claude/website-help-QSRVH
+              break;
+
+              break; 
+ main
+main
             }
 
             const errorText = await response.text();
