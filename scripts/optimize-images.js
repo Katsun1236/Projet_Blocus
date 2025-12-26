@@ -1,19 +1,12 @@
 #!/usr/bin/env node
 
-/**
- * Script d'optimisation des images
- * Convertit les images PNG/JPG en WebP pour réduire la taille
- *
- * Usage: node scripts/optimize-images.js
- */
-
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
 const IMAGES_DIR = path.join(__dirname, '../assets/images');
-const QUALITY = 85; // Qualité WebP (85 = bon compromis qualité/taille)
-const MIN_SIZE_KB = 100; // Convertir seulement les images > 100KB
+const QUALITY = 85;
+const MIN_SIZE_KB = 100;
 
 async function optimizeImages() {
     console.log('🖼️  Optimisation des images...\n');
@@ -29,7 +22,6 @@ async function optimizeImages() {
         const stats = fs.statSync(inputPath);
         const sizeKB = stats.size / 1024;
 
-        // Convertir seulement si > MIN_SIZE_KB
         if (sizeKB < MIN_SIZE_KB) {
             console.log(`⏭️  ${file} (${sizeKB.toFixed(1)}KB) - Trop petit, ignoré`);
             continue;
@@ -72,7 +64,6 @@ async function optimizeImages() {
     }
 }
 
-// Vérifier si sharp est installé
 try {
     require.resolve('sharp');
     optimizeImages().catch(console.error);

@@ -6,9 +6,9 @@
     <title>Tableau de Bord - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS + Custom CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -35,24 +35,24 @@
         }
     </style>
 </head>
-<!-- Ajout de id="app-container" pour le layout.js -->
+
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
+    
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -20%; left: -10%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -20%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);"></div>
 
-    <!-- SIDEBAR supprimée ici car injectée par layout.js -->
+    
 
-    <!-- MAIN CONTENT -->
-    <!-- Ajout de md:ml-64 pour laisser la place à la sidebar fixe -->
+    
+    
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER -->
+        
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 relative">
             <div class="flex items-center gap-4 md:hidden">
-                <!-- Mobile menu btn sera géré par layout.js s'il n'existe pas, mais ici tu l'as déjà -->
+                
                 <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Dashboard</span>
             </div>
@@ -63,22 +63,22 @@
             </div>
 
             <div id="nav-logged-in" class="flex items-center gap-6">
-                <!-- Notification Bell -->
+                
                 <div class="relative">
                     <button id="notif-btn" class="relative text-gray-400 hover:text-white transition-colors p-2 rounded-full hover:bg-white/5 outline-none">
                         <i class="fas fa-bell text-xl"></i>
-                        <!-- Badge -->
+                        
                         <span id="notif-badge" class="absolute top-1.5 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-gray-900 hidden transform scale-100 transition-transform"></span>
                     </button>
 
-                    <!-- Notification Dropdown -->
+                    
                     <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 sm:w-96 bg-gray-900 border border-gray-800 rounded-2xl shadow-2xl overflow-hidden z-50 dropdown-enter origin-top-right">
                         <div class="p-4 border-b border-gray-800 flex justify-between items-center bg-gray-900/95 backdrop-blur sticky top-0 z-10">
                             <h3 class="font-bold text-white text-sm">Notifications</h3>
                             <button id="mark-all-read" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors font-medium">Tout marquer comme lu</button>
                         </div>
                         <div id="notifications-list" class="max-h-[400px] overflow-y-auto custom-scrollbar">
-                            <!-- Les notifications seront injectées ici par JS -->
+                            
                             <div class="p-8 text-center text-gray-500 text-sm flex flex-col items-center" id="no-notif-msg">
                                 <div class="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3 text-gray-600">
                                     <i class="far fa-bell-slash text-xl"></i>
@@ -101,12 +101,12 @@
             </div>
         </header>
 
-        <!-- SCROLLABLE CONTENT -->
+        
         <main class="flex-grow p-8 overflow-y-auto custom-scrollbar">
             
-            <!-- Stats / Quick Actions Row -->
+            
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <!-- Card: Total Cours -->
+                
                 <div class="content-glass rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <i class="fas fa-book text-6xl text-indigo-500"></i>
@@ -118,7 +118,7 @@
                     </div>
                 </div>
 
-                <!-- Card: Quiz Complétés -->
+                
                 <div class="content-glass rounded-2xl p-6 relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <i class="fas fa-check-circle text-6xl text-purple-500"></i>
@@ -130,7 +130,7 @@
                     </div>
                 </div>
 
-                <!-- Card: Action Rapide -->
+                
                 <button id="trigger-add-content" class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-center flex flex-col justify-center items-center shadow-lg shadow-indigo-900/20 group cursor-pointer hover:scale-[1.02] transition-transform w-full">
                     <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3 text-white group-hover:rotate-90 transition-transform">
                         <i class="fas fa-plus text-xl"></i>
@@ -140,14 +140,14 @@
                 </button>
             </div>
 
-            <!-- Recent Folders -->
+            
             <div class="mb-8">
                 <div class="flex justify-between items-end mb-4">
                     <h2 class="text-xl font-display font-bold text-white">Dossiers Récents</h2>
                     <a href="courses.html" class="text-sm text-indigo-400 hover:text-indigo-300">Tout voir</a>
                 </div>
                 <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    <!-- Squelette de chargement -->
+                    
                     <div class="content-glass p-4 rounded-xl h-32 animate-pulse flex flex-col justify-between">
                         <div class="w-8 h-8 bg-gray-700 rounded"></div>
                         <div class="w-2/3 h-4 bg-gray-700 rounded"></div>
@@ -159,7 +159,7 @@
                 </div>
             </div>
 
-            <!-- Recent Files -->
+            
             <div class="content-glass rounded-2xl border border-gray-800 overflow-hidden">
                 <div class="p-6 border-b border-gray-800 flex justify-between items-center">
                     <h3 class="font-display font-bold text-lg text-white">Fichiers Récents</h3>
@@ -167,7 +167,7 @@
                 </div>
                 
                 <div id="courses-list" class="divide-y divide-gray-800">
-                    <!-- Liste vide par défaut -->
+                    
                     <div class="p-8 text-center text-gray-500 text-sm">
                         <p>Chargement des fichiers...</p>
                     </div>
@@ -177,7 +177,7 @@
         </main>
     </div>
 
-    <!-- MODAL D'AJOUT DE CONTENU -->
+    
     <div id="add-content-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
         <div class="bg-gray-900 border border-gray-700 rounded-3xl p-8 w-full max-w-lg text-center shadow-2xl relative transform transition-all scale-100">
             <button id="close-add-content" class="absolute top-4 right-4 text-gray-400 hover:text-white w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-800 transition-colors">
@@ -222,13 +222,13 @@
         </div>
     </div>
 
-    <!-- Message Box (Toast) -->
+    
     <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
         <div id="message-icon" class="text-indigo-400"></div>
         <span id="message-text"></span>
     </div>
 
-    <!-- LOGIQUE PRINCIPALE -->
+    
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         // Ajout de l'import initLayout

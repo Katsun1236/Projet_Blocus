@@ -4,7 +4,7 @@ module.exports = {
     node: true,
   },
   parserOptions: {
-    "ecmaVersion": 2020, // Support pour optional chaining (?.)
+    "ecmaVersion": 2020,
   },
   extends: [
     "eslint:recommended",
@@ -14,7 +14,7 @@ module.exports = {
     "no-restricted-globals": ["error", "name", "length"],
     "prefer-arrow-callback": "error",
     "quotes": ["error", "double", {"allowTemplateLiterals": true}],
-    "linebreak-style": "off", // Désactiver pour Windows (CRLF vs LF)
+    "linebreak-style": "off",
   },
   overrides: [
     {

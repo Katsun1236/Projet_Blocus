@@ -1,9 +1,3 @@
-/**
- * Serveur de développement local sans CSP
- * À utiliser UNIQUEMENT pour le développement
- * NE PAS utiliser en production !
- */
-
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -32,21 +26,16 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
-    // Enlever query params
     let filePath = req.url.split('?')[0];
 
-    // Servir index.html par défaut
     if (filePath === '/') {
         filePath = '/index.html';
     }
 
-    // Construire le chemin complet
     const fullPath = path.join(__dirname, filePath);
 
-    // Vérifier si le fichier existe
     fs.access(fullPath, fs.constants.F_OK, (err) => {
         if (err) {
-            // Si fichier n'existe pas, servir index.html (pour SPA routing)
             const indexPath = path.join(__dirname, 'index.html');
             fs.readFile(indexPath, (err, content) => {
                 if (err) {
@@ -60,7 +49,6 @@ const server = http.createServer((req, res) => {
             return;
         }
 
-        // Lire et servir le fichier
         fs.readFile(fullPath, (err, content) => {
             if (err) {
                 res.writeHead(500);
@@ -68,11 +56,9 @@ const server = http.createServer((req, res) => {
                 return;
             }
 
-            // Déterminer le Content-Type
             const ext = path.extname(filePath);
             const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
-            // Headers sans CSP pour le développement
             res.writeHead(200, {
                 'Content-Type': contentType,
                 'Access-Control-Allow-Origin': '*',

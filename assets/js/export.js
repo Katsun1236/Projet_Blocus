@@ -1,9 +1,3 @@
-/**
- * Export Multi-Format
- * Permet d'exporter les synthèses, flashcards et quiz en différents formats
- */
-
-// Export en Markdown
 export function exportToMarkdown(data) {
     const { title, content, type } = data;
 
@@ -16,11 +10,9 @@ export function exportToMarkdown(data) {
     downloadFile(`${title}.md`, markdown, 'text/markdown');
 }
 
-// Export en PDF (using jsPDF)
 export async function exportToPDF(data) {
     const { title, content } = data;
 
-    // Import jsPDF dynamically
     const jsPDF = await loadJsPDF();
     if (!jsPDF) {
         alert('Impossible de charger le module PDF');
@@ -29,11 +21,9 @@ export async function exportToPDF(data) {
 
     const doc = new jsPDF();
 
-    // Title
     doc.setFontSize(20);
     doc.text(title, 20, 20);
 
-    // Content
     doc.setFontSize(12);
     const splitContent = doc.splitTextToSize(content, 170);
     doc.text(splitContent, 20, 40);
@@ -41,9 +31,7 @@ export async function exportToPDF(data) {
     doc.save(`${title}.pdf`);
 }
 
-// Export Flashcards au format Anki
 export function exportToAnki(flashcards) {
-    // Format Anki CSV: front, back
     let csv = 'Question;Réponse\n';
 
     flashcards.forEach(card => {
@@ -55,13 +43,11 @@ export function exportToAnki(flashcards) {
     downloadFile('flashcards_anki.csv', csv, 'text/csv');
 }
 
-// Export en JSON
 export function exportToJSON(data) {
     const json = JSON.stringify(data, null, 2);
     downloadFile(`export_${Date.now()}.json`, json, 'application/json');
 }
 
-// Export Quiz en JSON formaté
 export function exportQuizToJSON(quiz) {
     const formatted = {
         title: quiz.title,
@@ -77,7 +63,6 @@ export function exportQuizToJSON(quiz) {
     exportToJSON(formatted);
 }
 
-// Helper: Download file
 function downloadFile(filename, content, mimeType) {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -88,7 +73,6 @@ function downloadFile(filename, content, mimeType) {
     URL.revokeObjectURL(url);
 }
 
-// Load jsPDF dynamically
 async function loadJsPDF() {
     try {
         const module = await import('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
@@ -99,7 +83,6 @@ async function loadJsPDF() {
     }
 }
 
-// Export widget (à ajouter sur les pages)
 export function createExportWidget(data, container) {
     const widget = document.createElement('div');
     widget.className = 'fixed bottom-6 right-6 z-40';
@@ -110,7 +93,6 @@ export function createExportWidget(data, container) {
                 <i class="fas fa-download text-xl text-white"></i>
             </button>
 
-            <!-- Export options -->
             <div class="hidden group-hover:block absolute bottom-full right-0 mb-2 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl overflow-hidden min-w-[200px]">
                 <button class="export-option w-full px-4 py-3 text-left text-sm hover:bg-gray-800 transition flex items-center gap-3" data-format="markdown">
                     <i class="fas fa-file-alt text-blue-400"></i>
@@ -136,7 +118,6 @@ export function createExportWidget(data, container) {
 
     container.appendChild(widget);
 
-    // Event listeners
     widget.querySelectorAll('.export-option').forEach(btn => {
         btn.addEventListener('click', () => {
             const format = btn.dataset.format;
@@ -145,7 +126,6 @@ export function createExportWidget(data, container) {
     });
 }
 
-// Handle export
 function handleExport(data, format) {
     switch (format) {
         case 'markdown':
@@ -167,7 +147,6 @@ function handleExport(data, format) {
     showExportSuccessMessage(format);
 }
 
-// Success message
 function showExportSuccessMessage(format) {
     const notification = document.createElement('div');
     notification.className = 'fixed top-24 right-6 z-50 px-6 py-4 bg-green-600 text-white rounded-xl shadow-2xl animate-fade-in-up';

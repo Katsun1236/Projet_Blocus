@@ -6,11 +6,11 @@
     <title>Communauté - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    
     
     <style>
         .content-glass {
@@ -40,7 +40,7 @@
 
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER -->
+        
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30">
             <div class="flex items-center gap-4 md:hidden">
                 <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -69,10 +69,10 @@
             </div>
         </header>
 
-        <!-- SCROLLABLE CONTENT -->
+        
         <main class="flex-grow p-6 sm:p-8 overflow-y-auto custom-scrollbar relative">
             
-            <!-- HERO BANNER -->
+            
             <div class="relative rounded-3xl bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-500/20 p-8 mb-8 overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
                     <i class="fas fa-users text-[10rem] text-white transform -rotate-12 translate-x-10 -translate-y-10"></i>
@@ -98,13 +98,13 @@
                 </div>
             </div>
 
-            <!-- LAYOUT GRILLE -->
+            
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                <!-- COLONNE GAUCHE : FIL D'ACTUALITÉ (2/3) -->
+                
                 <div class="lg:col-span-2 space-y-6">
                     
-                    <!-- Filtres -->
+                    
                     <div class="flex items-center justify-between">
                         <h3 class="font-bold text-white text-lg"><i class="far fa-newspaper mr-2 text-emerald-400"></i>Discussions Récentes</h3>
                         <div class="flex gap-2 bg-gray-900/50 p-1 rounded-lg border border-gray-800" id="post-filters">
@@ -114,9 +114,9 @@
                         </div>
                     </div>
 
-                    <!-- Container Posts Dynamiques -->
+                    
                     <div id="posts-container" class="space-y-6">
-                        <!-- Les posts seront injectés ici par JS -->
+                        
                         <div class="text-center py-10 opacity-50">
                             <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
                             <p>Chargement du fil...</p>
@@ -125,10 +125,10 @@
 
                 </div>
 
-                <!-- COLONNE DROITE : SIDEBAR (1/3) -->
+                
                 <div class="space-y-6">
                     
-                    <!-- Top Contributeurs -->
+                    
                     <div class="content-glass p-6 rounded-2xl border border-gray-800">
                         <h3 class="font-bold text-white text-sm mb-4 flex items-center gap-2">
                             <i class="fas fa-crown text-yellow-500"></i> Top Contributeurs
@@ -138,7 +138,7 @@
                         </div>
                     </div>
 
-                    <!-- Groupes Suggérés avec Recherche -->
+                    
                     <div class="content-glass p-6 rounded-2xl border border-gray-800">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-white text-sm flex items-center gap-2">
@@ -149,20 +149,20 @@
                             </button>
                         </div>
                         
-                        <!-- Barre de recherche Groupes -->
+                        
                         <div class="relative mb-4">
                             <input type="text" id="group-search-input" class="w-full bg-gray-900 border border-gray-700 rounded-lg py-2 pl-8 pr-3 text-xs text-white focus:outline-none focus:border-blue-500 placeholder-gray-600" placeholder="Chercher un groupe...">
                             <i class="fas fa-search absolute left-2.5 top-2.5 text-gray-600 text-xs"></i>
                         </div>
 
-                        <!-- Filtres Rapides Groupes -->
+                        
                         <div class="flex gap-2 mb-4" id="group-filters">
                             <button data-filter="all" class="flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors">Tous</button>
                             <button data-filter="my" class="flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors">Mes Groupes</button>
                         </div>
 
                         <div class="space-y-3 max-h-64 overflow-y-auto custom-scrollbar" id="groups-list">
-                            <!-- Dynamique -->
+                            
                         </div>
                     </div>
 
@@ -173,7 +173,7 @@
         </main>
     </div>
 
-    <!-- MODAL: NOUVEAU POST -->
+    
     <div id="new-post-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh] animate-scale-up">
             <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900 rounded-t-2xl">
@@ -220,7 +220,7 @@
         </div>
     </div>
 
-    <!-- MODAL: CRÉATION GROUPE (NOUVEAU) -->
+    
     <div id="create-group-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl flex flex-col animate-scale-up">
             <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900 rounded-t-2xl">
@@ -267,7 +267,7 @@
         </div>
     </div>
 
-    <!-- MODAL: DÉTAIL POST (Commentaires) -->
+    
     <div id="post-detail-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-2xl shadow-2xl flex flex-col max-h-[90vh] animate-scale-up">
             <div class="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-900 rounded-t-2xl">
@@ -276,7 +276,7 @@
             </div>
             
             <div class="flex-grow overflow-y-auto custom-scrollbar p-6" id="detail-content">
-                <!-- Post complet + Commentaires injectés ici -->
+                
             </div>
 
             <div class="p-4 border-t border-gray-800 bg-gray-900 rounded-b-2xl">
@@ -293,17 +293,17 @@
         </div>
     </div>
 
-    <!-- MODAL: ESPACE GROUPE -->
+    
     <div id="group-space-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#0a0a0f] border border-gray-800 rounded-3xl w-full max-w-5xl h-[90vh] shadow-2xl flex flex-col animate-scale-up overflow-hidden">
             
-            <!-- Header Groupe -->
+            
             <div class="h-48 relative flex-shrink-0 bg-gray-900 group">
                 <div id="group-cover-bg" class="absolute inset-0 bg-gradient-to-r from-blue-900/50 to-indigo-900/50"></div>
                 <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
                 
                 <div class="absolute top-6 right-6 flex gap-3 z-20">
-                    <!-- Bouton Settings (Admin Only - géré par JS) -->
+                    
                     <button id="btn-group-settings" class="hidden w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors backdrop-blur-sm">
                         <i class="fas fa-cog"></i>
                     </button>
@@ -313,7 +313,7 @@
                 </div>
 
                 <div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-[#0a0a0f] to-transparent flex items-end gap-6">
-                    <!-- Icone Groupe Interactif -->
+                    
                     <div class="relative group/icon cursor-pointer">
                         <div id="group-icon-large" class="w-24 h-24 rounded-2xl bg-indigo-600 shadow-xl flex items-center justify-center text-5xl text-white transform translate-y-4 border-4 border-[#0a0a0f] overflow-hidden">
                             <i class="fas fa-users"></i>
@@ -321,7 +321,7 @@
                         <div class="absolute inset-0 flex items-center justify-center bg-black/60 rounded-2xl transform translate-y-4 opacity-0 group-hover/icon:opacity-100 transition-opacity z-10" id="change-group-icon-btn">
                             <i class="fas fa-camera text-white"></i>
                         </div>
-                        <!-- Input Caché -->
+                        
                         <input type="file" id="group-icon-upload" class="hidden" accept="image/*">
                     </div>
 
@@ -336,14 +336,14 @@
                 </div>
             </div>
 
-            <!-- Body Groupe -->
+            
             <div class="flex-grow flex min-h-0 bg-[#0a0a0f]">
                 
-                <!-- Sidebar Groupe -->
+                
                 <div class="w-64 border-r border-gray-800 p-6 flex-shrink-0 hidden md:block overflow-y-auto custom-scrollbar">
                     <h4 class="text-xs font-bold text-gray-500 uppercase mb-4">Membres en ligne</h4>
                     <div id="group-members-list" class="space-y-3">
-                        <!-- Liste membres injectée -->
+                        
                     </div>
                     
                     <div class="mt-8">
@@ -355,14 +355,14 @@
                         <button id="btn-add-file" class="w-full mt-4 py-2 border border-dashed border-gray-700 text-gray-400 hover:text-white hover:border-indigo-500 hover:bg-indigo-500/10 rounded text-xs transition-all flex items-center justify-center gap-2">
                             <i class="fas fa-cloud-upload-alt"></i> Partager un fichier
                         </button>
-                        <!-- Input Caché -->
+                        
                         <input type="file" id="group-file-upload" class="hidden">
                     </div>
                 </div>
 
-                <!-- Chat / Mur -->
+                
                 <div class="flex-grow flex flex-col min-w-0">
-                    <!-- Messages Area -->
+                    
                     <div id="group-messages-container" class="flex-grow overflow-y-auto custom-scrollbar p-6 space-y-4 bg-[#0a0a0f]">
                         <div class="text-center text-gray-500 py-10">
                             <i class="fas fa-comments text-4xl mb-3 opacity-20"></i>
@@ -370,7 +370,7 @@
                         </div>
                     </div>
 
-                    <!-- Input Area -->
+                    
                     <div class="p-4 bg-gray-900 border-t border-gray-800">
                         <div class="flex items-center gap-3 bg-gray-800 rounded-xl p-2 border border-gray-700 focus-within:border-indigo-500 transition-colors">
                             <button id="btn-upload-chat" class="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white rounded-lg hover:bg-gray-700 transition-colors">
@@ -388,11 +388,11 @@
         </div>
     </div>
 
-    <!-- MODAL: PARAMÈTRES GROUPE (NOUVEAU - STYLE DISCORD) -->
+    
     <div id="group-settings-modal" class="hidden fixed inset-0 bg-black/95 z-[60] flex items-center justify-center animate-fade-in">
         <div class="w-full max-w-4xl h-[85vh] bg-[#1e1f22] rounded-lg shadow-2xl flex overflow-hidden border border-[#1e1f22]">
             
-            <!-- Sidebar Settings -->
+            
             <div class="w-60 bg-[#2b2d31] flex flex-col">
                 <div class="p-4 border-b border-[#1e1f22]">
                     <h3 class="font-bold text-gray-400 text-xs uppercase">Paramètres du groupe</h3>
@@ -409,14 +409,14 @@
                 </div>
             </div>
 
-            <!-- Content Area (Dynamique) -->
+            
             <div id="settings-content-area" class="flex-grow flex flex-col bg-[#313338] overflow-hidden">
                 
-                <!-- SECTION: VUE D'ENSEMBLE -->
+                
                 <div id="section-overview" class="h-full flex flex-col p-8 overflow-y-auto custom-scrollbar">
                     <h2 class="text-xl font-bold text-white mb-6">Vue d'ensemble du serveur</h2>
                     <div class="flex gap-8">
-                        <!-- Image Upload -->
+                        
                         <div class="flex-shrink-0">
                             <div class="w-24 h-24 rounded-full bg-indigo-600 flex items-center justify-center text-4xl text-white relative group cursor-pointer overflow-hidden border-4 border-[#2b2d31]">
                                 <span id="overview-icon-preview"><i class="fas fa-users"></i></span>
@@ -425,7 +425,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Formulaire -->
+                        
                         <div class="flex-grow max-w-md space-y-6">
                             <div>
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nom du groupe</label>
@@ -442,14 +442,14 @@
                     </div>
                 </div>
 
-                <!-- SECTION: RÔLES (Caché par défaut) -->
+                
                 <div id="section-roles" class="hidden h-full flex flex-col">
                     <div class="p-8 pb-4">
                         <h2 class="text-xl font-bold text-white mb-1">Rôles</h2>
                         <p class="text-sm text-gray-400">Organisez les membres et leurs permissions.</p>
                     </div>
                     <div class="flex-grow flex min-h-0 px-8 pb-8 gap-8">
-                        <!-- Liste des Rôles (Gauche) -->
+                        
                         <div class="w-48 flex flex-col">
                             <div class="flex items-center justify-between mb-2">
                                 <span class="text-xs font-bold text-gray-400 uppercase">Rôles</span>
@@ -457,9 +457,9 @@
                             </div>
                             <div id="roles-list-container" class="flex-grow overflow-y-auto custom-scrollbar space-y-1 pr-2"></div>
                         </div>
-                        <!-- Editeur de Rôle (Droite) -->
+                        
                         <div class="flex-grow flex flex-col bg-[#2b2d31] rounded-lg p-6 overflow-y-auto custom-scrollbar relative">
-                            <!-- Header Editeur -->
+                            
                             <div class="mb-6 border-b border-gray-700 pb-6">
                                 <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Nom du rôle</label>
                                 <input type="text" id="role-name-input" class="w-full bg-[#1e1f22] border-none rounded p-2 text-white focus:ring-2 focus:ring-indigo-500 transition-all" value="Nouveau Rôle">
@@ -468,12 +468,12 @@
                                     <div class="flex gap-2 flex-wrap" id="role-color-picker"></div>
                                 </div>
                             </div>
-                            <!-- Permissions Toggle List -->
+                            
                             <div>
                                 <h3 class="font-bold text-gray-300 mb-4 text-sm">Permissions Générales</h3>
                                 <div id="permissions-list-container" class="space-y-4"></div>
                             </div>
-                            <!-- Actions Bas -->
+                            
                             <div class="mt-8 pt-4 border-t border-gray-700 flex justify-between items-center">
                                 <button id="btn-delete-role" class="text-red-400 hover:text-red-300 text-sm font-medium px-3 py-2 rounded hover:bg-red-500/10">Supprimer le rôle</button>
                                 <button id="btn-save-role" class="bg-green-600 hover:bg-green-500 text-white px-6 py-2 rounded text-sm font-medium transition-colors shadow-lg">Enregistrer les modifications</button>
@@ -482,7 +482,7 @@
                     </div>
                 </div>
 
-                <!-- SECTION: MEMBRES (Caché par défaut) -->
+                
                 <div id="section-members" class="hidden h-full flex flex-col p-8 overflow-y-auto custom-scrollbar">
                     <h2 class="text-xl font-bold text-white mb-6">Membres du groupe</h2>
                     <div class="bg-[#2b2d31] rounded-lg overflow-hidden">
@@ -492,7 +492,7 @@
                             <div class="col-span-2 text-right">Actions</div>
                         </div>
                         <div id="members-list-settings" class="divide-y divide-[#1e1f22]">
-                            <!-- Injecté par JS -->
+                            
                             <div class="text-center py-8 text-gray-500 text-sm">Chargement des membres...</div>
                         </div>
                     </div>
@@ -502,10 +502,10 @@
         </div>
     </div>
 
-    <!-- Message Box (Toast) -->
+    
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 
-    <!-- Script Principal -->
+    
     <script type="module" src="../../assets/js/community.js"></script>
 
 </body>

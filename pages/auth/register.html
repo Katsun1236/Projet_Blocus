@@ -10,28 +10,28 @@
 </head>
 <body class="bg-dark text-gray-100 font-sans antialiased selection:bg-indigo-500 selection:text-white overflow-hidden">
 
-    <!-- Background Elements -->
+    
     <div class="fixed inset-0 z-0">
         <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
         <div class="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
     </div>
 
-    <!-- Main Content -->
+    
     <main class="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md animate-fade-in-up">
             
-            <!-- Header -->
+            
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">Rejoins l'élite</h1>
                 <p class="text-gray-400 mt-2">Crée ton compte et commence à performer</p>
             </div>
 
-            <!-- Register Card -->
+            
             <div class="content-glass rounded-2xl p-8 border border-white/10 shadow-xl backdrop-blur-xl">
                 
                 <form id="register-form" class="space-y-5">
                     
-                    <!-- Pseudo -->
+                    
                     <div class="space-y-2 group">
                         <label for="pseudo" class="text-sm font-medium text-gray-300 ml-1 group-focus-within:text-indigo-400 transition-colors">Pseudo</label>
                         <div class="relative">
@@ -44,7 +44,7 @@
                         </div>
                     </div>
 
-                    <!-- Email -->
+                    
                     <div class="space-y-2 group">
                         <label for="email" class="text-sm font-medium text-gray-300 ml-1 group-focus-within:text-indigo-400 transition-colors">Email</label>
                         <div class="relative">
@@ -57,7 +57,7 @@
                         </div>
                     </div>
 
-                    <!-- Password -->
+                    
                     <div class="space-y-2 group">
                         <label for="password" class="text-sm font-medium text-gray-300 ml-1 group-focus-within:text-indigo-400 transition-colors">Mot de passe</label>
                         <div class="relative">
@@ -71,7 +71,7 @@
                         </div>
                     </div>
 
-                    <!-- Confirm Password -->
+                    
                     <div class="space-y-2 group">
                         <label for="confirm-password" class="text-sm font-medium text-gray-300 ml-1 group-focus-within:text-indigo-400 transition-colors">Confirmer le mot de passe</label>
                         <div class="relative">
@@ -84,20 +84,20 @@
                         </div>
                     </div>
 
-                    <!-- Terms -->
+                    
                     <div class="flex items-center ml-1">
                         <input type="checkbox" id="terms" required class="w-4 h-4 rounded border-gray-600 bg-white/5 text-indigo-600 focus:ring-indigo-500">
                         <label for="terms" class="ml-2 text-sm text-gray-400">J'accepte les <a href="#" class="text-indigo-400 hover:text-indigo-300">conditions d'utilisation</a></label>
                     </div>
 
-                    <!-- Submit Button -->
+                    
                     <button type="submit" 
                         class="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/20 transform hover:-translate-y-0.5 transition-all duration-200">
                         Créer mon compte
                     </button>
                 </form>
 
-                <!-- Divider -->
+                
                 <div class="relative my-8">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-white/10"></div>
@@ -107,7 +107,7 @@
                     </div>
                 </div>
 
-                <!-- Social Register -->
+                
                 <div class="grid grid-cols-1 gap-3">
                     <button id="google-register" type="button" class="flex items-center justify-center px-4 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-50 transition-colors font-medium">
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-3" alt="Google">
@@ -115,7 +115,7 @@
                     </button>
                 </div>
 
-                <!-- Footer -->
+                
                 <div class="mt-8 text-center">
                     <p class="text-gray-400">
                         Déjà un compte ? 
@@ -126,7 +126,7 @@
         </div>
     </main>
 
-    <!-- MessageBox Container -->
+    
     <div id="message-box" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-x-full"></div>
 
     <script type="module" src="../../assets/js/index.js"></script>

@@ -6,11 +6,11 @@
     <title>Bienvenue - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
     <style>
         .onboarding-container {
@@ -24,17 +24,17 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden bg-[#050505]">
 
-    <!-- Texture de grain -->
+    
     <div class="noise-overlay"></div>
 
-    <!-- Lumières d'ambiance -->
+    
     <div class="glow-bg" style="top: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; left: -10%; background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);"></div>
 
     <div class="onboarding-container relative z-10">
         <div class="w-full max-w-2xl bg-gray-900/80 backdrop-blur-2xl border border-gray-800 rounded-3xl p-8 md:p-12 shadow-2xl animate-float">
             
-            <!-- Header -->
+            
             <div class="text-center mb-10">
                 <h1 class="text-4xl font-display font-bold text-white mb-3">Bienvenue à bord ! 🚀</h1>
                 <p class="text-gray-400 text-lg">Quelques infos pour personnaliser ton espace.</p>
@@ -42,14 +42,14 @@
 
             <form id="onboarding-form" class="space-y-8">
                 
-                <!-- Photo de profil -->
+                
                 <div class="flex flex-col items-center">
                     <div class="relative group cursor-pointer" id="profile-picture-container">
-                        <!-- Cercle avec bordure dégradée -->
+                        
                         <div class="w-32 h-32 rounded-full p-[3px] bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-400 transition-all">
                             <div class="w-full h-full rounded-full overflow-hidden bg-gray-800 relative">
                                 <img id="profile-picture-preview" src="" alt="Avatar" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                                <!-- Overlay caméra -->
+                                
                                 <div class="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                     <i class="fas fa-camera text-white text-2xl"></i>
                                 </div>
@@ -60,7 +60,7 @@
                     <p class="text-sm text-gray-500 mt-3 font-medium">Clique pour changer ta photo</p>
                 </div>
 
-                <!-- Grille Nom/Prénom -->
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label for="firstName" class="text-sm font-medium text-gray-300 ml-1">Prénom</label>
@@ -82,7 +82,7 @@
                     </div>
                 </div>
 
-                <!-- Champ École -->
+                
                 <div class="space-y-2">
                     <label for="school" class="text-sm font-medium text-gray-300 ml-1">École / Université</label>
                     <div class="relative">
@@ -93,7 +93,7 @@
                     </div>
                 </div>
 
-                <!-- Bouton Action -->
+                
                 <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-900/30 transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 text-lg mt-4">
                     <span>C'est parti !</span>
                     <i class="fas fa-arrow-right"></i>
@@ -103,13 +103,13 @@
         </div>
     </div>
 
-    <!-- Message Box (Toast) -->
+    
     <div id="message-box" class="hidden fixed bottom-6 right-6 bg-gray-900 border border-gray-700 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-float">
         <div id="message-icon" class="text-indigo-400"></div>
         <span id="message-text"></span>
     </div>
 
-    <!-- SCRIPT -->
+    
     <script type="module">
         import { auth, db, storage } from '../../assets/js/config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";

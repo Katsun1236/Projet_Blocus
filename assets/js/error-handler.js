@@ -1,23 +1,11 @@
-// assets/js/error-handler.js
-// Système centralisé de gestion d'erreurs
-
-/**
- * Affiche un message toast à l'utilisateur
- * @param {string} message - Le message à afficher
- * @param {string} type - Type: 'success', 'error', 'warning', 'info'
- * @param {number} duration - Durée en ms (défaut: 4000)
- */
 export function showToast(message, type = 'info', duration = 4000) {
-    // Retirer un éventuel toast existant
     const existingToast = document.getElementById('global-toast');
     if (existingToast) existingToast.remove();
 
-    // Créer le toast
     const toast = document.createElement('div');
     toast.id = 'global-toast';
     toast.className = `fixed bottom-6 right-6 max-w-md bg-gray-900 border rounded-xl shadow-2xl z-[9999] p-4 flex items-start gap-3 animate-float`;
 
-    // Icônes et couleurs selon le type
     const configs = {
         success: { icon: 'fa-check-circle', color: 'text-green-400', border: 'border-green-500/30' },
         error: { icon: 'fa-exclamation-circle', color: 'text-red-400', border: 'border-red-500/30' },
@@ -42,7 +30,6 @@ export function showToast(message, type = 'info', duration = 4000) {
 
     document.body.appendChild(toast);
 
-    // Auto-remove après duration
     setTimeout(() => {
         if (toast && toast.parentElement) {
             toast.style.opacity = '0';
@@ -52,15 +39,9 @@ export function showToast(message, type = 'info', duration = 4000) {
     }, duration);
 }
 
-/**
- * Gestion centralisée des erreurs Firebase
- * @param {Error} error - L'erreur Firebase
- * @param {string} context - Contexte de l'erreur (ex: "connexion", "upload")
- */
 export function handleFirebaseError(error, context = '') {
     console.error(`[Firebase Error - ${context}]:`, error);
 
-    // Messages d'erreur traduits et user-friendly
     const errorMessages = {
         'auth/email-already-in-use': 'Cette adresse email est déjà utilisée.',
         'auth/invalid-email': 'Adresse email invalide.',
@@ -84,15 +65,9 @@ export function handleFirebaseError(error, context = '') {
 
     showToast(message, 'error', 5000);
 
-    // Logging pour debug (peut être envoyé à un service de monitoring)
     logError(error, context);
 }
 
-/**
- * Log les erreurs (console + optionnel: service externe)
- * @param {Error} error
- * @param {string} context
- */
 function logError(error, context) {
     const logEntry = {
         timestamp: new Date().toISOString(),
@@ -103,38 +78,20 @@ function logError(error, context) {
         userAgent: navigator.userAgent
     };
 
-    // Console pour développement
     console.error('[Error Log]:', logEntry);
-
-    // TODO: Envoyer à un service de monitoring (Sentry, LogRocket, etc.)
-    // if (window.Sentry) {
-    //     Sentry.captureException(error, { contexts: { custom: logEntry } });
-    // }
 }
 
-/**
- * Gestionnaire d'erreurs global pour les promesses non gérées
- */
 window.addEventListener('unhandledrejection', (event) => {
     console.error('Unhandled Promise Rejection:', event.reason);
     logError(event.reason, 'unhandledrejection');
-    event.preventDefault(); // Empêche l'affichage dans la console navigateur
+    event.preventDefault();
 });
 
-/**
- * Gestionnaire d'erreurs global
- */
 window.addEventListener('error', (event) => {
     console.error('Global Error:', event.error);
     logError(event.error, 'global');
 });
 
-/**
- * Wrapper pour les appels async avec gestion d'erreur automatique
- * @param {Function} asyncFn - Fonction async à exécuter
- * @param {string} context - Contexte pour le logging
- * @param {boolean} showError - Afficher le toast d'erreur (défaut: true)
- */
 export async function tryCatch(asyncFn, context = '', showError = true) {
     try {
         return await asyncFn();
@@ -144,6 +101,6 @@ export async function tryCatch(asyncFn, context = '', showError = true) {
         } else {
             logError(error, context);
         }
-        throw error; // Re-throw pour permettre gestion custom si nécessaire
+        throw error;
     }
 }

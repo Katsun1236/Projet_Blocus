@@ -1,15 +1,9 @@
-/**
- * PWA Installation et Service Worker
- * Gère l'enregistrement du SW et l'installation de l'app
- */
-
 (function() {
     'use strict';
 
     let deferredPrompt;
     let swRegistration;
 
-    // Enregistrer le Service Worker
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
             try {
@@ -19,12 +13,10 @@
 
                 console.log('✅ Service Worker enregistré:', swRegistration.scope);
 
-                // Vérifier les mises à jour toutes les heures
                 setInterval(() => {
                     swRegistration.update();
                 }, 60 * 60 * 1000);
 
-                // Écouter les mises à jour
                 swRegistration.addEventListener('updatefound', () => {
                     const newWorker = swRegistration.installing;
 
@@ -41,16 +33,13 @@
         });
     }
 
-    // Détecter l'événement beforeinstallprompt
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
 
-        // Afficher le bouton d'installation
         showInstallButton();
     });
 
-    // Bouton d'installation PWA
     function showInstallButton() {
         const installBtn = document.getElementById('pwa-install-btn');
 
@@ -60,9 +49,8 @@
     }
 
     function createInstallButton() {
-        // Vérifier si déjà installé
         if (window.matchMedia('(display-mode: standalone)').matches) {
-            return; // Déjà installé
+            return;
         }
 
         const btn = document.createElement('button');
@@ -91,7 +79,6 @@
 
         document.body.appendChild(btn);
 
-        // Animation d'apparition
         setTimeout(() => {
             btn.style.opacity = '0';
             btn.style.transform = 'translateY(100px)';
@@ -104,7 +91,6 @@
         }, 100);
     }
 
-    // Notification de mise à jour
     function showUpdateNotification() {
         const notification = document.createElement('div');
         notification.className = 'fixed top-20 right-6 z-50 bg-indigo-600 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-4 max-w-md';
@@ -129,13 +115,11 @@
         });
     }
 
-    // Détection du mode standalone (app installée)
     if (window.matchMedia('(display-mode: standalone)').matches) {
         console.log('🚀 PWA lancée en mode standalone');
         document.body.classList.add('pwa-standalone');
     }
 
-    // Statut de connexion
     function updateOnlineStatus() {
         const isOnline = navigator.onLine;
         const statusBar = document.getElementById('connection-status');
@@ -155,7 +139,6 @@
     window.addEventListener('offline', updateOnlineStatus);
     updateOnlineStatus();
 
-    // Exporter pour usage global
     window.PWA = {
         getRegistration: () => swRegistration,
         clearCache: async () => {
