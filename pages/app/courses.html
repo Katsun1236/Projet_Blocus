@@ -6,11 +6,11 @@
     <title>Mes Cours - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    
     
     <style>
         .content-glass {
@@ -38,15 +38,15 @@
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
+    
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -10%; left: 20%; background: radial-gradient(circle, rgba(56, 189, 248, 0.1) 0%, transparent 60%);"></div>
     <div class="glow-bg" style="bottom: 10%; right: -5%; background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 60%);"></div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER -->
+        
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30 sticky top-0">
             <div class="flex items-center gap-4">
                 <button id="mobile-menu-btn" class="relative z-50 md:hidden text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -99,7 +99,7 @@
             </div>
         </header>
 
-        <!-- CONTENU -->
+        
         <main class="flex-grow p-6 overflow-y-auto custom-scrollbar">
             
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -149,7 +149,7 @@
         </main>
     </div>
 
-    <!-- MODAL CRÉATION DOSSIER -->
+    
     <div id="folder-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h3 class="text-xl font-bold text-white mb-4">Nouveau Dossier</h3>
@@ -161,14 +161,14 @@
         </div>
     </div>
 
-    <!-- MODAL DÉPLACER FICHIER -->
+    
     <div id="move-file-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <h3 class="text-xl font-bold text-white mb-2">Déplacer le fichier</h3>
             <p class="text-sm text-gray-400 mb-6">Choisir le dossier de destination</p>
             
             <div id="move-folders-list" class="max-h-60 overflow-y-auto space-y-2 mb-6 custom-scrollbar">
-                <!-- Injecté par JS -->
+                
             </div>
 
             <div class="flex justify-end gap-3">
@@ -375,11 +375,11 @@
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white" onclick="window.open('${file.fileURL || file.url}', '_blank')">
                             <i class="fas fa-external-link-alt"></i>
                         </button>
-                        <!-- MOVE BUTTON -->
+                        
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-indigo-400 move-file-btn" title="Déplacer">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        <!-- DELETE BUTTON -->
+                        
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 delete-file-btn" title="Supprimer">
                             <i class="fas fa-trash"></i>
                         </button>

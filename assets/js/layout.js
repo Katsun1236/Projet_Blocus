@@ -1,29 +1,23 @@
-import { auth, db } from './config.js'; // Import db ajouté
+import { auth, db } from './config.js';
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js"; // Import Firestore ajouté
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 export function initLayout(activePageId) {
-    // 1. Inject Sidebar if not present
     const sidebar = document.getElementById('sidebar-container');
     if (!sidebar && document.getElementById('app-container')) {
         injectSidebar(activePageId);
     }
 
-    // 1.5 Add Home Button
     addHomeButton();
 
-    // 2. Mobile Menu Logic - Configuration après injection ou si existant
     setupMobileMenu();
 
-    // 3. HEADER PROFIL LOGIC (Chargement Auto)
-    // On écoute l'auth ici pour mettre à jour le header globalement
     onAuthStateChanged(auth, async (user) => {
         if (user) {
             updateHeaderProfile(user);
         }
     });
 
-    // 4. HEADER CLICK EVENT
     const headerProfileContainer = document.getElementById('user-avatar-header')?.parentElement;
     if (headerProfileContainer) {
         headerProfileContainer.style.cursor = 'pointer';
@@ -39,14 +33,12 @@ export function initLayout(activePageId) {
     }
 }
 
-// Fonction pour configurer le menu mobile
 function setupMobileMenu() {
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const closeMenuBtn = document.getElementById('close-mobile-menu');
 
     if (mobileMenuBtn && mobileMenu) {
-        // Retirer les listeners existants
         mobileMenuBtn.replaceWith(mobileMenuBtn.cloneNode(true));
         const newBtn = document.getElementById('mobile-menu-btn');
 
@@ -62,7 +54,6 @@ function setupMobileMenu() {
         });
     }
 
-    // Fermer le menu en cliquant en dehors
     if (mobileMenu) {
         mobileMenu.addEventListener('click', (e) => {
             if (e.target === mobileMenu) {
@@ -72,14 +63,12 @@ function setupMobileMenu() {
     }
 }
 
-// Fonction pour ajouter le bouton retour à l'accueil
 function addHomeButton() {
     const header = document.querySelector('header');
     if (!header) {
         return;
     }
 
-    // Vérifier si le bouton existe déjà
     if (document.getElementById('home-btn-header')) return;
 
     const homeBtn = document.createElement('a');
@@ -89,11 +78,9 @@ function addHomeButton() {
     homeBtn.title = "Retour à l'accueil";
     homeBtn.innerHTML = '<i class="fas fa-home mr-2"></i> Accueil';
 
-    // Insérer le bouton à la fin du header
     header.appendChild(homeBtn);
 }
 
-// Fonction dédiée à la mise à jour du header
 async function updateHeaderProfile(user) {
     const avatarImg = document.getElementById('user-avatar-header');
     const userNameTxt = document.getElementById('user-name-header');
@@ -101,7 +88,6 @@ async function updateHeaderProfile(user) {
     if (!avatarImg && !userNameTxt) return;
 
     try {
-        // Essayer de récupérer les données Firestore pour avoir le prénom/photo custom
         const userDocRef = doc(db, 'users', user.uid);
         const userSnapshot = await getDoc(userDocRef);
 
@@ -114,7 +100,6 @@ async function updateHeaderProfile(user) {
             if (data.firstName) displayName = data.firstName;
         }
 
-        // Fallback UI Avatars si pas de photo
         if (!photoURL) {
             photoURL = `https://ui-avatars.com/api/?name=${displayName}&background=random&color=fff`;
         }
@@ -124,7 +109,6 @@ async function updateHeaderProfile(user) {
 
     } catch (e) {
         console.error("Erreur chargement header profil:", e);
-        // Fallback Auth simple en cas d'erreur Firestore
         if (avatarImg) avatarImg.src = user.photoURL || `https://ui-avatars.com/api/?background=random`;
         if (userNameTxt) userNameTxt.textContent = user.displayName || "Étudiant";
     }
@@ -133,21 +117,18 @@ async function updateHeaderProfile(user) {
 function injectSidebar(activePageId) {
     const container = document.createElement('div');
     container.id = 'sidebar-container';
-    
+
     const inAppPages = window.location.pathname.includes('/pages/app/');
     const basePath = inAppPages ? './' : './pages/app/';
     const rootPath = inAppPages ? '../../' : './';
 
     container.innerHTML = `
-        <!-- SIDEBAR DESKTOP -->
         <aside class="fixed top-0 left-0 w-64 h-full bg-[#0a0a0f] border-r border-gray-800/50 z-30 hidden md:flex flex-col transition-transform duration-300">
-            <!-- Logo -->
             <div class="h-20 flex items-center px-8 border-b border-gray-800/50">
                 <img src="${rootPath}assets/images/locus-profile-sidebar.png" alt="Projet Blocus" class="w-9 h-9 object-contain mr-3">
                 <span class="text-xl font-display font-bold text-white tracking-wide">Blocus<span class="text-indigo-500">.</span></span>
             </div>
 
-            <!-- Nav Links -->
             <nav class="flex-grow p-4 space-y-2 overflow-y-auto custom-scrollbar">
                 <a href="${rootPath}index.html" id="home-link" class="flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200 group text-gray-400 hover:text-white hover:bg-white/5 border-b border-gray-800/50 mb-2">
                     <i class="fas fa-arrow-left w-5 text-gray-500 group-hover:text-indigo-400 transition-colors"></i>
@@ -161,7 +142,6 @@ function injectSidebar(activePageId) {
                 ${renderNavLink('planning', 'Planning', 'fa-calendar-alt', basePath + 'planning.html', activePageId)}
             </nav>
 
-            <!-- Bottom Actions -->
             <div class="p-4 border-t border-gray-800/50">
                 ${renderNavLink('profile', 'Mon Profil', 'fa-user-circle', basePath + 'profile.html', activePageId)}
                 <button id="sidebar-logout-btn" class="w-full mt-2 flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-400 rounded-xl hover:bg-red-500/10 transition-colors">
@@ -171,7 +151,6 @@ function injectSidebar(activePageId) {
             </div>
         </aside>
 
-        <!-- MENU MOBILE OVERLAY -->
         <div id="mobile-menu" class="hidden fixed inset-0 z-20 bg-black/95 flex flex-col p-6 md:hidden animate-fade-in">
             <div class="flex justify-between items-center mb-8">
                 <span class="text-xl font-bold text-white">Menu</span>
@@ -203,7 +182,6 @@ function injectSidebar(activePageId) {
         }
     });
 
-    // Configuration du menu mobile après injection
     setupMobileMenu();
 }
 

@@ -6,11 +6,11 @@
     <title>Conversation - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    
     
     <style>
         .sidebar-glass {
@@ -57,12 +57,12 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
+    
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <!-- SIDEBAR (Visible sur grand écran uniquement pour garder focus sur chat) -->
+    
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden lg:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
             <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
@@ -72,7 +72,7 @@
         </div>
 
         <nav class="flex-grow px-4 space-y-2">
-            <!-- LIEN CORRIGÉ -->
+            
             <a href="chat-list.html" class="flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-white/5 transition-all mb-6 group">
                 <i class="fas fa-arrow-left w-6 group-hover:text-indigo-400 transition-colors"></i>
                 <span class="font-medium">Retour aux Chats</span>
@@ -107,7 +107,7 @@
                 <i class="fas fa-user-friends w-6 group-hover:text-pink-400 transition-colors"></i>
                 <span class="font-medium">Mes Amis</span>
             </a>
-            <!-- LIEN CORRIGÉ -->
+            
             <a href="chat-list.html" class="nav-item active flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
                 <i class="fas fa-paper-plane w-6 group-hover:text-blue-400 transition-colors"></i>
                 <span class="font-medium">Discussions</span>
@@ -129,13 +129,13 @@
         </nav>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="flex-grow flex flex-col min-w-0 relative z-10 h-full">
         
-        <!-- Chat Header -->
+        
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/50 backdrop-blur-md z-20">
             <div class="flex items-center gap-4">
-                <!-- LIEN CORRIGÉ -->
+                
                 <a href="chat-list.html" class="lg:hidden text-gray-400 hover:text-white"><i class="fas fa-arrow-left text-xl"></i></a>
                 
                 <div class="flex items-center gap-3">
@@ -155,22 +155,22 @@
             </button>
         </header>
 
-        <!-- Chat Messages Area -->
+        
         <main id="chat-messages" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col custom-scrollbar">
-            <!-- Messages will be injected here -->
-            <div class="flex-grow min-h-[1px]"></div> <!-- Spacer to push messages to bottom -->
+            
+            <div class="flex-grow min-h-[1px]"></div> 
         </main>
 
-        <!-- Chat Input Area -->
+        
         <footer class="p-4 md:p-6 bg-gray-900/50 backdrop-blur-md border-t border-gray-800 z-20">
             <form id="message-form" class="max-w-4xl mx-auto relative flex items-end gap-3">
                 
-                <!-- Attachment Button -->
+                
                 <button type="button" id="attachment-btn" class="p-3 text-gray-400 hover:text-indigo-400 bg-gray-800 hover:bg-gray-700 rounded-xl transition-all flex-shrink-0" title="Envoyer fichier / Partager contenu">
                     <i class="fas fa-plus"></i>
                 </button>
                 
-                <!-- Input Field -->
+                
                 <div class="flex-grow relative">
                     <textarea id="message-input" rows="1" class="w-full pl-4 pr-12 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 resize-none" placeholder="Écris un message..." style="min-height: 48px; max-height: 120px;"></textarea>
                     <button type="button" class="absolute right-3 bottom-3 text-gray-400 hover:text-white">
@@ -178,7 +178,7 @@
                     </button>
                 </div>
 
-                <!-- Send Button -->
+                
                 <button type="submit" id="send-btn" class="p-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl shadow-lg shadow-indigo-500/20 transition-all transform hover:scale-105 flex-shrink-0">
                     <i class="fas fa-paper-plane"></i>
                 </button>
@@ -188,7 +188,7 @@
         </footer>
     </div>
 
-    <!-- MODAL PARTAGE -->
+    
     <div id="share-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-gray-900 border border-gray-700 rounded-3xl w-full max-w-md flex flex-col max-h-[80vh] shadow-2xl">
             <div class="p-6 border-b border-gray-800 flex justify-between items-center">
@@ -206,10 +206,10 @@
         </div>
     </div>
 
-    <!-- Message Box -->
+    
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- JAVASCRIPT -->
+    
     <script type="module">
         import { auth, db, storage } from '../../assets/js/config.js';
         import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";

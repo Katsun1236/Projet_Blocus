@@ -1,14 +1,7 @@
-/**
- * Gamification System
- * Gère les badges, streaks, XP, niveaux et achievements
- */
-
 import { db } from './config.js';
 import { doc, getDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// Configuration des badges
 export const BADGES = {
-    // Streaks
     'streak-3': {
         id: 'streak-3',
         name: 'Débutant Assidu',
@@ -33,8 +26,6 @@ export const BADGES = {
         xp: 500,
         requirement: { type: 'streak', value: 30 }
     },
-
-    // Quiz
     'quiz-master-10': {
         id: 'quiz-master-10',
         name: 'Quiz Novice',
@@ -59,8 +50,6 @@ export const BADGES = {
         xp: 200,
         requirement: { type: 'perfect-quiz', value: 1 }
     },
-
-    // Synthèses
     'synthesizer-10': {
         id: 'synthesizer-10',
         name: 'Synthétiseur',
@@ -77,8 +66,6 @@ export const BADGES = {
         xp: 400,
         requirement: { type: 'syntheses', value: 50 }
     },
-
-    // Flashcards
     'flashcard-warrior': {
         id: 'flashcard-warrior',
         name: 'Guerrier des Flashcards',
@@ -95,8 +82,6 @@ export const BADGES = {
         xp: 500,
         requirement: { type: 'retention-rate', value: 90 }
     },
-
-    // Communauté
     'contributor': {
         id: 'contributor',
         name: 'Contributeur',
@@ -113,8 +98,6 @@ export const BADGES = {
         xp: 400,
         requirement: { type: 'shared-syntheses', value: 20 }
     },
-
-    // Cours
     'bookworm': {
         id: 'bookworm',
         name: 'Bookworm',
@@ -131,8 +114,6 @@ export const BADGES = {
         xp: 300,
         requirement: { type: 'courses-uploaded', value: 50 }
     },
-
-    // Temps
     'studious': {
         id: 'studious',
         name: 'Studieux',
@@ -151,7 +132,6 @@ export const BADGES = {
     }
 };
 
-// Niveaux et XP requis
 export const LEVELS = [
     { level: 1, xpRequired: 0, title: 'Débutant' },
     { level: 2, xpRequired: 100, title: 'Novice' },
@@ -165,14 +145,12 @@ export const LEVELS = [
     { level: 10, xpRequired: 9000, title: 'Légende' }
 ];
 
-// Classe Gamification
 export class GamificationSystem {
     constructor(userId) {
         this.userId = userId;
         this.userDocRef = doc(db, 'users', userId);
     }
 
-    // Obtenir les données de gamification
     async getUserData() {
         try {
             const userDoc = await getDoc(this.userDocRef);
@@ -201,7 +179,6 @@ export class GamificationSystem {
         }
     }
 
-    // Ajouter de l'XP
     async addXP(amount, reason = '') {
         try {
             await updateDoc(this.userDocRef, {
@@ -210,7 +187,6 @@ export class GamificationSystem {
                 lastXPReason: reason
             });
 
-            // Vérifier si level up
             const userData = await this.getUserData();
             if (userData) {
                 const newLevel = this.calculateLevel(userData.xp);
@@ -227,7 +203,6 @@ export class GamificationSystem {
         }
     }
 
-    // Calculer le niveau basé sur l'XP
     calculateLevel(xp) {
         for (let i = LEVELS.length - 1; i >= 0; i--) {
             if (xp >= LEVELS[i].xpRequired) {
@@ -237,7 +212,6 @@ export class GamificationSystem {
         return 1;
     }
 
-    // Level up
     async levelUp(newLevel) {
         try {
             await updateDoc(this.userDocRef, {
@@ -245,14 +219,12 @@ export class GamificationSystem {
                 lastLevelUp: serverTimestamp()
             });
 
-            // Show notification
             this.showLevelUpNotification(newLevel);
         } catch (error) {
             console.error('Error leveling up:', error);
         }
     }
 
-    // Vérifier et débloquer les badges
     async checkAndUnlockBadges() {
         try {
             const userData = await this.getUserData();
@@ -263,10 +235,8 @@ export class GamificationSystem {
             for (const badgeId in BADGES) {
                 const badge = BADGES[badgeId];
 
-                // Skip if already unlocked
                 if (userData.badges.includes(badgeId)) continue;
 
-                // Check requirement
                 const requirement = badge.requirement;
                 let unlocked = false;
 
@@ -310,7 +280,6 @@ export class GamificationSystem {
         }
     }
 
-    // Débloquer un badge
     async unlockBadge(badgeId, badge) {
         try {
             const userDoc = await getDoc(this.userDocRef);
@@ -329,21 +298,18 @@ export class GamificationSystem {
         }
     }
 
-    // Incrémenter une statistique
     async incrementStat(statName, amount = 1) {
         try {
             await updateDoc(this.userDocRef, {
                 [statName]: increment(amount)
             });
 
-            // Vérifier les badges après chaque action
             await this.checkAndUnlockBadges();
         } catch (error) {
             console.error('Error incrementing stat:', error);
         }
     }
 
-    // Mettre à jour le streak
     async updateStreak() {
         try {
             const userData = await this.getUserData();
@@ -353,7 +319,6 @@ export class GamificationSystem {
             const lastActivity = userData.lastActivity?.toDate ? userData.lastActivity.toDate() : null;
 
             if (!lastActivity) {
-                // Premier jour
                 await updateDoc(this.userDocRef, {
                     streak: 1,
                     lastActivity: serverTimestamp()
@@ -364,22 +329,18 @@ export class GamificationSystem {
             const daysDiff = Math.floor((now - lastActivity) / (1000 * 60 * 60 * 24));
 
             if (daysDiff === 0) {
-                // Même jour, pas de changement
                 return userData.streak;
             } else if (daysDiff === 1) {
-                // Jour consécutif, incrémenter
                 const newStreak = userData.streak + 1;
                 await updateDoc(this.userDocRef, {
                     streak: newStreak,
                     lastActivity: serverTimestamp()
                 });
 
-                // Vérifier badges de streak
                 await this.checkAndUnlockBadges();
 
                 return newStreak;
             } else {
-                // Streak cassé
                 await updateDoc(this.userDocRef, {
                     streak: 1,
                     lastActivity: serverTimestamp()
@@ -392,7 +353,6 @@ export class GamificationSystem {
         }
     }
 
-    // Notifications
     showLevelUpNotification(newLevel) {
         const levelData = LEVELS.find(l => l.level === newLevel);
         if (!levelData) return;
@@ -442,13 +402,11 @@ export class GamificationSystem {
     }
 }
 
-// Helper: Obtenir le titre du niveau
 export function getLevelTitle(level) {
     const levelData = LEVELS.find(l => l.level === level);
     return levelData ? levelData.title : 'Inconnu';
 }
 
-// Helper: XP pour le prochain niveau
 export function getXPForNextLevel(currentXP) {
     const currentLevel = LEVELS.find(l => currentXP >= l.xpRequired && (LEVELS[LEVELS.indexOf(l) + 1]?.xpRequired || Infinity) > currentXP);
     const nextLevel = LEVELS[LEVELS.indexOf(currentLevel) + 1];

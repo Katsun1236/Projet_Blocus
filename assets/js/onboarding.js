@@ -1,7 +1,6 @@
 import { auth, db } from './config.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// Configuration du tutoriel par étapes
 const TUTORIAL_STEPS = [
     {
         target: '#dashboard-link',
@@ -78,10 +77,9 @@ class OnboardingTutorial {
             const userDoc = await getDoc(doc(db, 'users', user.uid));
             if (userDoc.exists()) {
                 const data = userDoc.data();
-                // Vérifier si l'utilisateur a déjà vu le tutoriel
                 return !data.hasCompletedOnboarding;
             }
-            return true; // Nouvel utilisateur
+            return true;
         } catch (error) {
             console.error("Erreur vérification tutoriel:", error);
             return false;
@@ -91,12 +89,10 @@ class OnboardingTutorial {
     async start() {
         if (this.isActive) return;
 
-        // Vérifier si on reprend un tutoriel en cours
         const inProgress = localStorage.getItem('onboarding_in_progress');
         const savedStep = localStorage.getItem('onboarding_current_step');
 
         if (inProgress === 'true' && savedStep !== null) {
-            // Reprendre le tutoriel à l'étape sauvegardée
             localStorage.removeItem('onboarding_in_progress');
             this.isActive = true;
             this.currentStep = parseInt(savedStep);
@@ -135,14 +131,12 @@ class OnboardingTutorial {
     }
 
     createOverlay() {
-        // Overlay assombrissant
         this.overlay = document.createElement('div');
         this.overlay.id = 'onboarding-overlay';
         this.overlay.className = 'fixed inset-0 bg-black/80 transition-all duration-300';
         this.overlay.style.cssText = 'z-index: 999999 !important; pointer-events: auto !important;';
         document.body.appendChild(this.overlay);
 
-        // Spotlight circulaire
         this.spotlight = document.createElement('div');
         this.spotlight.id = 'onboarding-spotlight';
         this.spotlight.className = 'fixed rounded-full border-4 border-indigo-500 transition-all duration-500';
@@ -156,7 +150,6 @@ class OnboardingTutorial {
         this.mascot.className = 'fixed bg-gradient-to-br from-gray-900 to-gray-800 border-2 border-indigo-500 rounded-2xl shadow-2xl p-6 max-w-md transition-all duration-500';
         this.mascot.style.cssText = 'z-index: 1000001 !important; pointer-events: auto !important;';
 
-        // Utiliser une vraie image si disponible, sinon emoji
         const mascotImage = '../../assets/images/locus-happy-mascot.png';
 
         this.mascot.innerHTML = `
@@ -200,7 +193,6 @@ class OnboardingTutorial {
 
         document.body.appendChild(this.mascot);
 
-        // Event listeners
         document.getElementById('onboarding-next').addEventListener('click', () => this.nextStep());
         document.getElementById('onboarding-prev').addEventListener('click', () => this.prevStep());
         document.getElementById('onboarding-visit').addEventListener('click', () => this.visitFeature());
@@ -214,11 +206,9 @@ class OnboardingTutorial {
         this.currentStep = stepIndex;
         const step = TUTORIAL_STEPS[stepIndex];
 
-        // Mettre à jour le contenu
         document.getElementById('onboarding-title').textContent = step.title;
         document.getElementById('onboarding-message').textContent = step.message;
 
-        // Mettre à jour les points de progression
         document.querySelectorAll('.onboarding-dot').forEach((dot, i) => {
             if (i === stepIndex) {
                 dot.classList.add('bg-indigo-500');
@@ -232,7 +222,6 @@ class OnboardingTutorial {
             }
         });
 
-        // Gérer la visibilité des boutons
         const prevBtn = document.getElementById('onboarding-prev');
         const nextBtn = document.getElementById('onboarding-next');
         const visitBtn = document.getElementById('onboarding-visit');
@@ -249,14 +238,12 @@ class OnboardingTutorial {
             nextBtn.innerHTML = 'Suivant <i class="fas fa-arrow-right ml-1"></i>';
         }
 
-        // Afficher/cacher le bouton Visiter selon l'étape
         if (step.visitUrl) {
             visitBtn.classList.remove('hidden');
         } else {
             visitBtn.classList.add('hidden');
         }
 
-        // Positionner le spotlight et la mascotte
         this.updatePositions(step);
     }
 
@@ -265,7 +252,6 @@ class OnboardingTutorial {
             const target = document.querySelector(step.target);
             if (!target) {
                 console.warn(`Target not found: ${step.target}, centering mascot instead`);
-                // Si l'élément n'existe pas, centrer la mascotte
                 this.spotlight.style.opacity = '0';
                 this.mascot.style.top = '50%';
                 this.mascot.style.left = '50%';
@@ -276,17 +262,14 @@ class OnboardingTutorial {
             const rect = target.getBoundingClientRect();
             const padding = 20;
 
-            // Positionner le spotlight
             this.spotlight.style.left = `${rect.left - padding}px`;
             this.spotlight.style.top = `${rect.top - padding}px`;
             this.spotlight.style.width = `${rect.width + padding * 2}px`;
             this.spotlight.style.height = `${rect.height + padding * 2}px`;
             this.spotlight.style.opacity = '1';
 
-            // Positionner la mascotte selon la position spécifiée
             this.positionMascot(rect, step.position);
         } else {
-            // Pas de cible : centrer la mascotte et cacher le spotlight
             this.spotlight.style.opacity = '0';
             this.mascot.style.top = '50%';
             this.mascot.style.left = '50%';
@@ -295,7 +278,7 @@ class OnboardingTutorial {
     }
 
     positionMascot(targetRect, position) {
-        const mascotWidth = 400; // Estimation
+        const mascotWidth = 400;
         const mascotHeight = 250;
         const margin = 30;
 
@@ -345,17 +328,14 @@ class OnboardingTutorial {
     visitFeature() {
         const step = TUTORIAL_STEPS[this.currentStep];
         if (step.visitUrl) {
-            // Sauvegarder l'état du tutoriel
             localStorage.setItem('onboarding_in_progress', 'true');
             localStorage.setItem('onboarding_current_step', this.currentStep);
 
-            // Naviguer vers la page
             window.location.href = step.visitUrl;
         }
     }
 
     skipStep() {
-        // Passer à l'étape suivante sans confirmation
         if (this.currentStep < TUTORIAL_STEPS.length - 1) {
             this.showStep(this.currentStep + 1);
         } else {
@@ -375,7 +355,6 @@ class OnboardingTutorial {
         await this.markAsCompleted();
         this.close();
 
-        // Message de félicitations
         this.showCompletionMessage();
     }
 
@@ -399,7 +378,6 @@ class OnboardingTutorial {
         if (this.mascot) this.mascot.remove();
         this.isActive = false;
 
-        // Nettoyer le localStorage
         localStorage.removeItem('onboarding_in_progress');
         localStorage.removeItem('onboarding_current_step');
     }
@@ -421,7 +399,6 @@ class OnboardingTutorial {
         setTimeout(() => msg.remove(), 5000);
     }
 
-    // Méthode pour relancer le tutoriel manuellement
     async restart() {
         const user = auth.currentUser;
         if (!user) return;
@@ -437,5 +414,4 @@ class OnboardingTutorial {
     }
 }
 
-// Export singleton
 export const onboarding = new OnboardingTutorial();

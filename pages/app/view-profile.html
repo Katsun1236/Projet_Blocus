@@ -6,11 +6,11 @@
     <title>Profil Public - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    
     
     <style>
         .sidebar-glass {
@@ -47,12 +47,12 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
+    
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <!-- SIDEBAR -->
+    
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
             <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
@@ -119,10 +119,10 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
         
-        <!-- Header Mobile -->
+        
         <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4">
                 <button class="text-gray-400 hover:text-white" onclick="window.history.back()"><i class="fas fa-arrow-left text-xl"></i></button>
@@ -139,9 +139,9 @@
 
             <div id="profile-content" class="hidden space-y-8 max-w-4xl mx-auto">
                 
-                <!-- Carte Profil -->
+                
                 <div class="content-glass rounded-3xl p-8 relative overflow-hidden border border-gray-800">
-                    <!-- Bannière de fond -->
+                    
                     <div class="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-900/50 to-purple-900/50"></div>
                     
                     <div class="relative z-10 flex flex-col md:flex-row items-end md:items-center gap-6 mt-16 md:mt-4 px-4">
@@ -155,18 +155,18 @@
                         </div>
 
                         <div id="action-buttons" class="flex gap-3 flex-wrap justify-center md:justify-end">
-                            <!-- Boutons injectés par JS (Ajouter / Message / En attente) -->
+                            
                         </div>
                     </div>
                 </div>
 
-                <!-- Badges -->
+                
                 <div class="content-glass rounded-3xl p-8 border border-gray-800">
                     <h2 class="text-xl font-display font-bold text-white mb-6 flex items-center gap-2">
                         <i class="fas fa-trophy text-yellow-500"></i> Succès Débloqués
                     </h2>
                     <div id="badges-container" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-4">
-                        <!-- Badges injectés ici -->
+                        
                     </div>
                     <p id="no-badges" class="hidden text-gray-500 text-sm text-center py-4">Cet utilisateur n'a pas encore débloqué de badges.</p>
                 </div>
@@ -184,10 +184,10 @@
         </main>
     </div>
 
-    <!-- Message Box -->
+    
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- JAVASCRIPT -->
+    
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";

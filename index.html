@@ -8,51 +8,51 @@
     <meta name="keywords" content="révision, étudiant, IA, synthèse, quiz, blocus, étude, fiches, apprentissage">
     <link rel="icon" type="image/png" href="assets/images/locus-neon-favicon.png">
 
-    <!-- Open Graph / Facebook -->
+    
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://projet-blocus-v2.web.app/">
     <meta property="og:title" content="Projet Blocus | Hack tes études avec l'IA">
     <meta property="og:description" content="Transforme tes notes en synthèses IA, quiz instantanés et fiches de révision. Révise plus efficacement.">
     <meta property="og:image" content="https://projet-blocus-v2.web.app/assets/images/og-image.png">
 
-    <!-- Twitter -->
+    
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://projet-blocus-v2.web.app/">
     <meta property="twitter:title" content="Projet Blocus | Hack tes études avec l'IA">
     <meta property="twitter:description" content="Transforme tes notes en synthèses IA, quiz instantanés et fiches de révision.">
     <meta property="twitter:image" content="https://projet-blocus-v2.web.app/assets/images/og-image.png">
 
-    <!-- Tailwind CSS (Build optimisé - 98% plus léger) -->
+    
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Suppress Tailwind CDN warning -->
+    
     <script src="assets/js/suppress-warnings.js"></script>
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white bg-[#050505] text-white">
 
-    <!-- Skip to main content for accessibility -->
+    
     <a href="#main-content" class="skip-to-main">Aller au contenu principal</a>
 
-    <!-- Texture de grain (Effet Cinéma) -->
+    
     <div class="noise-overlay" aria-hidden="true"></div>
 
-    <!-- Lumières d'ambiance -->
+    
     <div class="glow-bg" style="top: -20%; left: -10%; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: 10%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);"></div>
 
-    <!-- NAVIGATION -->
+    
     <nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300 border-b border-white/5" role="navigation" aria-label="Navigation principale">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <!-- Logo -->
+            
             <a href="#" class="flex items-center gap-3 group z-50">
                 <img src="assets/images/locus-wings-open-hero.png" alt="Projet Blocus Logo" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform">
                 <span class="font-display font-bold text-lg tracking-wide text-white">Projet Blocus</span>
             </a>
 
-            <!-- Desktop Menu -->
+            
             <div class="hidden md:flex items-center gap-8">
-                <!-- Menu : Visiteur -->
+                
                 <div id="nav-logged-out" class="flex items-center gap-8">
                     <a href="#features" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Concept</a>
                     <a href="#community" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Communauté</a>
@@ -65,11 +65,11 @@
                     </div>
                 </div>
 
-                <!-- Menu : Connecté -->
+                
                 <div id="nav-logged-in" class="hidden items-center gap-6">
                     <a href="pages/app/dashboard.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Mon Espace</a>
                     
-                    <!-- User Dropdown Trigger -->
+                    
                     <div class="relative">
                         <button id="user-menu-button" class="flex items-center gap-3 focus:outline-none" aria-label="Menu utilisateur" aria-expanded="false" aria-haspopup="true">
                             <span id="user-name-header" class="hidden lg:block text-sm font-bold text-white">Étudiant</span>
@@ -79,7 +79,7 @@
                             </div>
                         </button>
 
-                        <!-- Dropdown Menu -->
+                        
                         <div id="user-menu" class="hidden absolute top-14 right-0 w-56 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl overflow-hidden py-1 z-50 animate-fade-in-up" role="menu" aria-labelledby="user-menu-button">
                             <div class="px-4 py-3 border-b border-gray-800">
                                 <p class="text-xs text-gray-500 uppercase font-bold">Mon Compte</p>
@@ -99,13 +99,13 @@
                 </div>
             </div>
 
-            <!-- Mobile Menu Button -->
+            
             <button id="mobile-menu-btn" class="relative z-50 md:hidden text-gray-300 hover:text-white text-2xl focus:outline-none" aria-label="Ouvrir le menu mobile" aria-expanded="false" aria-controls="mobile-menu">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
 
-        <!-- Mobile Menu Overlay -->
+        
         <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-gray-900 border-b border-gray-800 p-6 shadow-2xl animate-slide-down" role="menu">
             <div class="flex flex-col gap-4">
                 <a href="#features" class="text-gray-300 hover:text-white py-2">Concept</a>
@@ -116,11 +116,11 @@
         </div>
     </nav>
 
-    <!-- HERO SECTION -->
+    
     <main id="main-content" class="relative pt-32 lg:pt-48 px-6 overflow-hidden min-h-screen flex flex-col justify-center" role="main">
         <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
             
-            <!-- Left: Text -->
+            
             <div class="relative z-10 text-center lg:text-left">
                 <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-gray-800 bg-gray-900/50 backdrop-blur-md mb-8 animate-float">
                     <span class="relative flex h-2 w-2">
@@ -140,9 +140,9 @@
                     <span class="text-gray-200 font-medium">Synthèses IA, Quiz instantanés, Communauté active.</span>
                 </p>
 
-                <!-- Action Buttons -->
+                
                 <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
-                    <!-- Logged OUT Buttons -->
+                    
                     <div id="hero-logged-out" class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                         <a href="pages/auth/register.html" class="px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-[0_0_30px_-10px_rgba(255,255,255,0.3)]">
                             Commencer maintenant
@@ -152,7 +152,7 @@
                         </a>
                     </div>
                     
-                    <!-- Logged IN Buttons -->
+                    
                     <div id="hero-logged-in" class="hidden w-full sm:w-auto">
                         <a href="pages/app/dashboard.html" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/40 transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1">
                             <i class="fas fa-rocket"></i> Lancer la session
@@ -160,7 +160,7 @@
                     </div>
                 </div>
                 
-                <!-- Social Proof -->
+                
                 <div class="mt-12 flex items-center justify-center lg:justify-start gap-4 text-sm text-gray-500 font-mono">
                     <div class="flex -space-x-3">
                         <div class="w-10 h-10 rounded-full bg-gray-800 border-2 border-black flex items-center justify-center text-xs">🤖</div>
@@ -171,11 +171,11 @@
                 </div>
             </div>
 
-            <!-- Right: Visuals -->
+            
             <div class="relative h-[500px] w-full hidden lg:block perspective-1000">
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-600/20 to-purple-600/20 rounded-full blur-[120px] -z-10"></div>
                 
-                <!-- Floating Card 1: Synthèse -->
+                
                 <div class="absolute top-10 left-10 w-80 bg-gray-900/80 backdrop-blur-xl border border-gray-700 rounded-2xl p-6 shadow-2xl animate-float z-20 hover:border-indigo-500/50 transition-colors">
                     <div class="flex items-center justify-between mb-4">
                         <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400"><i class="fas fa-file-alt"></i></div>
@@ -189,7 +189,7 @@
                     </div>
                 </div>
 
-                <!-- Floating Card 2: Quiz -->
+                
                 <div class="absolute bottom-20 right-10 w-72 bg-gray-900/80 backdrop-blur-xl border border-gray-700 rounded-2xl p-6 shadow-2xl animate-float-delayed z-30 hover:border-purple-500/50 transition-colors">
                     <div class="flex items-center gap-3 mb-3">
                         <div class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-xs font-bold"><i class="fas fa-brain"></i></div>
@@ -210,7 +210,7 @@
         </div>
     </main>
 
-    <!-- FEATURES SECTION -->
+    
     <section id="features" class="py-32 px-6 border-t border-gray-900/50 relative">
         <div class="max-w-7xl mx-auto">
             <h2 class="text-3xl md:text-5xl font-display font-bold text-center mb-20">
@@ -219,7 +219,7 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Feature 1 -->
+                
                 <div class="feature-card rounded-3xl p-8 md:col-span-2 group hover:bg-gray-900/50 transition-all border border-gray-800 hover:border-indigo-500/30">
                     <div class="flex flex-col md:flex-row justify-between items-start gap-6">
                         <div class="flex-1">
@@ -233,7 +233,7 @@
                     </div>
                 </div>
 
-                <!-- Feature 2 -->
+                
                 <div class="feature-card rounded-3xl p-8 group border border-gray-800 hover:border-purple-500/30 hover:bg-gray-900/50 transition-all">
                     <div class="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center text-purple-400 text-xl mb-6 group-hover:scale-110 transition-transform">
                         <i class="fas fa-brain"></i>
@@ -242,7 +242,7 @@
                     <p class="text-gray-400 text-sm">Transforme n'importe quel cours en un test interactif pour valider tes acquis.</p>
                 </div>
 
-                <!-- Feature 3 -->
+                
                 <div class="feature-card rounded-3xl p-8 group border border-gray-800 hover:border-emerald-500/30 hover:bg-gray-900/50 transition-all">
                     <div class="w-12 h-12 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400 text-xl mb-6 group-hover:scale-110 transition-transform">
                         <i class="fas fa-users"></i>
@@ -251,7 +251,7 @@
                     <p class="text-gray-400 text-sm">Crée un groupe avec tes potes, partagez vos fiches et motivez-vous.</p>
                 </div>
 
-                <!-- CTA Block -->
+                
                 <div id="community" class="feature-card rounded-3xl p-8 md:col-span-2 bg-gradient-to-r from-gray-900 to-indigo-900/20 flex flex-col md:flex-row items-center justify-between gap-6 border border-gray-800">
                     <div>
                         <h3 class="text-2xl font-bold mb-2 text-white">Prêt à changer la donne ?</h3>
@@ -277,7 +277,7 @@
         <p class="text-xs mt-4 opacity-30">Logo et marque déposés. Voir LICENSE pour plus d'informations.</p>
     </footer>
 
-    <!-- Script de gestion d'état -->
+    
     <script type="module" src="assets/js/home.js"></script>
 </body>
 </html>

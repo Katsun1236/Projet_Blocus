@@ -6,14 +6,14 @@
     <title>Planning - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- FullCalendar CSS (Custom overrides below) -->
+    
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     
-    <!-- Custom CSS -->
+    
     
     <style>
         .content-glass {
@@ -101,14 +101,14 @@
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
+    
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: 10%; right: 20%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER -->
+        
         <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30">
             <div class="flex items-center gap-4 md:hidden">
                 <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -142,19 +142,19 @@
             </div>
         </header>
 
-        <!-- SCROLLABLE CONTENT -->
+        
         <main class="flex-grow p-4 sm:p-6 overflow-y-auto custom-scrollbar relative flex flex-col">
             
-            <!-- CALENDAR WRAPPER -->
+            
             <div class="flex-grow content-glass rounded-2xl p-4 sm:p-6 flex flex-col min-h-[600px] shadow-2xl">
-                <!-- La div magique pour FullCalendar -->
+                
                 <div id='calendar' class="flex-grow text-white"></div>
             </div>
 
         </main>
     </div>
 
-    <!-- MODAL: AJOUTER / MODIFIER ÉVÉNEMENT -->
+    
     <div id="event-modal" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl flex flex-col animate-scale-up">
             
@@ -165,13 +165,13 @@
 
             <div class="p-6 space-y-4">
                 
-                <!-- Titre -->
+                
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Titre</label>
                     <input type="text" id="event-title" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-gray-600" placeholder="Ex: Révision Maths">
                 </div>
 
-                <!-- Type (Couleur) -->
+                
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Type</label>
                     <div class="grid grid-cols-3 gap-3">
@@ -196,7 +196,7 @@
                     </div>
                 </div>
 
-                <!-- Dates -->
+                
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Début</label>
@@ -208,7 +208,7 @@
                     </div>
                 </div>
 
-                <!-- Description -->
+                
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Description</label>
                     <textarea id="event-desc" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 resize-none placeholder-gray-600"></textarea>
@@ -230,10 +230,10 @@
         </div>
     </div>
 
-    <!-- Message Box (Toast) -->
+    
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 
-    <!-- Script Principal -->
+    
     <script type="module" src="../../assets/js/planning.js"></script>
 
 </body>

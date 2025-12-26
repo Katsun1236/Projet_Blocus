@@ -5,31 +5,27 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/fi
 import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, where, increment, deleteField } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
-// --- STATE ---
 let currentUserId = null;
 let currentUserData = null;
-let currentPostId = null; 
-let currentGroupId = null; // ID du groupe actif
-let currentGroupData = null; 
+let currentPostId = null;
+let currentGroupId = null;
+let currentGroupData = null;
 let postsUnsubscribe = null;
 let groupsUnsubscribe = null;
 let groupChatUnsubscribe = null;
 let groupFilesUnsubscribe = null;
-let allGroups = []; 
-let editingRoleId = null; 
-let tempRoles = {}; 
+let allGroups = [];
+let editingRoleId = null;
+let tempRoles = {};
 
-// Storage Init
 const storage = getStorage();
 
-// --- CONFIGURATION DES RÔLES PAR DÉFAUT ---
 const DEFAULT_ROLES = {
     admin: { name: "Admin", hexColor: "#ef4444", permissions: ["ALL"] },
     moderator: { name: "Modérateur", hexColor: "#3b82f6", permissions: ["KICK_MEMBERS", "DELETE_MESSAGES", "DELETE_FILES", "PIN_MESSAGES", "SEND_MESSAGES", "UPLOAD_FILES"] },
     member: { name: "Membre", hexColor: "#9ca3af", permissions: ["SEND_MESSAGES", "UPLOAD_FILES"] }
 };
 
-// --- PERMISSIONS DEFINITIONS ---
 const PERMISSIONS_DEF = [
     { id: 'MANAGE_GROUP', label: 'Gérer le groupe', desc: 'Modifier le nom, l\'icône et la description.' },
     { id: 'MANAGE_ROLES', label: 'Gérer les rôles', desc: 'Créer, modifier et supprimer des rôles.' },
@@ -40,9 +36,7 @@ const PERMISSIONS_DEF = [
     { id: 'DELETE_FILES', label: 'Supprimer des fichiers', desc: 'Supprimer les fichiers partagés par d\'autres.' }
 ];
 
-// --- DOM ELEMENTS ---
 const ui = {
-    // ... elements de base ...
     userName: document.getElementById('user-name-header'),
     userAvatar: document.getElementById('user-avatar-header'),
     postsContainer: document.getElementById('posts-container'),
@@ -51,10 +45,8 @@ const ui = {
     onlineCount: document.getElementById('online-users-count'),
     btnNewPost: document.getElementById('btn-new-post'),
     filters: document.getElementById('post-filters'),
-    // Recherche & Filtres Groupes
     groupSearchInput: document.getElementById('group-search-input'),
     groupFilters: document.getElementById('group-filters'),
-    // Modale New Post
     newPostModal: document.getElementById('new-post-modal'),
     closePostModal: document.getElementById('close-post-modal'),
     cancelPost: document.getElementById('cancel-post'),
@@ -62,14 +54,12 @@ const ui = {
     postTitle: document.getElementById('post-title'),
     postContent: document.getElementById('post-content'),
     postTag: document.getElementById('post-tag'),
-    // Modale Détail Post
     detailModal: document.getElementById('post-detail-modal'),
     closeDetailModal: document.getElementById('close-detail-modal'),
     detailContent: document.getElementById('detail-content'),
     commentInput: document.getElementById('comment-input'),
     submitComment: document.getElementById('submit-comment'),
     currentUserAvatarComment: document.getElementById('current-user-avatar-comment'),
-    // Modale Groupe
     groupModal: document.getElementById('group-space-modal'),
     closeGroupModal: document.getElementById('close-group-modal'),
     groupTitle: document.getElementById('group-title-large'),
@@ -79,14 +69,12 @@ const ui = {
     groupMessagesContainer: document.getElementById('group-messages-container'),
     groupChatInput: document.getElementById('group-chat-input'),
     sendGroupMessageBtn: document.getElementById('send-group-message'),
-    // Uploads Groupe
     groupFilesList: document.getElementById('group-files-list'),
     btnAddFile: document.getElementById('btn-add-file'),
     groupFileUpload: document.getElementById('group-file-upload'),
     changeGroupIconBtn: document.getElementById('change-group-icon-btn'),
     groupIconUpload: document.getElementById('group-icon-upload'),
     btnUploadChat: document.getElementById('btn-upload-chat'),
-    // Modale Création Groupe
     createGroupModal: document.getElementById('create-group-modal'),
     closeCreateGroupModal: document.getElementById('close-create-group-modal'),
     btnCreateGroupHero: document.getElementById('btn-create-group-hero'),
@@ -95,23 +83,19 @@ const ui = {
     newGroupDesc: document.getElementById('new-group-desc'),
     submitCreateGroup: document.getElementById('submit-create-group'),
     cancelCreateGroup: document.getElementById('cancel-create-group'),
-    // SETTINGS MODAL ELEMENTS
     btnGroupSettings: document.getElementById('btn-group-settings'),
     settingsModal: document.getElementById('group-settings-modal'),
     closeSettingsModal: document.getElementById('close-settings-modal'),
-    // Tabs
     tabOverview: document.getElementById('tab-overview'),
     tabRoles: document.getElementById('tab-roles'),
     tabMembers: document.getElementById('tab-members'),
     sectionOverview: document.getElementById('section-overview'),
     sectionRoles: document.getElementById('section-roles'),
     sectionMembers: document.getElementById('section-members'),
-    // Overview
     editGroupName: document.getElementById('edit-group-name'),
     editGroupDesc: document.getElementById('edit-group-desc'),
     btnSaveOverview: document.getElementById('btn-save-overview'),
     overviewIconPreview: document.getElementById('overview-icon-preview'),
-    // Roles
     rolesListContainer: document.getElementById('roles-list-container'),
     btnCreateRole: document.getElementById('btn-create-role'),
     roleNameInput: document.getElementById('role-name-input'),
@@ -119,11 +103,9 @@ const ui = {
     permissionsListContainer: document.getElementById('permissions-list-container'),
     btnSaveRole: document.getElementById('btn-save-role'),
     btnDeleteRole: document.getElementById('btn-delete-role'),
-    // Members
     membersListSettings: document.getElementById('members-list-settings')
 };
 
-// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     initLayout('community');
 
@@ -133,9 +115,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             currentUserId = user.uid;
             await loadUserProfile();
-            subscribeToPosts(); 
-            loadContributors(); 
-            subscribeToGroups(); 
+            subscribeToPosts();
+            loadContributors();
+            subscribeToGroups();
         } else {
             window.location.href = '../auth/login.html';
         }
@@ -143,8 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupEventListeners();
 });
-
-// --- LOAD DATA ---
 
 async function loadUserProfile() {
     try {
@@ -158,13 +138,11 @@ async function loadUserProfile() {
         } else {
             currentUserData = { firstName: "Étudiant", photoURL: null };
         }
-    } catch(e) { 
-        console.error("Erreur profil:", e); 
+    } catch(e) {
+        console.error("Erreur profil:", e);
         currentUserData = { firstName: "Étudiant", photoURL: null };
     }
 }
-
-// --- LEADERBOARD & POSTS ---
 
 async function loadContributors() {
     const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(5));
@@ -175,7 +153,7 @@ async function loadContributors() {
         let rank = 1;
         snapshot.forEach(docSnap => {
             const user = docSnap.data();
-            if(!user.firstName) return; 
+            if(!user.firstName) return;
             const div = document.createElement('div');
             div.className = 'flex items-center gap-3 animate-fade-in mb-3 last:mb-0';
             div.innerHTML = `<span class="text-gray-500 text-xs font-bold w-4">${rank}</span><img src="${user.photoURL || `https://ui-avatars.com/api/?name=${user.firstName}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white truncate">${user.firstName}</p><p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p></div>`;
@@ -212,7 +190,6 @@ function renderPostCard(post) {
     const likeIcon = userLiked ? 'fas fa-heart' : 'far fa-heart';
     const timeAgo = post.createdAt ? timeSince(post.createdAt.toDate()) : 'À l\'instant';
 
-    // Bouton Delete si Auteur
     let deleteBtnHtml = '';
     if (post.authorId === currentUserId) {
         deleteBtnHtml = `<button class="absolute top-4 right-4 text-gray-600 hover:text-red-500 delete-post-btn p-2"><i class="fas fa-trash"></i></button>`;
@@ -238,7 +215,7 @@ function renderPostCard(post) {
             <button class="ml-auto hover:text-white action-btn share-btn hover:text-indigo-400"><i class="fas fa-share"></i> Republier</button>
         </div>
     `;
-    
+
     if (post.authorId === currentUserId) {
         card.querySelector('.delete-post-btn').addEventListener('click', (e) => { e.stopPropagation(); deletePost(post.id); });
     }
@@ -272,13 +249,11 @@ async function openDetailModal(post) { currentPostId = post.id; ui.detailModal.c
 function subscribeToComments(postId) { const list = document.getElementById('comments-list'); onSnapshot(query(collection(db, 'community_posts', postId, 'comments'), orderBy('createdAt', 'asc')), (snap) => { list.innerHTML = ''; snap.forEach(d => { const c = d.data(); list.innerHTML += `<div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800"><span class="font-bold text-white text-sm">${c.authorName}</span><p class="text-sm text-gray-300 mt-1">${c.content}</p></div>`; }); }); }
 async function submitComment() { const content = ui.commentInput.value.trim(); if(!content) return; try { await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), { content, authorId: currentUserId, authorName: currentUserData.firstName, createdAt: serverTimestamp() }); await addPointsToUser(currentUserId, 5); ui.commentInput.value = ''; } catch(e) {} }
 
-// --- GROUPS LOGIC AVEC RÔLES & SETTINGS ---
-
 function hasPermission(permission) {
     if (!currentGroupData) return false;
     const myRoleId = currentGroupData.memberRoles ? currentGroupData.memberRoles[currentUserId] : 'member';
     const role = currentGroupData.roles ? currentGroupData.roles[myRoleId] : DEFAULT_ROLES[myRoleId];
-    
+
     if (!role) return false;
     if (role.permissions.includes('ALL')) return true;
     return role.permissions.includes(permission);
@@ -330,22 +305,20 @@ function filterGroups() {
     renderGroupList(filtered);
 }
 
-// OUVERTURE DU GROUPE
 function openGroupSpace(group) {
     currentGroupId = group.id;
-    currentGroupData = group; // Stocke pour vérification permission
+    currentGroupData = group;
     ui.groupModal.classList.remove('hidden');
-    
+
     ui.groupTitle.textContent = group.name;
     ui.groupMemberCount.textContent = group.memberCount || 0;
-    
+
     if (group.photoURL) {
          ui.groupIcon.innerHTML = `<img src="${group.photoURL}" class="w-full h-full object-cover rounded-2xl">`;
     } else {
          ui.groupIcon.innerHTML = `<i class="fas ${group.icon || 'fa-users'}"></i>`;
     }
 
-    // Vérifier si Admin pour afficher la roue dentée (Basé sur le rôle 'admin')
     const myRole = group.memberRoles ? group.memberRoles[currentUserId] : 'member';
     if (myRole === 'admin') {
         ui.btnGroupSettings.classList.remove('hidden');
@@ -354,7 +327,6 @@ function openGroupSpace(group) {
         ui.btnGroupSettings.classList.add('hidden');
     }
 
-    // Charger les membres et leurs rôles
     ui.groupMembersList.innerHTML = `<div class="text-center py-2"><i class="fas fa-circle-notch fa-spin text-gray-600"></i></div>`;
     loadGroupMembers(group);
 
@@ -362,7 +334,6 @@ function openGroupSpace(group) {
     subscribeToGroupFiles(group.id);
 }
 
-// Sidebar members logic
 async function loadGroupMembers(group) {
     ui.groupMembersList.innerHTML = '';
     const myRoleId = group.memberRoles ? (group.memberRoles[currentUserId] || 'member') : 'member';
@@ -375,33 +346,27 @@ async function loadGroupMembers(group) {
     if (group.memberCount > 1) { const others = document.createElement('p'); others.className = "text-xs text-gray-500 mt-2 px-2 italic"; others.textContent = `+ ${group.memberCount - 1} autres membres`; ui.groupMembersList.appendChild(others); }
 }
 
-// --- LOGIQUE SETTINGS COMPLETTE ---
-
 function openSettingsModal(group) {
     ui.settingsModal.classList.remove('hidden');
     tempRoles = JSON.parse(JSON.stringify(group.roles || DEFAULT_ROLES));
-    
-    // Init Tab Overview
+
     ui.editGroupName.value = group.name;
     ui.editGroupDesc.value = group.description || '';
     if(group.photoURL) ui.overviewIconPreview.innerHTML = `<img src="${group.photoURL}" class="w-full h-full object-cover rounded-full">`;
     else ui.overviewIconPreview.innerHTML = `<i class="fas ${group.icon || 'fa-users'}"></i>`;
 
-    // Switch to Overview by default
     switchTab('overview');
 }
 
 function switchTab(tabId) {
-    // Reset styles
     [ui.tabOverview, ui.tabRoles, ui.tabMembers].forEach(t => {
         t.className = "w-full text-left px-3 py-2 rounded text-gray-300 hover:bg-[#3f4147] hover:text-white transition-colors text-sm font-medium";
     });
     [ui.sectionOverview, ui.sectionRoles, ui.sectionMembers].forEach(s => s.classList.add('hidden'));
 
-    // Activate
     const btn = document.getElementById('tab-' + tabId);
     const sect = document.getElementById('section-' + tabId);
-    
+
     btn.className = "w-full text-left px-3 py-2 rounded bg-[#3f4147] text-white transition-colors text-sm font-medium";
     sect.classList.remove('hidden');
 
@@ -415,17 +380,15 @@ function switchTab(tabId) {
     }
 }
 
-// --- OVERVIEW TAB ---
 async function saveOverview() {
     const name = ui.editGroupName.value.trim();
     const desc = ui.editGroupDesc.value.trim();
-    
+
     if (!name) return showMessage("Nom requis", "error");
-    
+
     try {
         await updateDoc(doc(db, 'groups', currentGroupId), { name, description: desc });
         showMessage("Modifications enregistrées", "success");
-        // Update local UI
         ui.groupTitle.textContent = name;
         currentGroupData.name = name;
         currentGroupData.description = desc;
@@ -435,17 +398,11 @@ async function saveOverview() {
     }
 }
 
-// --- MEMBERS TAB ---
 async function loadSettingsMembers() {
     ui.membersListSettings.innerHTML = `<div class="text-center py-8 text-gray-500 text-sm">Chargement... (Simulation)</div>`;
-    
-    // NOTE: Ici on a la limitation Firestore du "IN array". 
-    // Pour l'instant on affiche juste l'utilisateur courant, 
-    // il faudrait une sous-collection "members" réelle pour lister 100+ personnes.
-    
+
     ui.membersListSettings.innerHTML = '';
-    
-    // Simulation: on affiche CurrentUser
+
     const roleId = currentGroupData.memberRoles ? (currentGroupData.memberRoles[currentUserId] || 'member') : 'member';
     renderMemberRow(currentUserId, currentUserData, roleId);
 }
@@ -453,9 +410,8 @@ async function loadSettingsMembers() {
 function renderMemberRow(uid, userData, roleId) {
     const div = document.createElement('div');
     div.className = 'grid grid-cols-12 gap-4 p-4 items-center hover:bg-[#3f4147]/50';
-    
-    // Select options logic
-    const options = Object.keys(tempRoles).map(rid => 
+
+    const options = Object.keys(tempRoles).map(rid =>
         `<option value="${rid}" ${rid === roleId ? 'selected' : ''}>${tempRoles[rid].name}</option>`
     ).join('');
 
@@ -473,8 +429,7 @@ function renderMemberRow(uid, userData, roleId) {
             ${uid !== currentUserId ? `<button class="text-red-400 hover:text-red-300 text-xs font-medium hover:underline kick-btn">Expulser</button>` : ''}
         </div>
     `;
-    
-    // Change Role Listener
+
     div.querySelector('.member-role-select').addEventListener('change', async (e) => {
         const newRole = e.target.value;
         try {
@@ -482,7 +437,7 @@ function renderMemberRow(uid, userData, roleId) {
                 [`memberRoles.${uid}`]: newRole
             });
             showMessage("Rôle mis à jour", "success");
-            currentGroupData.memberRoles[uid] = newRole; // Update local
+            currentGroupData.memberRoles[uid] = newRole;
         } catch(e) { console.error(e); showMessage("Erreur", "error"); }
     });
 
@@ -523,7 +478,6 @@ async function saveRolesChanges() { if (tempRoles[editingRoleId]) { tempRoles[ed
 async function createNewRole() { const newId = 'role_' + Date.now(); tempRoles[newId] = { name: "Nouveau Rôle", hexColor: "#9ca3af", permissions: ["SEND_MESSAGES"] }; renderRolesList(); selectRoleForEditing(newId); }
 async function deleteCurrentRole() { if (editingRoleId === 'admin' || editingRoleId === 'member') return showMessage("Impossible de supprimer ce rôle système.", "error"); if (confirm("Supprimer ce rôle ?")) { delete tempRoles[editingRoleId]; const groupRef = doc(db, 'groups', currentGroupId); await updateDoc(groupRef, { roles: tempRoles }); const firstRole = Object.keys(tempRoles)[0]; selectRoleForEditing(firstRole); } }
 
-// ... (subscribeToGroupChat, sendGroupMessage, deleteGroupMessage, subscribeToGroupFiles... IDENTIQUES) ...
 function subscribeToGroupChat(groupId) {
     if(groupChatUnsubscribe) groupChatUnsubscribe();
     ui.groupMessagesContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>`;
@@ -541,7 +495,7 @@ function subscribeToGroupChat(groupId) {
             if (currentGroupData && currentGroupData.memberRoles && currentGroupData.roles) {
                 const roleId = currentGroupData.memberRoles[msg.authorId] || 'member';
                 const role = currentGroupData.roles[roleId];
-                if (role && roleId !== 'member') { 
+                if (role && roleId !== 'member') {
                     const color = role.hexColor || '#9ca3af';
                     authorRoleBadge = `<span class="text-[10px] ml-2 font-bold border px-1 rounded bg-black/20" style="color: ${color}; border-color: ${color};">${role.name}</span>`;
                 }
@@ -588,21 +542,19 @@ function setupEventListeners() {
     if(ui.closePostModal) ui.closePostModal.onclick = () => togglePostModal(false);
     if(ui.cancelPost) ui.cancelPost.onclick = () => togglePostModal(false);
     if(ui.submitPost) ui.submitPost.onclick = createPost;
-    
+
     if(ui.closeDetailModal) ui.closeDetailModal.onclick = () => ui.detailModal.classList.add('hidden');
     if(ui.submitComment) ui.submitComment.onclick = submitComment;
     if(ui.commentInput) ui.commentInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') submitComment(); });
 
-    // LISTENERS GROUPES
     if(ui.closeGroupModal) ui.closeGroupModal.onclick = () => ui.groupModal.classList.add('hidden');
     if(ui.sendGroupMessageBtn) ui.sendGroupMessageBtn.onclick = sendGroupMessage;
     if(ui.groupChatInput) ui.groupChatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') sendGroupMessage(); });
-    
-    // LISTENERS UPLOADS
+
     if(ui.btnAddFile) ui.btnAddFile.onclick = () => ui.groupFileUpload.click();
-    if(ui.btnUploadChat) ui.btnUploadChat.onclick = () => ui.groupFileUpload.click(); 
+    if(ui.btnUploadChat) ui.btnUploadChat.onclick = () => ui.groupFileUpload.click();
     if(ui.groupFileUpload) ui.groupFileUpload.onchange = (e) => { if(e.target.files.length > 0) uploadGroupFile(e.target.files[0]); };
-    
+
     if(ui.changeGroupIconBtn) ui.changeGroupIconBtn.onclick = () => ui.groupIconUpload.click();
     if(ui.groupIconUpload) ui.groupIconUpload.onchange = (e) => { if(e.target.files.length > 0) uploadGroupIcon(e.target.files[0]); };
 
@@ -613,14 +565,12 @@ function setupEventListeners() {
     if(ui.cancelCreateGroup) ui.cancelCreateGroup.onclick = () => toggleCreateGroupModal(false);
     if(ui.submitCreateGroup) ui.submitCreateGroup.onclick = createNewGroup;
 
-    // SETTINGS LISTENERS
     if (ui.closeSettingsModal) ui.closeSettingsModal.onclick = () => ui.settingsModal.classList.add('hidden');
     if (ui.btnCreateRole) ui.btnCreateRole.onclick = createNewRole;
     if (ui.btnSaveRole) ui.btnSaveRole.onclick = saveRolesChanges;
     if (ui.btnDeleteRole) ui.btnDeleteRole.onclick = deleteCurrentRole;
     if (ui.roleNameInput) ui.roleNameInput.addEventListener('input', (e) => { if (tempRoles[editingRoleId]) { tempRoles[editingRoleId].name = e.target.value; } });
     if(ui.btnSaveOverview) ui.btnSaveOverview.onclick = saveOverview;
-    // Tabs Listeners
     if(ui.tabOverview) ui.tabOverview.onclick = () => switchTab('overview');
     if(ui.tabRoles) ui.tabRoles.onclick = () => switchTab('roles');
     if(ui.tabMembers) ui.tabMembers.onclick = () => switchTab('members');

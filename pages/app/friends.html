@@ -6,11 +6,11 @@
     <title>Mes Amis - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    
     
     <style>
         .sidebar-glass {
@@ -46,12 +46,12 @@
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex">
 
-    <!-- FOND ANIMÉ -->
+    
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -20%; left: 30%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 70%);"></div>
     <div class="glow-bg" style="bottom: -10%; right: -10%; background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%);"></div>
 
-    <!-- SIDEBAR -->
+    
     <aside class="w-72 sidebar-glass flex-shrink-0 hidden md:flex flex-col z-20 relative">
         <div class="p-6 flex items-center gap-3 mb-6">
             <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-bold text-lg tracking-tighter">
@@ -99,7 +99,7 @@
                 <span class="font-medium">Mon Profil</span>
             </a>
 
-            <!-- SECTION SUPPORT & ADMIN (AJOUTÉ) -->
+            
             <p class="px-4 text-xs font-bold text-gray-500 uppercase tracking-wider mt-8 mb-2">Zone Système</p>
             
             <a href="bug-report.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group">
@@ -107,7 +107,7 @@
                 <span class="font-medium">Signaler un bug</span>
             </a>
 
-            <!-- ADMIN PANEL (Hidden by default) -->
+            
             <a href="admin/panel.html" id="admin-link" class="hidden nav-item flex items-center px-4 py-3 rounded-lg text-gray-400 transition-all duration-200 group hover:bg-red-900/20 border border-transparent hover:border-red-500/20">
                 <i class="fas fa-shield-alt w-6 text-red-500 group-hover:animate-pulse"></i>
                 <span class="font-bold text-red-400">Panel Admin</span>
@@ -122,10 +122,10 @@
         </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="flex-grow flex flex-col min-w-0 relative z-10">
         
-        <!-- Header Mobile -->
+        
         <header class="h-16 md:hidden border-b border-gray-800/50 flex items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm">
             <div class="flex items-center gap-4">
                 <button class="text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
@@ -147,18 +147,18 @@
                     </a>
                 </div>
 
-                <!-- SECTION: DEMANDES D'AMIS -->
+                
                 <section id="friend-requests-section" class="mb-12 hidden">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                         <i class="fas fa-user-clock text-yellow-400"></i> En attente
                         <span id="requests-count-badge" class="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full ml-2">0</span>
                     </h2>
                     <div id="friend-requests-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Cartes demandes injectées ici -->
+                        
                     </div>
                 </section>
 
-                <!-- SECTION: LISTE D'AMIS -->
+                
                 <section id="friends-list-section">
                     <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
                         <i class="fas fa-user-check text-emerald-400"></i> Mes Amis
@@ -169,7 +169,7 @@
                     </div>
 
                     <div id="friends-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Cartes amis injectées ici -->
+                        
                     </div>
                     
                     <div id="no-friends" class="hidden text-center py-20 content-glass rounded-2xl border border-dashed border-gray-700">
@@ -187,10 +187,10 @@
         </main>
     </div>
 
-    <!-- Message Box -->
+    
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- JAVASCRIPT -->
+    
     <script type="module">
         import { auth, db } from '../../assets/js/config.js';
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";

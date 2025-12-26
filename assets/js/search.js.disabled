@@ -8,7 +8,6 @@ let searchIndex = [];
 let currentFilter = 'all';
 let recentSearches = [];
 
-// Initialisation
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
@@ -19,21 +18,17 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Configuration des écouteurs
 function setupEventListeners() {
     const searchInput = document.getElementById('search-input');
     const clearBtn = document.getElementById('clear-search');
     const voiceBtn = document.getElementById('voice-search');
 
-    // Search input
     let debounceTimer;
     searchInput?.addEventListener('input', (e) => {
         const query = e.target.value.trim();
 
-        // Show/hide clear button
         clearBtn.classList.toggle('hidden', !query);
 
-        // Debounce search
         clearTimeout(debounceTimer);
         debounceTimer = setTimeout(() => {
             if (query.length >= 2) {
@@ -44,7 +39,6 @@ function setupEventListeners() {
         }, 300);
     });
 
-    // Clear button
     clearBtn?.addEventListener('click', () => {
         searchInput.value = '';
         clearBtn.classList.add('hidden');
@@ -52,10 +46,8 @@ function setupEventListeners() {
         searchInput.focus();
     });
 
-    // Voice search
     voiceBtn?.addEventListener('click', startVoiceSearch);
 
-    // Filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -69,7 +61,6 @@ function setupEventListeners() {
         });
     });
 
-    // Enter key
     searchInput?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const query = e.target.value.trim();
@@ -81,7 +72,6 @@ function setupEventListeners() {
     });
 }
 
-// Construire l'index de recherche
 async function buildSearchIndex() {
     if (!currentUser) return;
 
@@ -89,7 +79,6 @@ async function buildSearchIndex() {
     const startTime = performance.now();
 
     try {
-        // Indexer les cours
         const coursesRef = collection(db, 'users', currentUser.uid, 'courses');
         const coursesSnapshot = await getDocs(coursesRef);
 
@@ -107,7 +96,6 @@ async function buildSearchIndex() {
             });
         });
 
-        // Indexer les synthèses
         const synthesisRef = collection(db, 'users', currentUser.uid, 'synthesis');
         const synthesisSnapshot = await getDocs(synthesisRef);
 
@@ -125,7 +113,6 @@ async function buildSearchIndex() {
             });
         });
 
-        // Indexer les flashcard decks
         const decksRef = collection(db, 'users', currentUser.uid, 'flashcard_decks');
         const decksSnapshot = await getDocs(decksRef);
 
@@ -151,15 +138,12 @@ async function buildSearchIndex() {
     }
 }
 
-// Effectuer la recherche
 function performSearch(query) {
     const startTime = performance.now();
 
-    // Hide initial state
     document.getElementById('initial-state')?.classList.add('hidden');
     document.getElementById('loading-state')?.classList.remove('hidden');
 
-    // Simulate delay for better UX
     setTimeout(() => {
         const results = search(query, currentFilter);
         const endTime = performance.now();
@@ -168,13 +152,11 @@ function performSearch(query) {
     }, 100);
 }
 
-// Algorithme de recherche (fuzzy matching + scoring)
 function search(query, filter) {
     const queryLower = query.toLowerCase();
     const queryTerms = queryLower.split(/\s+/).filter(t => t.length > 0);
 
     let results = searchIndex.map(item => {
-        // Filter by type
         if (filter !== 'all') {
             const typeMap = {
                 'courses': 'course',
@@ -192,26 +174,22 @@ function search(query, filter) {
 
         let score = 0;
 
-        // Exact title match: high score
         if (titleLower.includes(queryLower)) {
             score += 100;
         }
 
-        // Each term in title
         queryTerms.forEach(term => {
             if (titleLower.includes(term)) {
                 score += 50;
             }
         });
 
-        // Each term in content
         queryTerms.forEach(term => {
             if (contentLower.includes(term)) {
                 score += 10;
             }
         });
 
-        // Bonus for recent items
         if (item.createdAt) {
             const age = Date.now() - (item.createdAt.toDate ? item.createdAt.toDate().getTime() : Date.now());
             const daysSinceCreation = age / (1000 * 60 * 60 * 24);
@@ -225,13 +203,11 @@ function search(query, filter) {
         return { ...item, score };
     }).filter(Boolean);
 
-    // Sort by score
     results.sort((a, b) => b.score - a.score);
 
-    return results.slice(0, 50); // Limit to 50 results
+    return results.slice(0, 50);
 }
 
-// Afficher les résultats
 function displayResults(results, searchTime) {
     document.getElementById('loading-state')?.classList.add('hidden');
 
@@ -246,12 +222,10 @@ function displayResults(results, searchTime) {
         return;
     }
 
-    // Show stats
     statsEl?.classList.remove('hidden');
     document.getElementById('results-count').textContent = results.length;
     document.getElementById('search-time').textContent = searchTime.toFixed(0);
 
-    // Show results
     resultsListEl?.classList.remove('hidden');
     noResultsEl?.classList.add('hidden');
 
@@ -291,7 +265,6 @@ function displayResults(results, searchTime) {
     }).join('');
 }
 
-// Highlight matching text
 function highlightText(text, query) {
     if (!text || !query) return text;
 
@@ -306,14 +279,12 @@ function highlightText(text, query) {
     return highlighted;
 }
 
-// Truncate text
 function truncate(text, maxLength) {
     if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength) + '...';
 }
 
-// Show initial state
 function showInitialState() {
     document.getElementById('initial-state')?.classList.remove('hidden');
     document.getElementById('loading-state')?.classList.add('hidden');
@@ -322,17 +293,13 @@ function showInitialState() {
     document.getElementById('search-stats')?.classList.add('hidden');
 }
 
-// Recent searches
 function saveToRecentSearches(query) {
     recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
 
-    // Remove if already exists
     recentSearches = recentSearches.filter(s => s !== query);
 
-    // Add to beginning
     recentSearches.unshift(query);
 
-    // Limit to 10
     recentSearches = recentSearches.slice(0, 10);
 
     localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
@@ -362,7 +329,6 @@ function displayRecentSearches() {
     `).join('');
 }
 
-// Voice search (Web Speech API)
 function startVoiceSearch() {
     if (!('webkitSpeechRecognition' in window)) {
         alert('La reconnaissance vocale n\'est pas supportée par votre navigateur.');

@@ -48,7 +48,7 @@ const ui = {
 
 document.addEventListener('DOMContentLoaded', () => {
     initLayout('synthesize');
-    
+
     document.querySelectorAll('select').forEach(s => {
         s.addEventListener('change', () => s.value ? s.classList.add('has-value') : s.classList.remove('has-value'));
     });
@@ -80,7 +80,7 @@ async function initPage() {
 async function loadSyntheses() {
     const q = query(collection(db, 'users', currentUserId, 'syntheses'), orderBy('createdAt', 'desc'));
     const snapshot = await getDocs(q);
-    
+
     ui.grid.innerHTML = '';
     if (snapshot.empty) {
         ui.grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 opacity-50"><p>Aucune synthèse pour l'instant.</p></div>`;
@@ -90,7 +90,7 @@ async function loadSyntheses() {
     snapshot.forEach(docSnap => {
         const synth = docSnap.data();
         const dateStr = formatDate(synth.createdAt);
-        
+
         const card = document.createElement('div');
         card.className = 'synth-card content-glass rounded-2xl p-6 flex flex-col justify-between h-full relative group cursor-pointer border border-gray-800 hover:border-pink-500/30 transition-all';
         card.innerHTML = `
@@ -122,7 +122,7 @@ async function loadFiles() {
     snapshot.forEach(doc => {
         const f = doc.data();
         const opt = document.createElement('option');
-        opt.value = doc.id; 
+        opt.value = doc.id;
         opt.text = f.title || f.fileName;
         ui.fileSelect.appendChild(opt);
     });
@@ -132,12 +132,12 @@ function openViewer(id, synth) {
     currentSynthId = id;
     ui.dashboard.classList.add('hidden');
     ui.viewer.classList.remove('hidden');
-    
+
     ui.viewTitle.textContent = synth.title;
     ui.viewBadge.textContent = (synth.formatLabel || 'RÉSUMÉ').toUpperCase();
     ui.viewMeta.textContent = `Généré le ${formatDate(synth.createdAt)} • Source: ${synth.sourceName || 'Inconnue'}`;
-    
-    ui.viewContent.innerHTML = synth.content; 
+
+    ui.viewContent.innerHTML = synth.content;
 }
 
 ui.btnCloseViewer.onclick = () => {
@@ -157,7 +157,6 @@ ui.btnDelete.onclick = async () => {
     }
 };
 
-// --- SECURE GENERATION (UPDATED) ---
 if (ui.btnGenerate) {
     ui.btnGenerate.onclick = async () => {
         const btn = ui.btnGenerate;
@@ -182,8 +181,7 @@ if (ui.btnGenerate) {
             const sel = ui.fileSelect;
             if (!sel.value) return showMessage("Sélectionnez un fichier", "error");
             sourceName = sel.options[sel.selectedIndex].text;
-            // TODO: Fetch file content here later if needed
-            context = `Fichier intitulé : "${sourceName}". (Le contenu complet n'est pas encore accessible, baser sur le titre)`; 
+            context = `Fichier intitulé : "${sourceName}". (Le contenu complet n'est pas encore accessible, baser sur le titre)`;
         }
 
         btn.disabled = true;
@@ -192,8 +190,7 @@ if (ui.btnGenerate) {
 
         try {
             const generateContent = httpsCallable(functions, 'generateContent');
-            
-            // Appel sécurisé : on envoie les données brutes, pas le prompt
+
             const response = await generateContent({
                 mode: 'synthesis',
                 topic: sourceName,
@@ -204,7 +201,6 @@ if (ui.btnGenerate) {
                 }
             });
 
-            // Le backend renvoie maintenant directement l'objet avec .content
             const content = response.data.content;
 
             await addDoc(collection(db, 'users', currentUserId, 'syntheses'), {

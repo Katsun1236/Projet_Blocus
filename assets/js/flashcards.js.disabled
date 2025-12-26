@@ -11,7 +11,6 @@ let currentCards = [];
 let currentCardIndex = 0;
 let isFlipped = false;
 
-// Initialisation
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
@@ -23,19 +22,15 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Configuration des écouteurs
 function setupEventListeners() {
-    // Create deck
     document.getElementById('create-deck-btn')?.addEventListener('click', openCreateDeckModal);
     document.getElementById('close-create-deck')?.addEventListener('click', closeCreateDeckModal);
     document.getElementById('cancel-deck')?.addEventListener('click', closeCreateDeckModal);
     document.getElementById('save-deck')?.addEventListener('click', createDeck);
 
-    // Study mode
     document.getElementById('flip-card')?.addEventListener('click', flipCard);
     document.getElementById('close-study')?.addEventListener('click', closeStudyMode);
 
-    // Answer buttons
     document.querySelectorAll('#answer-buttons button').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const difficulty = e.target.dataset.difficulty;
@@ -44,7 +39,6 @@ function setupEventListeners() {
     });
 }
 
-// Charger les decks
 async function loadDecks() {
     if (!currentUser) return;
 
@@ -65,7 +59,6 @@ async function loadDecks() {
     }
 }
 
-// Afficher les decks
 function renderDecks() {
     const container = document.getElementById('decks-container');
 
@@ -97,7 +90,6 @@ function renderDecks() {
         </div>
     `).join('');
 
-    // Ajouter les événements
     document.querySelectorAll('.study-deck-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -107,7 +99,6 @@ function renderDecks() {
     });
 }
 
-// Ouvrir modal de création
 function openCreateDeckModal() {
     document.getElementById('create-deck-modal').classList.remove('hidden');
 }
@@ -119,7 +110,6 @@ function closeCreateDeckModal() {
     document.getElementById('course-select').value = '';
 }
 
-// Créer un deck
 async function createDeck() {
     const name = document.getElementById('deck-name').value.trim();
     const description = document.getElementById('deck-description').value.trim();
@@ -144,7 +134,6 @@ async function createDeck() {
 
         const deckDoc = await addDoc(decksRef, newDeck);
 
-        // Si un cours est sélectionné, générer des flashcards automatiquement
         if (courseId) {
             await generateFlashcardsFromCourse(deckDoc.id, courseId);
         }
@@ -159,12 +148,9 @@ async function createDeck() {
     }
 }
 
-// Générer des flashcards depuis un cours (placeholder)
 async function generateFlashcardsFromCourse(deckId, courseId) {
-    // TODO: Implémenter la génération via Gemini API
     console.log('Génération de flashcards pour deck:', deckId, 'cours:', courseId);
 
-    // Pour l'instant, créer quelques cartes d'exemple
     const sampleCards = [
         { question: 'Qu\'est-ce qu\'une variable ?', answer: 'Un conteneur pour stocker des données' },
         { question: 'Définir une fonction', answer: 'Un bloc de code réutilisable qui effectue une tâche spécifique' },
@@ -184,21 +170,18 @@ async function generateFlashcardsFromCourse(deckId, courseId) {
         });
     }
 
-    // Mettre à jour le compteur
     const deckRef = doc(db, 'users', currentUser.uid, 'flashcard_decks', deckId);
     await updateDoc(deckRef, {
         cardCount: sampleCards.length
     });
 }
 
-// Démarrer le mode révision
 async function startStudyMode(deckId) {
     currentDeck = decks.find(d => d.id === deckId);
 
     if (!currentDeck) return;
 
     try {
-        // Charger les cartes du deck
         const cardsRef = collection(db, 'users', currentUser.uid, 'flashcard_decks', deckId, 'cards');
         const q = query(cardsRef, where('nextReview', '<=', new Date()));
         const snapshot = await getDocs(q);
@@ -223,7 +206,6 @@ async function startStudyMode(deckId) {
     }
 }
 
-// Afficher une carte
 function showCard(index) {
     if (index >= currentCards.length) {
         endStudySession();
@@ -237,13 +219,11 @@ function showCard(index) {
     document.getElementById('study-progress').textContent = `${index + 1}/${currentCards.length}`;
     document.getElementById('study-progress-bar').style.width = `${((index + 1) / currentCards.length) * 100}%`;
 
-    // Reset flip
     document.getElementById('flashcard').classList.remove('flipped');
     document.getElementById('answer-buttons').classList.add('hidden');
     isFlipped = false;
 }
 
-// Retourner la carte
 function flipCard() {
     const flashcard = document.getElementById('flashcard');
     flashcard.classList.toggle('flipped');
@@ -254,11 +234,9 @@ function flipCard() {
     }
 }
 
-// Répondre à une carte (SM-2 Algorithm)
 async function answerCard(difficulty) {
     const card = currentCards[currentCardIndex];
 
-    // Calculer la prochaine révision selon l'algorithme SM-2
     const { easeFactor, interval, repetitions } = calculateNextReview(
         card.easeFactor,
         card.interval,
@@ -288,7 +266,6 @@ async function answerCard(difficulty) {
     }
 }
 
-// Algorithme SM-2 (Supermemo 2)
 function calculateNextReview(easeFactor, interval, repetitions, difficulty) {
     let quality;
 
@@ -334,7 +311,6 @@ function calculateNextReview(easeFactor, interval, repetitions, difficulty) {
     };
 }
 
-// Terminer la session
 function endStudySession() {
     closeStudyMode();
     showMessage(`Session terminée! ${currentCards.length} cartes révisées.`, 'success');
@@ -347,7 +323,6 @@ function closeStudyMode() {
     currentCardIndex = 0;
 }
 
-// Charger les cours pour le sélecteur
 async function loadCourses() {
     try {
         const coursesRef = collection(db, 'users', currentUser.uid, 'courses');
@@ -369,9 +344,7 @@ async function loadCourses() {
     }
 }
 
-// Mettre à jour les statistiques
 async function updateStats() {
-    // TODO: Calculer les vraies stats depuis Firestore
     document.getElementById('cards-due-today').textContent = '0';
     document.getElementById('total-cards').textContent = decks.reduce((sum, deck) => sum + (deck.cardCount || 0), 0);
     document.getElementById('study-streak').textContent = '0 🔥';

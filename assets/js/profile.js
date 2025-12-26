@@ -5,7 +5,6 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
-// --- STATE ---
 let currentUserId = null;
 let currentUserData = null;
 let userStats = {
@@ -16,58 +15,43 @@ let userStats = {
     points: 0
 };
 
-// Storage Init
 const storage = getStorage();
 
-// --- DEFINITION SUCCES (ACHIEVEMENTS) ---
-// Liste simplifiée pour l'exemple, mais extensible à 100+
 const ACHIEVEMENTS_LIST = [
-    // SOCIAL
     { id: 'soc_1', title: 'Premiers pas', desc: 'Rejoindre un groupe', icon: 'fa-users', type: 'social', condition: (s) => s.groups >= 1 },
     { id: 'soc_2', title: 'Social', desc: 'Rejoindre 5 groupes', icon: 'fa-users', type: 'social', condition: (s) => s.groups >= 5 },
     { id: 'soc_3', title: 'Influenceur', desc: 'Poster 10 messages', icon: 'fa-comment', type: 'social', condition: (s) => s.posts >= 10 },
-    // ETUDE
     { id: 'stu_1', title: 'Curieux', desc: 'Terminer 1 Quiz', icon: 'fa-brain', type: 'study', condition: (s) => s.quiz >= 1 },
     { id: 'stu_2', title: 'Intello', desc: 'Terminer 10 Quiz', icon: 'fa-graduation-cap', type: 'study', condition: (s) => s.quiz >= 10 },
     { id: 'stu_3', title: 'Expert', desc: 'Terminer 50 Quiz', icon: 'fa-crown', type: 'study', condition: (s) => s.quiz >= 50 },
-    // PARTAGE
     { id: 'sha_1', title: 'Partageur', desc: 'Uploader 1 fichier', icon: 'fa-file-upload', type: 'share', condition: (s) => s.files >= 1 },
     { id: 'sha_2', title: 'Bibliothécaire', desc: 'Uploader 10 fichiers', icon: 'fa-book', type: 'share', condition: (s) => s.files >= 10 },
     { id: 'sha_3', title: 'Archiviste', desc: 'Uploader 50 fichiers', icon: 'fa-archive', type: 'share', condition: (s) => s.files >= 50 },
-    // POINTS
     { id: 'pts_1', title: 'Novice', desc: 'Atteindre 100 pts', icon: 'fa-star', type: 'points', condition: (s) => s.points >= 100 },
     { id: 'pts_2', title: 'Initié', desc: 'Atteindre 500 pts', icon: 'fa-star-half-alt', type: 'points', condition: (s) => s.points >= 500 },
     { id: 'pts_3', title: 'Maître', desc: 'Atteindre 1000 pts', icon: 'fa-sun', type: 'points', condition: (s) => s.points >= 1000 },
 ];
 
-// --- DOM ELEMENTS ---
 const ui = {
-    // Header Info
     avatar: document.getElementById('profile-avatar'),
     name: document.getElementById('profile-name'),
     email: document.getElementById('profile-email'),
     points: document.getElementById('profile-points'),
     bio: document.getElementById('profile-bio'),
-    // Stats
     statFiles: document.getElementById('stat-files'),
     statQuiz: document.getElementById('stat-quiz'),
     statGroups: document.getElementById('stat-groups'),
     statAchievements: document.getElementById('stat-achievements'),
-    // Activity & Achievements
     activityList: document.getElementById('activity-list'),
     achievementsGrid: document.getElementById('achievements-grid'),
-    // Charts
     skillsChartCanvas: document.getElementById('skillsChart'),
     progressionChartCanvas: document.getElementById('progressionChart'),
-    // Actions / Forms
     btnEdit: document.getElementById('btn-edit-profile'),
     btnChangeAvatar: document.getElementById('btn-change-avatar'),
     avatarUpload: document.getElementById('avatar-upload'),
     btnLogout: document.getElementById('btn-logout'),
-    // Views
     viewMode: document.getElementById('view-mode-content'),
     editMode: document.getElementById('edit-mode-content'),
-    // Edit Form
     editFirstname: document.getElementById('edit-firstname'),
     editLastname: document.getElementById('edit-lastname'),
     editBio: document.getElementById('edit-bio'),
@@ -75,7 +59,6 @@ const ui = {
     btnCancel: document.getElementById('btn-cancel-edit')
 };
 
-// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     initLayout('');
 
@@ -83,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             currentUserId = user.uid;
             await loadProfileData();
-            await loadUserStats(); // Await pour avoir les stats avant les charts/achievements
+            await loadUserStats();
             loadRecentActivity();
             renderAchievements();
             initCharts();
@@ -94,8 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setupEventListeners();
 });
-
-// --- LOAD DATA ---
 
 async function loadProfileData() {
     try {
@@ -120,7 +101,7 @@ function renderProfile(data) {
     ui.name.textContent = `${data.firstName || ''} ${data.lastName || ''}`;
     ui.email.textContent = auth.currentUser.email;
     ui.points.textContent = data.points || 0;
-    
+
     if (data.bio && data.bio.trim() !== "") {
         ui.bio.textContent = data.bio;
         ui.bio.classList.remove('italic');
@@ -136,25 +117,21 @@ function renderProfile(data) {
 
 async function loadUserStats() {
     try {
-        // Files
         const qFiles = query(collection(db, 'files'), where('userId', '==', currentUserId));
         const snapFiles = await getDocs(qFiles);
         userStats.files = snapFiles.size;
         ui.statFiles.textContent = userStats.files;
 
-        // Quiz
         const qQuiz = query(collection(db, 'quiz_results'), where('userId', '==', currentUserId));
         const snapQuiz = await getDocs(qQuiz);
         userStats.quiz = snapQuiz.size;
         ui.statQuiz.textContent = userStats.quiz;
 
-        // Groups
         const qGroups = query(collection(db, 'groups'), where('members', 'array-contains', currentUserId));
         const snapGroups = await getDocs(qGroups);
         userStats.groups = snapGroups.size;
         ui.statGroups.textContent = userStats.groups;
 
-        // Posts (pour les succès)
         const qPosts = query(collection(db, 'community_posts'), where('authorId', '==', currentUserId));
         const snapPosts = await getDocs(qPosts);
         userStats.posts = snapPosts.size;
@@ -197,8 +174,6 @@ async function loadRecentActivity() {
     }
 }
 
-// --- ACHIEVEMENTS & CHARTS ---
-
 function renderAchievements() {
     ui.achievementsGrid.innerHTML = '';
     let unlockedCount = 0;
@@ -209,11 +184,9 @@ function renderAchievements() {
 
         const div = document.createElement('div');
         div.className = `flex flex-col items-center justify-center p-4 rounded-2xl bg-gray-800/30 border border-gray-700/50 transition-all duration-300 hover:scale-105 group relative ${isUnlocked ? 'achievement-unlocked' : 'achievement-locked'}`;
-        div.title = ach.desc; // Tooltip simple
+        div.title = ach.desc;
 
-        // Icone
         let iconColorClass = isUnlocked ? 'text-white' : 'text-gray-600';
-        // Petit effet de couleur subtil si débloqué
         if (isUnlocked) {
             if (ach.type === 'social') iconColorClass = 'text-blue-400';
             if (ach.type === 'study') iconColorClass = 'text-purple-400';
@@ -235,15 +208,12 @@ function renderAchievements() {
 }
 
 function initCharts() {
-    // 1. Radar Chart (Compétences)
-    // Données fictives basées sur les stats pour l'exemple
-    // Idéalement, on calculerait ça plus finement
     const skillsData = [
-        Math.min(100, userStats.quiz * 10), // Connaissances
-        Math.min(100, userStats.files * 5), // Contribution
-        Math.min(100, userStats.posts * 5), // Social
-        Math.min(100, userStats.groups * 10), // Collaboration
-        Math.min(100, (userStats.points / 1000) * 100) // Expérience
+        Math.min(100, userStats.quiz * 10),
+        Math.min(100, userStats.files * 5),
+        Math.min(100, userStats.posts * 5),
+        Math.min(100, userStats.groups * 10),
+        Math.min(100, (userStats.points / 1000) * 100)
     ];
 
     new Chart(ui.skillsChartCanvas, {
@@ -280,14 +250,12 @@ function initCharts() {
         }
     });
 
-    // 2. Line Chart (Progression - Mock Data pour l'instant)
-    // Pour une vraie progression, il faudrait stocker l'historique des points
     const labels = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'];
     const currentPoints = userStats.points;
     const progressData = [
-        Math.max(0, currentPoints - 150), 
-        Math.max(0, currentPoints - 100), 
-        Math.max(0, currentPoints - 40), 
+        Math.max(0, currentPoints - 150),
+        Math.max(0, currentPoints - 100),
+        Math.max(0, currentPoints - 40),
         currentPoints
     ];
 
@@ -323,8 +291,6 @@ function initCharts() {
         }
     });
 }
-
-// --- ACTIONS & HELPERS ---
 
 async function saveProfile() {
     const firstName = ui.editFirstname.value.trim();
@@ -400,5 +366,5 @@ function setupEventListeners() {
     ui.btnSave.addEventListener('click', saveProfile);
     ui.btnLogout.addEventListener('click', handleLogout);
     ui.btnChangeAvatar.addEventListener('click', () => ui.avatarUpload.click());
-    ui.avatarUpload.addEventListener('change', (e) => { if (e.target.files.length > 0) uploadAvatar(e.target.files[0]); });
+    ui.avatarUpload.addEventListener('click', (e) => { if (e.target.files.length > 0) uploadAvatar(e.target.files[0]); });
 }

@@ -6,7 +6,6 @@ import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "
 let currentUser = null;
 let currentPeriod = 'week';
 
-// Initialisation
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUser = user;
@@ -16,9 +15,7 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
-// Configuration des écouteurs
 function setupEventListeners() {
-    // Boutons de période
     document.querySelectorAll('.period-btn').forEach(btn => {
         btn.addEventListener('click', async (e) => {
             document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
@@ -28,11 +25,9 @@ function setupEventListeners() {
         });
     });
 
-    // Bouton refresh
     document.getElementById('refresh-stats')?.addEventListener('click', loadStatistics);
 }
 
-// Charger les statistiques
 async function loadStatistics() {
     if (!currentUser) return;
 
@@ -47,10 +42,8 @@ async function loadStatistics() {
 
         const userData = userDoc.data();
 
-        // Calculer les stats selon la période
         const stats = await calculateStats(userData);
 
-        // Afficher les stats
         displayStats(stats);
 
     } catch (error) {
@@ -58,12 +51,10 @@ async function loadStatistics() {
     }
 }
 
-// Calculer les statistiques
 async function calculateStats(userData) {
     const now = new Date();
     let startDate;
 
-    // Déterminer la période
     switch (currentPeriod) {
         case 'week':
             startDate = new Date(now.setDate(now.getDate() - 7));
@@ -75,11 +66,10 @@ async function calculateStats(userData) {
             startDate = new Date(now.setFullYear(now.getFullYear() - 1));
             break;
         case 'all':
-            startDate = new Date(0); // Epoch
+            startDate = new Date(0);
             break;
     }
 
-    // Stats de base depuis le profil
     const stats = {
         totalTime: 0,
         quizzesCompleted: 0,
@@ -89,7 +79,6 @@ async function calculateStats(userData) {
         averageScore: 0
     };
 
-    // Compter les cours
     try {
         const coursesRef = collection(db, 'users', currentUser.uid, 'courses');
         const coursesSnapshot = await getDocs(coursesRef);
@@ -98,7 +87,6 @@ async function calculateStats(userData) {
         console.error('Error counting courses:', e);
     }
 
-    // Récupérer les quiz complétés
     try {
         const quizzesRef = collection(db, 'users', currentUser.uid, 'quizResults');
         const q = query(
@@ -130,7 +118,6 @@ async function calculateStats(userData) {
         console.error('Error fetching quizzes:', e);
     }
 
-    // Synthèses générées
     try {
         const synthesisRef = collection(db, 'users', currentUser.uid, 'synthesis');
         const sQuery = query(
@@ -143,7 +130,6 @@ async function calculateStats(userData) {
         console.error('Error fetching synthesis:', e);
     }
 
-    // Estimer le temps de révision (basé sur activité)
     stats.totalTime = estimateStudyTime(
         stats.quizzesCompleted,
         stats.synthesisGenerated,
@@ -153,33 +139,24 @@ async function calculateStats(userData) {
     return stats;
 }
 
-// Estimer le temps d'étude
 function estimateStudyTime(quizzes, synthesis, courses) {
-    // Estimation:
-    // - 10 min par quiz
-    // - 20 min par synthèse
-    // - 30 min par cours uploadé
-
     const quizTime = quizzes * 10;
     const synthesisTime = synthesis * 20;
     const courseTime = courses * 30;
 
     const totalMinutes = quizTime + synthesisTime + courseTime;
-    return Math.round(totalMinutes / 60 * 10) / 10; // Heures avec 1 décimale
+    return Math.round(totalMinutes / 60 * 10) / 10;
 }
 
-// Afficher les statistiques
 function displayStats(stats) {
     document.getElementById('stat-time').textContent = `${stats.totalTime}h`;
     document.getElementById('stat-quizzes').textContent = stats.quizzesCompleted;
     document.getElementById('stat-success-rate').textContent = `${stats.successRate}%`;
     document.getElementById('stat-syntheses').textContent = stats.synthesisGenerated;
 
-    // Animer les nombres
     animateNumbers();
 }
 
-// Animation des nombres
 function animateNumbers() {
     const cards = document.querySelectorAll('.stats-card h3');
 
@@ -195,7 +172,6 @@ function animateNumbers() {
     });
 }
 
-// Charger l'activité récente
 async function loadRecentActivity() {
     if (!currentUser) return;
 
@@ -203,7 +179,6 @@ async function loadRecentActivity() {
     activityContainer.innerHTML = '<p class="text-gray-500 text-sm">Chargement...</p>';
 
     try {
-        // Récupérer les derniers quiz
         const quizzesRef = collection(db, 'users', currentUser.uid, 'quizResults');
         const q = query(quizzesRef, orderBy('completedAt', 'desc'), limit(5));
         const snapshot = await getDocs(q);
@@ -221,7 +196,6 @@ async function loadRecentActivity() {
             });
         });
 
-        // Afficher les activités
         if (activities.length === 0) {
             activityContainer.innerHTML = '<p class="text-gray-500 text-sm">Aucune activité récente</p>';
             return;
@@ -245,7 +219,6 @@ async function loadRecentActivity() {
     }
 }
 
-// Formater le timestamp
 function formatTimestamp(timestamp) {
     if (!timestamp) return 'Récemment';
 
@@ -263,7 +236,6 @@ function formatTimestamp(timestamp) {
     return 'À l\'instant';
 }
 
-// Charger l'activité au démarrage
 setTimeout(loadRecentActivity, 1000);
 
 console.log('Analytics module loaded ✅');

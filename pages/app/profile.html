@@ -6,13 +6,13 @@
     <title>Mon Profil - Projet Blocus</title>
     <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     
-    <!-- Tailwind CSS -->
+    
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <!-- Chart.js -->
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Icons -->
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
+    
     
     <style>
         .content-glass {
@@ -37,24 +37,24 @@
 
 <body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-    <!-- FOND ANIMÉ -->
+    
     <div class="noise-overlay"></div>
     <div class="glow-bg" style="top: -10%; right: 40%; background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);"></div>
 
-    <!-- MAIN CONTENT -->
+    
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
-        <!-- HEADER MOBILE -->
+        
         <header class="h-16 border-b border-gray-800/50 flex md:hidden items-center justify-between px-6 bg-gray-900/30 backdrop-blur-sm z-30">
             <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
             <span class="font-bold text-lg text-white">Mon Profil</span>
             <div class="w-6"></div> 
         </header>
 
-        <!-- SCROLLABLE CONTENT -->
+        
         <main class="flex-grow overflow-y-auto custom-scrollbar relative">
             
-            <!-- BANNER & HEADER PROFILE -->
+            
             <div class="relative">
                 <div class="h-48 md:h-64 w-full profile-header-gradient relative overflow-hidden">
                     <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-30"></div>
@@ -64,7 +64,7 @@
                 <div class="max-w-6xl mx-auto px-6 sm:px-8 relative -mt-20">
                     <div class="flex flex-col md:flex-row items-end gap-6">
                         
-                        <!-- Avatar avec Bouton Edit -->
+                        
                         <div class="relative group">
                             <div class="w-32 h-32 md:w-40 md:h-40 rounded-3xl border-4 border-[#050505] bg-gray-800 overflow-hidden shadow-2xl">
                                 <img id="profile-avatar" src="" alt="Avatar" class="w-full h-full object-cover">
@@ -75,7 +75,7 @@
                             <input type="file" id="avatar-upload" class="hidden" accept="image/*">
                         </div>
 
-                        <!-- Infos Utilisateur -->
+                        
                         <div class="flex-grow pb-2 text-center md:text-left">
                             <h1 id="profile-name" class="text-3xl font-display font-bold text-white mb-1">Chargement...</h1>
                             <p id="profile-email" class="text-sm text-gray-400 mb-3">...</p>
@@ -89,7 +89,7 @@
                             </div>
                         </div>
 
-                        <!-- Actions -->
+                        
                         <div class="pb-2 flex gap-3">
                             <button id="btn-edit-profile" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-bold rounded-xl border border-gray-700 transition-colors flex items-center gap-2">
                                 <i class="fas fa-pen"></i> <span class="hidden sm:inline">Modifier</span>
@@ -102,10 +102,10 @@
                 </div>
             </div>
 
-            <!-- CONTENU PRINCIPAL -->
+            
             <div class="max-w-6xl mx-auto px-6 sm:px-8 py-8 md:py-12">
                 
-                <!-- Stats KPI -->
+                
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div class="content-glass p-5 rounded-2xl">
                         <div class="flex items-center gap-3 mb-1">
@@ -137,16 +137,16 @@
                     </div>
                 </div>
 
-                <!-- GRAPHIQUES -->
+                
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                    <!-- Graphique Radar (Compétences) -->
+                    
                     <div class="content-glass p-6 rounded-2xl lg:col-span-1">
                         <h3 class="font-bold text-white text-sm mb-4">Profil d'Étudiant</h3>
                         <div class="relative h-64 w-full">
                             <canvas id="skillsChart"></canvas>
                         </div>
                     </div>
-                    <!-- Graphique Ligne (Progression Points) -->
+                    
                     <div class="content-glass p-6 rounded-2xl lg:col-span-2">
                         <h3 class="font-bold text-white text-sm mb-4">Progression (Points)</h3>
                         <div class="relative h-64 w-full">
@@ -155,10 +155,10 @@
                     </div>
                 </div>
 
-                <!-- Tabs & Content -->
+                
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     
-                    <!-- Colonne Gauche : Bio -->
+                    
                     <div class="lg:col-span-1 space-y-6">
                         <div class="content-glass p-6 rounded-2xl">
                             <h3 class="font-bold text-white text-sm mb-4">À propos</h3>
@@ -167,7 +167,7 @@
                             </p>
                         </div>
                         
-                        <!-- Activité Récente -->
+                        
                         <div class="content-glass p-6 rounded-2xl h-full">
                             <h3 class="font-bold text-white text-sm mb-6 flex items-center gap-2">
                                 <i class="fas fa-history text-indigo-400"></i> Activité Récente
@@ -180,10 +180,10 @@
                         </div>
                     </div>
 
-                    <!-- Colonne Droite : Succès & Edit -->
+                    
                     <div class="lg:col-span-2">
                         
-                        <!-- VIEW MODE: Succès -->
+                        
                         <div id="view-mode-content" class="content-glass p-6 rounded-2xl">
                             <div class="flex items-center justify-between mb-6">
                                 <h3 class="font-bold text-white text-lg">Succès & Trophées</h3>
@@ -194,12 +194,12 @@
                             </div>
                             
                             <div id="achievements-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                <!-- Les succès seront injectés ici par JS -->
+                                
                                 <div class="col-span-full text-center text-gray-500 py-10">Chargement des succès...</div>
                             </div>
                         </div>
 
-                        <!-- EDIT MODE: Formulaire -->
+                        
                         <div id="edit-mode-content" class="hidden content-glass p-6 rounded-2xl">
                             <h3 class="font-bold text-white text-lg mb-6">Modifier le profil</h3>
                             
@@ -238,10 +238,10 @@
         </main>
     </div>
 
-    <!-- Message Box (Toast) -->
+    
     <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
 
-    <!-- Script Principal -->
+    
     <script type="module" src="../../assets/js/profile.js"></script>
 
 </body>

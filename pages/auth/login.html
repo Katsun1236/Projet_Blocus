@@ -10,17 +10,17 @@
 </head>
 <body class="bg-dark text-gray-100 font-sans antialiased selection:bg-indigo-500 selection:text-white overflow-hidden">
 
-    <!-- Background Elements -->
+    
     <div class="fixed inset-0 z-0">
         <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
         <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
     </div>
 
-    <!-- Main Content -->
+    
     <main class="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md animate-fade-in-up">
             
-            <!-- Logo -->
+            
             <div class="text-center mb-8">
                 <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 mb-4 transform hover:scale-105 transition-transform duration-300">
                     <i class="fas fa-graduation-cap text-3xl text-white"></i>
@@ -29,11 +29,11 @@
                 <p class="text-gray-400 mt-2">Reviens booster tes révisions</p>
             </div>
 
-            <!-- Login Card -->
+            
             <div class="content-glass rounded-2xl p-8 border border-white/10 shadow-xl backdrop-blur-xl">
                 
                 <form id="login-form" class="space-y-6">
-                    <!-- Email -->
+                    
                     <div class="space-y-2 group">
                         <label for="email" class="text-sm font-medium text-gray-300 ml-1 group-focus-within:text-indigo-400 transition-colors">Email académique</label>
                         <div class="relative">
@@ -46,7 +46,7 @@
                         </div>
                     </div>
 
-                    <!-- Password -->
+                    
                     <div class="space-y-2 group">
                         <div class="flex justify-between items-center ml-1">
                             <label for="password" class="text-sm font-medium text-gray-300 group-focus-within:text-indigo-400 transition-colors">Mot de passe</label>
@@ -63,14 +63,14 @@
                         </div>
                     </div>
 
-                    <!-- Submit Button -->
+                    
                     <button type="submit" 
                         class="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/20 transform hover:-translate-y-0.5 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
                         Se connecter
                     </button>
                 </form>
 
-                <!-- Divider -->
+                
                 <div class="relative my-8">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-white/10"></div>
@@ -80,16 +80,16 @@
                     </div>
                 </div>
 
-                <!-- Social Login -->
+                
                 <div class="grid grid-cols-1 gap-3">
-                    <!-- Ajout ID google-login et type="button" -->
+                    
                     <button id="google-login" type="button" class="flex items-center justify-center px-4 py-3 bg-white text-gray-900 rounded-xl hover:bg-gray-50 transition-colors font-medium">
                         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="w-5 h-5 mr-3" alt="Google">
                         Google
                     </button>
                 </div>
 
-                <!-- Footer -->
+                
                 <div class="mt-8 text-center">
                     <p class="text-gray-400">
                         Pas encore de compte ? 
@@ -100,7 +100,7 @@
         </div>
     </main>
 
-    <!-- MessageBox Container -->
+    
     <div id="message-box" class="fixed top-4 right-4 z-50 transform transition-all duration-300 translate-x-full"></div>
 
     <script type="module" src="../../assets/js/index.js"></script>

@@ -1,9 +1,3 @@
-/**
- * Form Validation Helpers
- * Amélioration de la validation côté client
- */
-
-// Validators
 export const Validators = {
     email: (value) => {
         const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,7 +29,6 @@ export const Validators = {
     }
 };
 
-// Validate form field
 export function validateField(input, validators) {
     const value = input.value.trim();
     const errors = [];
@@ -48,19 +41,15 @@ export function validateField(input, validators) {
     return errors;
 }
 
-// Show field errors
 export function showFieldErrors(input, errors) {
     const container = input.closest('.form-field') || input.parentElement;
 
-    // Remove existing errors
     const existingError = container.querySelector('.field-error');
     if (existingError) existingError.remove();
 
-    // Add red border
     input.classList.toggle('border-red-500', errors.length > 0);
     input.classList.toggle('border-gray-700', errors.length === 0);
 
-    // Show first error
     if (errors.length > 0) {
         const errorDiv = document.createElement('div');
         errorDiv.className = 'field-error text-red-500 text-sm mt-1';
@@ -69,7 +58,6 @@ export function showFieldErrors(input, errors) {
     }
 }
 
-// Validate entire form
 export function validateForm(form, validationRules) {
     const errors = {};
     let isValid = true;
@@ -91,7 +79,6 @@ export function validateForm(form, validationRules) {
     return { isValid, errors };
 }
 
-// Real-time validation
 export function setupRealTimeValidation(form, validationRules) {
     for (const [fieldName, validators] of Object.entries(validationRules)) {
         const input = form.querySelector(`[name="${fieldName}"]`);
@@ -103,7 +90,6 @@ export function setupRealTimeValidation(form, validationRules) {
         });
 
         input.addEventListener('input', () => {
-            // Clear errors on input
             if (input.classList.contains('border-red-500')) {
                 const errors = validateField(input, validators);
                 if (errors.length === 0) {
@@ -114,7 +100,6 @@ export function setupRealTimeValidation(form, validationRules) {
     }
 }
 
-// Network error handler avec retry
 export async function fetchWithRetry(url, options = {}, maxRetries = 3) {
     for (let i = 0; i < maxRetries; i++) {
         try {
@@ -123,13 +108,11 @@ export async function fetchWithRetry(url, options = {}, maxRetries = 3) {
             return response;
         } catch (error) {
             if (i === maxRetries - 1) throw error;
-            // Exponential backoff: 1s, 2s, 4s
             await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
         }
     }
 }
 
-// Network status detector
 export class NetworkMonitor {
     constructor() {
         this.isOnline = navigator.onLine;

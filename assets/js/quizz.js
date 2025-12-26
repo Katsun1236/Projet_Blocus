@@ -5,32 +5,26 @@ import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { collection, addDoc, serverTimestamp, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// --- STATE ---
 let currentQuiz = null;
 let currentQuestionIndex = 0;
 let userAnswers = [];
 let score = 0;
 let isGenerating = false;
-let userSyntheses = []; // Cache synthèses
-let userCourses = [];   // Cache cours
+let userSyntheses = [];
+let userCourses = [];
 
-// --- DOM ELEMENTS ---
 const ui = {
-    // Views
     dashboard: document.getElementById('quiz-dashboard'),
     player: document.getElementById('quiz-player'),
     results: document.getElementById('results-container'),
-    // Dashboard
     btnNewQuizHero: document.getElementById('btn-new-quiz-hero'),
     btnNewQuizHeader: document.getElementById('btn-new-quiz-header'),
     quizGrid: document.getElementById('quiz-grid'),
-    // Modal
     modal: document.getElementById('new-quiz-modal'),
     closeModal: document.getElementById('close-modal-btn'),
     cancelBtn: document.getElementById('cancel-quiz-btn'),
     generateBtn: document.getElementById('generate-quiz-btn'),
     loadingContainer: document.getElementById('loading-bar-container'),
-    // Inputs Source
     sourceRadios: document.getElementsByName('quiz-source'),
     sourceTopicContainer: document.getElementById('source-topic-container'),
     sourceSynthesisContainer: document.getElementById('source-synthesis-container'),
@@ -38,12 +32,10 @@ const ui = {
     topicInput: document.getElementById('quiz-topic'),
     synthesisSelect: document.getElementById('quiz-synthesis-select'),
     courseSelect: document.getElementById('quiz-course-select'),
-    // Params
     quizTitleInput: document.getElementById('quiz-title-input'),
     questionCountInput: document.getElementById('quiz-length'),
     questionCountVal: document.getElementById('quiz-length-val'),
     quizTypeInput: document.getElementById('quiz-type'),
-    // Player
     questionText: document.getElementById('question-text'),
     optionsGrid: document.getElementById('options-grid'),
     progressBar: document.getElementById('progress-bar'),
@@ -53,21 +45,18 @@ const ui = {
     btnExit: document.getElementById('exit-quiz-btn'),
     feedbackArea: document.getElementById('feedback-area'),
     feedbackBox: document.getElementById('feedback-box'),
-    // Results
     finalScore: document.getElementById('final-score'),
     resultMessage: document.getElementById('result-message'),
     btnRetry: document.getElementById('retry-quiz-btn'),
     btnBack: document.getElementById('back-to-dashboard-btn')
 };
 
-// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     initLayout('quiz');
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
             loadRecentQuiz();
-            // Pré-chargement des ressources
             loadUserSyntheses();
             loadUserCourses();
         } else {
@@ -78,16 +67,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
 });
 
-// --- LOAD RESOURCES ---
-
 async function loadUserSyntheses() {
     try {
-        // Essai sans orderBy pour éviter blocage index
         const q = query(collection(db, 'syntheses'), where('userId', '==', auth.currentUser.uid));
         const snapshot = await getDocs(q);
         userSyntheses = [];
         ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
-        
+
         snapshot.forEach(doc => {
             const d = doc.data();
             const s = { id: doc.id, ...d };
@@ -97,7 +83,7 @@ async function loadUserSyntheses() {
             opt.textContent = s.title || `Synthèse du ${new Date(s.createdAt?.toDate ? s.createdAt.toDate() : Date.now()).toLocaleDateString()}`;
             ui.synthesisSelect.appendChild(opt);
         });
-        
+
         if (userSyntheses.length === 0) {
             ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse trouvée</option>';
         }
@@ -110,13 +96,12 @@ async function loadUserSyntheses() {
 async function loadUserCourses() {
     try {
         console.log("Chargement des cours pour:", auth.currentUser.uid);
-        // Simplification: requête simple sans tri pour tester
         const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid));
-        
+
         const snapshot = await getDocs(q);
         userCourses = [];
         ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
-        
+
         console.log("Cours trouvés:", snapshot.size);
 
         if (snapshot.empty) {
@@ -128,7 +113,7 @@ async function loadUserCourses() {
             const d = doc.data();
             const f = { id: doc.id, ...d };
             userCourses.push(f);
-            
+
             const opt = document.createElement('option');
             opt.value = f.id;
             opt.textContent = f.name || "Fichier sans nom";
@@ -141,35 +126,32 @@ async function loadUserCourses() {
     }
 }
 
-// --- GENERATION LOGIC ---
-
 async function generateQuiz() {
     if (isGenerating) return;
 
     const source = document.querySelector('input[name="quiz-source"]:checked').value;
-    let title = ui.quizTitleInput.value.trim(); 
+    let title = ui.quizTitleInput.value.trim();
     const count = parseInt(ui.questionCountInput.value);
     const type = ui.quizTypeInput.value;
 
     let topic = "";
     let dataContext = "";
 
-    // Validation stricte
     if (source === 'topic') {
         topic = ui.topicInput.value.trim();
         if (!topic) return showMessage("Veuillez décrire le sujet.", "error");
         if (!title) title = topic.substring(0, 30) + "...";
-    } 
+    }
     else if (source === 'synthesis') {
         const synthId = ui.synthesisSelect.value;
         if (!synthId) return showMessage("Veuillez sélectionner une synthèse.", "error");
         const synth = userSyntheses.find(s => s.id === synthId);
         if (synth) {
             topic = `Synthèse : ${synth.title}`;
-            dataContext = synth.content; 
+            dataContext = synth.content;
             if (!title) title = synth.title;
         }
-    } 
+    }
     else if (source === 'course') {
         const fileId = ui.courseSelect.value;
         if (!fileId) return showMessage("Veuillez sélectionner un cours.", "error");
@@ -181,7 +163,6 @@ async function generateQuiz() {
         }
     }
 
-    // UI Loading
     isGenerating = true;
     ui.generateBtn.disabled = true;
     ui.generateBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Génération...`;
@@ -192,12 +173,12 @@ async function generateQuiz() {
         const result = await generateContent({
             mode: 'quiz',
             topic: topic,
-            data: dataContext, 
+            data: dataContext,
             options: { count: count, type: type }
         });
 
         const quizData = result.data;
-        
+
         if (!quizData || !quizData.questions || quizData.questions.length === 0) {
             throw new Error("L'IA n'a pas renvoyé de questions valides.");
         }
@@ -219,8 +200,6 @@ async function generateQuiz() {
     }
 }
 
-// --- PLAYER LOGIC ---
-
 function startQuiz(quizData) {
     currentQuiz = quizData;
     currentQuestionIndex = 0;
@@ -230,7 +209,7 @@ function startQuiz(quizData) {
     ui.dashboard.classList.add('hidden');
     ui.results.classList.add('hidden');
     ui.player.classList.remove('hidden');
-    
+
     ui.quizTitle.textContent = quizData.title;
     showQuestion();
 }
@@ -241,7 +220,7 @@ function showQuestion() {
     ui.progressText.textContent = `${currentQuestionIndex + 1}/${currentQuiz.questions.length}`;
     const progressPercent = ((currentQuestionIndex) / currentQuiz.questions.length) * 100;
     ui.progressBar.style.width = `${progressPercent}%`;
-    
+
     ui.feedbackArea.classList.add('hidden');
     ui.btnNext.disabled = true;
     ui.optionsGrid.innerHTML = '';
@@ -292,7 +271,7 @@ function handleAnswer(selectedIndex, btnElement) {
 
 function showFeedback(isSuccess, message) {
     ui.feedbackArea.classList.remove('hidden');
-    ui.feedbackBox.className = isSuccess 
+    ui.feedbackBox.className = isSuccess
         ? "p-4 rounded-xl mb-6 text-sm font-medium bg-green-500/10 border border-green-500/30 text-green-400"
         : "p-4 rounded-xl mb-6 text-sm font-medium bg-red-500/10 border border-red-500/30 text-red-400";
     ui.feedbackBox.innerHTML = `<div class="flex gap-2"><i class="fas ${isSuccess ? 'fa-check-circle' : 'fa-times-circle'} mt-0.5"></i><div>${message}</div></div>`;
@@ -312,7 +291,7 @@ async function finishQuiz() {
     ui.player.classList.add('hidden');
     ui.results.classList.remove('hidden');
     ui.finalScore.textContent = `${percentage}%`;
-    
+
     let msg = "Peut mieux faire...";
     if (percentage >= 50) msg = "Pas mal !";
     if (percentage >= 80) msg = "Excellent travail !";
@@ -399,7 +378,6 @@ function setupEventListeners() {
     if(ui.closeModal) ui.closeModal.onclick = () => toggleModal(false);
     if(ui.cancelBtn) ui.cancelBtn.onclick = () => toggleModal(false);
 
-    // SWITCH SOURCE LOGIC (3 OPTIONS)
     ui.sourceRadios.forEach(radio => {
         radio.addEventListener('change', (e) => {
             const val = e.target.value;

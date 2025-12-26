@@ -1,22 +1,14 @@
-/**
- * Affiche un message toast à l'utilisateur
- * @param {string} message - Le texte à afficher
- * @param {string} type - 'success', 'error', ou 'info'
- */
 export function showMessage(message, type = 'info') {
     const messageBox = document.getElementById('message-box');
-    
-    // Si la boîte de message n'existe pas dans le DOM, on ne fait rien (ou on log)
+
     if (!messageBox) {
         console.warn("Element #message-box introuvable dans le DOM. Message non affiché :", message);
-        alert(message); // Fallback basique
+        alert(message);
         return;
     }
 
-    // Création de l'élément toast
     const toast = document.createElement('div');
-    
-    // Styles de base Tailwind
+
     let bgClass = 'bg-blue-600';
     let icon = 'fa-info-circle';
 
@@ -34,7 +26,6 @@ export function showMessage(message, type = 'info') {
         <span class="font-medium">${message}</span>
     `;
 
-
     messageBox.appendChild(toast);
 
     requestAnimationFrame(() => {
@@ -51,14 +42,8 @@ export function showMessage(message, type = 'info') {
     }, 4000);
 }
 
-/**
- * Formate une date Firestore ou JS standard
- * @param {any} dateObj 
- * @returns {string} Date formatée
- */
 export function formatDate(dateObj) {
     if (!dateObj) return '';
-    // Gestion timestamp Firestore
     const date = dateObj.toDate ? dateObj.toDate() : new Date(dateObj);
     return new Intl.DateTimeFormat('fr-FR', {
         day: '2-digit',
