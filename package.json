@@ -1,18 +1,40 @@
 {
   "name": "projet-blocus",
-  "version": "1.0.0",
-  "description": "Plateforme d'étude avec IA pour étudiants",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "Plateforme d'aide aux révisions pour étudiants avec IA",
   "scripts": {
-    "start": "node server.js",
-    "build:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --minify",
-    "watch:css": "npx tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch",
-    "dev": "npm run watch:css",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "build:css": "npx tailwindcss -i ./src/assets/styles/main.css -o ./dist/assets/css/style.css --minify",
+    "deploy:netlify": "npm run build && netlify deploy --prod",
+    "deploy:firebase": "firebase deploy --only hosting,firestore:rules,storage:rules",
+    "deploy": "npm run build && npm run deploy:netlify && npm run deploy:firebase",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "lint": "eslint src/",
+    "format": "prettier --write src/",
     "optimize:images": "node scripts/optimize-images.js"
   },
   "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@vitest/ui": "^1.0.0",
     "autoprefixer": "^10.4.23",
+    "cssnano": "^6.0.1",
+    "dompurify": "^3.0.6",
+    "eslint": "^8.56.0",
     "postcss": "^8.5.6",
+    "prettier": "^3.1.0",
     "sharp": "^0.33.1",
-    "tailwindcss": "^3.4.1"
+    "tailwindcss": "^3.4.1",
+    "terser": "^5.26.0",
+    "vite": "^5.0.10",
+    "vitest": "^1.0.4",
+    "@vitest/coverage-v8": "^1.0.4"
+  },
+  "dependencies": {
+    "firebase": "^10.7.1"
   }
 }
