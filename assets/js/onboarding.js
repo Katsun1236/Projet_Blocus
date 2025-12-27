@@ -1,4 +1,4 @@
-import { auth, db } from './config.js';
+import { auth, db } from './supabase-config.js';
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const TUTORIAL_STEPS = [

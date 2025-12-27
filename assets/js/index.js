@@ -1,4 +1,4 @@
-import { auth, googleProvider } from './config.js';
+import { auth, googleProvider } from './supabase-config.js';
 import {
     signInWithPopup,
     signInWithEmailAndPassword,

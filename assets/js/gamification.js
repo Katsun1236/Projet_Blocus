@@ -1,4 +1,4 @@
-import { db } from './config.js';
+import { db } from './supabase-config.js';
 import { doc, getDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 export const BADGES = {

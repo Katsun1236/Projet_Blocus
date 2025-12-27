@@ -1,4 +1,4 @@
-import { auth, db, functions } from './config.js';
+import { auth, db, functions } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
