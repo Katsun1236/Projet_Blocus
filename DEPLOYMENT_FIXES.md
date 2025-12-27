@@ -44,6 +44,18 @@ const GEMINI_API_KEY = geminiApiKey.value();
 const GEMINI_API_KEY = functions.config().gemini?.api_key;
 ```
 
+### 5. ✅ CORRIGÉ - Boucles de redirection (Commit e856543)
+**Problème** : "Les nouvelles pages font des boucles avec index"
+
+**Cause** : Les nouvelles pages utilisaient des chemins absolus (`/pages/auth/login.html`) au lieu de chemins relatifs pour les redirections de connexion
+
+**Solution** : Correction des redirections dans les 3 nouvelles pages :
+- `tutor.js` : `/pages/auth/login.html` → `../auth/login.html`
+- `pomodoro.js` : `/pages/auth/login.html` → `../auth/login.html`
+- `spaced-repetition.js` : `/pages/auth/login.html` → `../auth/login.html`
+
+**Résultat** : Les pages redirigent maintenant correctement vers la page de connexion sans créer de boucles
+
 ## 🚀 Déploiement REQUIS
 
 ### Étapes critiques : Déployer les règles Firestore ET les Cloud Functions
@@ -208,9 +220,22 @@ firebase deploy --only functions
 
 ## 📝 Résumé des commits
 
+### Commits précédents
 1. **feat: Add Spaced Repetition System with SM-2 algorithm** (79dc17b)
 2. **perf: Add Firestore query optimizations and pagination** (6ff0ec6)
 3. **feat: Add comprehensive animations and transitions system** (1b6ebd7)
 4. **fix: Update Firestore rules and remove home button from layout** (3dad8b5)
+5. **docs: Add deployment and debugging guide** (5c00e73)
+
+### Nouveaux commits (corrections critiques)
+6. **fix: Add missing Firestore rules and fix Cloud Function config** (e13a3c2)
+   - Ajout des règles pour notifications, folders, onboarding
+   - Correction Cloud Function pour utiliser v1 config au lieu de v2 secrets
+
+7. **docs: Update deployment guide with latest fixes** (baaa167)
+   - Documentation des nouveaux correctifs
+
+8. **fix: Use relative paths for login redirects to prevent redirect loops** (e856543)
+   - Correction des boucles de redirection dans tutor, pomodoro, spaced-repetition
 
 Tous les changements sont sur la branche `claude/remove-comments-docs-4eXn9`.
