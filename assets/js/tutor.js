@@ -3,7 +3,7 @@ import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { collection, addDoc, query, orderBy, limit, onSnapshot, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { collection, addDoc, query, orderBy, limit, onSnapshot, getDocs, deleteDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-functions.js";
 
 let currentUserId = null;
@@ -47,7 +47,7 @@ const SUGGESTIONS = [
 
 // Initialisation
 onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = '/pages/auth/login.html'; return; }
+    if (!user) { window.location.href = '../auth/login.html'; return; }
     currentUserId = user.uid;
     await loadUserData();
     await initLayout(user);

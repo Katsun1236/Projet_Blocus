@@ -21,15 +21,53 @@
 - ✅ Bouton "Retour à l'accueil" retiré du menu mobile
 - ✅ Navigation plus propre
 
-## 🚀 Déploiement REQUIS
+### 3. ⚠️ NOUVEAU - Collections Firestore manquantes ajoutées (Commit e13a3c2)
+**Problème** : Erreurs "permission-denied" persistantes sur dashboard, courses, planning
 
-### Étape critique : Déployer les nouvelles règles Firestore
+**Solution** : Ajout des règles pour 3 collections manquantes :
+- `notifications` - Stocke les notifications utilisateur
+- `folders` - Organisation des cours en dossiers
+- `onboarding` - État de la visite guidée
 
-```bash
-firebase deploy --only firestore:rules
+### 4. ⚠️ NOUVEAU - Cloud Function corrigée (Commit e13a3c2)
+**Problème** : 400 Bad Request sur `generateContent` - "Modèle IA non disponible"
+
+**Cause** : La fonction utilisait le système v2 secrets (`defineSecret`) mais l'API key était configurée avec l'ancien système v1 (`functions.config`)
+
+**Solution** : Migration de la fonction vers le système v1 pour correspondre à la configuration déployée :
+```javascript
+// Avant (ne fonctionnait pas)
+const geminiApiKey = defineSecret("GEMINI_API_KEY");
+const GEMINI_API_KEY = geminiApiKey.value();
+
+// Après (compatible avec la config actuelle)
+const GEMINI_API_KEY = functions.config().gemini?.api_key;
 ```
 
-**IMPORTANT** : Sans ce déploiement, les erreurs de permissions persisteront !
+### 5. ✅ CORRIGÉ - Boucles de redirection (Commit e856543)
+**Problème** : "Les nouvelles pages font des boucles avec index"
+
+**Cause** : Les nouvelles pages utilisaient des chemins absolus (`/pages/auth/login.html`) au lieu de chemins relatifs pour les redirections de connexion
+
+**Solution** : Correction des redirections dans les 3 nouvelles pages :
+- `tutor.js` : `/pages/auth/login.html` → `../auth/login.html`
+- `pomodoro.js` : `/pages/auth/login.html` → `../auth/login.html`
+- `spaced-repetition.js` : `/pages/auth/login.html` → `../auth/login.html`
+
+**Résultat** : Les pages redirigent maintenant correctement vers la page de connexion sans créer de boucles
+
+## 🚀 Déploiement REQUIS
+
+### Étapes critiques : Déployer les règles Firestore ET les Cloud Functions
+
+```bash
+# Déployer à la fois les règles et les fonctions
+firebase deploy --only firestore:rules,functions
+```
+
+**IMPORTANT** :
+- Sans le déploiement des **règles**, les erreurs de permissions persisteront !
+- Sans le déploiement des **fonctions**, les erreurs 400 sur generateContent persisteront !
 
 ## ⚠️ Problèmes restants à résoudre
 
@@ -106,16 +144,28 @@ firebase deploy --only functions:generateContent
 
 ## 📋 Checklist de déploiement
 
-- [ ] 1. Déployer les règles Firestore : `firebase deploy --only firestore:rules`
-- [ ] 2. Vérifier que les erreurs "Missing permissions" ont disparu
-- [ ] 3. Configurer la CSP si nécessaire (voir ci-dessus)
-- [ ] 4. Vérifier/configurer l'API Key Gemini pour les Cloud Functions
+### ⚠️ CORRECTIFS CRITIQUES AJOUTÉS (Commit e13a3c2)
+
+Trois nouvelles collections manquantes ont été ajoutées aux règles Firestore :
+- `notifications` - Notifications utilisateur
+- `folders` - Dossiers de cours
+- `onboarding` - État d'onboarding
+
+La Cloud Function a été corrigée pour utiliser le système de config v1 au lieu de v2 secrets.
+
+### 🚀 ÉTAPES DE DÉPLOIEMENT OBLIGATOIRES
+
+- [ ] 1. **Déployer les règles Firestore ET les fonctions** : `firebase deploy --only firestore:rules,functions`
+- [ ] 2. Vérifier que les erreurs "Missing permissions" ont disparu dans la console
+- [ ] 3. Vérifier que la Cloud Function `generateContent` fonctionne (pas de 400 Bad Request)
+- [ ] 4. Configurer la CSP si nécessaire (voir ci-dessus)
 - [ ] 5. Tester chaque nouvelle fonctionnalité :
-  - [ ] Tuteur IA
+  - [ ] Tuteur IA (doit pouvoir envoyer des messages)
   - [ ] Pomodoro
-  - [ ] Révisions espacées
-  - [ ] Génération de synthèses
+  - [ ] Révisions espacées (ajouter une carte)
+  - [ ] Génération de synthèses (vérifier qu'elle se génère sans erreur 400)
   - [ ] Affichage des groupes
+  - [ ] Dashboard (vérifier qu'il n'y a plus d'erreur onboarding/notifications/folders)
 
 ## 🔍 Comment vérifier que tout fonctionne
 
@@ -170,9 +220,22 @@ firebase deploy --only functions
 
 ## 📝 Résumé des commits
 
+### Commits précédents
 1. **feat: Add Spaced Repetition System with SM-2 algorithm** (79dc17b)
 2. **perf: Add Firestore query optimizations and pagination** (6ff0ec6)
 3. **feat: Add comprehensive animations and transitions system** (1b6ebd7)
 4. **fix: Update Firestore rules and remove home button from layout** (3dad8b5)
+5. **docs: Add deployment and debugging guide** (5c00e73)
+
+### Nouveaux commits (corrections critiques)
+6. **fix: Add missing Firestore rules and fix Cloud Function config** (e13a3c2)
+   - Ajout des règles pour notifications, folders, onboarding
+   - Correction Cloud Function pour utiliser v1 config au lieu de v2 secrets
+
+7. **docs: Update deployment guide with latest fixes** (baaa167)
+   - Documentation des nouveaux correctifs
+
+8. **fix: Use relative paths for login redirects to prevent redirect loops** (e856543)
+   - Correction des boucles de redirection dans tutor, pomodoro, spaced-repetition
 
 Tous les changements sont sur la branche `claude/remove-comments-docs-4eXn9`.

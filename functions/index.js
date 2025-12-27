@@ -1,6 +1,5 @@
 const {onCall, HttpsError} = require("firebase-functions/v2/https");
-const {defineSecret} = require("firebase-functions/params");
-const geminiApiKey = defineSecret("GEMINI_API_KEY");
+const functions = require("firebase-functions");
 
 const GEMINI_MODELS = [
   "gemini-1.5-flash",
@@ -15,9 +14,9 @@ function getGeminiApiUrl(apiKey, modelIndex = 0) {
 }
 
 exports.generateContent = onCall(
-    {cors: true, secrets: [geminiApiKey]},
+    {cors: true},
     async (request) => {
-      const GEMINI_API_KEY = geminiApiKey.value();
+      const GEMINI_API_KEY = functions.config().gemini?.api_key;
 
       if (!GEMINI_API_KEY) {
         console.error("GEMINI_API_KEY is not configured!");

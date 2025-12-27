@@ -74,6 +74,18 @@ service cloud.firestore {
       match /stats/{statId} {
         allow read, write: if isOwner(userId);
       }
+
+      match /notifications/{notificationId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /folders/{folderId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /onboarding/{docId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /community_posts/{postId} {
