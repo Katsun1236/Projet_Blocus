@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Révisions Espacées - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+    <!-- Layout Placeholder -->
+    <div id="layout-root"></div>
+
+    <!-- Main Content -->
+    <main class="lg:ml-64 lg:mr-80 pt-20 pb-10 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+
+            <!-- Dashboard (default view) -->
+            <div id="review-dashboard">
+                <!-- Header -->
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 class="text-3xl font-bold text-white mb-2">🧠 Révisions Espacées</h1>
+                        <p class="text-gray-400 text-sm">Mémorise efficacement avec l'algorithme SM-2</p>
+                    </div>
+                    <button id="btn-add-card" class="px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl font-bold transition-all shadow-lg">
+                        <i class="fas fa-plus mr-2"></i>Ajouter une carte
+                    </button>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Due Today -->
+                    <div class="content-glass rounded-2xl p-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-red-600 to-orange-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-calendar-day text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">À réviser aujourd'hui</p>
+                                <p id="due-count" class="text-3xl font-bold text-red-400">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Cards -->
+                    <div class="content-glass rounded-2xl p-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-layer-group text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">Total de cartes</p>
+                                <p id="total-cards" class="text-3xl font-bold text-indigo-400">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Streak -->
+                    <div class="content-glass rounded-2xl p-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-14 h-14 bg-gradient-to-br from-emerald-600 to-teal-600 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-fire text-2xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400">Jours consécutifs</p>
+                                <p id="streak-days" class="text-3xl font-bold text-emerald-400">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div class="text-center py-12">
+                    <button id="btn-start-review" class="px-12 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-2xl font-bold text-lg transition-all shadow-lg shadow-indigo-900/20">
+                        <i class="fas fa-brain mr-3"></i>Commencer la révision
+                    </button>
+                    <p class="text-sm text-gray-500 mt-4">Révise tes cartes dues avec l'algorithme de répétition espacée</p>
+                </div>
+
+                <!-- Info -->
+                <div class="content-glass rounded-2xl p-6 bg-gradient-to-br from-blue-900/20 to-indigo-900/20 border border-blue-800/30">
+                    <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                        <i class="fas fa-info-circle text-blue-400"></i>
+                        Comment ça marche ?
+                    </h3>
+                    <div class="text-sm text-gray-300 space-y-2">
+                        <p>L'algorithme SM-2 optimise ta mémorisation en programmant les révisions au moment idéal :</p>
+                        <ul class="list-disc list-inside space-y-1 ml-2">
+                            <li><span class="text-red-400 font-semibold">Again</span> : Tu as oublié → Révision demain</li>
+                            <li><span class="text-orange-400 font-semibold">Hard</span> : Difficile → Intervalle court</li>
+                            <li><span class="text-emerald-400 font-semibold">Good</span> : Correct → Intervalle standard</li>
+                            <li><span class="text-blue-400 font-semibold">Easy</span> : Facile → Intervalle long</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review Session (hidden by default) -->
+            <div id="review-session" class="hidden">
+                <!-- Progress Bar -->
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-2">
+                        <p class="text-sm text-gray-400">Progression</p>
+                        <p id="review-progress-text" class="text-sm text-gray-400">0 / 0</p>
+                    </div>
+                    <div class="h-3 bg-gray-800 rounded-full overflow-hidden">
+                        <div id="review-progress-bar" class="h-full bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Card Display -->
+                <div class="content-glass rounded-3xl p-8 mb-6 min-h-[400px] flex flex-col justify-center">
+                    <!-- Question -->
+                    <div class="mb-8">
+                        <p class="text-sm text-gray-500 mb-2">Question :</p>
+                        <p id="card-question" class="text-2xl font-bold text-white">Chargement...</p>
+                    </div>
+
+                    <!-- Answer (hidden initially) -->
+                    <div id="card-answer" class="hidden">
+                        <div class="border-t border-gray-700 pt-6">
+                            <p class="text-sm text-gray-500 mb-2">Réponse :</p>
+                            <p class="text-lg text-gray-200">Chargement...</p>
+                        </div>
+                    </div>
+
+                    <!-- Show Answer Button -->
+                    <div class="text-center mt-8">
+                        <button id="show-answer-btn" class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl font-bold transition-all shadow-lg">
+                            <i class="fas fa-eye mr-2"></i>Afficher la réponse
+                        </button>
+                    </div>
+
+                    <!-- Rating Buttons (hidden initially) -->
+                    <div id="rating-buttons" class="hidden grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+                        <button data-rating="0" class="px-6 py-4 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-xl font-bold transition-all border border-red-600/30">
+                            <i class="fas fa-times mb-2"></i>
+                            <p class="text-sm">Again</p>
+                        </button>
+                        <button data-rating="1" class="px-6 py-4 bg-orange-600/20 hover:bg-orange-600/30 text-orange-400 rounded-xl font-bold transition-all border border-orange-600/30">
+                            <i class="fas fa-minus mb-2"></i>
+                            <p class="text-sm">Hard</p>
+                        </button>
+                        <button data-rating="2" class="px-6 py-4 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 rounded-xl font-bold transition-all border border-emerald-600/30">
+                            <i class="fas fa-check mb-2"></i>
+                            <p class="text-sm">Good</p>
+                        </button>
+                        <button data-rating="3" class="px-6 py-4 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-xl font-bold transition-all border border-blue-600/30">
+                            <i class="fas fa-star mb-2"></i>
+                            <p class="text-sm">Easy</p>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session Complete (hidden by default) -->
+            <div id="session-complete" class="hidden text-center py-12">
+                <div class="content-glass rounded-3xl p-12">
+                    <div class="text-6xl mb-6">🎉</div>
+                    <h2 class="text-3xl font-bold mb-4">Session terminée !</h2>
+                    <p class="text-gray-400 mb-2">Tu as révisé</p>
+                    <p id="reviewed-count" class="text-5xl font-bold text-indigo-400 mb-8">0</p>
+                    <p class="text-gray-400 mb-8">cartes aujourd'hui</p>
+                    <button id="btn-finish-review" class="px-12 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-2xl font-bold transition-all shadow-lg">
+                        <i class="fas fa-home mr-3"></i>Retour au dashboard
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Add Card Modal -->
+    <div id="add-card-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+        <div class="content-glass rounded-3xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-white">➕ Nouvelle carte de révision</h2>
+                <button id="close-add-card-modal" class="text-gray-400 hover:text-white text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="space-y-6">
+                <!-- Question -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Question</label>
+                    <textarea
+                        id="new-card-question"
+                        placeholder="Ex: Quelle est la formule de l'énergie cinétique ?"
+                        class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 focus:border-indigo-500 focus:outline-none resize-none"
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <!-- Answer -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Réponse</label>
+                    <textarea
+                        id="new-card-answer"
+                        placeholder="Ex: E = 1/2 × m × v²"
+                        class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 focus:border-indigo-500 focus:outline-none resize-none"
+                        rows="4"
+                    ></textarea>
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label class="block text-sm font-medium mb-2">Catégorie (optionnel)</label>
+                    <input
+                        id="new-card-category"
+                        type="text"
+                        placeholder="Ex: Physique, Mathématiques, Histoire..."
+                        class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 focus:border-indigo-500 focus:outline-none"
+                    />
+                </div>
+
+                <!-- Save Button -->
+                <button id="save-card-btn" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl font-bold transition-all shadow-lg">
+                    <i class="fas fa-save mr-2"></i>Enregistrer la carte
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <script type="module" src="../../assets/js/spaced-repetition.js"></script>
+</body>
+</html>
