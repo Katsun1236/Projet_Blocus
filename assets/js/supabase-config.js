@@ -18,10 +18,63 @@ const SUPABASE_ANON_KEY = 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX' // Ta
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // =================================================================
+// UTILITAIRES - Conversion camelCase <-> snake_case
+// =================================================================
+function toCamelCase(str) {
+    return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
+}
+
+function toSnakeCase(str) {
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+}
+
+function mapKeysToCamelCase(obj) {
+    if (!obj || typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(mapKeysToCamelCase)
+
+    const result = {}
+    for (const [key, value] of Object.entries(obj)) {
+        const camelKey = toCamelCase(key)
+        result[camelKey] = typeof value === 'object' && value !== null
+            ? mapKeysToCamelCase(value)
+            : value
+    }
+    return result
+}
+
+function mapKeysToSnakeCase(obj) {
+    if (!obj || typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(mapKeysToSnakeCase)
+
+    const result = {}
+    for (const [key, value] of Object.entries(obj)) {
+        const snakeKey = toSnakeCase(key)
+        result[snakeKey] = typeof value === 'object' && value !== null
+            ? mapKeysToSnakeCase(value)
+            : value
+    }
+    return result
+}
+
+// Export des helpers de conversion
+export { mapKeysToCamelCase, mapKeysToSnakeCase, toCamelCase, toSnakeCase }
+
+// =================================================================
 // AUTH - Compatible avec Firebase Auth
 // =================================================================
 export const auth = {
     currentUser: null,
+    _initialized: false,
+
+    // Initialiser auth.currentUser au démarrage
+    async init() {
+        if (this._initialized) return this.currentUser
+
+        const { data } = await supabase.auth.getUser()
+        this.currentUser = data.user ? mapKeysToCamelCase(data.user) : null
+        this._initialized = true
+        return this.currentUser
+    },
 
     // Sign in avec email/password
     async signInWithEmailAndPassword(email, password) {
@@ -79,17 +132,19 @@ export const auth = {
     onAuthStateChanged(callback) {
         // Récupérer l'utilisateur actuel au démarrage
         supabase.auth.getUser().then(({ data }) => {
-            this.currentUser = data.user
+            const user = data.user ? mapKeysToCamelCase(data.user) : null
+            this.currentUser = user
             if (callback && typeof callback === 'function') {
-                callback(data.user)
+                callback(user)
             }
         })
 
         // Écouter les changements
         const { data } = supabase.auth.onAuthStateChange((event, session) => {
-            this.currentUser = session?.user ?? null
+            const user = session?.user ? mapKeysToCamelCase(session.user) : null
+            this.currentUser = user
             if (callback && typeof callback === 'function') {
-                callback(session?.user ?? null)
+                callback(user)
             }
         })
 
@@ -538,6 +593,9 @@ export async function getDownloadURL(storageRef) {
 // EXPORTS
 // =================================================================
 export { supabase as default }
+
+// Initialiser auth.currentUser automatiquement
+auth.init().catch(err => console.warn('Auth init failed:', err))
 
 // Pour debug
 console.log('✅ Supabase initialisé avec wrappers Firebase')
