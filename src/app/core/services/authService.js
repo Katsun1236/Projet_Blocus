@@ -1,4 +1,4 @@
-import { supabase } from '../../../../../assets/js/supabase-config.js';
+import { supabase } from '../../../../assets/js/supabase-config.js';
 
 export class AuthService {
   constructor() {
