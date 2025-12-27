@@ -44,13 +44,14 @@ const GEMINI_API_KEY = geminiApiKey.value();
 const GEMINI_API_KEY = functions.config().gemini?.api_key;
 ```
 
-### 5. ✅ CORRIGÉ - Boucles de redirection (Commits e856543 + af846c0)
+### 5. ✅ CORRIGÉ - Boucles de redirection (Commits e856543 + af846c0 + 3f8f92e)
 **Problème** : "Les nouvelles pages font des boucles avec index"
 
 **Causes identifiées** :
 1. **Chemins de redirection** : Utilisation de chemins absolus au lieu de relatifs
 2. **Structure HTML incorrecte** : `<body>` + `<div id="layout-root">` au lieu de `<body id="app-container">`
 3. **Appel initLayout() incorrect** : Passage de l'objet `user` au lieu de l'ID de la page (string)
+4. **⚠️ CAUSE RACINE** : `onAuthStateChanged()` appelé dans initLayout() ET dans les fichiers JS, créant des listeners multiples
 
 **Solutions appliquées** :
 
@@ -66,7 +67,32 @@ const GEMINI_API_KEY = functions.config().gemini?.api_key;
 - **JS** : `initLayout('pomodoro')` au lieu de `initLayout(user)`
 - **JS** : `initLayout('spaced-repetition')` au lieu de `initLayout(user)`
 
-**Résultat** : Les pages se chargent maintenant correctement avec la sidebar et sans boucles de redirection
+**Commit 3f8f92e** - ✅ **FIX DÉFINITIF** - Restructuration de l'initialisation :
+```javascript
+// ❌ AVANT (causait des boucles)
+onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.location.href = '../auth/login.html'; return; }
+    currentUserId = user.uid;
+    initLayout('tutor');  // initLayout() appelle AUSSI onAuthStateChanged() !
+    // ...
+});
+
+// ✅ APRÈS (pattern correct utilisé par les autres pages)
+document.addEventListener('DOMContentLoaded', () => {
+    initLayout('tutor');  // Appelé en premier
+
+    onAuthStateChanged(auth, async (user) => {  // Séparé, pas de conflit
+        if (!user) {
+            window.location.href = '../auth/login.html';
+            return;
+        }
+        currentUserId = user.uid;
+        // ... charger les données
+    });
+});
+```
+
+**Résultat** : ✅ Les pages fonctionnent maintenant correctement sans aucune boucle
 
 ## 🚀 Déploiement REQUIS
 
@@ -256,6 +282,15 @@ firebase deploy --only functions
 10. **fix: Correct layout initialization in new pages to prevent redirect loops** (af846c0)
    - Correction structure HTML : `<body id="app-container">` au lieu de `<div id="layout-root">`
    - Correction appels initLayout() : passer l'ID de page au lieu de l'objet user
-   - Résout définitivement les boucles de redirection
+
+11. **docs: Update documentation with final redirect loop fix** (ce1c174)
+   - Documentation détaillée des corrections de boucles
+
+12. **fix: Restructure initialization to prevent redirect loops** (3f8f92e) ✅ **FIX DÉFINITIF**
+   - Wrap initialisation dans `DOMContentLoaded`
+   - Appel `initLayout()` AVANT `onAuthStateChanged()`
+   - Évite les listeners multiples de `onAuthStateChanged()`
+   - Pattern conforme aux pages existantes (courses.js, quiz.js, etc.)
+   - **Résout définitivement toutes les boucles de redirection**
 
 Tous les changements sont sur la branche `claude/remove-comments-docs-4eXn9`.
