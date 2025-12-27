@@ -57,7 +57,7 @@ export class AuthService {
       const { data, error } = await this.supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: 'https://projet-blocus-v2-authentication.vercel.app/pages/app/dashboard.html'
+          redirectTo: 'https://projet-blocus.vercel.app/pages/app/dashboard.html'
         }
       });
 
@@ -81,7 +81,7 @@ export class AuthService {
   async resetPassword(email) {
     try {
       const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://projet-blocus-v2-authentication.vercel.app/pages/auth/reset-password.html'
+        redirectTo: 'https://projet-blocus.vercel.app/pages/auth/reset-password.html'
       });
       if (error) throw error;
     } catch (error) {
