@@ -50,6 +50,30 @@ service cloud.firestore {
       match /planning/{eventId} {
         allow read, write: if isOwner(userId);
       }
+
+      match /tutor_messages/{messageId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /pomodoro_sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /settings/{settingId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /review_cards/{cardId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /review_sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /stats/{statId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /community_posts/{postId} {
