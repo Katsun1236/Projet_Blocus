@@ -2,7 +2,7 @@ import { auth, db, storage } from './config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { collection, addDoc, getDocs, getDoc, query, where, orderBy, deleteDoc, doc, serverTimestamp, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
 
 let currentUserId = null;
@@ -70,6 +70,11 @@ function setupEventListeners() {
         const name = ui.folderInput.value.trim();
         if(!name) return showMessage("Nom du dossier requis", "error");
 
+        const btn = ui.btnCreateFolder;
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Création...`;
+
         try {
             await addDoc(collection(db, 'users', currentUserId, 'courses'), {
                 type: 'folder',
@@ -79,11 +84,14 @@ function setupEventListeners() {
             });
             ui.folderInput.value = "";
             toggleFolderModal(false);
+            showMessage("Dossier créé avec succès", "success");
             loadCourses();
-            showMessage("Dossier créé", "success");
         } catch(e) {
-            console.error(e);
-            showMessage("Erreur création dossier", "error");
+            console.error("Erreur création dossier:", e);
+            showMessage("Impossible de créer le dossier. Réessayez.", "error");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
     };
 }
@@ -229,11 +237,16 @@ async function handleFiles(e) {
     const files = [...e.target.files];
     if (files.length === 0) return;
 
+    ui.uploadArea.classList.add('opacity-50', 'pointer-events-none');
     showMessage(`Envoi de ${files.length} fichier(s)...`, "info");
+
+    let successCount = 0;
+    let errorCount = 0;
 
     for (const file of files) {
         if (file.size > 20 * 1024 * 1024) {
-            showMessage(`Fichier trop lourd: ${file.name}`, "error");
+            showMessage(`Fichier trop lourd (max 20MB): ${file.name}`, "error");
+            errorCount++;
             continue;
         }
 
@@ -253,19 +266,31 @@ async function handleFiles(e) {
                 createdAt: serverTimestamp()
             });
 
+            successCount++;
         } catch (error) {
-            console.error(error);
-            showMessage(`Erreur envoi: ${file.name}`, "error");
+            console.error("Erreur upload:", error);
+            showMessage(`Échec: ${file.name}`, "error");
+            errorCount++;
         }
     }
 
-    showMessage("Fichiers envoyés avec succès !", "success");
+    if (successCount > 0) {
+        showMessage(`${successCount} fichier(s) envoyé(s) avec succès !`, "success");
+    }
+    if (errorCount > 0) {
+        showMessage(`${errorCount} fichier(s) ont échoué`, "error");
+    }
+
+    ui.uploadArea.classList.remove('opacity-50', 'pointer-events-none');
     ui.fileInput.value = '';
     loadCourses();
 }
 
 async function deleteItem(item) {
-    if (!confirm(`Supprimer "${item.title || item.name}" ?`)) return;
+    if (!confirm(`Supprimer définitivement "${item.title || item.name}" ?`)) return;
+
+    const itemName = item.title || item.name;
+    showMessage(`Suppression de "${itemName}"...`, "info");
 
     try {
         if (item.type === 'file' && item.storagePath) {
@@ -273,11 +298,11 @@ async function deleteItem(item) {
         }
         await deleteDoc(doc(db, 'users', currentUserId, 'courses', item.id));
 
+        showMessage(`"${itemName}" supprimé avec succès`, "success");
         loadCourses();
-        showMessage("Élément supprimé", "success");
     } catch (e) {
-        console.error(e);
-        showMessage("Erreur suppression", "error");
+        console.error("Erreur suppression:", e);
+        showMessage(`Impossible de supprimer "${itemName}". Réessayez.`, "error");
     }
 }
 
