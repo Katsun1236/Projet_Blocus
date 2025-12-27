@@ -9,10 +9,9 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// ⚠️ REMPLACE CES VALEURS PAR LES TIENNES
-// Tu les trouveras dans : Supabase Dashboard → Settings → API
-const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co'
-const SUPABASE_ANON_KEY = 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX' // Ta clé anon ici
+// Configuration depuis variables d'environnement
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://vhtzudbcfyxnwmpyjyqw.supabase.co'
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX'
 
 // Créer le client Supabase
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -298,11 +297,29 @@ export const db = {
 
             async update(data) {
                 // Mapper camelCase → snake_case pour users
-                const mappedData = tableName === 'users' ? unmapUserFields(data) : data
+                let mappedData = tableName === 'users' ? unmapUserFields(data) : data
+
+                // Gérer arrayUnion et arrayRemove pour Postgres arrays
+                const processedData = {}
+                for (const [key, value] of Object.entries(mappedData)) {
+                    if (value && typeof value === 'object' && value._type === 'arrayUnion') {
+                        // Pour arrayUnion: utiliser array_append
+                        const current = await this.get()
+                        const currentArray = current.data()?.[key] || []
+                        processedData[key] = [...new Set([...currentArray, ...value.elements])]
+                    } else if (value && typeof value === 'object' && value._type === 'arrayRemove') {
+                        // Pour arrayRemove: filtrer les éléments
+                        const current = await this.get()
+                        const currentArray = current.data()?.[key] || []
+                        processedData[key] = currentArray.filter(item => !value.elements.includes(item))
+                    } else {
+                        processedData[key] = value
+                    }
+                }
 
                 const { error } = await supabase
                     .from(tableName)
-                    .update(mappedData)
+                    .update(processedData)
                     .eq('id', id)
                 if (error) throw new Error(error.message)
             },
@@ -691,6 +708,26 @@ export function deleteField() {
 }
 
 export const ref = (storageObj, path) => storageObj.ref(path)
+
+// Array helpers pour Firestore compatibility
+export function arrayUnion(...elements) {
+    return { _type: 'arrayUnion', elements }
+}
+
+export function arrayRemove(...elements) {
+    return { _type: 'arrayRemove', elements }
+}
+
+// Upload helpers
+export async function uploadBytes(storageRef, file) {
+    return await storageRef.put(file)
+}
+
+// Server helpers
+export async function getCountFromServer(queryRef) {
+    const data = await getDocs(queryRef)
+    return { data: () => ({ count: data.length }) }
+}
 
 export function uploadBytesResumable(storageRef, file) {
     // Émule le comportement Firebase uploadTask avec .on()
