@@ -56,19 +56,8 @@
   [headers.values]
     Cache-Control = "public, max-age=604800, must-revalidate"
 
-# Redirects pour SPA
-[[redirects]]
-  from = "/app/*"
-  to = "/pages/app/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/auth/*"
-  to = "/pages/auth/:splat"
-  status = 200
-
-# 404 fallback
+# SPA fallback pour les routes non trouvées
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 404
+  status = 200
