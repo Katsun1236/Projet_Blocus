@@ -1,12 +1,3 @@
--- ================================================
--- PROJET BLOCUS - SCHÉMA SUPABASE
--- ================================================
--- Créé pour remplacer Firebase Firestore
--- Repartir de zéro avec une structure PostgreSQL optimisée
-
--- ================================================
--- 1. TABLE USERS (Profils utilisateurs)
--- ================================================
 CREATE TABLE public.users (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT NOT NULL UNIQUE,
@@ -19,27 +10,19 @@ CREATE TABLE public.users (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Index pour recherche rapide
 CREATE INDEX idx_users_email ON public.users(email);
 
--- RLS (Row Level Security)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view their own profile"
-    ON public.users FOR SELECT
-    USING (auth.uid() = id);
+    ON public.users FOR SELECT USING (auth.uid() = id);
 
 CREATE POLICY "Users can update their own profile"
-    ON public.users FOR UPDATE
-    USING (auth.uid() = id);
+    ON public.users FOR UPDATE USING (auth.uid() = id);
 
 CREATE POLICY "Users can insert their own profile"
-    ON public.users FOR INSERT
-    WITH CHECK (auth.uid() = id);
+    ON public.users FOR INSERT WITH CHECK (auth.uid() = id);
 
--- ================================================
--- 2. TABLE FOLDERS (Organisation des cours)
--- ================================================
 CREATE TABLE public.folders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -53,12 +36,8 @@ CREATE INDEX idx_folders_user ON public.folders(user_id);
 ALTER TABLE public.folders ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own folders"
-    ON public.folders FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.folders FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 3. TABLE COURSES (Cours et fichiers)
--- ================================================
 CREATE TABLE public.courses (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -79,12 +58,8 @@ CREATE INDEX idx_courses_folder ON public.courses(folder_id);
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own courses"
-    ON public.courses FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.courses FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 4. TABLE QUIZ_RESULTS (Résultats de quiz)
--- ================================================
 CREATE TABLE public.quiz_results (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -102,12 +77,8 @@ CREATE INDEX idx_quiz_created ON public.quiz_results(created_at DESC);
 ALTER TABLE public.quiz_results ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own quiz results"
-    ON public.quiz_results FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.quiz_results FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 5. TABLE TUTOR_MESSAGES (Historique tuteur IA)
--- ================================================
 CREATE TABLE public.tutor_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -122,12 +93,8 @@ CREATE INDEX idx_tutor_created ON public.tutor_messages(created_at DESC);
 ALTER TABLE public.tutor_messages ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own tutor messages"
-    ON public.tutor_messages FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.tutor_messages FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 6. TABLE REVIEW_CARDS (Cartes révision espacée)
--- ================================================
 CREATE TABLE public.review_cards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -148,12 +115,8 @@ CREATE INDEX idx_cards_next_review ON public.review_cards(user_id, next_review_d
 ALTER TABLE public.review_cards ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own review cards"
-    ON public.review_cards FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.review_cards FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 7. TABLE POMODORO_STATS (Statistiques Pomodoro)
--- ================================================
 CREATE TABLE public.pomodoro_stats (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -170,16 +133,12 @@ CREATE TABLE public.pomodoro_stats (
 ALTER TABLE public.pomodoro_stats ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own pomodoro stats"
-    ON public.pomodoro_stats FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.pomodoro_stats FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 8. TABLE SETTINGS (Paramètres utilisateur)
--- ================================================
 CREATE TABLE public.settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
-    category TEXT NOT NULL, -- 'pomodoro', 'notifications', etc.
+    category TEXT NOT NULL,
     settings JSONB NOT NULL DEFAULT '{}',
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
@@ -191,12 +150,8 @@ CREATE INDEX idx_settings_user_category ON public.settings(user_id, category);
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own settings"
-    ON public.settings FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.settings FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 9. TABLE COMMUNITY_GROUPS (Groupes communauté)
--- ================================================
 CREATE TABLE public.community_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL,
@@ -210,13 +165,8 @@ CREATE TABLE public.community_groups (
 ALTER TABLE public.community_groups ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can view groups"
-    ON public.community_groups FOR SELECT
-    TO authenticated
-    USING (true);
+    ON public.community_groups FOR SELECT TO authenticated USING (true);
 
--- ================================================
--- 10. TABLE COMMUNITY_POSTS (Posts communauté)
--- ================================================
 CREATE TABLE public.community_posts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -238,26 +188,17 @@ CREATE INDEX idx_posts_type_created ON public.community_posts(type, created_at D
 ALTER TABLE public.community_posts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can view posts"
-    ON public.community_posts FOR SELECT
-    TO authenticated
-    USING (true);
+    ON public.community_posts FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Users can create posts"
-    ON public.community_posts FOR INSERT
-    TO authenticated
-    WITH CHECK (auth.uid() = user_id);
+    ON public.community_posts FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can update their own posts"
-    ON public.community_posts FOR UPDATE
-    USING (auth.uid() = user_id);
+    ON public.community_posts FOR UPDATE USING (auth.uid() = user_id);
 
 CREATE POLICY "Users can delete their own posts"
-    ON public.community_posts FOR DELETE
-    USING (auth.uid() = user_id);
+    ON public.community_posts FOR DELETE USING (auth.uid() = user_id);
 
--- ================================================
--- 11. TABLE NOTIFICATIONS (Notifications)
--- ================================================
 CREATE TABLE public.notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -274,12 +215,8 @@ CREATE INDEX idx_notif_created ON public.notifications(created_at DESC);
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own notifications"
-    ON public.notifications FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.notifications FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 12. TABLE ONBOARDING (État visite guidée)
--- ================================================
 CREATE TABLE public.onboarding (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -293,14 +230,8 @@ CREATE TABLE public.onboarding (
 ALTER TABLE public.onboarding ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own onboarding"
-    ON public.onboarding FOR ALL
-    USING (auth.uid() = user_id);
+    ON public.onboarding FOR ALL USING (auth.uid() = user_id);
 
--- ================================================
--- 13. FUNCTIONS (Triggers et fonctions utiles)
--- ================================================
-
--- Fonction pour mettre à jour updated_at automatiquement
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -309,7 +240,6 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
--- Triggers pour updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON public.users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
@@ -322,7 +252,6 @@ CREATE TRIGGER update_posts_updated_at BEFORE UPDATE ON public.community_posts
 CREATE TRIGGER update_settings_updated_at BEFORE UPDATE ON public.settings
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Fonction pour créer automatiquement un profil utilisateur après signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -336,14 +265,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger pour auto-créer le profil
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- ================================================
--- 14. DONNÉES INITIALES (Groupes communauté)
--- ================================================
 INSERT INTO public.community_groups (name, description, icon, color, member_count) VALUES
     ('Mathématiques', 'Questions et ressources en maths', '📐', '#3b82f6', 0),
     ('Sciences', 'Physique, chimie, biologie...', '🔬', '#10b981', 0),
@@ -351,7 +276,3 @@ INSERT INTO public.community_groups (name, description, icon, color, member_coun
     ('Histoire-Géo', 'Histoire et géographie', '🌍', '#8b5cf6', 0),
     ('Informatique', 'Programmation et tech', '💻', '#06b6d4', 0),
     ('Général', 'Discussions générales et entraide', '💬', '#6366f1', 0);
-
--- ================================================
--- FIN DU SCHÉMA
--- ================================================
