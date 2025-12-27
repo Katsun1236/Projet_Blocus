@@ -247,17 +247,28 @@ export const storage = {
     ref(path) {
         return {
             async put(file) {
-                const fileName = `${Date.now()}_${file.name}`
+                // Nettoyer le nom de fichier pour Supabase (pas d'espaces ni caractères spéciaux)
+                const cleanFileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+
                 const { data, error } = await supabase.storage
                     .from('courses')
-                    .upload(fileName, file, {
+                    .upload(cleanFileName, file, {
                         cacheControl: '3600',
                         upsert: false
                     })
 
                 if (error) throw new Error(error.message)
+
                 return {
-                    ref: { fullPath: data.path },
+                    ref: {
+                        fullPath: data.path,
+                        getDownloadURL: async () => {
+                            const { data: urlData } = supabase.storage
+                                .from('courses')
+                                .getPublicUrl(data.path)
+                            return urlData.publicUrl
+                        }
+                    },
                     metadata: { fullPath: data.path }
                 }
             },
@@ -279,6 +290,11 @@ export const storage = {
             }
         }
     }
+}
+
+// Fonction pour obtenir l'objet storage (compatible Firebase)
+export function getStorage() {
+    return storage
 }
 
 // =================================================================
@@ -322,8 +338,13 @@ export const functions = {
 // FIREBASE-COMPATIBLE EXPORTS (pour migration facile)
 // =================================================================
 
-export const onAuthStateChanged = auth.onAuthStateChanged.bind(auth)
-export const signOut = auth.signOut.bind(auth)
+export function onAuthStateChanged(callback) {
+    return auth.onAuthStateChanged(callback)
+}
+
+export async function signOut() {
+    return await auth.signOut()
+}
 
 export function doc(collectionOrDb, ...args) {
     const tableName = typeof collectionOrDb === 'string' ? collectionOrDb : args[0]
@@ -443,14 +464,58 @@ export function deleteField() {
     return null
 }
 
-export const ref = (storage, path) => storage.ref(path)
+export const ref = (storageObj, path) => storageObj.ref(path)
 
-export async function uploadBytesResumable(storageRef, file) {
-    return await storageRef.put(file)
+export function uploadBytesResumable(storageRef, file) {
+    // Émule le comportement Firebase uploadTask avec .on()
+    let progressCallback = null
+    let errorCallback = null
+    let completeCallback = null
+
+    const uploadTask = {
+        on(event, onProgress, onError, onComplete) {
+            progressCallback = onProgress
+            errorCallback = onError
+            completeCallback = onComplete
+
+            // Lancer l'upload
+            storageRef.put(file)
+                .then((result) => {
+                    // Simuler la progression à 100%
+                    if (progressCallback) {
+                        progressCallback({
+                            bytesTransferred: file.size,
+                            totalBytes: file.size,
+                            state: 'success'
+                        })
+                    }
+
+                    if (completeCallback) {
+                        completeCallback(result)
+                    }
+                })
+                .catch((err) => {
+                    if (errorCallback) {
+                        errorCallback(err)
+                    }
+                })
+
+            return this
+        }
+    }
+
+    return uploadTask
 }
 
 export async function getDownloadURL(storageRef) {
-    return await storageRef.getDownloadURL()
+    if (typeof storageRef.getDownloadURL === 'function') {
+        return await storageRef.getDownloadURL()
+    }
+    // Si c'est un result d'upload
+    if (storageRef.ref && typeof storageRef.ref.getDownloadURL === 'function') {
+        return await storageRef.ref.getDownloadURL()
+    }
+    throw new Error('Invalid storage reference')
 }
 
 // =================================================================

@@ -1,4 +1,4 @@
-import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
+import { auth, db, storage, supabase, getStorage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 
@@ -11,8 +11,6 @@ let userStats = {
     posts: 0,
     points: 0
 };
-
-const storage = getStorage();
 
 const ACHIEVEMENTS_LIST = [
     { id: 'soc_1', title: 'Premiers pas', desc: 'Rejoindre un groupe', icon: 'fa-users', type: 'social', condition: (s) => s.groups >= 1 },
