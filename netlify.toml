@@ -1,9 +1,6 @@
 [build]
-  # Commande de build (génère le CSS Tailwind)
-  command = "npm run build:css"
-
-  # Dossier à publier (racine du projet)
-  publish = "."
+  command = "npm run build"
+  publish = "dist"
 
 [build.environment]
   NODE_VERSION = "20"
