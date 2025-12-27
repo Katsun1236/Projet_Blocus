@@ -69,8 +69,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadUserSyntheses() {
     try {
-        const q = query(collection(db, 'syntheses'), where('userId', '==', auth.currentUser.uid));
-        const snapshot = await getDocs(q);
+        const synthesisRef = collection(db, 'users', auth.currentUser.uid, 'syntheses');
+        const snapshot = await getDocs(synthesisRef);
         userSyntheses = [];
         ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
 
@@ -96,9 +96,8 @@ async function loadUserSyntheses() {
 async function loadUserCourses() {
     try {
         console.log("Chargement des cours pour:", auth.currentUser.uid);
-        const q = query(collection(db, 'files'), where('userId', '==', auth.currentUser.uid));
-
-        const snapshot = await getDocs(q);
+        const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
+        const snapshot = await getDocs(coursesRef);
         userCourses = [];
         ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
 
@@ -116,7 +115,7 @@ async function loadUserCourses() {
 
             const opt = document.createElement('option');
             opt.value = f.id;
-            opt.textContent = f.name || "Fichier sans nom";
+            opt.textContent = f.name || f.title || "Fichier sans nom";
             ui.courseSelect.appendChild(opt);
         });
 
