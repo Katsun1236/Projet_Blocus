@@ -231,13 +231,9 @@
 
     
     <script type="module">
-        import { auth, db } from '../../assets/js/supabase-config.js';
-        // Ajout de l'import initLayout
+        import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from '../../assets/js/supabase-config.js';
         import { initLayout } from '../../assets/js/layout.js';
-        // Import du tutoriel onboarding
         import { onboarding } from '../../assets/js/onboarding.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, query, orderBy, limit, onSnapshot, where, getDocs, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
         // --- DOM Elements ---
         const ui = {
@@ -502,13 +498,31 @@
                 setupNotifications(currentUserId);
                 loadDashboardData(currentUserId);
 
-                // Démarrer le tutoriel pour les nouveaux utilisateurs (délai augmenté pour attendre le sidebar)
-                setTimeout(() => onboarding.start(), 2500);
+                // Vérifier si l'utilisateur doit passer par l'onboarding
+                checkAndStartOnboarding(currentUserId);
 
             } else {
                 window.location.href = '../auth/login.html';
             }
         });
+
+        // Fonction pour vérifier et démarrer l'onboarding si nécessaire
+        async function checkAndStartOnboarding(userId) {
+            try {
+                const { data, error } = await supabase
+                    .from('users')
+                    .select('has_completed_onboarding')
+                    .eq('id', userId)
+                    .single();
+
+                // Si pas d'entrée ou si non complété, lancer l'onboarding
+                if (error || !data || !data.has_completed_onboarding) {
+                    setTimeout(() => onboarding.start(), 2500);
+                }
+            } catch (err) {
+                console.error('Erreur vérification onboarding:', err);
+            }
+        }
 
     </script>
 </body>

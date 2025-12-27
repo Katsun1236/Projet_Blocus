@@ -190,9 +190,7 @@
 
     
     <script type="module">
-        import { auth, db } from '../../assets/js/supabase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { doc, getDoc, collection, addDoc, query, where, getDocs, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+        import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from '../../assets/js/supabase-config.js';
 
         const urlParams = new URLSearchParams(window.location.search);
         const profileId = urlParams.get('id');

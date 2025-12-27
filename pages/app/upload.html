@@ -123,10 +123,7 @@
 
     
     <script type="module">
-        import { auth, db, storage } from '../../assets/js/supabase-config.js';
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-        import { collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-        import { ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
+        import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from '../../assets/js/supabase-config.js';
         import { initLayout } from '../../assets/js/layout.js';
 
         // ========== INIT LAYOUT ==========

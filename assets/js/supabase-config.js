@@ -319,10 +319,145 @@ export const functions = {
 }
 
 // =================================================================
+// FIREBASE-COMPATIBLE EXPORTS (pour migration facile)
+// =================================================================
+
+export const onAuthStateChanged = auth.onAuthStateChanged.bind(auth)
+export const signOut = auth.signOut.bind(auth)
+
+export function doc(collectionOrDb, ...args) {
+    const tableName = typeof collectionOrDb === 'string' ? collectionOrDb : args[0]
+    const id = typeof collectionOrDb === 'string' ? args[0] : args[1]
+    return db.doc(tableName, id)
+}
+
+export async function getDoc(docRef) {
+    return await docRef.get()
+}
+
+export async function setDoc(docRef, data, options) {
+    return await docRef.set(data, options)
+}
+
+export async function updateDoc(docRef, data) {
+    return await docRef.update(data)
+}
+
+export async function deleteDoc(docRef) {
+    return await docRef.delete()
+}
+
+export async function collection(dbRef, tableName) {
+    return await db.collection(tableName)
+}
+
+export async function addDoc(collectionRef, data) {
+    return await collectionRef.addDoc(data)
+}
+
+export async function getDocs(queryOrCollection) {
+    if (queryOrCollection.get) {
+        return await queryOrCollection.get()
+    }
+    return await queryOrCollection.getDocs()
+}
+
+export function query(collectionRef, ...constraints) {
+    let q = collectionRef.query()
+    constraints.forEach(constraint => {
+        if (constraint.type === 'where') {
+            q = q.where(constraint.field, constraint.operator, constraint.value)
+        } else if (constraint.type === 'orderBy') {
+            q = q.orderBy(constraint.field, constraint.direction)
+        } else if (constraint.type === 'limit') {
+            q = q.limit(constraint.value)
+        }
+    })
+    return q
+}
+
+export function where(field, operator, value) {
+    return { type: 'where', field, operator, value }
+}
+
+export function orderBy(field, direction = 'asc') {
+    return { type: 'orderBy', field, direction }
+}
+
+export function limit(value) {
+    return { type: 'limit', value }
+}
+
+export function onSnapshot(queryOrDoc, callback) {
+    console.warn('⚠️ onSnapshot: Realtime listeners not fully implemented in Supabase wrapper. Falling back to polling.')
+    const tableName = queryOrDoc.tableName || 'unknown'
+
+    const intervalId = setInterval(async () => {
+        try {
+            const data = await getDocs(queryOrDoc)
+            const snapshot = {
+                docs: data.map(d => ({ id: d.id, data: () => d })),
+                empty: data.length === 0
+            }
+            callback(snapshot)
+        } catch (err) {
+            console.error('onSnapshot error:', err)
+        }
+    }, 3000)
+
+    return () => clearInterval(intervalId)
+}
+
+export function writeBatch(dbRef) {
+    const operations = []
+
+    return {
+        update(docRef, data) {
+            operations.push({ type: 'update', docRef, data })
+        },
+        set(docRef, data) {
+            operations.push({ type: 'set', docRef, data })
+        },
+        delete(docRef) {
+            operations.push({ type: 'delete', docRef })
+        },
+        async commit() {
+            for (const op of operations) {
+                if (op.type === 'update') {
+                    await op.docRef.update(op.data)
+                } else if (op.type === 'set') {
+                    await op.docRef.set(op.data)
+                } else if (op.type === 'delete') {
+                    await op.docRef.delete()
+                }
+            }
+        }
+    }
+}
+
+export function increment(value) {
+    return { _type: 'increment', value }
+}
+
+export function deleteField() {
+    return null
+}
+
+export const ref = (storage, path) => storage.ref(path)
+
+export async function uploadBytesResumable(storageRef, file) {
+    return await storageRef.put(file)
+}
+
+export async function getDownloadURL(storageRef) {
+    return await storageRef.getDownloadURL()
+}
+
+// =================================================================
 // EXPORTS
 // =================================================================
 export { supabase as default }
 
 // Pour debug
-console.log('✅ Supabase initialisé')
+console.log('✅ Supabase initialisé avec wrappers Firebase')
 console.log('📍 URL:', SUPABASE_URL)

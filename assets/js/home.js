@@ -1,6 +1,4 @@
-import { auth, db } from './supabase-config.js';
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { doc, getDoc, collection, getCountFromServer } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
 
 const dom = {
     navLoggedOut: document.getElementById('nav-logged-out'),
