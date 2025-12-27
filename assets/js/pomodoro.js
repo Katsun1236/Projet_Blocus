@@ -50,7 +50,7 @@ const ui = {
 
 // Initialisation
 onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = '/pages/auth/login.html'; return; }
+    if (!user) { window.location.href = '../auth/login.html'; return; }
     currentUserId = user.uid;
     await initLayout(user);
     await loadSettings();
