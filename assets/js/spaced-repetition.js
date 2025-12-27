@@ -77,7 +77,7 @@ function calculateNextReview(card, rating) {
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = '../auth/login.html'; return; }
     currentUserId = user.uid;
-    await initLayout(user);
+    initLayout('spaced-repetition');
     await loadStats();
     setupEventListeners();
 });

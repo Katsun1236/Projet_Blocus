@@ -44,17 +44,29 @@ const GEMINI_API_KEY = geminiApiKey.value();
 const GEMINI_API_KEY = functions.config().gemini?.api_key;
 ```
 
-### 5. ✅ CORRIGÉ - Boucles de redirection (Commit e856543)
+### 5. ✅ CORRIGÉ - Boucles de redirection (Commits e856543 + af846c0)
 **Problème** : "Les nouvelles pages font des boucles avec index"
 
-**Cause** : Les nouvelles pages utilisaient des chemins absolus (`/pages/auth/login.html`) au lieu de chemins relatifs pour les redirections de connexion
+**Causes identifiées** :
+1. **Chemins de redirection** : Utilisation de chemins absolus au lieu de relatifs
+2. **Structure HTML incorrecte** : `<body>` + `<div id="layout-root">` au lieu de `<body id="app-container">`
+3. **Appel initLayout() incorrect** : Passage de l'objet `user` au lieu de l'ID de la page (string)
 
-**Solution** : Correction des redirections dans les 3 nouvelles pages :
+**Solutions appliquées** :
+
+**Commit e856543** - Correction des redirections :
 - `tutor.js` : `/pages/auth/login.html` → `../auth/login.html`
 - `pomodoro.js` : `/pages/auth/login.html` → `../auth/login.html`
 - `spaced-repetition.js` : `/pages/auth/login.html` → `../auth/login.html`
 
-**Résultat** : Les pages redirigent maintenant correctement vers la page de connexion sans créer de boucles
+**Commit af846c0** - Correction de la structure et de l'initialisation :
+- **HTML** : `<body id="app-container">` (comme les pages existantes)
+- **HTML** : Suppression de `<div id="layout-root"></div>`
+- **JS** : `initLayout('tutor')` au lieu de `initLayout(user)`
+- **JS** : `initLayout('pomodoro')` au lieu de `initLayout(user)`
+- **JS** : `initLayout('spaced-repetition')` au lieu de `initLayout(user)`
+
+**Résultat** : Les pages se chargent maintenant correctement avec la sidebar et sans boucles de redirection
 
 ## 🚀 Déploiement REQUIS
 
@@ -237,5 +249,13 @@ firebase deploy --only functions
 
 8. **fix: Use relative paths for login redirects to prevent redirect loops** (e856543)
    - Correction des boucles de redirection dans tutor, pomodoro, spaced-repetition
+
+9. **fix: Add missing Firestore imports (getDocs, deleteDoc) in tutor.js** (a210b52)
+   - Ajout des imports manquants pour la fonction clearChat
+
+10. **fix: Correct layout initialization in new pages to prevent redirect loops** (af846c0)
+   - Correction structure HTML : `<body id="app-container">` au lieu de `<div id="layout-root">`
+   - Correction appels initLayout() : passer l'ID de page au lieu de l'objet user
+   - Résout définitivement les boucles de redirection
 
 Tous les changements sont sur la branche `claude/remove-comments-docs-4eXn9`.
