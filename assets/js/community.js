@@ -1,4 +1,4 @@
-import { auth, db } from './supabase-config.js';
+import { auth, db, storage, getStorage } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
@@ -15,8 +15,6 @@ let groupFilesUnsubscribe = null;
 let allGroups = [];
 let editingRoleId = null;
 let tempRoles = {};
-
-const storage = getStorage();
 
 const DEFAULT_ROLES = {
     admin: { name: "Admin", hexColor: "#ef4444", permissions: ["ALL"] },
