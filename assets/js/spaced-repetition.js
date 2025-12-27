@@ -74,12 +74,19 @@ function calculateNextReview(card, rating) {
 }
 
 // Initialisation
-onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = '../auth/login.html'; return; }
-    currentUserId = user.uid;
+document.addEventListener('DOMContentLoaded', () => {
     initLayout('spaced-repetition');
-    await loadStats();
-    setupEventListeners();
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = '../auth/login.html';
+            return;
+        }
+
+        currentUserId = user.uid;
+        await loadStats();
+        setupEventListeners();
+    });
 });
 
 async function loadStats() {

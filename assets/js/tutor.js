@@ -46,14 +46,21 @@ const SUGGESTIONS = [
 ];
 
 // Initialisation
-onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = '../auth/login.html'; return; }
-    currentUserId = user.uid;
-    await loadUserData();
+document.addEventListener('DOMContentLoaded', () => {
     initLayout('tutor');
-    await loadChatHistory();
-    setupEventListeners();
-    displaySuggestions();
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = '../auth/login.html';
+            return;
+        }
+
+        currentUserId = user.uid;
+        await loadUserData();
+        await loadChatHistory();
+        setupEventListeners();
+        displaySuggestions();
+    });
 });
 
 async function loadUserData() {

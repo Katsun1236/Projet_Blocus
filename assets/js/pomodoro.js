@@ -49,15 +49,22 @@ const ui = {
 };
 
 // Initialisation
-onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = '../auth/login.html'; return; }
-    currentUserId = user.uid;
+document.addEventListener('DOMContentLoaded', () => {
     initLayout('pomodoro');
-    await loadSettings();
-    await loadStats();
-    setupEventListeners();
-    updateUI();
-    requestNotificationPermission();
+
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            window.location.href = '../auth/login.html';
+            return;
+        }
+
+        currentUserId = user.uid;
+        await loadSettings();
+        await loadStats();
+        setupEventListeners();
+        updateUI();
+        requestNotificationPermission();
+    });
 });
 
 async function loadSettings() {
