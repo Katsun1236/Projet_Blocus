@@ -1,6 +1,4 @@
-import { auth, db } from './supabase-config.js';
-import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { auth, db, supabase } from './supabase-config.js';
 
 export function initLayout(activePageId) {
     const sidebar = document.getElementById('sidebar-container');
@@ -10,7 +8,7 @@ export function initLayout(activePageId) {
 
     setupMobileMenu();
 
-    onAuthStateChanged(auth, async (user) => {
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             updateHeaderProfile(user);
         }
@@ -68,16 +66,18 @@ async function updateHeaderProfile(user) {
     if (!avatarImg && !userNameTxt) return;
 
     try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userSnapshot = await getDoc(userDocRef);
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
 
-        let photoURL = user.photoURL;
-        let displayName = user.displayName || user.email.split('@')[0];
+        let photoURL = user.user_metadata?.avatar_url;
+        let displayName = user.email?.split('@')[0];
 
-        if (userSnapshot.exists()) {
-            const data = userSnapshot.data();
-            if (data.photoURL) photoURL = data.photoURL;
-            if (data.firstName) displayName = data.firstName;
+        if (data && !error) {
+            if (data.photo_url) photoURL = data.photo_url;
+            if (data.first_name) displayName = data.first_name;
         }
 
         if (!photoURL) {
@@ -89,8 +89,8 @@ async function updateHeaderProfile(user) {
 
     } catch (e) {
         console.error("Erreur chargement header profil:", e);
-        if (avatarImg) avatarImg.src = user.photoURL || `https://ui-avatars.com/api/?background=random`;
-        if (userNameTxt) userNameTxt.textContent = user.displayName || "Étudiant";
+        if (avatarImg) avatarImg.src = `https://ui-avatars.com/api/?background=random`;
+        if (userNameTxt) userNameTxt.textContent = "Étudiant";
     }
 }
 
@@ -154,7 +154,7 @@ function injectSidebar(activePageId) {
 
     document.getElementById('sidebar-logout-btn')?.addEventListener('click', async () => {
         try {
-            await signOut(auth);
+            await auth.signOut();
             window.location.href = rootPath + 'pages/auth/login.html';
         } catch (e) {
             console.error("Logout error", e);
