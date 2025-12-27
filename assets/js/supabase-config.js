@@ -80,16 +80,25 @@ export const auth = {
         // Récupérer l'utilisateur actuel au démarrage
         supabase.auth.getUser().then(({ data }) => {
             this.currentUser = data.user
-            callback(data.user)
+            if (callback && typeof callback === 'function') {
+                callback(data.user)
+            }
         })
 
         // Écouter les changements
-        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data } = supabase.auth.onAuthStateChange((event, session) => {
             this.currentUser = session?.user ?? null
-            callback(session?.user ?? null)
+            if (callback && typeof callback === 'function') {
+                callback(session?.user ?? null)
+            }
         })
 
-        return authListener.subscription
+        // Retourner une fonction d'unsubscribe comme Firebase
+        return () => {
+            if (data && data.subscription) {
+                data.subscription.unsubscribe()
+            }
+        }
     },
 
     // Récupérer l'utilisateur actuel
