@@ -5,7 +5,7 @@
   "description": "Plateforme d'aide aux révisions pour étudiants avec IA",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/copy-pages.js",
     "preview": "vite preview",
     "build:css": "npx tailwindcss -i ./src/assets/styles/main.css -o ./dist/assets/css/style.css --minify",
     "deploy:netlify": "npm run build && netlify deploy --prod",
