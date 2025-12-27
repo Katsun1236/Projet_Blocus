@@ -11,8 +11,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 // ⚠️ REMPLACE CES VALEURS PAR LES TIENNES
 // Tu les trouveras dans : Supabase Dashboard → Settings → API
-const SUPABASE_URL = 'https://TON_PROJECT_ID.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' // Ta clé anon ici
+const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co'
+const SUPABASE_ANON_KEY = 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX' // Ta clé anon ici
 
 // Créer le client Supabase
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
