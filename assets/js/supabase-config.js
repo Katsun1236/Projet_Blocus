@@ -256,12 +256,19 @@ export const storage = {
     ref(path) {
         return {
             async put(file) {
+                // Récupérer l'utilisateur actuel
+                const { data: { user } } = await supabase.auth.getUser()
+                if (!user) throw new Error('User not authenticated')
+
                 // Nettoyer le nom de fichier pour Supabase (pas d'espaces ni caractères spéciaux)
-                const cleanFileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`
+                const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+
+                // Créer le chemin avec userId : users/{userId}/{timestamp}_{filename}
+                const filePath = `${user.id}/${Date.now()}_${cleanFileName}`
 
                 const { data, error } = await supabase.storage
                     .from('courses')
-                    .upload(cleanFileName, file, {
+                    .upload(filePath, file, {
                         cacheControl: '3600',
                         upsert: false
                     })
