@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IA Tuteur - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-950 text-white min-h-screen">
+
+    <!-- Layout Placeholder -->
+    <div id="layout-root"></div>
+
+    <!-- Main Content -->
+    <main class="lg:ml-64 lg:mr-80 pt-20 pb-10 px-4 md:px-8">
+        <div class="max-w-5xl mx-auto h-[calc(100vh-8rem)] flex flex-col">
+
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-white mb-2">🤖 IA Tuteur Personnalisé</h1>
+                    <p class="text-gray-400 text-sm">Pose tes questions, je t'aide à comprendre !</p>
+                </div>
+                <button id="clear-chat-btn" class="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-xl text-sm transition-colors border border-red-600/30">
+                    <i class="fas fa-trash mr-2"></i>Effacer
+                </button>
+            </div>
+
+            <!-- Chat Container -->
+            <div class="flex-1 content-glass rounded-3xl p-6 flex flex-col">
+
+                <!-- Messages -->
+                <div id="chat-container" class="flex-1 overflow-y-auto custom-scrollbar mb-4 space-y-4">
+                    <!-- Messages will be inserted here -->
+                </div>
+
+                <!-- Suggestions -->
+                <div id="suggestions-container" class="flex flex-wrap gap-2 mb-4">
+                    <!-- Suggestions will be inserted here -->
+                </div>
+
+                <!-- Input Area -->
+                <div class="flex gap-3">
+                    <textarea
+                        id="message-input"
+                        placeholder="Pose ta question ici... (Shift+Enter pour un retour à la ligne)"
+                        class="flex-1 px-4 py-3 bg-gray-800 text-white rounded-xl resize-none border border-gray-700 focus:border-indigo-500 focus:outline-none"
+                        rows="2"
+                    ></textarea>
+                    <button id="send-message-btn" disabled class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:from-gray-700 disabled:to-gray-700 disabled:cursor-not-allowed rounded-xl font-bold transition-all shadow-lg">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+
+                <p class="text-xs text-gray-500 mt-2 text-center">
+                    💡 Astuce : Le tuteur te guide mais ne fait pas tes devoirs à ta place !
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Message Box -->
+    <div id="message-box" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2"></div>
+
+    <!-- DOMPurify for XSS protection -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
+
+    <script type="module" src="../../assets/js/tutor.js"></script>
+</body>
+</html>
