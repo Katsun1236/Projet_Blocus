@@ -63,7 +63,10 @@
   "firestore": {
     "rules": "firestore.rules"
   },
-  "storage": {
-    "rules": "storage.rules"
-  }
+  "storage": [
+    {
+      "bucket": "projet-blocus-v2.firebasestorage.app",
+      "rules": "storage.rules"
+    }
+  ]
 }
