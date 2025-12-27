@@ -134,20 +134,20 @@ async function saveEvent() {
     };
 
     ui.saveBtn.disabled = true;
-    ui.saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    ui.saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sauvegarde...';
 
     try {
         if (currentEventId) {
             await updateDoc(doc(db, 'users', currentUserId, 'planning', currentEventId), eventData);
-            showMessage("Événement modifié", "success");
+            showMessage("Événement modifié avec succès", "success");
         } else {
             await addDoc(collection(db, 'users', currentUserId, 'planning'), eventData);
-            showMessage("Événement ajouté", "success");
+            showMessage("Événement ajouté avec succès", "success");
         }
         closeModal();
     } catch (e) {
-        console.error(e);
-        showMessage("Erreur sauvegarde", "error");
+        console.error("Erreur sauvegarde:", e);
+        showMessage("Impossible de sauvegarder l'événement. Réessayez.", "error");
     } finally {
         ui.saveBtn.disabled = false;
         ui.saveBtn.innerHTML = '<i class="fas fa-save"></i> Sauvegarder';
@@ -156,15 +156,21 @@ async function saveEvent() {
 
 async function deleteEvent() {
     if (!currentEventId) return;
-    if (!confirm("Supprimer cet événement ?")) return;
+    if (!confirm("Supprimer définitivement cet événement ?")) return;
+
+    ui.deleteBtn.disabled = true;
+    ui.deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
     try {
         await deleteDoc(doc(db, 'users', currentUserId, 'planning', currentEventId));
-        showMessage("Événement supprimé", "info");
+        showMessage("Événement supprimé avec succès", "success");
         closeModal();
     } catch (e) {
-        console.error(e);
-        showMessage("Erreur suppression", "error");
+        console.error("Erreur suppression:", e);
+        showMessage("Impossible de supprimer l'événement. Réessayez.", "error");
+    } finally {
+        ui.deleteBtn.disabled = false;
+        ui.deleteBtn.innerHTML = '<i class="fas fa-trash"></i> Supprimer';
     }
 }
 
@@ -175,10 +181,11 @@ async function handleEventDrop(info) {
             start: event.start.toISOString(),
             end: event.end ? event.end.toISOString() : null
         });
-        showMessage("Déplacé !", "success");
+        showMessage("Événement déplacé avec succès", "success");
     } catch (e) {
+        console.error("Erreur déplacement:", e);
         info.revert();
-        showMessage("Erreur déplacement", "error");
+        showMessage("Impossible de déplacer l'événement", "error");
     }
 }
 
@@ -188,8 +195,11 @@ async function handleEventResize(info) {
         await updateDoc(doc(db, 'users', currentUserId, 'planning', event.id), {
             end: event.end ? event.end.toISOString() : null
         });
+        showMessage("Durée modifiée", "success");
     } catch (e) {
+        console.error("Erreur redimensionnement:", e);
         info.revert();
+        showMessage("Impossible de modifier la durée", "error");
     }
 }
 

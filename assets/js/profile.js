@@ -117,7 +117,8 @@ function renderProfile(data) {
 
 async function loadUserStats() {
     try {
-        const qFiles = query(collection(db, 'files'), where('userId', '==', currentUserId));
+        // Count courses from user's subcollection
+        const qFiles = query(collection(db, 'users', currentUserId, 'courses'));
         const snapFiles = await getDocs(qFiles);
         userStats.files = snapFiles.size;
         ui.statFiles.textContent = userStats.files;

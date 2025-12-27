@@ -227,20 +227,58 @@ function renderPostCard(post) {
 
 async function deletePost(postId) {
     if(!confirm("Supprimer définitivement cette discussion ?")) return;
+
+    showMessage("Suppression...", "info");
+
     try {
         await deleteDoc(doc(db, 'community_posts', postId));
-        showMessage("Discussion supprimée", "info");
+        showMessage("Discussion supprimée avec succès", "success");
     } catch(e) {
-        console.error(e);
-        showMessage("Erreur suppression", "error");
+        console.error("Erreur suppression post:", e);
+        showMessage("Impossible de supprimer la discussion", "error");
     }
 }
 
 async function createPost() {
-    const title = ui.postTitle.value.trim(); const content = ui.postContent.value.trim(); const tag = ui.postTag.value.trim(); const type = document.querySelector('input[name="post-type"]:checked').value;
+    const title = ui.postTitle.value.trim();
+    const content = ui.postContent.value.trim();
+    const tag = ui.postTag.value.trim();
+    const type = document.querySelector('input[name="post-type"]:checked').value;
+
     if (!title || !content) return showMessage("Titre et contenu requis", "error");
-    ui.submitPost.disabled = true; ui.submitPost.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
-    try { await addDoc(collection(db, 'community_posts'), { title, content, tag: tag || 'Général', type, authorId: currentUserId, authorName: currentUserData.firstName || 'Utilisateur', authorAvatar: currentUserData.photoURL, createdAt: serverTimestamp(), likesBy: [], commentsCount: 0 }); await addPointsToUser(currentUserId, 10); window.togglePostModal(false); ui.postTitle.value = ""; ui.postContent.value = ""; showMessage("Publié ! (+10 pts)", "success"); loadContributors(); } catch (e) { console.error(e); } finally { ui.submitPost.disabled = false; ui.submitPost.innerHTML = `<i class="fas fa-paper-plane"></i> Publier`; }
+
+    ui.submitPost.disabled = true;
+    ui.submitPost.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Publication...`;
+
+    try {
+        await addDoc(collection(db, 'community_posts'), {
+            title,
+            content,
+            tag: tag || 'Général',
+            type,
+            authorId: currentUserId,
+            authorName: currentUserData.firstName || 'Utilisateur',
+            authorAvatar: currentUserData.photoURL,
+            createdAt: serverTimestamp(),
+            likesBy: [],
+            commentsCount: 0
+        });
+
+        await addPointsToUser(currentUserId, 10);
+
+        window.togglePostModal(false);
+        ui.postTitle.value = "";
+        ui.postContent.value = "";
+
+        showMessage("Publié avec succès ! (+10 pts)", "success");
+        loadContributors();
+    } catch (e) {
+        console.error("Erreur création post:", e);
+        showMessage("Impossible de publier. Réessayez.", "error");
+    } finally {
+        ui.submitPost.disabled = false;
+        ui.submitPost.innerHTML = `<i class="fas fa-paper-plane"></i> Publier`;
+    }
 }
 
 async function toggleLike(postId, alreadyLiked) { try { const ref = doc(db, 'community_posts', postId); if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) }); else await updateDoc(ref, { likesBy: arrayUnion(currentUserId) }); } catch(e) {} }
@@ -530,10 +568,104 @@ function subscribeToGroupFiles(groupId) {
         });
     });
 }
-async function deleteGroupFile(fileId) { try { await deleteDoc(doc(db, 'groups', currentGroupId, 'files', fileId)); showMessage("Fichier supprimé", "success"); } catch(e) { console.error(e); } }
-async function uploadGroupFile(file) { if (!currentGroupId) return; if (!hasPermission('UPLOAD_FILES')) return showMessage("Permission refusée", "error"); showMessage("Envoi...", "info"); try { const storageRef = ref(storage, `groups/${currentGroupId}/${Date.now()}_${file.name}`); const snapshot = await uploadBytes(storageRef, file); const url = await getDownloadURL(snapshot.ref); await addDoc(collection(db, 'groups', currentGroupId, 'files'), { name: file.name, url: url, size: (file.size / 1024).toFixed(1) + ' KB', authorId: currentUserId, authorName: currentUserData.firstName, createdAt: serverTimestamp() }); showMessage("Partagé !", "success"); } catch (e) { console.error(e); } }
-async function uploadGroupIcon(file) { if (!currentGroupId) return; if (!hasPermission('MANAGE_GROUP')) return showMessage("Refusé", "error"); showMessage("Update icône...", "info"); try { const storageRef = ref(storage, `group_icons/${currentGroupId}_${Date.now()}`); const snapshot = await uploadBytes(storageRef, file); const url = await getDownloadURL(snapshot.ref); await updateDoc(doc(db, 'groups', currentGroupId), { photoURL: url }); ui.groupIcon.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-2xl">`; } catch (e) { console.error(e); } }
-async function toggleJoinGroup(groupId, isMember) { try { const ref = doc(db, 'groups', groupId); if (isMember) { await updateDoc(ref, { members: arrayRemove(currentUserId), [`memberRoles.${currentUserId}`]: deleteField() }); const g = await getDoc(ref); await updateDoc(ref, { memberCount: Math.max(0, (g.data().memberCount || 1) - 1) }); } else { await updateDoc(ref, { members: arrayUnion(currentUserId), [`memberRoles.${currentUserId}`]: 'member' }); const g = await getDoc(ref); await updateDoc(ref, { memberCount: (g.data().memberCount || 0) + 1 }); } } catch(e) { console.error(e); } }
+async function deleteGroupFile(fileId) {
+    showMessage("Suppression du fichier...", "info");
+    try {
+        await deleteDoc(doc(db, 'groups', currentGroupId, 'files', fileId));
+        showMessage("Fichier supprimé avec succès", "success");
+    } catch(e) {
+        console.error("Erreur suppression fichier:", e);
+        showMessage("Impossible de supprimer le fichier", "error");
+    }
+}
+async function uploadGroupFile(file) {
+    if (!currentGroupId) return;
+    if (!hasPermission('UPLOAD_FILES')) return showMessage("Permission refusée", "error");
+
+    if (file.size > 10 * 1024 * 1024) {
+        return showMessage("Fichier trop lourd (max 10MB)", "error");
+    }
+
+    showMessage(`Upload de "${file.name}"...`, "info");
+
+    try {
+        const storageRef = ref(storage, `groups/${currentGroupId}/${Date.now()}_${file.name}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(snapshot.ref);
+
+        await addDoc(collection(db, 'groups', currentGroupId, 'files'), {
+            name: file.name,
+            url: url,
+            size: (file.size / 1024).toFixed(1) + ' KB',
+            authorId: currentUserId,
+            authorName: currentUserData.firstName,
+            createdAt: serverTimestamp()
+        });
+
+        showMessage(`"${file.name}" partagé avec succès !`, "success");
+    } catch (e) {
+        console.error("Erreur upload fichier groupe:", e);
+        showMessage("Échec de l'upload. Réessayez.", "error");
+    }
+}
+async function uploadGroupIcon(file) {
+    if (!currentGroupId) return;
+    if (!hasPermission('MANAGE_GROUP')) return showMessage("Permission refusée", "error");
+
+    if (!file.type.startsWith('image/')) {
+        return showMessage("Le fichier doit être une image", "error");
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+        return showMessage("Image trop lourde (max 2MB)", "error");
+    }
+
+    showMessage("Mise à jour de l'icône...", "info");
+
+    try {
+        const storageRef = ref(storage, `group_icons/${currentGroupId}_${Date.now()}`);
+        const snapshot = await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(snapshot.ref);
+
+        await updateDoc(doc(db, 'groups', currentGroupId), { photoURL: url });
+
+        ui.groupIcon.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-2xl">`;
+        ui.overviewIconPreview.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-full">`;
+
+        showMessage("Icône mise à jour avec succès", "success");
+    } catch (e) {
+        console.error("Erreur upload icône:", e);
+        showMessage("Impossible de modifier l'icône", "error");
+    }
+}
+async function toggleJoinGroup(groupId, isMember) {
+    try {
+        const ref = doc(db, 'groups', groupId);
+
+        if (isMember) {
+            showMessage("Sortie du groupe...", "info");
+            await updateDoc(ref, {
+                members: arrayRemove(currentUserId),
+                [`memberRoles.${currentUserId}`]: deleteField()
+            });
+            const g = await getDoc(ref);
+            await updateDoc(ref, { memberCount: Math.max(0, (g.data().memberCount || 1) - 1) });
+            showMessage("Vous avez quitté le groupe", "success");
+        } else {
+            showMessage("Rejoindre le groupe...", "info");
+            await updateDoc(ref, {
+                members: arrayUnion(currentUserId),
+                [`memberRoles.${currentUserId}`]: 'member'
+            });
+            const g = await getDoc(ref);
+            await updateDoc(ref, { memberCount: (g.data().memberCount || 0) + 1 });
+            showMessage("Vous avez rejoint le groupe", "success");
+        }
+    } catch(e) {
+        console.error("Erreur toggle join:", e);
+        showMessage("Une erreur est survenue. Réessayez.", "error");
+    }
+}
 function timeSince(date) { const seconds = Math.floor((new Date() - date) / 1000); let interval = seconds / 31536000; if (interval > 1) return Math.floor(interval) + " an(s)"; interval = seconds / 2592000; if (interval > 1) return Math.floor(interval) + " mois"; interval = seconds / 86400; if (interval > 1) return Math.floor(interval) + "j"; interval = seconds / 3600; if (interval > 1) return Math.floor(interval) + "h"; interval = seconds / 60; if (interval > 1) return Math.floor(interval) + " min"; return "À l'instant"; }
 
 function setupEventListeners() {
