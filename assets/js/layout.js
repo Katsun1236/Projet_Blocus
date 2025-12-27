@@ -118,8 +118,11 @@ function injectSidebar(activePageId) {
                 ${renderNavLink('courses', 'Mes Cours', 'fa-folder-open', basePath + 'courses.html', activePageId)}
                 ${renderNavLink('quiz', 'Quiz & IA', 'fa-brain', basePath + 'quiz.html', activePageId)}
                 ${renderNavLink('synthesize', 'Synthèses', 'fa-magic', basePath + 'synthesize.html', activePageId)}
+                ${renderNavLink('tutor', '🤖 Tuteur IA', 'fa-robot', basePath + 'tutor.html', activePageId)}
+                ${renderNavLink('spaced-repetition', 'Révisions', 'fa-repeat', basePath + 'spaced-repetition.html', activePageId)}
                 ${renderNavLink('community', 'Communauté', 'fa-users', basePath + 'community.html', activePageId)}
                 ${renderNavLink('planning', 'Planning', 'fa-calendar-alt', basePath + 'planning.html', activePageId)}
+                ${renderNavLink('pomodoro', 'Pomodoro', 'fa-clock', basePath + 'pomodoro.html', activePageId)}
             </nav>
 
             <div class="p-4 border-t border-gray-800/50">
@@ -144,8 +147,11 @@ function injectSidebar(activePageId) {
                 <a href="${basePath}courses.html" class="block text-lg text-gray-300 hover:text-white">Mes Cours</a>
                 <a href="${basePath}quiz.html" class="block text-lg text-gray-300 hover:text-white">Quiz IA</a>
                 <a href="${basePath}synthesize.html" class="block text-lg text-gray-300 hover:text-white">Synthèses</a>
+                <a href="${basePath}tutor.html" class="block text-lg text-gray-300 hover:text-white">🤖 Tuteur IA</a>
+                <a href="${basePath}spaced-repetition.html" class="block text-lg text-gray-300 hover:text-white">🧠 Révisions</a>
                 <a href="${basePath}community.html" class="block text-lg text-gray-300 hover:text-white">Communauté</a>
                 <a href="${basePath}planning.html" class="block text-lg text-gray-300 hover:text-white">Planning</a>
+                <a href="${basePath}pomodoro.html" class="block text-lg text-gray-300 hover:text-white">🍅 Pomodoro</a>
                 <a href="${basePath}profile.html" class="block text-lg text-gray-300 hover:text-white">Profil</a>
             </nav>
         </div>
