@@ -1,6 +1,7 @@
 import { auth, db } from './config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
+import { sanitizeHTML, sanitizeText } from './sanitizer.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import { collection, query, orderBy, getDocs, limit, addDoc, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, onSnapshot, where, increment, deleteField } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-storage.js";
@@ -156,7 +157,7 @@ async function loadContributors() {
             if(!user.firstName) return;
             const div = document.createElement('div');
             div.className = 'flex items-center gap-3 animate-fade-in mb-3 last:mb-0';
-            div.innerHTML = `<span class="text-gray-500 text-xs font-bold w-4">${rank}</span><img src="${user.photoURL || `https://ui-avatars.com/api/?name=${user.firstName}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white truncate">${user.firstName}</p><p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p></div>`;
+            div.innerHTML = `<span class="text-gray-500 text-xs font-bold w-4">${rank}</span><img src="${user.photoURL || `https://ui-avatars.com/api/?name=${sanitizeText(user.firstName)}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white truncate">${sanitizeText(user.firstName)}</p><p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p></div>`;
             ui.contributorsList.appendChild(div);
             rank++;
         });
@@ -201,14 +202,14 @@ function renderPostCard(post) {
             <div class="flex items-center gap-3">
                 <img src="${post.authorAvatar || 'https://ui-avatars.com/api/?background=random'}" class="w-10 h-10 rounded-full border border-gray-600">
                 <div>
-                    <h4 class="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">${post.authorName || 'Anonyme'}</h4>
-                    <p class="text-xs text-gray-500">${timeAgo} • ${post.tag || 'Général'}</p>
+                    <h4 class="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">${sanitizeText(post.authorName) || 'Anonyme'}</h4>
+                    <p class="text-xs text-gray-500">${timeAgo} • ${sanitizeText(post.tag) || 'Général'}</p>
                 </div>
             </div>
             <span class="px-2 py-1 bg-${badgeColor}-500/10 text-${badgeColor}-400 text-xs rounded border border-${badgeColor}-500/20">${badgeLabel}</span>
         </div>
-        <h3 class="text-lg font-bold text-white mb-2">${post.title}</h3>
-        <p class="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-line">${post.content}</p>
+        <h3 class="text-lg font-bold text-white mb-2">${sanitizeText(post.title)}</h3>
+        <p class="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-line">${sanitizeHTML(post.content)}</p>
         <div class="flex items-center gap-6 text-xs text-gray-500 border-t border-gray-800/50 pt-4">
             <button class="flex items-center gap-2 hover:text-emerald-400 transition-colors action-btn"><i class="far fa-comment-alt"></i> ${post.commentsCount || 0} rép.</button>
             <button class="flex items-center gap-2 ${likeClass} transition-colors action-btn like-btn"><i class="${likeIcon}"></i> ${post.likesBy ? post.likesBy.length : 0}</button>
@@ -281,11 +282,53 @@ async function createPost() {
     }
 }
 
-async function toggleLike(postId, alreadyLiked) { try { const ref = doc(db, 'community_posts', postId); if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) }); else await updateDoc(ref, { likesBy: arrayUnion(currentUserId) }); } catch(e) {} }
-function sharePost(post) { window.togglePostModal(true); ui.postTitle.value = `RE: ${post.title}`; ui.postContent.value = `\n\n--- De ${post.authorName} ---\n${post.content}`; ui.postContent.focus(); }
-async function openDetailModal(post) { currentPostId = post.id; ui.detailModal.classList.remove('hidden'); ui.detailContent.innerHTML = `<h2 class="text-2xl font-bold text-white mb-4">${post.title}</h2><p class="text-gray-300 whitespace-pre-line">${post.content}</p><div id="comments-list" class="mt-8 space-y-4"></div>`; subscribeToComments(post.id); }
-function subscribeToComments(postId) { const list = document.getElementById('comments-list'); onSnapshot(query(collection(db, 'community_posts', postId, 'comments'), orderBy('createdAt', 'asc')), (snap) => { list.innerHTML = ''; snap.forEach(d => { const c = d.data(); list.innerHTML += `<div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800"><span class="font-bold text-white text-sm">${c.authorName}</span><p class="text-sm text-gray-300 mt-1">${c.content}</p></div>`; }); }); }
-async function submitComment() { const content = ui.commentInput.value.trim(); if(!content) return; try { await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), { content, authorId: currentUserId, authorName: currentUserData.firstName, createdAt: serverTimestamp() }); await addPointsToUser(currentUserId, 5); ui.commentInput.value = ''; } catch(e) {} }
+async function toggleLike(postId, alreadyLiked) {
+    try {
+        const ref = doc(db, 'community_posts', postId);
+        if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) });
+        else await updateDoc(ref, { likesBy: arrayUnion(currentUserId) });
+    } catch(e) {}
+}
+
+function sharePost(post) {
+    window.togglePostModal(true);
+    ui.postTitle.value = `RE: ${post.title}`;
+    ui.postContent.value = `\n\n--- De ${post.authorName} ---\n${post.content}`;
+    ui.postContent.focus();
+}
+
+async function openDetailModal(post) {
+    currentPostId = post.id;
+    ui.detailModal.classList.remove('hidden');
+    ui.detailContent.innerHTML = `<h2 class="text-2xl font-bold text-white mb-4">${sanitizeText(post.title)}</h2><p class="text-gray-300 whitespace-pre-line">${sanitizeHTML(post.content)}</p><div id="comments-list" class="mt-8 space-y-4"></div>`;
+    subscribeToComments(post.id);
+}
+
+function subscribeToComments(postId) {
+    const list = document.getElementById('comments-list');
+    onSnapshot(query(collection(db, 'community_posts', postId, 'comments'), orderBy('createdAt', 'asc')), (snap) => {
+        list.innerHTML = '';
+        snap.forEach(d => {
+            const c = d.data();
+            list.innerHTML += `<div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800"><span class="font-bold text-white text-sm">${sanitizeText(c.authorName)}</span><p class="text-sm text-gray-300 mt-1">${sanitizeHTML(c.content)}</p></div>`;
+        });
+    });
+}
+
+async function submitComment() {
+    const content = ui.commentInput.value.trim();
+    if(!content) return;
+    try {
+        await addDoc(collection(db, 'community_posts', currentPostId, 'comments'), {
+            content,
+            authorId: currentUserId,
+            authorName: currentUserData.firstName,
+            createdAt: serverTimestamp()
+        });
+        await addPointsToUser(currentUserId, 5);
+        ui.commentInput.value = '';
+    } catch(e) {}
+}
 
 function hasPermission(permission) {
     if (!currentGroupData) return false;

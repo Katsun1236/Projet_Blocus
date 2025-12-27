@@ -22,6 +22,11 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == request.resource.data.authorId;
     }
 
+    function isValidString(field, maxLength) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() <= maxLength;
+    }
+
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
@@ -41,17 +46,28 @@ service cloud.firestore {
       match /events/{eventId} {
         allow read, write: if isOwner(userId);
       }
+
+      match /planning/{eventId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /community_posts/{postId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && willBeAuthor();
-      allow update: if isAuthor();
+      allow create: if isAuthenticated() &&
+                     willBeAuthor() &&
+                     isValidString('title', 200) &&
+                     isValidString('content', 10000);
+      allow update: if isAuthor() &&
+                      (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesBy', 'commentsCount']) ||
+                       (isValidString('title', 200) && isValidString('content', 10000)));
       allow delete: if isAuthor();
 
       match /comments/{commentId} {
         allow read: if isAuthenticated();
-        allow create: if isAuthenticated() && willBeAuthor();
+        allow create: if isAuthenticated() &&
+                       willBeAuthor() &&
+                       isValidString('content', 2000);
         allow update, delete: if isAuthor();
       }
 
@@ -66,7 +82,9 @@ service cloud.firestore {
       allow read: if isAuthenticated() &&
         (request.auth.uid in resource.data.members ||
          resource.data.visibility == 'public');
-      allow create: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                     isValidString('name', 100) &&
+                     request.resource.data.ownerId == request.auth.uid;
       allow update: if isAuthenticated() &&
         (request.auth.uid == resource.data.ownerId ||
          request.auth.uid in resource.data.admins);
