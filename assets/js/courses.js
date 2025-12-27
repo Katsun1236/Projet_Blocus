@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, (user) => {
         if (user) {
-            currentUserId = user.uid;
+            currentUserId = user.id;
             loadCourses();
         } else {
             window.location.href = '../auth/login.html';

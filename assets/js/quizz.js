@@ -66,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadUserSyntheses() {
     try {
-        const synthesisRef = collection(db, 'users', auth.currentUser.uid, 'syntheses');
+        const synthesisRef = collection(db, 'users', auth.currentUser.id, 'syntheses');
         const snapshot = await getDocs(synthesisRef);
         userSyntheses = [];
         ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
@@ -92,8 +92,8 @@ async function loadUserSyntheses() {
 
 async function loadUserCourses() {
     try {
-        console.log("Chargement des cours pour:", auth.currentUser.uid);
-        const coursesRef = collection(db, 'users', auth.currentUser.uid, 'courses');
+        console.log("Chargement des cours pour:", auth.currentUser.id);
+        const coursesRef = collection(db, 'users', auth.currentUser.id, 'courses');
         const snapshot = await getDocs(coursesRef);
         userCourses = [];
         ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
@@ -314,7 +314,7 @@ async function finishQuiz() {
     if (auth.currentUser) {
         try {
             await addDoc(collection(db, 'quiz_results'), {
-                userId: auth.currentUser.uid,
+                userId: auth.currentUser.id,
                 topic: currentQuiz.title,
                 score: score,
                 total: currentQuiz.questions.length,
@@ -338,7 +338,7 @@ async function loadRecentQuiz() {
     if(!ui.quizGrid) return;
     ui.quizGrid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>';
     try {
-        const q = query(collection(db, 'quiz_results'), where('userId', '==', auth.currentUser.uid), orderBy('createdAt', 'desc'), limit(8));
+        const q = query(collection(db, 'quiz_results'), where('userId', '==', auth.currentUser.id), orderBy('createdAt', 'desc'), limit(8));
         const snapshot = await getDocs(q);
         ui.quizGrid.innerHTML = '';
         if (snapshot.empty) {

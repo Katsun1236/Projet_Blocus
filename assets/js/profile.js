@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserId = user.uid;
+            currentUserId = user.id;
             await loadProfileData();
             await loadUserStats();
             loadRecentActivity();

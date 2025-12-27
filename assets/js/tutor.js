@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        currentUserId = user.uid;
+        currentUserId = user.id;
         await loadUserData();
         await loadChatHistory();
         setupEventListeners();

@@ -27,15 +27,20 @@ const ui = {
 document.addEventListener('DOMContentLoaded', () => {
     initLayout('planning');
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(async (user) => {
         if (user) {
-            currentUserId = user.uid;
+            currentUserId = user.id;
 
-            const userDoc = await import("https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js").then(m => m.getDoc(m.doc(db, 'users', user.uid)));
-            if(userDoc.exists()) {
-                const data = userDoc.data();
-                if(ui.userName) ui.userName.textContent = data.firstName;
-                if(ui.userAvatar) ui.userAvatar.src = data.photoURL || `https://ui-avatars.com/api/?name=${data.firstName}&background=random`;
+            // Charger les données utilisateur depuis Supabase
+            const { data, error } = await supabase
+                .from('users')
+                .select('first_name, photo_url')
+                .eq('id', user.id)
+                .single();
+
+            if (data && !error) {
+                if(ui.userName) ui.userName.textContent = data.first_name;
+                if(ui.userAvatar) ui.userAvatar.src = data.photo_url || `https://ui-avatars.com/api/?name=${data.first_name}&background=random`;
             }
 
             initCalendar();
