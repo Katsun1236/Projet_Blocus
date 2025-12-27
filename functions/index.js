@@ -3,14 +3,14 @@ const {defineSecret} = require("firebase-functions/params");
 const geminiApiKey = defineSecret("GEMINI_API_KEY");
 
 const GEMINI_MODELS = [
-  "gemini-1.5-flash-latest",
-  "gemini-1.5-pro-latest",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
   "gemini-pro",
 ];
 
 function getGeminiApiUrl(apiKey, modelIndex = 0) {
   const model = GEMINI_MODELS[modelIndex];
-  const baseUrl = "https://generativelanguage.googleapis.com/v1";
+  const baseUrl = "https://generativelanguage.googleapis.com/v1beta";
   return `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
 }
 
