@@ -8,8 +8,6 @@ export function initLayout(activePageId) {
         injectSidebar(activePageId);
     }
 
-    addHomeButton();
-
     setupMobileMenu();
 
     onAuthStateChanged(auth, async (user) => {
@@ -61,24 +59,6 @@ function setupMobileMenu() {
             }
         });
     }
-}
-
-function addHomeButton() {
-    const header = document.querySelector('header');
-    if (!header) {
-        return;
-    }
-
-    if (document.getElementById('home-btn-header')) return;
-
-    const homeBtn = document.createElement('a');
-    homeBtn.id = 'home-btn-header';
-    homeBtn.href = '/';
-    homeBtn.className = 'hidden md:flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-300 hover:text-white text-sm font-medium absolute right-8';
-    homeBtn.title = "Retour à l'accueil";
-    homeBtn.innerHTML = '<i class="fas fa-home mr-2"></i> Accueil';
-
-    header.appendChild(homeBtn);
 }
 
 async function updateHeaderProfile(user) {
