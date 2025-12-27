@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        currentUserId = user.uid;
+        currentUserId = user.id;
         await loadStats();
         setupEventListeners();
     });

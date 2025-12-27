@@ -35,7 +35,7 @@ onAuthStateChanged(auth, async (user) => {
         toggleVisibility(true);
 
         try {
-            const userRef = doc(db, 'users', user.uid);
+            const userRef = doc(db, 'users', user.id);
             const docSnap = await getDoc(userRef);
 
             if (docSnap.exists()) {

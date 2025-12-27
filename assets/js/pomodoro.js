@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        currentUserId = user.uid;
+        currentUserId = user.id;
         await loadSettings();
         await loadStats();
         setupEventListeners();
