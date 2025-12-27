@@ -56,8 +56,8 @@
   [headers.values]
     Cache-Control = "public, max-age=604800, must-revalidate"
 
-# SPA fallback pour les routes non trouvées
+# 404 page
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200
+  status = 404
