@@ -52,7 +52,7 @@ const ui = {
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = '../auth/login.html'; return; }
     currentUserId = user.uid;
-    await initLayout(user);
+    initLayout('pomodoro');
     await loadSettings();
     await loadStats();
     setupEventListeners();

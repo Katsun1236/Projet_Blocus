@@ -50,7 +50,7 @@ onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = '../auth/login.html'; return; }
     currentUserId = user.uid;
     await loadUserData();
-    await initLayout(user);
+    initLayout('tutor');
     await loadChatHistory();
     setupEventListeners();
     displaySuggestions();
