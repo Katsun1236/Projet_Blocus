@@ -52,3 +52,26 @@ assets/css/output.css
 assets/images/optimized/
 
 public/
+
+# Capacitor
+android/app/build/
+android/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/gradle/
+ios/App/Pods/
+ios/App/App.xcworkspace/xcuserdata/
+ios/App/App.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM

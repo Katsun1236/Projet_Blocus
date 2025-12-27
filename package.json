@@ -16,10 +16,19 @@
     "test:coverage": "vitest --coverage",
     "lint": "eslint src/",
     "format": "prettier --write src/",
-    "optimize:images": "node scripts/optimize-images.js"
+    "optimize:images": "node scripts/optimize-images.js",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios",
+    "cap:run:android": "npm run cap:sync && npx cap run android",
+    "cap:run:ios": "npm run cap:sync && npx cap run ios",
+    "cap:update": "npx cap update",
+    "android": "npm run cap:android",
+    "ios": "npm run cap:ios"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@vitest/coverage-v8": "^1.0.4",
     "@vitest/ui": "^1.0.0",
     "autoprefixer": "^10.4.23",
     "cssnano": "^6.0.1",
@@ -30,11 +39,21 @@
     "sharp": "^0.33.1",
     "tailwindcss": "^3.4.1",
     "terser": "^5.26.0",
+    "typescript": "^5.9.3",
     "vite": "^5.0.10",
-    "vitest": "^1.0.4",
-    "@vitest/coverage-v8": "^1.0.4"
+    "vitest": "^1.0.4"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/ios": "^8.0.0",
+    "@capacitor/keyboard": "^8.0.0",
+    "@capacitor/push-notifications": "^8.0.0",
+    "@capacitor/splash-screen": "^8.0.0",
+    "@capacitor/status-bar": "^8.0.0",
+    "@capacitor/toast": "^8.0.0",
     "firebase": "^10.7.1"
   }
 }
