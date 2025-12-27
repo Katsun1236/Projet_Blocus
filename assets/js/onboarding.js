@@ -1,5 +1,4 @@
-import { auth, db } from './supabase-config.js';
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { auth, supabase } from './supabase-config.js';
 
 const TUTORIAL_STEPS = [
     {
@@ -70,16 +69,18 @@ class OnboardingTutorial {
     }
 
     async shouldShowTutorial() {
-        const user = auth.currentUser;
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return false;
 
         try {
-            const userDoc = await getDoc(doc(db, 'users', user.uid));
-            if (userDoc.exists()) {
-                const data = userDoc.data();
-                return !data.hasCompletedOnboarding;
-            }
-            return true;
+            const { data, error } = await supabase
+                .from('users')
+                .select('has_completed_onboarding')
+                .eq('id', user.id)
+                .single();
+
+            if (error || !data) return true;
+            return !data.has_completed_onboarding;
         } catch (error) {
             console.error("Erreur vérification tutoriel:", error);
             return false;
@@ -359,14 +360,17 @@ class OnboardingTutorial {
     }
 
     async markAsCompleted() {
-        const user = auth.currentUser;
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         try {
-            await updateDoc(doc(db, 'users', user.uid), {
-                hasCompletedOnboarding: true,
-                onboardingCompletedAt: new Date()
-            });
+            await supabase
+                .from('users')
+                .update({
+                    has_completed_onboarding: true,
+                    onboarding_completed_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
         } catch (error) {
             console.error("Erreur sauvegarde tutoriel:", error);
         }
@@ -400,13 +404,14 @@ class OnboardingTutorial {
     }
 
     async restart() {
-        const user = auth.currentUser;
+        const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
         try {
-            await updateDoc(doc(db, 'users', user.uid), {
-                hasCompletedOnboarding: false
-            });
+            await supabase
+                .from('users')
+                .update({ has_completed_onboarding: false })
+                .eq('id', user.id);
             this.start();
         } catch (error) {
             console.error("Erreur relance tutoriel:", error);
