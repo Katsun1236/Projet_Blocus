@@ -160,7 +160,13 @@ async function loadContributors() {
 }
 
 async function addPointsToUser(userId, points) {
-    try { const userRef = doc(db, 'users', userId); await updateDoc(userRef, { points: increment(points) }); } catch (e) {}
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, { points: increment(points) });
+    } catch (e) {
+        // ✅ ERROR HANDLING: Log l'erreur mais ne pas bloquer l'UX (points non critiques)
+        console.error('Erreur lors de l\'ajout de points:', e);
+    }
 }
 
 function subscribeToPosts(filterType = 'all') {
@@ -179,6 +185,11 @@ function renderPostCard(post) {
     const isQuestion = post.type === 'question';
     const badgeColor = isQuestion ? 'blue' : (post.type === 'share' ? 'purple' : 'gray');
     const badgeLabel = isQuestion ? 'Question' : (post.type === 'share' ? 'Partage' : 'Discussion');
+
+    // ✅ XSS FIX: Whitelist des couleurs pour éviter injection CSS
+    const SAFE_COLORS = { blue: 'blue', purple: 'purple', gray: 'gray' };
+    const safeColor = SAFE_COLORS[badgeColor] || 'gray';
+
     const card = document.createElement('div');
     card.className = 'content-glass post-card p-6 rounded-2xl cursor-pointer transition-all group animate-fade-in relative';
     const userLiked = post.likesBy && post.likesBy.includes(currentUserId);
@@ -201,7 +212,7 @@ function renderPostCard(post) {
                     <p class="text-xs text-gray-500">${timeAgo} • ${sanitizeText(post.tag) || 'Général'}</p>
                 </div>
             </div>
-            <span class="px-2 py-1 bg-${badgeColor}-500/10 text-${badgeColor}-400 text-xs rounded border border-${badgeColor}-500/20">${badgeLabel}</span>
+            <span class="px-2 py-1 bg-${safeColor}-500/10 text-${safeColor}-400 text-xs rounded border border-${safeColor}-500/20">${badgeLabel}</span>
         </div>
         <h3 class="text-lg font-bold text-white mb-2">${sanitizeText(post.title)}</h3>
         <p class="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-line">${sanitizeHTML(post.content)}</p>
@@ -282,7 +293,11 @@ async function toggleLike(postId, alreadyLiked) {
         const ref = doc(db, 'community_posts', postId);
         if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) });
         else await updateDoc(ref, { likesBy: arrayUnion(currentUserId) });
-    } catch(e) {}
+    } catch(e) {
+        // ✅ ERROR HANDLING: Afficher un message d'erreur à l'utilisateur
+        console.error('Erreur lors du like:', e);
+        showMessage('Impossible de liker le post. Vérifiez votre connexion.', 'error');
+    }
 }
 
 function sharePost(post) {
@@ -322,7 +337,11 @@ async function submitComment() {
         });
         await addPointsToUser(currentUserId, 5);
         ui.commentInput.value = '';
-    } catch(e) {}
+    } catch(e) {
+        // ✅ ERROR HANDLING: Afficher message d'erreur à l'utilisateur
+        console.error('Erreur lors de l\'ajout du commentaire:', e);
+        showMessage('Impossible d\'ajouter le commentaire. Vérifiez votre connexion.', 'error');
+    }
 }
 
 function hasPermission(permission) {

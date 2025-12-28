@@ -371,5 +371,10 @@ function setupEventListeners() {
     ui.btnSave.addEventListener('click', saveProfile);
     ui.btnLogout.addEventListener('click', handleLogout);
     ui.btnChangeAvatar.addEventListener('click', () => ui.avatarUpload.click());
-    ui.avatarUpload.addEventListener('click', (e) => { if (e.target.files.length > 0) uploadAvatar(e.target.files[0]); });
+    // ✅ ERROR HANDLING: Valider e.target.files avant upload + utiliser 'change' au lieu de 'click'
+    ui.avatarUpload.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+            uploadAvatar(e.target.files[0]);
+        }
+    });
 }

@@ -408,6 +408,10 @@ export function getLevelTitle(level) {
 
 export function getXPForNextLevel(currentXP) {
     const currentLevel = LEVELS.find(l => currentXP >= l.xpRequired && (LEVELS[LEVELS.indexOf(l) + 1]?.xpRequired || Infinity) > currentXP);
+
+    // ✅ NULL CHECK: Vérifier que currentLevel existe avant d'accéder à ses propriétés
+    if (!currentLevel) return null;
+
     const nextLevel = LEVELS[LEVELS.indexOf(currentLevel) + 1];
 
     if (!nextLevel) return null;
