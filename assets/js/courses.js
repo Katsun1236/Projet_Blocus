@@ -212,7 +212,7 @@ function renderGrid(items) {
             });
         } else {
             el.addEventListener('click', (e) => {
-                if(!e.target.closest('button')) window.open(item.url, '_blank');
+                if(!e.target.closest('button') && item.url) window.open(item.url, '_blank');
             });
         }
 
