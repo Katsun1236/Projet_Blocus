@@ -32,8 +32,21 @@ async function updateUserCount() {
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // Redirection automatique vers le dashboard si déjà connecté
-        window.location.href = 'pages/app/dashboard.html';
+        toggleVisibility(true);
+
+        try {
+            const userRef = doc(db, 'users', user.id);
+            const docSnap = await getDoc(userRef);
+
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(dom.userName) dom.userName.textContent = data.firstName || 'Étudiant';
+                if(dom.userAvatar) dom.userAvatar.src = data.photoURL || `https://ui-avatars.com/api/?name=${data.firstName}&background=6366f1&color=fff`;
+            }
+        } catch (e) {
+            console.error("Erreur récupération profil:", e);
+        }
+
     } else {
         toggleVisibility(false);
     }
