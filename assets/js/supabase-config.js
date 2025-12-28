@@ -26,8 +26,16 @@ const getEnvVar = (key, fallback) => {
 const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL', 'https://vhtzudbcfyxnwmpyjyqw.supabase.co');
 const SUPABASE_ANON_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY', 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX');
 
-// Créer le client Supabase
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+// Créer le client Supabase avec persistence de session
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        // ✅ PERSISTENCE: Reste connecté même après fermeture du navigateur
+        persistSession: true,
+        storage: window.localStorage,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    }
+})
 
 // =================================================================
 // UTILITAIRES - Conversion camelCase <-> snake_case
