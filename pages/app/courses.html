@@ -291,53 +291,84 @@
         // --- DOSSIERS ---
         async function loadFolders() {
             try {
-                const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('created_at', 'desc'));
-                const snapshot = await getDocs(q);
+                // Utiliser directement l'API Supabase
+                const { data: folders, error } = await supabase
+                    .from('folders')
+                    .select('*')
+                    .eq('user_id', currentUserId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
                 ui.foldersGrid.innerHTML = '';
 
-                if (snapshot.empty) {
+                if (!folders || folders.length === 0) {
                     ui.foldersGrid.innerHTML = `<p class="text-gray-500 text-sm col-span-full">Aucun dossier.</p>`;
                     return;
                 }
 
-                snapshot.forEach(docSnap => {
-                    const folder = docSnap.data();
+                folders.forEach(folder => {
                     const el = document.createElement('div');
                     el.className = 'folder-card content-glass p-4 rounded-xl cursor-pointer transition-all group relative';
                     el.innerHTML = `
                         <div class="flex items-start justify-between mb-2">
                             <i class="fas fa-folder text-4xl text-indigo-500/80 group-hover:text-indigo-400 transition-colors"></i>
-                            <button class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity delete-folder-btn" data-id="${docSnap.id}">
+                            <button class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity delete-folder-btn" data-id="${folder.id}">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                         <h3 class="font-bold text-white text-sm truncate" title="${folder.name}">${folder.name}</h3>
-                        <p class="text-xs text-gray-500 mt-1">${folder.courseCount || 0} éléments</p>
+                        <p class="text-xs text-gray-500 mt-1">${folder.course_count || 0} éléments</p>
                     `;
-                    el.addEventListener('click', (e) => { if (!e.target.closest('.delete-folder-btn')) window.location.href = `courses.html?folder=${docSnap.id}`; });
+                    el.addEventListener('click', (e) => { if (!e.target.closest('.delete-folder-btn')) window.location.href = `courses.html?folder=${folder.id}`; });
                     el.querySelector('.delete-folder-btn').addEventListener('click', async (e) => {
                         e.stopPropagation();
                         if(confirm('Supprimer ce dossier ?')) {
-                            await deleteDoc(doc(db, 'users', currentUserId, 'folders', docSnap.id));
-                            loadFolders();
+                            const { error: deleteError } = await supabase
+                                .from('folders')
+                                .delete()
+                                .eq('id', folder.id);
+
+                            if (deleteError) {
+                                console.error('Erreur suppression:', deleteError);
+                                showMessage('Erreur lors de la suppression', 'error');
+                            } else {
+                                showMessage('Dossier supprimé', 'success');
+                                loadFolders();
+                            }
                         }
                     });
                     ui.foldersGrid.appendChild(el);
                 });
-            } catch (error) { console.error("Erreur dossiers:", error); }
+            } catch (error) {
+                console.error("Erreur dossiers:", error);
+                ui.foldersGrid.innerHTML = `<p class="text-gray-500 text-sm col-span-full">Erreur lors du chargement</p>`;
+            }
         }
 
         // --- FICHIERS ---
         async function loadFiles() {
             try {
-                let q;
+                // Utiliser directement l'API Supabase
+                let query = supabase
+                    .from('courses')
+                    .select('*')
+                    .eq('user_id', currentUserId)
+                    .order('created_at', { ascending: false });
+
+                // Filtrer par dossier si nécessaire
                 if (currentFolderId) {
-                    q = query(collection(db, 'users', currentUserId, 'courses'), where('folderId', '==', currentFolderId), orderBy('created_at', 'desc'));
+                    query = query.eq('folder_id', currentFolderId);
                 } else {
-                    q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('created_at', 'desc'));
+                    // Afficher seulement les fichiers sans dossier (racine)
+                    query = query.is('folder_id', null);
                 }
-                const snapshot = await getDocs(q);
-                renderFilesList(snapshot.docs);
+
+                const { data: courses, error } = await query;
+
+                if (error) throw error;
+
+                renderFilesList(courses || []);
             } catch (error) {
                 console.error("Erreur fichiers:", error);
                 // Afficher l'état vide si erreur
@@ -354,9 +385,10 @@
             }
         }
 
-        function renderFilesList(docs) {
+        function renderFilesList(courses) {
             ui.filesList.innerHTML = '';
-            const files = docs.map(d => ({id: d.id, ...d.data()})).filter(f => currentFolderId ? f.folderId === currentFolderId : !f.folderId);
+            // Les données Supabase sont déjà formatées, pas besoin de .data()
+            const files = courses;
 
             if (files.length === 0) {
                 ui.filesList.innerHTML = `
@@ -368,12 +400,13 @@
             }
 
             files.forEach(file => {
-                const dateStr = formatDate(file.createdAt || file.created_at);
+                const dateStr = formatDate(file.created_at);
                 const sizeStr = '--'; // Colonne size n'existe plus dans le schéma
                 let icon = 'fa-file-pdf';  // Par défaut PDF
                 let color = 'text-red-400';
                 // On peut déduire le type du nom de fichier si nécessaire
-                if (file.fileName?.toLowerCase().endsWith('.png') || file.fileName?.toLowerCase().endsWith('.jpg')) {
+                const fileName = file.file_name || '';
+                if (fileName.toLowerCase().endsWith('.png') || fileName.toLowerCase().endsWith('.jpg')) {
                     icon = 'fa-file-image';
                     color = 'text-purple-400';
                 }
@@ -385,12 +418,12 @@
                         <div class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center ${color}">
                             <i class="fas ${icon}"></i>
                         </div>
-                        <span class="text-sm text-gray-200 font-medium truncate">${file.title || file.fileName}</span>
+                        <span class="text-sm text-gray-200 font-medium truncate">${file.title || fileName}</span>
                     </div>
                     <div class="col-span-3 hidden sm:block text-xs text-gray-500">${dateStr}</div>
                     <div class="col-span-3 sm:col-span-2 text-xs text-gray-500">${sizeStr}</div>
                     <div class="col-span-3 sm:col-span-2 text-right flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white" onclick="window.open('${file.fileURL || file.url}', '_blank')">
+                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white" onclick="window.open('${file.file_url}', '_blank')">
                             <i class="fas fa-external-link-alt"></i>
                         </button>
                         
