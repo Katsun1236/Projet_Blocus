@@ -456,20 +456,53 @@
                     <div class="col-span-3 hidden sm:block text-xs text-gray-500">${dateStr}</div>
                     <div class="col-span-3 sm:col-span-2 text-xs text-gray-500">${sizeStr}</div>
                     <div class="col-span-3 sm:col-span-2 text-right flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white" onclick="window.open('${file.file_url}', '_blank')">
+                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white open-file-btn" title="Ouvrir" data-file-id="${file.id}" data-storage-path="${file.storage_path}">
                             <i class="fas fa-external-link-alt"></i>
                         </button>
-                        
+
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-indigo-400 move-file-btn" title="Déplacer">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        
+
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 delete-file-btn" title="Supprimer">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 `;
                 
+                // Ouvrir fichier avec signed URL
+                row.querySelector('.open-file-btn').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const storagePath = e.currentTarget.dataset.storagePath;
+
+                    if (!storagePath) {
+                        console.error('❌ Pas de storage_path pour ce fichier');
+                        showMessage('Erreur: chemin de fichier manquant', 'error');
+                        return;
+                    }
+
+                    try {
+                        console.log('🔐 Génération signed URL pour:', storagePath);
+
+                        // Générer une signed URL valide pour 1 heure
+                        const { data, error } = await supabase.storage
+                            .from('courses')
+                            .createSignedUrl(storagePath, 3600);
+
+                        if (error) {
+                            console.error('❌ Erreur signed URL:', error);
+                            showMessage('Erreur lors de l\'ouverture du fichier', 'error');
+                            return;
+                        }
+
+                        console.log('✅ Signed URL générée:', data.signedUrl);
+                        window.open(data.signedUrl, '_blank');
+                    } catch (error) {
+                        console.error('❌ Erreur inattendue:', error);
+                        showMessage('Erreur lors de l\'ouverture du fichier', 'error');
+                    }
+                });
+
                 // Déplacer
                 row.querySelector('.move-file-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -506,8 +539,15 @@
             ui.moveFoldersList.innerHTML = '<div class="text-center text-gray-500 text-xs"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
 
             try {
-                const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('name'));
-                const snapshot = await getDocs(q);
+                // Charger les dossiers avec Supabase
+                const { data: folders, error } = await supabase
+                    .from('folders')
+                    .select('*')
+                    .eq('user_id', currentUserId)
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
                 ui.moveFoldersList.innerHTML = '';
 
                 // Option "Racine"
@@ -517,19 +557,20 @@
                 rootBtn.onclick = () => moveFile(null); // null = racine
                 ui.moveFoldersList.appendChild(rootBtn);
 
-                snapshot.forEach(docSnap => {
-                    const f = docSnap.data();
+                // Ajouter les dossiers
+                (folders || []).forEach(folder => {
                     // On ne montre pas le dossier actuel si on est déjà dedans
-                    if (docSnap.id === currentFolderId) return;
+                    if (folder.id === currentFolderId) return;
 
                     const btn = document.createElement('button');
                     btn.className = 'w-full text-left p-3 rounded-lg bg-black/30 hover:bg-indigo-600/20 hover:text-indigo-400 transition-colors flex items-center gap-3 text-sm text-gray-300';
-                    btn.innerHTML = `<i class="fas fa-folder"></i> ${f.name}`;
-                    btn.onclick = () => moveFile(docSnap.id);
+                    btn.innerHTML = `<i class="fas fa-folder"></i> ${folder.name}`;
+                    btn.onclick = () => moveFile(folder.id);
                     ui.moveFoldersList.appendChild(btn);
                 });
 
             } catch (e) {
+                console.error('❌ Erreur chargement dossiers:', e);
                 ui.moveFoldersList.innerHTML = '<p class="text-red-400 text-xs">Erreur chargement dossiers</p>';
             }
         }
@@ -537,17 +578,21 @@
         async function moveFile(targetFolderId) {
             if (!fileToMoveId) return;
             try {
-                // targetFolderId est soit un ID string, soit null (pour racine)
-                // Firestore n'aime pas les champs undefined, mais null est ok.
-                await updateDoc(doc(db, 'users', currentUserId, 'courses', fileToMoveId), {
-                    folderId: targetFolderId
-                });
-                
+                console.log('📁 Déplacement fichier', fileToMoveId, 'vers dossier', targetFolderId);
+
+                // Mise à jour avec Supabase
+                const { error } = await supabase
+                    .from('courses')
+                    .update({ folder_id: targetFolderId })
+                    .eq('id', fileToMoveId);
+
+                if (error) throw error;
+
                 ui.moveModal.classList.add('hidden');
                 showMessage('Fichier déplacé avec succès', 'success');
                 loadFiles(); // Recharger la liste
             } catch (e) {
-                console.error(e);
+                console.error('❌ Erreur déplacement:', e);
                 showMessage('Erreur lors du déplacement', 'error');
             }
         }
