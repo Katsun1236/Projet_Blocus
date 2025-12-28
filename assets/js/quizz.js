@@ -1,6 +1,7 @@
 import { auth, supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
+import { API_CONFIG } from './config.js';
 // import { initSpeedInsights } from './speed-insights.js';
 
 // Initialize Speed Insights for performance monitoring
@@ -217,7 +218,13 @@ function setGeneratingState(isGenerating) {
 
 // Helper function to call Gemini API directly
 async function callGeminiAPI(prompt) {
-    const GEMINI_API_KEY = 'AIzaSyBMOeGiwowO0YuBXwmKlCZa1LFaX0XzXH8';
+    const GEMINI_API_KEY = API_CONFIG.GEMINI_API_KEY;
+
+    // Vérifier si la clé API est configurée
+    if (!GEMINI_API_KEY || GEMINI_API_KEY === 'METS_TA_VRAIE_CLE_ICI') {
+        throw new Error('❌ Clé API Gemini non configurée. Va sur https://aistudio.google.com/app/apikey pour en obtenir une gratuitement, puis modifie assets/js/config.js');
+    }
+
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
 
     try {
