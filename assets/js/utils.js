@@ -170,3 +170,31 @@ export function handleFormSubmit(formElement, callback) {
         }
     });
 }
+
+// ✅ SCROLL RESTORATION: Prevent page jump on refresh
+export function initScrollRestoration() {
+    // Sauvegarder la position de scroll avant l'actualisation
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('scrollPosition', window.scrollY.toString());
+    });
+
+    // Restaurer la position de scroll après le chargement
+    window.addEventListener('load', () => {
+        const savedPosition = sessionStorage.getItem('scrollPosition');
+        if (savedPosition) {
+            // Attendre que le contenu soit chargé avant de restaurer
+            requestAnimationFrame(() => {
+                window.scrollTo({
+                    top: parseInt(savedPosition, 10),
+                    behavior: 'instant' // Pas d'animation pour éviter les sauts
+                });
+            });
+            sessionStorage.removeItem('scrollPosition');
+        }
+    });
+
+    // Empêcher le comportement par défaut du navigateur
+    if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+    }
+}
