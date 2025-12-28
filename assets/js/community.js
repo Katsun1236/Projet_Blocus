@@ -152,8 +152,13 @@ async function loadContributors() {
     const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(TOP_CONTRIBUTORS_LIMIT));
     try {
         const snapshot = await getDocs(q);
-        ui.contributorsList.innerHTML = '';
-        if (snapshot.empty) { ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-gray-500">Classement en cours...</div>`; return; }
+        if (snapshot.empty) {
+            ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-gray-500">Classement en cours...</div>`;
+            return;
+        }
+
+        // ✅ PERFORMANCE: Utiliser DocumentFragment pour éviter reflow multiple
+        const fragment = document.createDocumentFragment();
         let rank = 1;
         snapshot.forEach(docSnap => {
             const user = docSnap.data();
@@ -161,9 +166,10 @@ async function loadContributors() {
             const div = document.createElement('div');
             div.className = 'flex items-center gap-3 animate-fade-in mb-3 last:mb-0';
             div.innerHTML = `<span class="text-gray-500 text-xs font-bold w-4">${rank}</span><img src="${user.photoURL || `https://ui-avatars.com/api/?name=${sanitizeText(user.firstName)}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white truncate">${sanitizeText(user.firstName)}</p><p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p></div>`;
-            ui.contributorsList.appendChild(div);
+            fragment.appendChild(div);
             rank++;
         });
+        ui.contributorsList.replaceChildren(fragment);
     } catch (e) { console.error(e); }
 }
 
@@ -183,8 +189,13 @@ function subscribeToPosts(filterType = 'all') {
     let q = query(collection(db, 'community_posts'), orderBy('createdAt', 'desc'), limit(POSTS_LIMIT));
     if (filterType !== 'all') q = query(collection(db, 'community_posts'), where('type', '==', filterType), orderBy('createdAt', 'desc'), limit(POSTS_LIMIT));
     postsUnsubscribe = onSnapshot(q, (snapshot) => {
-        ui.postsContainer.innerHTML = '';
-        if (snapshot.empty) { ui.postsContainer.innerHTML = `<div class="text-center text-gray-500 py-10">Aucune discussion.</div>`; return; }
+        if (snapshot.empty) {
+            ui.postsContainer.innerHTML = `<div class="text-center text-gray-500 py-10">Aucune discussion.</div>`;
+            return;
+        }
+
+        // ✅ PERFORMANCE: Clear avec replaceChildren est plus efficace que innerHTML = ''
+        ui.postsContainer.replaceChildren();
         snapshot.forEach(docSnap => renderPostCard({ id: docSnap.id, ...docSnap.data() }));
     }, (error) => console.error(error));
 }
@@ -325,11 +336,16 @@ async function openDetailModal(post) {
 function subscribeToComments(postId) {
     const list = document.getElementById('comments-list');
     onSnapshot(query(collection(db, 'community_posts', postId, 'comments'), orderBy('createdAt', 'asc')), (snap) => {
-        list.innerHTML = '';
+        // ✅ PERFORMANCE: Utiliser DocumentFragment au lieu de innerHTML += (évite reflow multiple)
+        const fragment = document.createDocumentFragment();
         snap.forEach(d => {
             const c = d.data();
-            list.innerHTML += `<div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800"><span class="font-bold text-white text-sm">${sanitizeText(c.authorName)}</span><p class="text-sm text-gray-300 mt-1">${sanitizeHTML(c.content)}</p></div>`;
+            const div = document.createElement('div');
+            div.className = 'bg-gray-800/30 p-3 rounded-xl border border-gray-800';
+            div.innerHTML = `<span class="font-bold text-white text-sm">${sanitizeText(c.authorName)}</span><p class="text-sm text-gray-300 mt-1">${sanitizeHTML(c.content)}</p>`;
+            fragment.appendChild(div);
         });
+        list.replaceChildren(fragment);
     });
 }
 

@@ -245,11 +245,11 @@ async function handleFiles(e) {
     let successCount = 0;
     let errorCount = 0;
 
-    for (const file of files) {
+    // ✅ PERFORMANCE: Paralléliser les uploads au lieu de séquentiel (beaucoup plus rapide)
+    const uploadPromises = Array.from(files).map(async (file) => {
         if (file.size > MAX_FILE_SIZE) {
             showMessage(`Fichier trop lourd (max ${MAX_FILE_SIZE / (1024 * 1024)}MB): ${file.name}`, "error");
-            errorCount++;
-            continue;
+            return { success: false, file: file.name };
         }
 
         try {
@@ -268,13 +268,22 @@ async function handleFiles(e) {
                 createdAt: serverTimestamp()
             });
 
-            successCount++;
+            return { success: true, file: file.name };
         } catch (error) {
             console.error("Erreur upload:", error);
             showMessage(`Échec: ${file.name}`, "error");
+            return { success: false, file: file.name };
+        }
+    });
+
+    const results = await Promise.allSettled(uploadPromises);
+    results.forEach(result => {
+        if (result.status === 'fulfilled' && result.value.success) {
+            successCount++;
+        } else {
             errorCount++;
         }
-    }
+    });
 
     if (successCount > 0) {
         showMessage(`${successCount} fichier(s) envoyé(s) avec succès !`, "success");
