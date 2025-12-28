@@ -17,9 +17,32 @@ export default defineConfig({
     },
     rollupOptions: {
       input: {
+        // Pages principales
         main: resolve(__dirname, 'index.html'),
+
+        // Auth pages
         login: resolve(__dirname, 'pages/auth/login.html'),
         register: resolve(__dirname, 'pages/auth/register.html'),
+
+        // App pages
+        dashboard: resolve(__dirname, 'pages/app/dashboard.html'),
+        courses: resolve(__dirname, 'pages/app/courses.html'),
+        upload: resolve(__dirname, 'pages/app/upload.html'),
+        quiz: resolve(__dirname, 'pages/app/quiz.html'),
+        synthesize: resolve(__dirname, 'pages/app/synthesize.html'),
+        tutor: resolve(__dirname, 'pages/app/tutor.html'),
+        spacedRepetition: resolve(__dirname, 'pages/app/spaced-repetition.html'),
+        pomodoro: resolve(__dirname, 'pages/app/pomodoro.html'),
+        planning: resolve(__dirname, 'pages/app/planning.html'),
+        profile: resolve(__dirname, 'pages/app/profile.html'),
+        viewProfile: resolve(__dirname, 'pages/app/view-profile.html'),
+        community: resolve(__dirname, 'pages/app/community.html'),
+        discussion: resolve(__dirname, 'pages/app/discussion.html'),
+        forum: resolve(__dirname, 'pages/app/forum.html'),
+        friends: resolve(__dirname, 'pages/app/friends.html'),
+        chat: resolve(__dirname, 'pages/app/chat.html'),
+        chatList: resolve(__dirname, 'pages/app/chat-list.html'),
+        bugReport: resolve(__dirname, 'pages/app/bug-report.html'),
       },
       output: {
         manualChunks: {
