@@ -111,6 +111,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
             window.addEventListener('storage', handleStorageChange);
 
+            // FALLBACK: Polling car storage event ne se déclenche pas toujours
+            // (l'event storage ne se déclenche que sur les AUTRES onglets, pas celui qui modifie)
+            console.log('🔄 Démarrage polling localStorage (fallback)');
+            const pollingInterval = setInterval(() => {
+                const authSuccess = localStorage.getItem('supabase_auth_success');
+                if (authSuccess === 'true') {
+                    console.log('✅ Polling détecté auth success !');
+                    clearInterval(pollingInterval);
+                    // Déclencher manuellement le handler
+                    handleStorageChange({ key: 'supabase_auth_success', newValue: 'true', oldValue: null });
+                }
+            }, 200); // Check every 200ms
+
+            // Nettoyer le polling après 2 minutes max
+            setTimeout(() => {
+                clearInterval(pollingInterval);
+                console.log('⏰ Polling timeout (2min)');
+            }, 120000);
+
         } catch (error) {
             console.error("Erreur Auth Google:", error);
             showMessage(`Erreur de connexion: ${error.message}`, 'error');
