@@ -120,8 +120,9 @@ export const auth = {
     async init() {
         if (this._initialized) return this.currentUser
 
-        const { data } = await supabase.auth.getUser()
-        this.currentUser = data.user ? mapKeysToCamelCase(data.user) : null
+        // ✅ Utiliser getSession() pour une restauration rapide depuis localStorage
+        const { data } = await supabase.auth.getSession()
+        this.currentUser = data.session?.user ? mapKeysToCamelCase(data.session.user) : null
         this._initialized = true
         return this.currentUser
     },
@@ -180,15 +181,17 @@ export const auth = {
 
     // Écouter les changements d'auth (comme Firebase)
     onAuthStateChanged(callback) {
-        // Récupérer l'utilisateur actuel au démarrage
-        supabase.auth.getUser().then(({ data }) => {
-            const user = data.user ? mapKeysToCamelCase(data.user) : null
+        // ✅ IMPORTANT: Utiliser getSession() au lieu de getUser()
+        // getSession() vérifie d'abord le localStorage (rapide) avant de faire un appel réseau
+        // Cela évite les déconnexions lors de l'actualisation de la page
+        supabase.auth.getSession().then(({ data }) => {
+            const user = data.session?.user ? mapKeysToCamelCase(data.session.user) : null
             this.currentUser = user
             if (callback && typeof callback === 'function') {
                 callback(user)
             }
         }).catch(error => {
-            console.error('Error getting user:', error);
+            console.error('Error getting session:', error);
             if (callback && typeof callback === 'function') {
                 callback(null);
             }
