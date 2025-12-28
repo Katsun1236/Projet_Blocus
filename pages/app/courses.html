@@ -197,11 +197,14 @@
         console.log('supabase:', supabase);
 
         // --- STATE ---
+        console.log('💾 Defining state variables...');
         let currentUserId = null;
-        let currentFolderId = new URLSearchParams(window.location.search).get('folder'); 
+        let currentFolderId = new URLSearchParams(window.location.search).get('folder');
         let fileToMoveId = null; // ID du fichier en cours de déplacement
+        console.log('✅ State variables defined');
 
         // --- DOM ---
+        console.log('🔍 Getting DOM elements...');
         const ui = {
             foldersGrid: document.getElementById('folders-grid'),
             filesList: document.getElementById('files-list'),
@@ -219,12 +222,13 @@
             notifDropdown: document.getElementById('notif-dropdown'),
             notifList: document.getElementById('notifications-list'),
             noNotifMsg: document.getElementById('no-notif-msg'),
-            
+
             // Move Modal
             moveModal: document.getElementById('move-file-modal'),
             moveFoldersList: document.getElementById('move-folders-list'),
             cancelMove: document.getElementById('cancel-move')
         };
+        console.log('✅ DOM elements retrieved:', ui);
 
         document.addEventListener('DOMContentLoaded', () => {
             initLayout('courses');
@@ -390,6 +394,7 @@
                     </div>`;
             }
         }
+        console.log('✅ loadFiles function defined');
 
         function renderFilesList(courses) {
             ui.filesList.innerHTML = '';
@@ -562,6 +567,10 @@
                 showMessage('Erreur création dossier', 'error');
             }
         });
+
+        console.log('🎉🎉🎉 SCRIPT FULLY LOADED - All functions defined! 🎉🎉🎉');
+        console.log('currentUserId:', currentUserId);
+        console.log('typeof loadFiles:', typeof loadFiles);
     </script>
 
     <!-- Message Box pour les notifications -->
