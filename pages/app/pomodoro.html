@@ -8,135 +8,169 @@
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .content-glass {
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
 </head>
-<body id="app-container" class="bg-gray-950 text-white min-h-screen">
 
-    <!-- Main Content -->
-    <main class="lg:ml-64 lg:mr-80 pt-20 pb-10 px-4 md:px-8">
-        <div class="max-w-6xl mx-auto">
+<body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
 
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-8">
-                <div>
-                    <h1 class="text-3xl font-bold text-white mb-2">🍅 Mode Pomodoro</h1>
-                    <p class="text-gray-400 text-sm">Booste ta productivité avec la technique Pomodoro</p>
-                </div>
-                <button id="btn-settings" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm transition-colors">
-                    <i class="fas fa-cog mr-2"></i>Réglages
-                </button>
+    <!-- Visual Effects -->
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);"></div>
+
+    <!-- Main Container -->
+    <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
+
+        <!-- Header -->
+        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30">
+            <div class="flex items-center gap-4 md:hidden">
+                <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
+                <span class="font-bold text-lg text-white">Pomodoro</span>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="hidden md:block">
+                <h1 class="text-xl font-display font-bold text-white">🍅 Mode Pomodoro</h1>
+                <p class="text-sm text-gray-400">Booste ta productivité avec la technique Pomodoro</p>
+            </div>
 
-                <!-- Timer Principal -->
-                <div class="lg:col-span-2 content-glass rounded-3xl p-8">
-                    <div class="text-center">
+            <div class="flex items-center gap-4">
+                <button id="btn-settings" class="hidden md:flex px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-xl text-sm transition-colors">
+                    <i class="fas fa-cog mr-2"></i>Réglages
+                </button>
 
-                        <!-- Phase Label -->
-                        <p id="phase-label" class="text-xl font-semibold mb-6 text-indigo-400">🍅 Session de travail</p>
+                <div class="h-8 w-px bg-gray-800 hidden md:block"></div>
 
-                        <!-- Timer Circle -->
-                        <div class="relative inline-block mb-8">
-                            <svg class="transform -rotate-90" width="300" height="300">
-                                <circle
-                                    cx="150"
-                                    cy="150"
-                                    r="120"
-                                    stroke="#1f2937"
-                                    stroke-width="12"
-                                    fill="none"
-                                />
-                                <circle
-                                    id="progress-ring"
-                                    cx="150"
-                                    cy="150"
-                                    r="120"
-                                    stroke="url(#gradient)"
-                                    stroke-width="12"
-                                    fill="none"
-                                    stroke-linecap="round"
-                                    stroke-dasharray="753.98"
-                                    stroke-dashoffset="753.98"
-                                    style="transition: stroke-dashoffset 0.5s ease;"
-                                />
-                                <defs>
-                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-                                        <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
-                                    </linearGradient>
-                                </defs>
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div>
-                                    <p id="timer-display" class="text-6xl font-bold font-mono text-white">25:00</p>
-                                    <p class="text-sm text-gray-500 mt-2">Pomodoros: <span id="pomodoro-count" class="text-emerald-400 font-bold">0</span></p>
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p id="user-name-header" class="text-sm font-bold text-white">Chargement...</p>
+                    </div>
+                    <img loading="lazy" id="user-avatar-header" src="" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-gray-700 object-cover bg-gray-800">
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow p-6 sm:p-8 overflow-y-auto custom-scrollbar relative">
+            <div class="max-w-6xl mx-auto">
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                    <!-- Timer Principal -->
+                    <div class="lg:col-span-2 content-glass rounded-3xl p-8">
+                        <div class="text-center">
+
+                            <!-- Phase Label -->
+                            <p id="phase-label" class="text-xl font-semibold mb-6 text-indigo-400">🍅 Session de travail</p>
+
+                            <!-- Timer Circle -->
+                            <div class="relative inline-block mb-8">
+                                <svg class="transform -rotate-90" width="300" height="300">
+                                    <circle
+                                        cx="150"
+                                        cy="150"
+                                        r="120"
+                                        stroke="#1f2937"
+                                        stroke-width="12"
+                                        fill="none"
+                                    />
+                                    <circle
+                                        id="progress-ring"
+                                        cx="150"
+                                        cy="150"
+                                        r="120"
+                                        stroke="url(#gradient)"
+                                        stroke-width="12"
+                                        fill="none"
+                                        stroke-linecap="round"
+                                        stroke-dasharray="753.98"
+                                        stroke-dashoffset="753.98"
+                                        style="transition: stroke-dashoffset 0.5s ease;"
+                                    />
+                                    <defs>
+                                        <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                            <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                                            <stop offset="100%" style="stop-color:#a855f7;stop-opacity:1" />
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div>
+                                        <p id="timer-display" class="text-6xl font-bold font-mono text-white">25:00</p>
+                                        <p class="text-sm text-gray-500 mt-2">Pomodoros: <span id="pomodoro-count" class="text-emerald-400 font-bold">0</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Controls -->
+                            <div class="flex justify-center gap-4">
+                                <button id="btn-start-timer" class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl font-bold transition-all shadow-lg">
+                                    <i class="fas fa-play mr-2"></i>Démarrer
+                                </button>
+                                <button id="btn-pause-timer" class="hidden px-8 py-3 bg-yellow-600 hover:bg-yellow-500 rounded-xl font-bold transition-all shadow-lg">
+                                    <i class="fas fa-pause mr-2"></i>Pause
+                                </button>
+                                <button id="btn-reset-timer" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-all">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                <button id="btn-skip-timer" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-all">
+                                    <i class="fas fa-forward"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistiques -->
+                    <div class="space-y-6">
+
+                        <!-- Stats Aujourd'hui -->
+                        <div class="content-glass rounded-2xl p-6">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <i class="fas fa-calendar-day text-emerald-400"></i>
+                                Aujourd'hui
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-400">Sessions</span>
+                                    <span id="today-sessions" class="text-2xl font-bold text-emerald-400">0</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Controls -->
-                        <div class="flex justify-center gap-4">
-                            <button id="btn-start-timer" class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl font-bold transition-all shadow-lg">
-                                <i class="fas fa-play mr-2"></i>Démarrer
-                            </button>
-                            <button id="btn-pause-timer" class="hidden px-8 py-3 bg-yellow-600 hover:bg-yellow-500 rounded-xl font-bold transition-all shadow-lg">
-                                <i class="fas fa-pause mr-2"></i>Pause
-                            </button>
-                            <button id="btn-reset-timer" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-all">
-                                <i class="fas fa-redo"></i>
-                            </button>
-                            <button id="btn-skip-timer" class="px-6 py-3 bg-gray-700 hover:bg-gray-600 rounded-xl transition-all">
-                                <i class="fas fa-forward"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistiques -->
-                <div class="space-y-6">
-
-                    <!-- Stats Aujourd'hui -->
-                    <div class="content-glass rounded-2xl p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <i class="fas fa-calendar-day text-emerald-400"></i>
-                            Aujourd'hui
-                        </h3>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-400">Sessions</span>
-                                <span id="today-sessions" class="text-2xl font-bold text-emerald-400">0</span>
+                        <!-- Stats Totales -->
+                        <div class="content-glass rounded-2xl p-6">
+                            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                                <i class="fas fa-chart-line text-indigo-400"></i>
+                                Total
+                            </h3>
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-sm text-gray-400">Temps d'étude</span>
+                                    <span id="total-study-time" class="text-xl font-bold text-indigo-400">0min</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Stats Totales -->
-                    <div class="content-glass rounded-2xl p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <i class="fas fa-chart-line text-indigo-400"></i>
-                            Total
-                        </h3>
-                        <div class="space-y-3">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-400">Temps d'étude</span>
-                                <span id="total-study-time" class="text-xl font-bold text-indigo-400">0min</span>
-                            </div>
+                        <!-- Tips -->
+                        <div class="content-glass rounded-2xl p-6 bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border border-purple-800/30">
+                            <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
+                                <i class="fas fa-lightbulb text-yellow-400"></i>
+                                Astuce Pomodoro
+                            </h3>
+                            <p class="text-sm text-gray-300 leading-relaxed">
+                                Pendant les pauses, éloigne-toi de ton écran ! Étire-toi, bois de l'eau, ou marche un peu. C'est essentiel pour rester concentré.
+                            </p>
                         </div>
-                    </div>
-
-                    <!-- Tips -->
-                    <div class="content-glass rounded-2xl p-6 bg-gradient-to-br from-purple-900/20 to-indigo-900/20 border border-purple-800/30">
-                        <h3 class="text-lg font-bold mb-3 flex items-center gap-2">
-                            <i class="fas fa-lightbulb text-yellow-400"></i>
-                            Astuce Pomodoro
-                        </h3>
-                        <p class="text-sm text-gray-300 leading-relaxed">
-                            Pendant les pauses, éloigne-toi de ton écran ! Étire-toi, bois de l'eau, ou marche un peu. C'est essentiel pour rester concentré.
-                        </p>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- Settings Modal -->
     <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
