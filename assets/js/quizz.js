@@ -215,23 +215,23 @@ function setGeneratingState(isGenerating) {
     ui.loadingContainer.classList.toggle('hidden', !isGenerating);
 }
 
-// ✅ PRODUCTION: Call Supabase Edge Function (version libre sans JWT)
+// ✅ PRODUCTION SÉCURISÉE: Call Supabase Edge Function avec authentification
 async function callGenerateQuizFunction(topic, dataContext, count, type) {
     try {
-        console.log('🤖 Calling generate-quiz Edge Function...');
+        console.log('🤖 Calling generate-quiz Edge Function (authenticated)...');
 
-        // Appel direct avec fetch pour éviter la vérification JWT automatique
-        const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
+        // Récupérer la session de l'utilisateur connecté
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-quiz`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'apikey': SUPABASE_ANON_KEY
-                // Pas d'Authorization header = pas de vérification JWT
-            },
-            body: JSON.stringify({
+        if (sessionError || !session) {
+            throw new Error('Vous devez être connecté pour générer un quiz');
+        }
+
+        console.log('🔐 User authenticated, calling function...');
+
+        // Appel sécurisé avec le JWT de l'utilisateur
+        const { data, error } = await supabase.functions.invoke('generate-quiz', {
+            body: {
                 mode: 'quiz',
                 topic: topic,
                 data: dataContext,
@@ -239,16 +239,17 @@ async function callGenerateQuizFunction(topic, dataContext, count, type) {
                     count: count,
                     type: type
                 }
-            })
+            },
+            headers: {
+                Authorization: `Bearer ${session.access_token}`
+            }
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Edge Function error:', errorText);
-            throw new Error(`Edge Function error: ${response.status} ${errorText}`);
+        if (error) {
+            console.error('❌ Edge Function error:', error);
+            throw new Error(error.message || 'Erreur lors de la génération du quiz');
         }
 
-        const data = await response.json();
         console.log('✅ Quiz generated successfully');
         return data;
 
