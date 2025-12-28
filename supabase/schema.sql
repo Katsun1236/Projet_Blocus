@@ -6,6 +6,9 @@ CREATE TABLE public.users (
     photo_url TEXT,
     school TEXT,
     grade TEXT,
+    role TEXT DEFAULT 'student',
+    has_completed_onboarding BOOLEAN DEFAULT FALSE,
+    onboarding_completed_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
