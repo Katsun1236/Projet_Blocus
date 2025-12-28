@@ -310,25 +310,10 @@
             loadFiles();
         }
 
-        // --- NOTIFICATIONS (Simplifié pour la page courses) ---
+        // --- NOTIFICATIONS (Disabled for now - needs proper implementation) ---
         function setupNotifications(userId) {
-            const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(10));
-            onSnapshot(q, (snapshot) => {
-                const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const unreadCount = notifications.filter(n => !n.read).length;
-                if (unreadCount > 0) ui.notifBadge.classList.remove('hidden'); else ui.notifBadge.classList.add('hidden');
-                ui.notifList.innerHTML = '';
-                if (notifications.length === 0) ui.noNotifMsg.classList.remove('hidden');
-                else {
-                    ui.noNotifMsg.classList.add('hidden');
-                    notifications.forEach(n => {
-                        const el = document.createElement('div');
-                        el.className = `p-4 border-b border-gray-800 hover:bg-gray-800 transition-colors text-sm text-gray-300`;
-                        el.textContent = n.message;
-                        ui.notifList.appendChild(el);
-                    });
-                }
-            });
+            // TODO: Implement with Supabase real-time subscriptions
+            console.log('📬 Notifications setup (skipped for now)');
         }
         ui.notifBtn.addEventListener('click', (e) => { e.stopPropagation(); ui.notifDropdown.classList.toggle('hidden'); });
         window.addEventListener('click', (e) => {
@@ -495,9 +480,18 @@
                 row.querySelector('.delete-file-btn').addEventListener('click', async (e) => {
                     e.stopPropagation();
                     if(confirm('Supprimer ce fichier définitivement ?')) {
-                        await deleteDoc(doc(db, 'users', currentUserId, 'courses', file.id));
-                        loadFiles();
-                        showMessage('Fichier supprimé', 'success');
+                        const { error } = await supabase
+                            .from('courses')
+                            .delete()
+                            .eq('id', file.id);
+
+                        if (error) {
+                            console.error('Erreur suppression:', error);
+                            showMessage('Erreur lors de la suppression', 'error');
+                        } else {
+                            showMessage('Fichier supprimé', 'success');
+                            loadFiles();
+                        }
                     }
                 });
 
