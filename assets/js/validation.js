@@ -149,4 +149,5 @@ export class NetworkMonitor {
     }
 }
 
-console.log('✅ Validation module loaded');
+// ✅ LOW: Removed console.log for production
+// console.log('✅ Validation module loaded');

@@ -71,7 +71,10 @@ async function initPage() {
             if(ui.userName) ui.userName.textContent = data.firstName || "Étudiant";
             if(ui.userAvatar) ui.userAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
         }
-    } catch(e) {}
+    } catch(e) {
+        // ✅ ERROR HANDLING: Log l'erreur (non bloquant pour l'UI)
+        console.error('Erreur lors du chargement du profil utilisateur:', e);
+    }
 }
 
 async function loadSyntheses() {
@@ -134,7 +137,18 @@ function openViewer(id, synth) {
     ui.viewBadge.textContent = (synth.formatLabel || 'RÉSUMÉ').toUpperCase();
     ui.viewMeta.textContent = `Généré le ${formatDate(synth.createdAt)} • Source: ${synth.sourceName || 'Inconnue'}`;
 
-    ui.viewContent.innerHTML = synth.content;
+    // ✅ SÉCURISÉ: Utiliser textContent au lieu de innerHTML pour éviter XSS
+    // Si le contenu contient du HTML formaté de Gemini, on utilise DOMPurify
+    if (synth.content?.includes('<')) {
+        // Fallback: sanitize si DOMPurify disponible, sinon textContent
+        if (typeof DOMPurify !== 'undefined') {
+            ui.viewContent.innerHTML = DOMPurify.sanitize(synth.content);
+        } else {
+            ui.viewContent.textContent = synth.content;
+        }
+    } else {
+        ui.viewContent.textContent = synth.content || '';
+    }
 }
 
 ui.btnCloseViewer.onclick = () => {

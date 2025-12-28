@@ -79,6 +79,30 @@ ALTER TABLE public.quiz_results ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can manage their own quiz results"
     ON public.quiz_results FOR ALL USING (auth.uid() = user_id);
 
+CREATE TABLE public.syntheses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    format_label TEXT,
+    source_type TEXT,
+    source_name TEXT,
+    course_id UUID REFERENCES public.courses(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_syntheses_user ON public.syntheses(user_id);
+CREATE INDEX idx_syntheses_created ON public.syntheses(created_at DESC);
+
+ALTER TABLE public.syntheses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own syntheses"
+    ON public.syntheses FOR ALL USING (auth.uid() = user_id);
+
+CREATE TRIGGER update_syntheses_updated_at BEFORE UPDATE ON public.syntheses
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TABLE public.tutor_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -134,6 +158,31 @@ ALTER TABLE public.pomodoro_stats ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can manage their own pomodoro stats"
     ON public.pomodoro_stats FOR ALL USING (auth.uid() = user_id);
+
+CREATE TABLE public.planning_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    description TEXT,
+    start_date TIMESTAMPTZ NOT NULL,
+    end_date TIMESTAMPTZ NOT NULL,
+    all_day BOOLEAN DEFAULT FALSE,
+    color TEXT DEFAULT '#6366f1',
+    course_id UUID REFERENCES public.courses(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_planning_user ON public.planning_events(user_id);
+CREATE INDEX idx_planning_dates ON public.planning_events(start_date, end_date);
+
+ALTER TABLE public.planning_events ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own planning events"
+    ON public.planning_events FOR ALL USING (auth.uid() = user_id);
+
+CREATE TRIGGER update_planning_events_updated_at BEFORE UPDATE ON public.planning_events
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TABLE public.settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

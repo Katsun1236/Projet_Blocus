@@ -2,6 +2,9 @@ import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, 
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 
+// ✅ CONSTANTS: Éviter les magic numbers
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB en bytes
+
 let currentUserId = null;
 let currentFolder = 'root';
 let coursesData = [];
@@ -212,7 +215,7 @@ function renderGrid(items) {
             });
         } else {
             el.addEventListener('click', (e) => {
-                if(!e.target.closest('button')) window.open(item.url, '_blank');
+                if(!e.target.closest('button') && item.url) window.open(item.url, '_blank');
             });
         }
 
@@ -242,11 +245,11 @@ async function handleFiles(e) {
     let successCount = 0;
     let errorCount = 0;
 
-    for (const file of files) {
-        if (file.size > 20 * 1024 * 1024) {
-            showMessage(`Fichier trop lourd (max 20MB): ${file.name}`, "error");
-            errorCount++;
-            continue;
+    // ✅ PERFORMANCE: Paralléliser les uploads au lieu de séquentiel (beaucoup plus rapide)
+    const uploadPromises = Array.from(files).map(async (file) => {
+        if (file.size > MAX_FILE_SIZE) {
+            showMessage(`Fichier trop lourd (max ${MAX_FILE_SIZE / (1024 * 1024)}MB): ${file.name}`, "error");
+            return { success: false, file: file.name };
         }
 
         try {
@@ -265,13 +268,22 @@ async function handleFiles(e) {
                 createdAt: serverTimestamp()
             });
 
-            successCount++;
+            return { success: true, file: file.name };
         } catch (error) {
             console.error("Erreur upload:", error);
             showMessage(`Échec: ${file.name}`, "error");
+            return { success: false, file: file.name };
+        }
+    });
+
+    const results = await Promise.allSettled(uploadPromises);
+    results.forEach(result => {
+        if (result.status === 'fulfilled' && result.value.success) {
+            successCount++;
+        } else {
             errorCount++;
         }
-    }
+    });
 
     if (successCount > 0) {
         showMessage(`${successCount} fichier(s) envoyé(s) avec succès !`, "success");

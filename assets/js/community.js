@@ -3,6 +3,14 @@ import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
 
+// ✅ CONSTANTS: Limites de fichiers et queries
+const MAX_GROUP_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_GROUP_PHOTO_SIZE = 2 * 1024 * 1024; // 2 MB
+const POSTS_LIMIT = 20;
+const TOP_CONTRIBUTORS_LIMIT = 5;
+const GROUPS_LIMIT = 50;
+const MESSAGES_LIMIT = 50;
+
 let currentUserId = null;
 let currentUserData = null;
 let currentPostId = null;
@@ -141,11 +149,16 @@ async function loadUserProfile() {
 }
 
 async function loadContributors() {
-    const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(5));
+    const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(TOP_CONTRIBUTORS_LIMIT));
     try {
         const snapshot = await getDocs(q);
-        ui.contributorsList.innerHTML = '';
-        if (snapshot.empty) { ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-gray-500">Classement en cours...</div>`; return; }
+        if (snapshot.empty) {
+            ui.contributorsList.innerHTML = `<div class="text-center py-4 text-xs text-gray-500">Classement en cours...</div>`;
+            return;
+        }
+
+        // ✅ PERFORMANCE: Utiliser DocumentFragment pour éviter reflow multiple
+        const fragment = document.createDocumentFragment();
         let rank = 1;
         snapshot.forEach(docSnap => {
             const user = docSnap.data();
@@ -153,24 +166,36 @@ async function loadContributors() {
             const div = document.createElement('div');
             div.className = 'flex items-center gap-3 animate-fade-in mb-3 last:mb-0';
             div.innerHTML = `<span class="text-gray-500 text-xs font-bold w-4">${rank}</span><img src="${user.photoURL || `https://ui-avatars.com/api/?name=${sanitizeText(user.firstName)}&background=random`}" class="w-8 h-8 rounded-full border border-gray-700"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-white truncate">${sanitizeText(user.firstName)}</p><p class="text-xs text-emerald-400 font-mono">${user.points || 0} pts</p></div>`;
-            ui.contributorsList.appendChild(div);
+            fragment.appendChild(div);
             rank++;
         });
+        ui.contributorsList.replaceChildren(fragment);
     } catch (e) { console.error(e); }
 }
 
 async function addPointsToUser(userId, points) {
-    try { const userRef = doc(db, 'users', userId); await updateDoc(userRef, { points: increment(points) }); } catch (e) {}
+    try {
+        const userRef = doc(db, 'users', userId);
+        await updateDoc(userRef, { points: increment(points) });
+    } catch (e) {
+        // ✅ ERROR HANDLING: Log l'erreur mais ne pas bloquer l'UX (points non critiques)
+        console.error('Erreur lors de l\'ajout de points:', e);
+    }
 }
 
 function subscribeToPosts(filterType = 'all') {
     if (postsUnsubscribe) postsUnsubscribe();
     ui.postsContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>`;
-    let q = query(collection(db, 'community_posts'), orderBy('createdAt', 'desc'), limit(20));
-    if (filterType !== 'all') q = query(collection(db, 'community_posts'), where('type', '==', filterType), orderBy('createdAt', 'desc'), limit(20));
+    let q = query(collection(db, 'community_posts'), orderBy('createdAt', 'desc'), limit(POSTS_LIMIT));
+    if (filterType !== 'all') q = query(collection(db, 'community_posts'), where('type', '==', filterType), orderBy('createdAt', 'desc'), limit(POSTS_LIMIT));
     postsUnsubscribe = onSnapshot(q, (snapshot) => {
-        ui.postsContainer.innerHTML = '';
-        if (snapshot.empty) { ui.postsContainer.innerHTML = `<div class="text-center text-gray-500 py-10">Aucune discussion.</div>`; return; }
+        if (snapshot.empty) {
+            ui.postsContainer.innerHTML = `<div class="text-center text-gray-500 py-10">Aucune discussion.</div>`;
+            return;
+        }
+
+        // ✅ PERFORMANCE: Clear avec replaceChildren est plus efficace que innerHTML = ''
+        ui.postsContainer.replaceChildren();
         snapshot.forEach(docSnap => renderPostCard({ id: docSnap.id, ...docSnap.data() }));
     }, (error) => console.error(error));
 }
@@ -179,6 +204,11 @@ function renderPostCard(post) {
     const isQuestion = post.type === 'question';
     const badgeColor = isQuestion ? 'blue' : (post.type === 'share' ? 'purple' : 'gray');
     const badgeLabel = isQuestion ? 'Question' : (post.type === 'share' ? 'Partage' : 'Discussion');
+
+    // ✅ XSS FIX: Whitelist des couleurs pour éviter injection CSS
+    const SAFE_COLORS = { blue: 'blue', purple: 'purple', gray: 'gray' };
+    const safeColor = SAFE_COLORS[badgeColor] || 'gray';
+
     const card = document.createElement('div');
     card.className = 'content-glass post-card p-6 rounded-2xl cursor-pointer transition-all group animate-fade-in relative';
     const userLiked = post.likesBy && post.likesBy.includes(currentUserId);
@@ -201,7 +231,7 @@ function renderPostCard(post) {
                     <p class="text-xs text-gray-500">${timeAgo} • ${sanitizeText(post.tag) || 'Général'}</p>
                 </div>
             </div>
-            <span class="px-2 py-1 bg-${badgeColor}-500/10 text-${badgeColor}-400 text-xs rounded border border-${badgeColor}-500/20">${badgeLabel}</span>
+            <span class="px-2 py-1 bg-${safeColor}-500/10 text-${safeColor}-400 text-xs rounded border border-${safeColor}-500/20">${badgeLabel}</span>
         </div>
         <h3 class="text-lg font-bold text-white mb-2">${sanitizeText(post.title)}</h3>
         <p class="text-gray-400 text-sm mb-4 line-clamp-3 whitespace-pre-line">${sanitizeHTML(post.content)}</p>
@@ -282,7 +312,11 @@ async function toggleLike(postId, alreadyLiked) {
         const ref = doc(db, 'community_posts', postId);
         if(alreadyLiked) await updateDoc(ref, { likesBy: arrayRemove(currentUserId) });
         else await updateDoc(ref, { likesBy: arrayUnion(currentUserId) });
-    } catch(e) {}
+    } catch(e) {
+        // ✅ ERROR HANDLING: Afficher un message d'erreur à l'utilisateur
+        console.error('Erreur lors du like:', e);
+        showMessage('Impossible de liker le post. Vérifiez votre connexion.', 'error');
+    }
 }
 
 function sharePost(post) {
@@ -302,11 +336,16 @@ async function openDetailModal(post) {
 function subscribeToComments(postId) {
     const list = document.getElementById('comments-list');
     onSnapshot(query(collection(db, 'community_posts', postId, 'comments'), orderBy('createdAt', 'asc')), (snap) => {
-        list.innerHTML = '';
+        // ✅ PERFORMANCE: Utiliser DocumentFragment au lieu de innerHTML += (évite reflow multiple)
+        const fragment = document.createDocumentFragment();
         snap.forEach(d => {
             const c = d.data();
-            list.innerHTML += `<div class="bg-gray-800/30 p-3 rounded-xl border border-gray-800"><span class="font-bold text-white text-sm">${sanitizeText(c.authorName)}</span><p class="text-sm text-gray-300 mt-1">${sanitizeHTML(c.content)}</p></div>`;
+            const div = document.createElement('div');
+            div.className = 'bg-gray-800/30 p-3 rounded-xl border border-gray-800';
+            div.innerHTML = `<span class="font-bold text-white text-sm">${sanitizeText(c.authorName)}</span><p class="text-sm text-gray-300 mt-1">${sanitizeHTML(c.content)}</p>`;
+            fragment.appendChild(div);
         });
+        list.replaceChildren(fragment);
     });
 }
 
@@ -322,7 +361,11 @@ async function submitComment() {
         });
         await addPointsToUser(currentUserId, 5);
         ui.commentInput.value = '';
-    } catch(e) {}
+    } catch(e) {
+        // ✅ ERROR HANDLING: Afficher message d'erreur à l'utilisateur
+        console.error('Erreur lors de l\'ajout du commentaire:', e);
+        showMessage('Impossible d\'ajouter le commentaire. Vérifiez votre connexion.', 'error');
+    }
 }
 
 function hasPermission(permission) {
@@ -350,7 +393,7 @@ function generateKeywords(str) { return str.toLowerCase().split(' '); }
 
 function subscribeToGroups() {
     if (groupsUnsubscribe) groupsUnsubscribe();
-    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(50));
+    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(GROUPS_LIMIT));
     groupsUnsubscribe = onSnapshot(q, (snapshot) => { allGroups = []; snapshot.forEach(docSnap => { allGroups.push({ id: docSnap.id, ...docSnap.data() }); }); renderGroupList(allGroups); });
 }
 
@@ -557,7 +600,7 @@ async function deleteCurrentRole() { if (editingRoleId === 'admin' || editingRol
 function subscribeToGroupChat(groupId) {
     if(groupChatUnsubscribe) groupChatUnsubscribe();
     ui.groupMessagesContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>`;
-    const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt', 'asc'), limit(50));
+    const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt', 'asc'), limit(MESSAGES_LIMIT));
     groupChatUnsubscribe = onSnapshot(q, (snapshot) => {
         ui.groupMessagesContainer.innerHTML = '';
         if (snapshot.empty) { ui.groupMessagesContainer.innerHTML = `<div class="text-center text-gray-500 py-10"><p>Soyez le premier à écrire !</p></div>`; return; }
@@ -620,7 +663,7 @@ async function uploadGroupFile(file) {
     if (!currentGroupId) return;
     if (!hasPermission('UPLOAD_FILES')) return showMessage("Permission refusée", "error");
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_GROUP_FILE_SIZE) {
         return showMessage("Fichier trop lourd (max 10MB)", "error");
     }
 
@@ -654,7 +697,7 @@ async function uploadGroupIcon(file) {
         return showMessage("Le fichier doit être une image", "error");
     }
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > MAX_GROUP_PHOTO_SIZE) {
         return showMessage("Image trop lourde (max 2MB)", "error");
     }
 

@@ -1,10 +1,4 @@
-import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
-import {
-    signInWithPopup,
-    signInWithEmailAndPassword,
-    createUserWithEmailAndPassword,
-    updateProfile,
-    getAdditionalUserInfo
+import { auth, supabase } from './supabase-config.js';
 import { showMessage } from './utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,11 +7,18 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
+            // Utiliser Supabase OAuth
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/pages/app/dashboard.html`
+                }
+            });
 
-            const { isNewUser } = getAdditionalUserInfo(result);
-            console.log("Google User:", user.email, "Nouveau ?", isNewUser);
+            if (error) throw error;
+
+            // Supabase gère la redirection automatiquement
+            showMessage('Redirection vers Google...', 'success');
 
             showMessage('Connexion Google réussie !', 'success');
 
@@ -60,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
 
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                await auth.signInWithEmailAndPassword(email, password);
                 showMessage('Connexion réussie !', 'success');
                 window.location.href = '../app/dashboard.html';
             } catch (error) {
@@ -109,11 +110,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.disabled = true;
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const { user } = await auth.createUserWithEmailAndPassword(email, password);
 
-                await updateProfile(userCredential.user, {
-                    displayName: pseudo
-                });
+                // Mettre à jour le profil avec le pseudo
+                await supabase.from('users').update({
+                    first_name: pseudo
+                }).eq('id', user.id);
 
                 showMessage('Compte créé avec succès !', 'success');
                 setTimeout(() => {

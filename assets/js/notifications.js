@@ -21,7 +21,7 @@ export async function sendBulkNotifications(userIds, notification) {
 
 export function showBrowserNotification(title, options = {}) {
     if (!("Notification" in window)) {
-        console.log("Browser doesn't support notifications");
+        // ✅ LOW: Removed console.log - not an error, just unsupported feature
         return;
     }
 

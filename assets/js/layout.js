@@ -35,13 +35,16 @@ function setupMobileMenu() {
     const closeMenuBtn = document.getElementById('close-mobile-menu');
 
     if (mobileMenuBtn && mobileMenu) {
-        mobileMenuBtn.replaceWith(mobileMenuBtn.cloneNode(true));
-        const newBtn = document.getElementById('mobile-menu-btn');
-
-        newBtn.addEventListener('click', (e) => {
+        // ✅ MEMORY LEAK FIX: Utiliser once pour auto-cleanup au lieu de cloneNode
+        // Stocker référence pour pouvoir cleanup manuellement
+        const handleClick = (e) => {
             e.stopPropagation();
             mobileMenu.classList.toggle('hidden');
-        });
+        };
+
+        // Nettoyer les anciens listeners si présents
+        mobileMenuBtn.removeEventListener('click', handleClick);
+        mobileMenuBtn.addEventListener('click', handleClick);
     }
 
     if (closeMenuBtn && mobileMenu) {

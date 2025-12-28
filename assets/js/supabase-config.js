@@ -9,10 +9,9 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// ⚠️ REMPLACE CES VALEURS PAR LES TIENNES
-// Tu les trouveras dans : Supabase Dashboard → Settings → API
-const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co'
-const SUPABASE_ANON_KEY = 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX' // Ta clé anon ici
+// Configuration depuis variables d'environnement
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://vhtzudbcfyxnwmpyjyqw.supabase.co'
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX'
 
 // Créer le client Supabase
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -20,6 +19,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // =================================================================
 // UTILITAIRES - Conversion camelCase <-> snake_case
 // =================================================================
+ claude/refactor-and-optimize-FZ2kb
+
+ main
 function toCamelCase(str) {
     return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
 }
@@ -28,6 +30,8 @@ function toSnakeCase(str) {
     return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
 }
 
+ claude/refactor-and-optimize-FZ2kb
+ main
 function mapKeysToCamelCase(obj) {
     if (!obj || typeof obj !== 'object') return obj
     if (Array.isArray(obj)) return obj.map(mapKeysToCamelCase)
@@ -56,6 +60,42 @@ function mapKeysToSnakeCase(obj) {
     return result
 }
 
+claude/refactor-and-optimize-FZ2kb
+// Helpers spécifiques pour users (rétro-compatibilité)
+function mapUserFields(userData) {
+    if (!userData) return null
+    return {
+        ...userData,
+        firstName: userData.first_name || userData.firstName,
+        lastName: userData.last_name || userData.lastName,
+        photoURL: userData.photo_url || userData.photoURL,
+        first_name: userData.first_name,
+        last_name: userData.last_name,
+        photo_url: userData.photo_url
+    }
+}
+
+function unmapUserFields(userData) {
+    if (!userData) return null
+    const mapped = { ...userData }
+
+    if (mapped.firstName) {
+        mapped.first_name = mapped.firstName
+        delete mapped.firstName
+    }
+    if (mapped.lastName) {
+        mapped.last_name = mapped.lastName
+        delete mapped.lastName
+    }
+    if (mapped.photoURL) {
+        mapped.photo_url = mapped.photoURL
+        delete mapped.photoURL
+    }
+
+    return mapped
+}
+
+ main
 // Export des helpers de conversion
 export { mapKeysToCamelCase, mapKeysToSnakeCase, toCamelCase, toSnakeCase }
 
@@ -198,13 +238,24 @@ export const db = {
 
             // Query builder
             query() {
-                let queryBuilder = supabase.from(tableName).select('*').eq('user_id', userId)
+                let queryBuilder = supabase.from(tableName).select('*')
+
+                // Ajouter user_id filter seulement si userId existe (pas pour tables publiques comme community_groups)
+                if (userId && tableName !== 'users' && tableName !== 'community_groups' && tableName !== 'community_posts') {
+                    queryBuilder = queryBuilder.eq('user_id', userId)
+                }
+
                 let orderField = null
                 let orderDirection = 'asc'
                 let limitValue = null
+                const whereFilters = []
 
                 return {
+                    tableName,
+                    _whereFilters: whereFilters,
+
                     where(field, operator, value) {
+                        whereFilters.push({ field, operator, value })
                         if (operator === '==') queryBuilder = queryBuilder.eq(field, value)
                         else if (operator === '!=') queryBuilder = queryBuilder.neq(field, value)
                         else if (operator === '<') queryBuilder = queryBuilder.lt(field, value)
@@ -237,6 +288,12 @@ export const db = {
 
                         const { data, error } = await queryBuilder
                         if (error) throw new Error(error.message)
+
+                        // Mapper snake_case → camelCase pour users table
+                        if (tableName === 'users') {
+                            return (data || []).map(mapUserFields)
+                        }
+
                         return data || []
                     }
                 }
@@ -247,6 +304,8 @@ export const db = {
     // Récupérer un document par ID
     doc(tableName, id) {
         return {
+            tableName,
+            id,
             async get() {
                 const { data, error } = await supabase
                     .from(tableName)
@@ -261,9 +320,12 @@ export const db = {
                     throw new Error(error.message)
                 }
 
+                // Mapper pour users table
+                const mappedData = tableName === 'users' ? mapUserFields(data) : data
+
                 return {
                     exists: () => !!data,
-                    data: () => data,
+                    data: () => mappedData,
                     id: data?.id
                 }
             },
@@ -271,24 +333,48 @@ export const db = {
             async set(data, options = {}) {
                 const userId = (await supabase.auth.getUser()).data.user?.id
 
+                // Mapper camelCase → snake_case pour users
+                const mappedData = tableName === 'users' ? unmapUserFields(data) : data
+
                 if (options.merge) {
                     const { error } = await supabase
                         .from(tableName)
-                        .update({ ...data, user_id: userId })
+                        .update({ ...mappedData, user_id: userId })
                         .eq('id', id)
                     if (error) throw new Error(error.message)
                 } else {
                     const { error } = await supabase
                         .from(tableName)
-                        .upsert({ ...data, id, user_id: userId })
+                        .upsert({ ...mappedData, id, user_id: userId })
                     if (error) throw new Error(error.message)
                 }
             },
 
             async update(data) {
+                // Mapper camelCase → snake_case pour users
+                let mappedData = tableName === 'users' ? unmapUserFields(data) : data
+
+                // Gérer arrayUnion et arrayRemove pour Postgres arrays
+                const processedData = {}
+                for (const [key, value] of Object.entries(mappedData)) {
+                    if (value && typeof value === 'object' && value._type === 'arrayUnion') {
+                        // Pour arrayUnion: utiliser array_append
+                        const current = await this.get()
+                        const currentArray = current.data()?.[key] || []
+                        processedData[key] = [...new Set([...currentArray, ...value.elements])]
+                    } else if (value && typeof value === 'object' && value._type === 'arrayRemove') {
+                        // Pour arrayRemove: filtrer les éléments
+                        const current = await this.get()
+                        const currentArray = current.data()?.[key] || []
+                        processedData[key] = currentArray.filter(item => !value.elements.includes(item))
+                    } else {
+                        processedData[key] = value
+                    }
+                }
+
                 const { error } = await supabase
                     .from(tableName)
-                    .update(data)
+                    .update(processedData)
                     .eq('id', id)
                 if (error) throw new Error(error.message)
             },
@@ -439,8 +525,39 @@ export async function deleteDoc(docRef) {
     return await docRef.delete()
 }
 
-export async function collection(dbRef, tableName) {
-    return await db.collection(tableName)
+export async function collection(dbRef, tableName, ...args) {
+    // Support syntaxe Firestore imbriquée: collection(db, 'users', userId, 'courses')
+    // → Mappe vers table Supabase 'courses' avec filtre user_id
+    if (args.length >= 2) {
+        const userId = args[0]
+        const subCollection = args[1]
+
+        // Mapping des sous-collections Firestore vers tables Supabase
+        const SUBCOLLECTION_MAP = {
+            'courses': 'courses',
+            'syntheses': 'syntheses',
+            'quiz_results': 'quiz_results',
+            'tutor_messages': 'tutor_messages',
+            'review_cards': 'review_cards',
+            'planning': 'planning_events', // planning → planning_events
+            'planning_events': 'planning_events',
+            'notifications': 'notifications'
+        }
+
+        const targetTable = SUBCOLLECTION_MAP[subCollection] || subCollection
+        const coll = await db.collection(targetTable)
+
+        // Pré-filtrer par user_id
+        coll._prefilters = [{ field: 'user_id', operator: '==', value: userId }]
+        coll.tableName = targetTable
+
+        return coll
+    }
+
+    // Syntaxe simple: collection(db, 'users')
+    const coll = await db.collection(tableName)
+    coll.tableName = tableName
+    return coll
 }
 
 export async function addDoc(collectionRef, data) {
@@ -449,13 +566,54 @@ export async function addDoc(collectionRef, data) {
 
 export async function getDocs(queryOrCollection) {
     if (queryOrCollection.get) {
-        return await queryOrCollection.get()
+        const data = await queryOrCollection.get()
+
+        // Si c'est un tableau simple (résultat de get()), le retourner
+        if (Array.isArray(data)) {
+            // Format Firestore-compatible
+            return data.map(d => ({
+                id: d.id,
+                data: () => d,
+                exists: true
+            }))
+        }
+
+        return data
     }
-    return await queryOrCollection.getDocs()
+
+    // Appliquer les préfiltres si présents (pour collections imbriquées)
+    if (queryOrCollection._prefilters && queryOrCollection._prefilters.length > 0) {
+        let q = queryOrCollection.query()
+        queryOrCollection._prefilters.forEach(filter => {
+            q = q.where(filter.field, filter.operator, filter.value)
+        })
+        const data = await q.get()
+        return data.map(d => ({
+            id: d.id,
+            data: () => d,
+            exists: true
+        }))
+    }
+
+    const data = await queryOrCollection.getDocs()
+    return data.map(d => ({
+        id: d.id,
+        data: () => d,
+        exists: true
+    }))
 }
 
 export function query(collectionRef, ...constraints) {
     let q = collectionRef.query()
+
+    // Appliquer les préfiltres (pour collections imbriquées)
+    if (collectionRef._prefilters) {
+        collectionRef._prefilters.forEach(filter => {
+            q = q.where(filter.field, filter.operator, filter.value)
+        })
+    }
+
+    // Appliquer les contraintes
     constraints.forEach(constraint => {
         if (constraint.type === 'where') {
             q = q.where(constraint.field, constraint.operator, constraint.value)
@@ -465,6 +623,11 @@ export function query(collectionRef, ...constraints) {
             q = q.limit(constraint.value)
         }
     })
+
+    // Préserver les métadonnées
+    q.tableName = collectionRef.tableName
+    q._whereFilters = q._whereFilters || []
+
     return q
 }
 
@@ -480,24 +643,90 @@ export function limit(value) {
     return { type: 'limit', value }
 }
 
-export function onSnapshot(queryOrDoc, callback) {
-    console.warn('⚠️ onSnapshot: Realtime listeners not fully implemented in Supabase wrapper. Falling back to polling.')
+export function onSnapshot(queryOrDoc, callback, errorCallback) {
     const tableName = queryOrDoc.tableName || 'unknown'
 
-    const intervalId = setInterval(async () => {
+    // Fonction pour charger et envoyer les données
+    const loadAndCallback = async () => {
         try {
             const data = await getDocs(queryOrDoc)
             const snapshot = {
-                docs: data.map(d => ({ id: d.id, data: () => d })),
-                empty: data.length === 0
+                docs: Array.isArray(data) ? data : data.map(d => ({
+                    id: d.id,
+                    data: () => d,
+                    exists: true
+                })),
+                empty: !data || data.length === 0
             }
             callback(snapshot)
         } catch (err) {
             console.error('onSnapshot error:', err)
+            if (errorCallback) errorCallback(err)
         }
-    }, 3000)
+    }
 
-    return () => clearInterval(intervalId)
+    // Charger les données initiales immédiatement
+    loadAndCallback()
+
+    // Utiliser Supabase Realtime si possible
+    let channel = null
+    let useRealtime = false
+
+    // Liste des tables avec Realtime activé
+    const REALTIME_TABLES = ['courses', 'quiz_results', 'tutor_messages', 'review_cards',
+                              'community_posts', 'community_groups', 'notifications',
+                              'planning_events', 'pomodoro_stats']
+
+    if (REALTIME_TABLES.includes(tableName)) {
+        try {
+            useRealtime = true
+            const channelName = `realtime:${tableName}:${Date.now()}`
+
+            channel = supabase
+                .channel(channelName)
+                .on('postgres_changes',
+                    {
+                        event: '*', // INSERT, UPDATE, DELETE
+                        schema: 'public',
+                        table: tableName
+                    },
+                    (payload) => {
+                        // Recharger les données quand il y a un changement
+                        loadAndCallback()
+                    }
+                )
+                .subscribe((status) => {
+                    if (status === 'SUBSCRIBED') {
+                        // ✅ LOW: Removed console.log for production
+                        // console.log(`✅ Realtime activé pour ${tableName}`)
+                    } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+                        console.warn(`⚠️ Realtime échoué pour ${tableName}, fallback polling`)
+                        useRealtime = false
+                    }
+                })
+        } catch (err) {
+            console.warn('⚠️ Erreur Realtime, fallback polling:', err)
+            useRealtime = false
+        }
+    }
+
+    // Fallback polling si Realtime pas disponible
+    let intervalId = null
+    if (!useRealtime) {
+        // ✅ LOW: Removed console.log for production
+        // console.log(`⏱️ Polling activé pour ${tableName} (refresh 5s)`)
+        intervalId = setInterval(loadAndCallback, 5000) // 5 secondes
+    }
+
+    // Fonction d'unsubscribe
+    return () => {
+        if (channel) {
+            supabase.removeChannel(channel)
+        }
+        if (intervalId) {
+            clearInterval(intervalId)
+        }
+    }
 }
 
 export function writeBatch(dbRef) {
@@ -536,6 +765,26 @@ export function deleteField() {
 }
 
 export const ref = (storageObj, path) => storageObj.ref(path)
+
+// Array helpers pour Firestore compatibility
+export function arrayUnion(...elements) {
+    return { _type: 'arrayUnion', elements }
+}
+
+export function arrayRemove(...elements) {
+    return { _type: 'arrayRemove', elements }
+}
+
+// Upload helpers
+export async function uploadBytes(storageRef, file) {
+    return await storageRef.put(file)
+}
+
+// Server helpers
+export async function getCountFromServer(queryRef) {
+    const data = await getDocs(queryRef)
+    return { data: () => ({ count: data.length }) }
+}
 
 export function uploadBytesResumable(storageRef, file) {
     // Émule le comportement Firebase uploadTask avec .on()
@@ -594,9 +843,17 @@ export async function getDownloadURL(storageRef) {
 // =================================================================
 export { supabase as default }
 
+claude/refactor-and-optimize-FZ2kb
+// Initialiser auth.currentUser automatiquement au démarrage
+auth.init().catch(err => console.warn('Auth init failed:', err))
+
+// ✅ LOW: Removed console.log for production (dev: décommenter si besoin)
+// console.log('✅ Supabase initialisé avec wrappers Firebase')
+// console.log('📍 URL:', SUPABASE_URL)
 // Initialiser auth.currentUser automatiquement
 auth.init().catch(err => console.warn('Auth init failed:', err))
 
 // Pour debug
 console.log('✅ Supabase initialisé avec wrappers Firebase')
 console.log('📍 URL:', SUPABASE_URL)
+main

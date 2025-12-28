@@ -236,7 +236,7 @@ function handleEventClick(clickInfo) {
     if(radio) radio.checked = true;
 
     if(clickInfo.event.start) ui.startInput.value = toLocalISOString(clickInfo.event.start.toISOString()).slice(0, 16);
-    if(clickInfo.event.end) ui.endInput.value = toLocalISOString(clickInfo.event.end.toISOString()).slice(0, 16);
+    if(clickInfo.event.end) ui.endInput.value = toLocalISOString(clickInfo.event.end?.toISOString() || clickInfo.event.start.toISOString()).slice(0, 16);
 
     ui.modal.classList.remove('hidden');
 }

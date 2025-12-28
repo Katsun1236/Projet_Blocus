@@ -168,4 +168,5 @@ function showExportSuccessMessage(format) {
     }, 3000);
 }
 
-console.log('✅ Export module loaded');
+// ✅ LOW: Removed console.log for production
+// console.log('✅ Export module loaded');
