@@ -171,6 +171,11 @@ export const auth = {
             if (callback && typeof callback === 'function') {
                 callback(user)
             }
+        }).catch(error => {
+            console.error('Error getting user:', error);
+            if (callback && typeof callback === 'function') {
+                callback(null);
+            }
         })
 
         // Écouter les changements

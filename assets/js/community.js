@@ -269,7 +269,10 @@ async function createPost() {
     const title = ui.postTitle.value.trim();
     const content = ui.postContent.value.trim();
     const tag = ui.postTag.value.trim();
-    const type = document.querySelector('input[name="post-type"]:checked').value;
+    const typeElement = document.querySelector('input[name="post-type"]:checked');
+
+    if (!typeElement) return showMessage("Sélectionnez un type de post", "error");
+    const type = typeElement.value;
 
     if (!title || !content) return showMessage("Titre et contenu requis", "error");
 
@@ -379,8 +382,13 @@ function hasPermission(permission) {
 }
 
 async function createNewGroup() {
-    const name = ui.newGroupName.value.trim(); const desc = ui.newGroupDesc.value.trim(); const color = document.querySelector('input[name="new-group-color"]:checked').value;
+    const name = ui.newGroupName.value.trim();
+    const desc = ui.newGroupDesc.value.trim();
+    const colorElement = document.querySelector('input[name="new-group-color"]:checked');
+
     if (!name) return showMessage("Le nom du groupe est requis", "error");
+    if (!colorElement) return showMessage("Sélectionnez une couleur", "error");
+    const color = colorElement.value;
     ui.submitCreateGroup.disabled = true; ui.submitCreateGroup.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
     try {
         const initialMemberRoles = {}; initialMemberRoles[currentUserId] = 'admin';

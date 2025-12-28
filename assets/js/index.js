@@ -20,15 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
             // Supabase gère la redirection automatiquement
             showMessage('Redirection vers Google...', 'success');
 
-            showMessage('Connexion Google réussie !', 'success');
-
-            setTimeout(() => {
-                if (isNewUser) {
-                    window.location.href = 'onboarding.html';
-                } else {
-                    window.location.href = '../app/dashboard.html';
-                }
-            }, 1500);
+            // Note: La redirection sera gérée automatiquement par Supabase OAuth
+            // après que l'utilisateur se soit authentifié
 
         } catch (error) {
             console.error("Erreur Auth Google:", error);

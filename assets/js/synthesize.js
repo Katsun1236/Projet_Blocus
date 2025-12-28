@@ -173,7 +173,10 @@ if (ui.btnGenerate) {
         const btn = ui.btnGenerate;
         const originalHtml = btn.innerHTML;
         const title = ui.titleInput.value.trim() || "Nouvelle Synthèse";
-        const source = document.querySelector('input[name="synth-source"]:checked').value;
+        const sourceElement = document.querySelector('input[name="synth-source"]:checked');
+
+        if (!sourceElement) return showMessage("Sélectionnez une source", "error");
+        const source = sourceElement.value;
         const format = ui.formatSelect.value;
         const length = ui.lengthSelect.value;
 
