@@ -235,14 +235,19 @@ export const db = {
         return {
             // Ajouter un document
             async addDoc(data) {
+                // ✅ Convertir camelCase → snake_case pour Supabase
+                const snakeCaseData = mapKeysToSnakeCase(data)
+
                 const { data: result, error } = await supabase
                     .from(tableName)
-                    .insert({ ...data, user_id: userId })
+                    .insert({ ...snakeCaseData, user_id: userId })
                     .select()
                     .single()
 
                 if (error) throw new Error(error.message)
-                return { id: result.id, ...result }
+
+                // ✅ Retourner en camelCase pour le code JavaScript
+                return mapKeysToCamelCase({ id: result.id, ...result })
             },
 
             // Récupérer tous les documents
@@ -253,7 +258,9 @@ export const db = {
                     .eq('user_id', userId)
 
                 if (error) throw new Error(error.message)
-                return data || []
+
+                // ✅ Convertir snake_case → camelCase
+                return (data || []).map(mapKeysToCamelCase)
             },
 
             // Query builder
