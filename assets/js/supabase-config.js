@@ -900,8 +900,9 @@ export function uploadBytesResumable(storageRef, file) {
                     }
 
                     // ✅ Créer le snapshot avec la référence du résultat (comme Firebase)
-                    this.snapshot = {
-                        ref: result.ref, // Utiliser result.ref, pas storageRef
+                    // IMPORTANT: Utiliser uploadTask au lieu de this pour éviter les problèmes de contexte
+                    uploadTask.snapshot = {
+                        ref: result.ref, // Utiliser result.ref qui contient getDownloadURL()
                         bytesTransferred: file.size,
                         totalBytes: file.size,
                         state: 'success'
@@ -917,7 +918,7 @@ export function uploadBytesResumable(storageRef, file) {
                     }
                 })
 
-            return this
+            return uploadTask
         }
     }
 
