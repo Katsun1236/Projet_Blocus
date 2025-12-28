@@ -1,9 +1,8 @@
 import { auth, supabase } from './supabase-config.js';
 import { showMessage } from './utils.js';
-import { initSpeedInsights } from './speed-insights.js';
-
-// Initialize Speed Insights for performance monitoring
-initSpeedInsights();
+// Speed Insights disabled for local dev
+// import { initSpeedInsights } from './speed-insights.js';
+// initSpeedInsights();
 
 document.addEventListener('DOMContentLoaded', () => {
 

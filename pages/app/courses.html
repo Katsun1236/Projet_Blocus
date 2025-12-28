@@ -141,8 +141,15 @@
                         <div class="col-span-3 sm:col-span-2 text-right">ACTIONS</div>
                     </div>
                     <div id="files-list" class="divide-y divide-gray-800">
-                        <div class="p-12 text-center text-gray-500 flex flex-col items-center justify-center">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-4"></i> Chargement...
+                        <!-- État vide par défaut -->
+                        <div class="p-12 text-center flex flex-col items-center justify-center">
+                            <i class="fas fa-folder-open text-5xl mb-4 text-gray-600"></i>
+                            <p class="text-gray-400 font-medium text-lg mb-2">Aucun fichier pour le moment</p>
+                            <p class="text-sm text-gray-500 mb-6">Commence par uploader ton premier cours !</p>
+                            <a href="upload.html" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg transition-all transform hover:scale-105">
+                                <i class="fas fa-upload"></i>
+                                <span>Uploader un cours</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -179,16 +186,25 @@
     </div>
 
     <script type="module">
-        import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from '../../assets/js/supabase-config.js';
+        console.log('🚀🚀🚀 COURSES.HTML SCRIPT LOADED 🚀🚀🚀');
+
+        import { auth, supabase, onAuthStateChanged } from '../../assets/js/supabase-config.js';
         import { initLayout } from '../../assets/js/layout.js';
         import { showMessage, formatDate } from '../../assets/js/utils.js';
 
+        console.log('✅ Imports successful!');
+        console.log('auth:', auth);
+        console.log('supabase:', supabase);
+
         // --- STATE ---
+        console.log('💾 Defining state variables...');
         let currentUserId = null;
-        let currentFolderId = new URLSearchParams(window.location.search).get('folder'); 
+        let currentFolderId = new URLSearchParams(window.location.search).get('folder');
         let fileToMoveId = null; // ID du fichier en cours de déplacement
+        console.log('✅ State variables defined');
 
         // --- DOM ---
+        console.log('🔍 Getting DOM elements...');
         const ui = {
             foldersGrid: document.getElementById('folders-grid'),
             filesList: document.getElementById('files-list'),
@@ -206,75 +222,98 @@
             notifDropdown: document.getElementById('notif-dropdown'),
             notifList: document.getElementById('notifications-list'),
             noNotifMsg: document.getElementById('no-notif-msg'),
-            
+
             // Move Modal
             moveModal: document.getElementById('move-file-modal'),
             moveFoldersList: document.getElementById('move-folders-list'),
             cancelMove: document.getElementById('cancel-move')
         };
+        console.log('✅ DOM elements retrieved:', ui);
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initLayout('courses');
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        // Init immediately instead of waiting for DOMContentLoaded
+        console.log('⚡ Initializing page...');
+        console.log('document.readyState:', document.readyState);
+
+        initLayout('courses');
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        if (ui.dateDisplay) {
             ui.dateDisplay.textContent = new Date().toLocaleDateString('fr-FR', options);
+        }
 
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUserId = user.uid;
-                    await initPage(user);
-                    setupNotifications(currentUserId);
-                } else {
-                    window.location.href = '../auth/login.html';
-                }
-            });
+        console.log('🔐 Checking authentication...');
+
+        // Use Supabase API directly instead of onAuthStateChanged wrapper
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        console.log('👤 getUser result:', { user, authError });
+
+        if (user) {
+            currentUserId = user.id;
+            console.log('✅ currentUserId set to:', currentUserId);
+            await initPage(user);
+            setupNotifications(currentUserId);
+        } else {
+            console.log('❌ No user, redirecting to login');
+            window.location.href = '../auth/login.html';
+        }
+
+        // Also listen for auth changes
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('🔄 Auth state changed:', event, session);
+            if (event === 'SIGNED_OUT') {
+                window.location.href = '../auth/login.html';
+            }
         });
 
         async function initPage(user) {
+            console.log('📋 initPage called with user:', user);
             try {
-                const userDoc = await getDoc(doc(db, 'users', currentUserId));
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    ui.userName.textContent = data.firstName || user.displayName;
-                    ui.userAvatar.src = data.photoURL || user.photoURL || 'https://ui-avatars.com/api/?background=random';
+                // Charger les infos utilisateur depuis Supabase
+                const { data: userData } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', currentUserId)
+                    .single();
+
+                if (userData) {
+                    ui.userName.textContent = userData.first_name || user.user_metadata?.full_name || user.email;
+                    ui.userAvatar.src = userData.photo_url || user.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?background=random';
                 }
-            } catch (e) { console.log("Info user chargement background", e); }
+            } catch (e) {
+                console.log("Info user chargement background", e);
+            }
 
             if (currentFolderId) {
                 try {
-                    const folderDoc = await getDoc(doc(db, 'users', currentUserId, 'folders', currentFolderId));
-                    if (folderDoc.exists()) {
-                        const folderData = folderDoc.data();
+                    // Charger les infos du dossier depuis Supabase
+                    const { data: folderData } = await supabase
+                        .from('folders')
+                        .select('*')
+                        .eq('id', currentFolderId)
+                        .eq('user_id', currentUserId)
+                        .single();
+
+                    if (folderData) {
                         ui.breadcrumbName.textContent = folderData.name;
                         ui.breadcrumbName.classList.remove('hidden');
                         ui.breadcrumbSep.classList.remove('hidden');
                         ui.foldersSection.classList.add('hidden');
                     }
-                } catch (e) { console.error("Erreur chargement dossier", e); }
+                } catch (e) {
+                    console.error("Erreur chargement dossier", e);
+                }
             } else {
+                console.log('📁 Loading folders...');
                 loadFolders();
             }
+
+            console.log('📄 Loading files...');
             loadFiles();
         }
 
-        // --- NOTIFICATIONS (Simplifié pour la page courses) ---
+        // --- NOTIFICATIONS (Disabled for now - needs proper implementation) ---
         function setupNotifications(userId) {
-            const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(10));
-            onSnapshot(q, (snapshot) => {
-                const notifications = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                const unreadCount = notifications.filter(n => !n.read).length;
-                if (unreadCount > 0) ui.notifBadge.classList.remove('hidden'); else ui.notifBadge.classList.add('hidden');
-                ui.notifList.innerHTML = '';
-                if (notifications.length === 0) ui.noNotifMsg.classList.remove('hidden');
-                else {
-                    ui.noNotifMsg.classList.add('hidden');
-                    notifications.forEach(n => {
-                        const el = document.createElement('div');
-                        el.className = `p-4 border-b border-gray-800 hover:bg-gray-800 transition-colors text-sm text-gray-300`;
-                        el.textContent = n.message;
-                        ui.notifList.appendChild(el);
-                    });
-                }
-            });
+            // TODO: Implement with Supabase real-time subscriptions
+            console.log('📬 Notifications setup (skipped for now)');
         }
         ui.notifBtn.addEventListener('click', (e) => { e.stopPropagation(); ui.notifDropdown.classList.toggle('hidden'); });
         window.addEventListener('click', (e) => {
@@ -284,59 +323,127 @@
         // --- DOSSIERS ---
         async function loadFolders() {
             try {
-                const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
-                const snapshot = await getDocs(q);
+                // Utiliser directement l'API Supabase
+                const { data: folders, error } = await supabase
+                    .from('folders')
+                    .select('*')
+                    .eq('user_id', currentUserId)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                // Charger tous les cours pour compter par dossier
+                const { data: allCourses, error: coursesError } = await supabase
+                    .from('courses')
+                    .select('folder_id')
+                    .eq('user_id', currentUserId);
+
+                if (coursesError) {
+                    console.error('❌ Erreur chargement cours pour count:', coursesError);
+                }
+
+                // Compter le nombre de cours par dossier
+                const courseCounts = {};
+                if (allCourses) {
+                    allCourses.forEach(course => {
+                        const folderId = course.folder_id;
+                        if (folderId) {
+                            courseCounts[folderId] = (courseCounts[folderId] || 0) + 1;
+                        }
+                    });
+                }
+
                 ui.foldersGrid.innerHTML = '';
 
-                if (snapshot.empty) {
+                if (!folders || folders.length === 0) {
                     ui.foldersGrid.innerHTML = `<p class="text-gray-500 text-sm col-span-full">Aucun dossier.</p>`;
                     return;
                 }
 
-                snapshot.forEach(docSnap => {
-                    const folder = docSnap.data();
+                folders.forEach(folder => {
+                    const courseCount = courseCounts[folder.id] || 0;
                     const el = document.createElement('div');
                     el.className = 'folder-card content-glass p-4 rounded-xl cursor-pointer transition-all group relative';
                     el.innerHTML = `
                         <div class="flex items-start justify-between mb-2">
                             <i class="fas fa-folder text-4xl text-indigo-500/80 group-hover:text-indigo-400 transition-colors"></i>
-                            <button class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity delete-folder-btn" data-id="${docSnap.id}">
+                            <button class="text-gray-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity delete-folder-btn" data-id="${folder.id}">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
                         <h3 class="font-bold text-white text-sm truncate" title="${folder.name}">${folder.name}</h3>
-                        <p class="text-xs text-gray-500 mt-1">${folder.courseCount || 0} éléments</p>
+                        <p class="text-xs text-gray-500 mt-1">${courseCount} élément${courseCount !== 1 ? 's' : ''}</p>
                     `;
-                    el.addEventListener('click', (e) => { if (!e.target.closest('.delete-folder-btn')) window.location.href = `courses.html?folder=${docSnap.id}`; });
+                    el.addEventListener('click', (e) => { if (!e.target.closest('.delete-folder-btn')) window.location.href = `courses.html?folder=${folder.id}`; });
                     el.querySelector('.delete-folder-btn').addEventListener('click', async (e) => {
                         e.stopPropagation();
                         if(confirm('Supprimer ce dossier ?')) {
-                            await deleteDoc(doc(db, 'users', currentUserId, 'folders', docSnap.id));
-                            loadFolders();
+                            const { error: deleteError } = await supabase
+                                .from('folders')
+                                .delete()
+                                .eq('id', folder.id);
+
+                            if (deleteError) {
+                                console.error('Erreur suppression:', deleteError);
+                                showMessage('Erreur lors de la suppression', 'error');
+                            } else {
+                                showMessage('Dossier supprimé', 'success');
+                                loadFolders();
+                            }
                         }
                     });
                     ui.foldersGrid.appendChild(el);
                 });
-            } catch (error) { console.error("Erreur dossiers:", error); }
+            } catch (error) {
+                console.error("Erreur dossiers:", error);
+                ui.foldersGrid.innerHTML = `<p class="text-gray-500 text-sm col-span-full">Erreur lors du chargement</p>`;
+            }
         }
 
         // --- FICHIERS ---
         async function loadFiles() {
             try {
-                let q;
-                if (currentFolderId) {
-                    q = query(collection(db, 'users', currentUserId, 'courses'), where('folderId', '==', currentFolderId), orderBy('createdAt', 'desc'));
-                } else {
-                    q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
-                }
-                const snapshot = await getDocs(q);
-                renderFilesList(snapshot.docs);
-            } catch (error) { console.error("Erreur fichiers:", error); }
-        }
+                // Utiliser directement l'API Supabase
+                let query = supabase
+                    .from('courses')
+                    .select('*')
+                    .eq('user_id', currentUserId)
+                    .order('created_at', { ascending: false });
 
-        function renderFilesList(docs) {
+                // Filtrer par dossier si nécessaire
+                if (currentFolderId) {
+                    query = query.eq('folder_id', currentFolderId);
+                } else {
+                    // Afficher seulement les fichiers sans dossier (racine)
+                    query = query.is('folder_id', null);
+                }
+
+                const { data: courses, error } = await query;
+
+                if (error) throw error;
+
+                renderFilesList(courses || []);
+            } catch (error) {
+                console.error("Erreur fichiers:", error);
+                // Afficher l'état vide si erreur
+                ui.filesList.innerHTML = `
+                    <div class="p-12 text-center flex flex-col items-center justify-center">
+                        <i class="fas fa-folder-open text-5xl mb-4 text-gray-600"></i>
+                        <p class="text-gray-400 font-medium text-lg mb-2">Aucun fichier pour le moment</p>
+                        <p class="text-sm text-gray-500 mb-6">Commence par uploader ton premier cours !</p>
+                        <a href="upload.html" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg transition-all transform hover:scale-105">
+                            <i class="fas fa-upload"></i>
+                            <span>Uploader un cours</span>
+                        </a>
+                    </div>`;
+            }
+        }
+        console.log('✅ loadFiles function defined');
+
+        function renderFilesList(courses) {
             ui.filesList.innerHTML = '';
-            const files = docs.map(d => ({id: d.id, ...d.data()})).filter(f => currentFolderId ? f.folderId === currentFolderId : !f.folderId);
+            // Les données Supabase sont déjà formatées, pas besoin de .data()
+            const files = courses;
 
             if (files.length === 0) {
                 ui.filesList.innerHTML = `
@@ -348,12 +455,16 @@
             }
 
             files.forEach(file => {
-                const dateStr = formatDate(file.createdAt);
-                const sizeStr = file.size ? (file.size / 1024 / 1024).toFixed(2) + ' MB' : '--';
-                let icon = 'fa-file';
-                let color = 'text-gray-400';
-                if (file.type?.includes('pdf')) { icon = 'fa-file-pdf'; color = 'text-red-400'; }
-                else if (file.type?.includes('image')) { icon = 'fa-file-image'; color = 'text-purple-400'; }
+                const dateStr = formatDate(file.created_at);
+                const sizeStr = '--'; // Colonne size n'existe plus dans le schéma
+                let icon = 'fa-file-pdf';  // Par défaut PDF
+                let color = 'text-red-400';
+                // On peut déduire le type du nom de fichier si nécessaire
+                const fileName = file.file_name || '';
+                if (fileName.toLowerCase().endsWith('.png') || fileName.toLowerCase().endsWith('.jpg')) {
+                    icon = 'fa-file-image';
+                    color = 'text-purple-400';
+                }
 
                 const row = document.createElement('div');
                 row.className = 'grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors group cursor-pointer';
@@ -362,25 +473,58 @@
                         <div class="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center ${color}">
                             <i class="fas ${icon}"></i>
                         </div>
-                        <span class="text-sm text-gray-200 font-medium truncate">${file.title || file.fileName}</span>
+                        <span class="text-sm text-gray-200 font-medium truncate">${file.title || fileName}</span>
                     </div>
                     <div class="col-span-3 hidden sm:block text-xs text-gray-500">${dateStr}</div>
                     <div class="col-span-3 sm:col-span-2 text-xs text-gray-500">${sizeStr}</div>
                     <div class="col-span-3 sm:col-span-2 text-right flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white" onclick="window.open('${file.fileURL || file.url}', '_blank')">
+                        <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-white open-file-btn" title="Ouvrir" data-file-id="${file.id}" data-storage-path="${file.storage_path}">
                             <i class="fas fa-external-link-alt"></i>
                         </button>
-                        
+
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-indigo-400 move-file-btn" title="Déplacer">
                             <i class="fas fa-folder-open"></i>
                         </button>
-                        
+
                         <button class="p-1.5 hover:bg-gray-700 rounded text-gray-400 hover:text-red-400 delete-file-btn" title="Supprimer">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                 `;
                 
+                // Ouvrir fichier avec signed URL
+                row.querySelector('.open-file-btn').addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const storagePath = e.currentTarget.dataset.storagePath;
+
+                    if (!storagePath) {
+                        console.error('❌ Pas de storage_path pour ce fichier');
+                        showMessage('Erreur: chemin de fichier manquant', 'error');
+                        return;
+                    }
+
+                    try {
+                        console.log('🔐 Génération signed URL pour:', storagePath);
+
+                        // Générer une signed URL valide pour 1 heure
+                        const { data, error } = await supabase.storage
+                            .from('courses')
+                            .createSignedUrl(storagePath, 3600);
+
+                        if (error) {
+                            console.error('❌ Erreur signed URL:', error);
+                            showMessage('Erreur lors de l\'ouverture du fichier', 'error');
+                            return;
+                        }
+
+                        console.log('✅ Signed URL générée:', data.signedUrl);
+                        window.open(data.signedUrl, '_blank');
+                    } catch (error) {
+                        console.error('❌ Erreur inattendue:', error);
+                        showMessage('Erreur lors de l\'ouverture du fichier', 'error');
+                    }
+                });
+
                 // Déplacer
                 row.querySelector('.move-file-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -391,9 +535,18 @@
                 row.querySelector('.delete-file-btn').addEventListener('click', async (e) => {
                     e.stopPropagation();
                     if(confirm('Supprimer ce fichier définitivement ?')) {
-                        await deleteDoc(doc(db, 'users', currentUserId, 'courses', file.id));
-                        loadFiles();
-                        showMessage('Fichier supprimé', 'success');
+                        const { error } = await supabase
+                            .from('courses')
+                            .delete()
+                            .eq('id', file.id);
+
+                        if (error) {
+                            console.error('Erreur suppression:', error);
+                            showMessage('Erreur lors de la suppression', 'error');
+                        } else {
+                            showMessage('Fichier supprimé', 'success');
+                            loadFiles();
+                        }
                     }
                 });
 
@@ -408,8 +561,15 @@
             ui.moveFoldersList.innerHTML = '<div class="text-center text-gray-500 text-xs"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
 
             try {
-                const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('name'));
-                const snapshot = await getDocs(q);
+                // Charger les dossiers avec Supabase
+                const { data: folders, error } = await supabase
+                    .from('folders')
+                    .select('*')
+                    .eq('user_id', currentUserId)
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
                 ui.moveFoldersList.innerHTML = '';
 
                 // Option "Racine"
@@ -419,19 +579,20 @@
                 rootBtn.onclick = () => moveFile(null); // null = racine
                 ui.moveFoldersList.appendChild(rootBtn);
 
-                snapshot.forEach(docSnap => {
-                    const f = docSnap.data();
+                // Ajouter les dossiers
+                (folders || []).forEach(folder => {
                     // On ne montre pas le dossier actuel si on est déjà dedans
-                    if (docSnap.id === currentFolderId) return;
+                    if (folder.id === currentFolderId) return;
 
                     const btn = document.createElement('button');
                     btn.className = 'w-full text-left p-3 rounded-lg bg-black/30 hover:bg-indigo-600/20 hover:text-indigo-400 transition-colors flex items-center gap-3 text-sm text-gray-300';
-                    btn.innerHTML = `<i class="fas fa-folder"></i> ${f.name}`;
-                    btn.onclick = () => moveFile(docSnap.id);
+                    btn.innerHTML = `<i class="fas fa-folder"></i> ${folder.name}`;
+                    btn.onclick = () => moveFile(folder.id);
                     ui.moveFoldersList.appendChild(btn);
                 });
 
             } catch (e) {
+                console.error('❌ Erreur chargement dossiers:', e);
                 ui.moveFoldersList.innerHTML = '<p class="text-red-400 text-xs">Erreur chargement dossiers</p>';
             }
         }
@@ -439,17 +600,21 @@
         async function moveFile(targetFolderId) {
             if (!fileToMoveId) return;
             try {
-                // targetFolderId est soit un ID string, soit null (pour racine)
-                // Firestore n'aime pas les champs undefined, mais null est ok.
-                await updateDoc(doc(db, 'users', currentUserId, 'courses', fileToMoveId), {
-                    folderId: targetFolderId
-                });
-                
+                console.log('📁 Déplacement fichier', fileToMoveId, 'vers dossier', targetFolderId);
+
+                // Mise à jour avec Supabase
+                const { error } = await supabase
+                    .from('courses')
+                    .update({ folder_id: targetFolderId })
+                    .eq('id', fileToMoveId);
+
+                if (error) throw error;
+
                 ui.moveModal.classList.add('hidden');
                 showMessage('Fichier déplacé avec succès', 'success');
                 loadFiles(); // Recharger la liste
             } catch (e) {
-                console.error(e);
+                console.error('❌ Erreur déplacement:', e);
                 showMessage('Erreur lors du déplacement', 'error');
             }
         }
@@ -477,11 +642,41 @@
             const name = ui.newFolderName.value.trim();
             if (!name) return;
             try {
-                await addDoc(collection(db, 'users', currentUserId, 'folders'), { name: name, createdAt: serverTimestamp(), courseCount: 0 });
-                ui.folderModal.classList.add('hidden'); ui.newFolderName.value = '';
-                showMessage('Dossier créé !', 'success'); loadFolders();
-            } catch (error) { showMessage('Erreur création dossier', 'error'); }
+                console.log('📁 Création dossier:', name);
+
+                // Utiliser directement l'API Supabase au lieu des wrappers Firebase
+                const { data, error } = await supabase
+                    .from('folders')
+                    .insert({
+                        name: name,
+                        user_id: currentUserId
+                        // created_at sera auto-généré par Supabase
+                    })
+                    .select()
+                    .single();
+
+                if (error) {
+                    console.error('❌ Erreur Supabase:', error);
+                    throw error;
+                }
+
+                console.log('✅ Dossier créé:', data);
+                ui.folderModal.classList.add('hidden');
+                ui.newFolderName.value = '';
+                showMessage('Dossier créé !', 'success');
+                loadFolders();
+            } catch (error) {
+                console.error('❌ Erreur création dossier:', error);
+                showMessage('Erreur création dossier: ' + (error.message || 'Erreur inconnue'), 'error');
+            }
         });
+
+        console.log('🎉🎉🎉 SCRIPT FULLY LOADED - All functions defined! 🎉🎉🎉');
+        console.log('currentUserId:', currentUserId);
+        console.log('typeof loadFiles:', typeof loadFiles);
     </script>
+
+    <!-- Message Box pour les notifications -->
+    <div id="message-box" class="fixed top-4 right-4 z-50 transform transition-all duration-300"></div>
 </body>
 </html>

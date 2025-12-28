@@ -1,6 +1,10 @@
 import { auth, db, supabase } from './supabase-config.js';
+import { initScrollRestoration } from './utils.js';
 
 export function initLayout(activePageId) {
+    // ✅ Initialiser la restauration du scroll pour éviter les sauts de page
+    initScrollRestoration();
+
     const sidebar = document.getElementById('sidebar-container');
     if (!sidebar && document.getElementById('app-container')) {
         injectSidebar(activePageId);

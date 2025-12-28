@@ -120,8 +120,9 @@ export const auth = {
     async init() {
         if (this._initialized) return this.currentUser
 
-        const { data } = await supabase.auth.getUser()
-        this.currentUser = data.user ? mapKeysToCamelCase(data.user) : null
+        // ✅ Utiliser getSession() pour une restauration rapide depuis localStorage
+        const { data } = await supabase.auth.getSession()
+        this.currentUser = data.session?.user ? mapKeysToCamelCase(data.session.user) : null
         this._initialized = true
         return this.currentUser
     },
@@ -180,15 +181,17 @@ export const auth = {
 
     // Écouter les changements d'auth (comme Firebase)
     onAuthStateChanged(callback) {
-        // Récupérer l'utilisateur actuel au démarrage
-        supabase.auth.getUser().then(({ data }) => {
-            const user = data.user ? mapKeysToCamelCase(data.user) : null
+        // ✅ IMPORTANT: Utiliser getSession() au lieu de getUser()
+        // getSession() vérifie d'abord le localStorage (rapide) avant de faire un appel réseau
+        // Cela évite les déconnexions lors de l'actualisation de la page
+        supabase.auth.getSession().then(({ data }) => {
+            const user = data.session?.user ? mapKeysToCamelCase(data.session.user) : null
             this.currentUser = user
             if (callback && typeof callback === 'function') {
                 callback(user)
             }
         }).catch(error => {
-            console.error('Error getting user:', error);
+            console.error('Error getting session:', error);
             if (callback && typeof callback === 'function') {
                 callback(null);
             }
@@ -558,7 +561,9 @@ export async function collection(dbRef, tableName, ...args) {
         const SUBCOLLECTION_MAP = {
             'courses': 'courses',
             'syntheses': 'syntheses',
+            'quizzes': 'quiz_results', // quizzes → quiz_results
             'quiz_results': 'quiz_results',
+            'folders': 'folders',
             'tutor_messages': 'tutor_messages',
             'review_cards': 'review_cards',
             'planning': 'planning_events', // planning → planning_events
@@ -866,10 +871,21 @@ export function uploadBytesResumable(storageRef, file) {
     let completeCallback = null
 
     const uploadTask = {
+        snapshot: null, // Sera défini après l'upload
+
         on(event, onProgress, onError, onComplete) {
             progressCallback = onProgress
             errorCallback = onError
             completeCallback = onComplete
+
+            // Simuler la progression au début (0%)
+            if (progressCallback) {
+                progressCallback({
+                    bytesTransferred: 0,
+                    totalBytes: file.size,
+                    state: 'running'
+                })
+            }
 
             // Lancer l'upload
             storageRef.put(file)
@@ -883,6 +899,15 @@ export function uploadBytesResumable(storageRef, file) {
                         })
                     }
 
+                    // ✅ Créer le snapshot avec la référence du résultat (comme Firebase)
+                    // IMPORTANT: Utiliser uploadTask au lieu de this pour éviter les problèmes de contexte
+                    uploadTask.snapshot = {
+                        ref: result.ref, // Utiliser result.ref qui contient getDownloadURL()
+                        bytesTransferred: file.size,
+                        totalBytes: file.size,
+                        state: 'success'
+                    }
+
                     if (completeCallback) {
                         completeCallback(result)
                     }
@@ -893,7 +918,7 @@ export function uploadBytesResumable(storageRef, file) {
                     }
                 })
 
-            return this
+            return uploadTask
         }
     }
 

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -123,7 +124,7 @@
 
     
     <script type="module">
-        import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from '../../assets/js/supabase-config.js';
+        import { auth, supabase, onAuthStateChanged } from '../../assets/js/supabase-config.js';
         import { initLayout } from '../../assets/js/layout.js';
 
         // ========== INIT LAYOUT ==========
@@ -177,7 +178,7 @@
         // ========== HANDLE FILE ==========
         function handleFileSelect() {
             const file = fileInput.files[0];
-            
+
             if (!file) {
                 fileNameDisplay.classList.add('hidden');
                 return;
@@ -198,6 +199,14 @@
                 fileInput.value = '';
                 fileNameDisplay.classList.add('hidden');
                 return;
+            }
+
+            // Auto-fill title from filename if empty
+            const titleInput = document.getElementById('docTitle');
+            if (!titleInput.value.trim()) {
+                // Remove extension and use filename as default title
+                const filenameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+                titleInput.value = filenameWithoutExt;
             }
 
             // Afficher le fichier
@@ -221,7 +230,10 @@
                 return;
             }
 
-            if (!auth.currentUser) {
+            // Get current user from Supabase
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
                 showFeedback("❌ Vous devez être connecté", "error");
                 setTimeout(() => window.location.href = '../auth/login.html', 2000);
                 return;
@@ -238,76 +250,80 @@
                 // 1. Préparer le stockage
                 const timestamp = Date.now();
                 const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                const storagePath = `users/${auth.currentUser.uid}/${timestamp}_${sanitizedFileName}`;
-                
-                console.log('📤 Starting upload to:', storagePath);
-                
-                // 2. Upload Firebase Storage
-                const storageRef = ref(storage, storagePath);
-                const uploadTask = uploadBytesResumable(storageRef, file);
+                const filePath = `${user.id}/${timestamp}_${sanitizedFileName}`;
 
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                        progressBar.style.width = progress + '%';
-                        progressText.textContent = progress + '%';
-                        console.log('📊 Upload progress:', progress + '%');
-                    }, 
-                    (error) => {
-                        console.error("❌ Upload error:", error);
-                        let errorMessage = "Erreur lors de l'upload";
-                        
-                        if (error.code === 'storage/unauthorized') {
-                            errorMessage = "❌ Permissions insuffisantes. Vérifiez vos règles Firebase Storage.";
-                        } else if (error.code === 'storage/canceled') {
-                            errorMessage = "❌ Upload annulé";
-                        } else if (error.code === 'storage/quota-exceeded') {
-                            errorMessage = "❌ Quota de stockage dépassé";
-                        } else {
-                            errorMessage = `❌ Erreur: ${error.message}`;
-                        }
-                        
-                        showFeedback(errorMessage, "error");
-                        resetUI();
-                    }, 
-                    async () => {
-                        try {
-                            // 3. Récupérer URL
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            console.log('✅ File uploaded:', downloadURL);
+                console.log('📤 Starting upload to:', filePath);
 
-                            // 4. Sauvegarder dans Firestore (dans users/{uid}/courses)
-                            const docRef = await addDoc(collection(db, "users", auth.currentUser.uid, "courses"), {
-                                title: title,
-                                fileName: file.name,
-                                fileURL: downloadURL,  // courses.html utilise fileURL
-                                storagePath: storagePath,
-                                type: file.type,
-                                size: file.size,
-                                userId: auth.currentUser.uid,
-                                userName: auth.currentUser.displayName || auth.currentUser.email,
-                                folderId: null,  // Par défaut dans la racine
-                                createdAt: serverTimestamp()
-                            });
+                // 2. Upload direct avec Supabase Storage (pas de wrappers Firebase)
+                const { data: uploadData, error: uploadError } = await supabase.storage
+                    .from('courses')
+                    .upload(filePath, file, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
 
-                            console.log('✅ Document saved with ID:', docRef.id);
+                if (uploadError) {
+                    console.error("❌ Upload error:", uploadError);
+                    let errorMessage = "Erreur lors de l'upload";
 
-                            // 5. Succès
-                            showFeedback("✅ Document uploadé avec succès ! Redirection...", "success");
-                            uploadForm.reset();
-                            fileNameDisplay.classList.add('hidden');
-                            
-                            setTimeout(() => {
-                                window.location.href = 'courses.html';
-                            }, 2000);
-
-                        } catch (firestoreError) {
-                            console.error("❌ Firestore error:", firestoreError);
-                            showFeedback("❌ Erreur lors de la sauvegarde: " + firestoreError.message, "error");
-                            resetUI();
-                        }
+                    if (uploadError.message?.includes('unauthorized') || uploadError.message?.includes('permission')) {
+                        errorMessage = "❌ Permissions insuffisantes. Vérifiez vos règles Supabase Storage.";
+                    } else if (uploadError.message?.includes('quota')) {
+                        errorMessage = "❌ Quota de stockage dépassé";
+                    } else {
+                        errorMessage = `❌ Erreur: ${uploadError.message}`;
                     }
-                );
+
+                    showFeedback(errorMessage, "error");
+                    resetUI();
+                    return;
+                }
+
+                // Simuler progression 100%
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                console.log('📊 Upload complete: 100%');
+
+                // 3. Récupérer l'URL publique
+                const { data: urlData } = supabase.storage
+                    .from('courses')
+                    .getPublicUrl(uploadData.path);
+
+                const downloadURL = urlData.publicUrl;
+                console.log('✅ File uploaded:', downloadURL);
+
+                // 4. Sauvegarder directement dans Supabase (table courses avec user_id)
+                const { data: courseData, error: dbError } = await supabase
+                    .from('courses')
+                    .insert({
+                        title: title,
+                        file_name: file.name,
+                        file_url: downloadURL,  // courses.html utilise fileURL (converti en camelCase)
+                        storage_path: uploadData.path,
+                        user_id: user.id,
+                        folder_id: null  // Par défaut dans la racine
+                        // created_at sera automatiquement rempli par Supabase
+                    })
+                    .select()
+                    .single();
+
+                if (dbError) {
+                    console.error("❌ Database error:", dbError);
+                    showFeedback("❌ Erreur lors de la sauvegarde: " + dbError.message, "error");
+                    resetUI();
+                    return;
+                }
+
+                console.log('✅ Document saved with ID:', courseData.id);
+
+                // 5. Succès
+                showFeedback("✅ Document uploadé avec succès ! Redirection...", "success");
+                uploadForm.reset();
+                fileNameDisplay.classList.add('hidden');
+
+                setTimeout(() => {
+                    window.location.href = 'courses.html';
+                }, 2000);
 
             } catch (error) {
                 console.error("❌ Global error:", error);
