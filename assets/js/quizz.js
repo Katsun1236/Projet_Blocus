@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadUserSyntheses() {
+    if (!auth.currentUser) return;
     try {
         const synthesisRef = collection(db, 'users', auth.currentUser.id, 'syntheses');
         const snapshot = await getDocs(synthesisRef);
@@ -91,6 +92,7 @@ async function loadUserSyntheses() {
 }
 
 async function loadUserCourses() {
+    if (!auth.currentUser) return;
     try {
         // ✅ LOW: Removed debug console.log
         // console.log("Chargement des cours pour:", auth.currentUser.id);
@@ -180,7 +182,10 @@ function setGeneratingState(isGenerating) {
 async function generateQuiz() {
     if (isGenerating) return;
 
-    const source = document.querySelector('input[name="quiz-source"]:checked').value;
+    const sourceElement = document.querySelector('input[name="quiz-source"]:checked');
+    if (!sourceElement) return showMessage("Sélectionnez une source pour le quiz", "error");
+
+    const source = sourceElement.value;
     const count = parseInt(ui.questionCountInput.value);
     const type = ui.quizTypeInput.value;
 
@@ -361,6 +366,10 @@ function exitQuiz() {
 
 async function loadRecentQuiz() {
     if(!ui.quizGrid) return;
+    if (!auth.currentUser) {
+        ui.quizGrid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500">Connectez-vous pour voir vos quiz.</div>';
+        return;
+    }
     ui.quizGrid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>';
     try {
         const q = query(collection(db, 'quiz_results'), where('userId', '==', auth.currentUser.id), orderBy('createdAt', 'desc'), limit(8));

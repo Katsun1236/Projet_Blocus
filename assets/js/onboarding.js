@@ -96,7 +96,8 @@ class OnboardingTutorial {
         if (inProgress === 'true' && savedStep !== null) {
             localStorage.removeItem('onboarding_in_progress');
             this.isActive = true;
-            this.currentStep = parseInt(savedStep);
+            const parsedStep = parseInt(savedStep);
+            this.currentStep = isNaN(parsedStep) ? 0 : parsedStep;
             this.createOverlay();
             this.createMascot();
             this.showStep(this.currentStep);

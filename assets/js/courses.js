@@ -363,7 +363,15 @@ async function deleteItem(item) {
 function enterFolder(folderId, folderName) {
     currentFolder = folderId;
     loadCourses();
-    ui.breadcrumbs.innerHTML += ` <span class="mx-2 text-gray-600">/</span> <span class="text-white">${folderName}</span>`;
+    // ✅ SECURITY & PERFORMANCE: Avoid innerHTML += and XSS
+    const separator = document.createElement('span');
+    separator.className = 'mx-2 text-gray-600';
+    separator.textContent = '/';
+    const folderSpan = document.createElement('span');
+    folderSpan.className = 'text-white';
+    folderSpan.textContent = folderName;
+    ui.breadcrumbs.appendChild(separator);
+    ui.breadcrumbs.appendChild(folderSpan);
 }
 
 async function goUpLevel() {

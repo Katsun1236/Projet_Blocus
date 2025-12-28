@@ -39,6 +39,8 @@ export function showBrowserNotification(title, options = {}) {
                     ...options
                 });
             }
+        }).catch(error => {
+            console.error('Error requesting notification permission:', error);
         });
     }
 }

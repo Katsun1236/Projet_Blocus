@@ -124,9 +124,11 @@ async function saveEvent() {
     const start = ui.startInput.value;
     const end = ui.endInput.value;
     const desc = ui.descInput.value.trim();
-    const type = document.querySelector('input[name="event-type"]:checked').value;
+    const typeElement = document.querySelector('input[name="event-type"]:checked');
 
     if (!title || !start) return showMessage("Titre et date de début requis", "error");
+    if (!typeElement) return showMessage("Sélectionnez un type d'événement", "error");
+    const type = typeElement.value;
 
     const eventData = {
         title,
