@@ -871,6 +871,8 @@ export function uploadBytesResumable(storageRef, file) {
     let completeCallback = null
 
     const uploadTask = {
+        snapshot: null, // Sera défini après l'upload
+
         on(event, onProgress, onError, onComplete) {
             progressCallback = onProgress
             errorCallback = onError
@@ -886,6 +888,14 @@ export function uploadBytesResumable(storageRef, file) {
                             totalBytes: file.size,
                             state: 'success'
                         })
+                    }
+
+                    // ✅ Créer le snapshot avec la référence (comme Firebase)
+                    this.snapshot = {
+                        ref: storageRef,
+                        bytesTransferred: file.size,
+                        totalBytes: file.size,
+                        state: 'success'
                     }
 
                     if (completeCallback) {
