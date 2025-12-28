@@ -3,6 +3,14 @@ import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
 
+// ✅ CONSTANTS: Limites de fichiers et queries
+const MAX_GROUP_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+const MAX_GROUP_PHOTO_SIZE = 2 * 1024 * 1024; // 2 MB
+const POSTS_LIMIT = 20;
+const TOP_CONTRIBUTORS_LIMIT = 5;
+const GROUPS_LIMIT = 50;
+const MESSAGES_LIMIT = 50;
+
 let currentUserId = null;
 let currentUserData = null;
 let currentPostId = null;
@@ -141,7 +149,7 @@ async function loadUserProfile() {
 }
 
 async function loadContributors() {
-    const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(5));
+    const q = query(collection(db, 'users'), orderBy('points', 'desc'), limit(TOP_CONTRIBUTORS_LIMIT));
     try {
         const snapshot = await getDocs(q);
         ui.contributorsList.innerHTML = '';
@@ -172,8 +180,8 @@ async function addPointsToUser(userId, points) {
 function subscribeToPosts(filterType = 'all') {
     if (postsUnsubscribe) postsUnsubscribe();
     ui.postsContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>`;
-    let q = query(collection(db, 'community_posts'), orderBy('createdAt', 'desc'), limit(20));
-    if (filterType !== 'all') q = query(collection(db, 'community_posts'), where('type', '==', filterType), orderBy('createdAt', 'desc'), limit(20));
+    let q = query(collection(db, 'community_posts'), orderBy('createdAt', 'desc'), limit(POSTS_LIMIT));
+    if (filterType !== 'all') q = query(collection(db, 'community_posts'), where('type', '==', filterType), orderBy('createdAt', 'desc'), limit(POSTS_LIMIT));
     postsUnsubscribe = onSnapshot(q, (snapshot) => {
         ui.postsContainer.innerHTML = '';
         if (snapshot.empty) { ui.postsContainer.innerHTML = `<div class="text-center text-gray-500 py-10">Aucune discussion.</div>`; return; }
@@ -369,7 +377,7 @@ function generateKeywords(str) { return str.toLowerCase().split(' '); }
 
 function subscribeToGroups() {
     if (groupsUnsubscribe) groupsUnsubscribe();
-    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(50));
+    const q = query(collection(db, 'groups'), orderBy('memberCount', 'desc'), limit(GROUPS_LIMIT));
     groupsUnsubscribe = onSnapshot(q, (snapshot) => { allGroups = []; snapshot.forEach(docSnap => { allGroups.push({ id: docSnap.id, ...docSnap.data() }); }); renderGroupList(allGroups); });
 }
 
@@ -576,7 +584,7 @@ async function deleteCurrentRole() { if (editingRoleId === 'admin' || editingRol
 function subscribeToGroupChat(groupId) {
     if(groupChatUnsubscribe) groupChatUnsubscribe();
     ui.groupMessagesContainer.innerHTML = `<div class="text-center py-10 opacity-50"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>`;
-    const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt', 'asc'), limit(50));
+    const q = query(collection(db, 'groups', groupId, 'messages'), orderBy('createdAt', 'asc'), limit(MESSAGES_LIMIT));
     groupChatUnsubscribe = onSnapshot(q, (snapshot) => {
         ui.groupMessagesContainer.innerHTML = '';
         if (snapshot.empty) { ui.groupMessagesContainer.innerHTML = `<div class="text-center text-gray-500 py-10"><p>Soyez le premier à écrire !</p></div>`; return; }
@@ -639,7 +647,7 @@ async function uploadGroupFile(file) {
     if (!currentGroupId) return;
     if (!hasPermission('UPLOAD_FILES')) return showMessage("Permission refusée", "error");
 
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_GROUP_FILE_SIZE) {
         return showMessage("Fichier trop lourd (max 10MB)", "error");
     }
 
@@ -673,7 +681,7 @@ async function uploadGroupIcon(file) {
         return showMessage("Le fichier doit être une image", "error");
     }
 
-    if (file.size > 2 * 1024 * 1024) {
+    if (file.size > MAX_GROUP_PHOTO_SIZE) {
         return showMessage("Image trop lourde (max 2MB)", "error");
     }
 

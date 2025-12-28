@@ -2,6 +2,12 @@ import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, 
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
 
+// ✅ CONSTANTS: Configuration temporelle
+const END_OF_DAY_HOURS = 23;
+const END_OF_DAY_MINUTES = 59;
+const END_OF_DAY_SECONDS = 59;
+const END_OF_DAY_MILLISECONDS = 999;
+
 let currentUserId = null;
 let reviewQueue = [];
 let currentCard = null;
@@ -96,7 +102,7 @@ async function loadStats() {
 
         // Compter les cartes dues aujourd'hui
         const today = new Date();
-        today.setHours(23, 59, 59, 999);
+        today.setHours(END_OF_DAY_HOURS, END_OF_DAY_MINUTES, END_OF_DAY_SECONDS, END_OF_DAY_MILLISECONDS);
 
         let dueCount = 0;
         allCards.forEach(doc => {

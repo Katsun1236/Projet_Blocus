@@ -2,19 +2,26 @@ import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, 
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
 
+// ✅ CONSTANTS: Configuration par défaut du Pomodoro
+const DEFAULT_WORK_DURATION = 25;
+const DEFAULT_SHORT_BREAK = 5;
+const DEFAULT_LONG_BREAK = 15;
+const DEFAULT_POMODOROS_UNTIL_LONG_BREAK = 4;
+const SECONDS_PER_MINUTE = 60;
+
 let currentUserId = null;
 let timerInterval = null;
 let isPaused = false;
 let currentPhase = 'work'; // 'work' | 'shortBreak' | 'longBreak'
 let pomodorosCompleted = 0;
-let timeRemaining = 25 * 60; // 25 minutes in seconds
+let timeRemaining = DEFAULT_WORK_DURATION * SECONDS_PER_MINUTE;
 
 // Paramètres personnalisables
 let settings = {
-    workDuration: 25,        // minutes
-    shortBreakDuration: 5,   // minutes
-    longBreakDuration: 15,   // minutes
-    pomodorosUntilLongBreak: 4,
+    workDuration: DEFAULT_WORK_DURATION,
+    shortBreakDuration: DEFAULT_SHORT_BREAK,
+    longBreakDuration: DEFAULT_LONG_BREAK,
+    pomodorosUntilLongBreak: DEFAULT_POMODOROS_UNTIL_LONG_BREAK,
     autoStartBreaks: false,
     autoStartPomodoros: false,
     notificationsEnabled: true,

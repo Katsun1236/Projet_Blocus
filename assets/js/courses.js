@@ -2,6 +2,9 @@ import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, 
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 
+// ✅ CONSTANTS: Éviter les magic numbers
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB en bytes
+
 let currentUserId = null;
 let currentFolder = 'root';
 let coursesData = [];
@@ -243,8 +246,8 @@ async function handleFiles(e) {
     let errorCount = 0;
 
     for (const file of files) {
-        if (file.size > 20 * 1024 * 1024) {
-            showMessage(`Fichier trop lourd (max 20MB): ${file.name}`, "error");
+        if (file.size > MAX_FILE_SIZE) {
+            showMessage(`Fichier trop lourd (max ${MAX_FILE_SIZE / (1024 * 1024)}MB): ${file.name}`, "error");
             errorCount++;
             continue;
         }
