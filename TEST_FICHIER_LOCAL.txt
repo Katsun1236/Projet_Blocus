@@ -1,0 +1,9 @@
+✅ CONFIRMATION : Claude travaille bien sur ton PC local !
+
+Ce fichier a été créé le 28 décembre 2025 à 19:40
+Localisation : C:\Users\basti\OneDrive\Documents\GitHub\Projet_Blocus
+
+Tous les changements que je fais sont directement sur ton disque dur.
+Quand je "commit" et "push", c'est juste pour sauvegarder sur GitHub.
+
+Tu peux supprimer ce fichier quand tu veux !
