@@ -124,7 +124,7 @@
 
     
     <script type="module">
-        import { auth, db, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField } from '../../assets/js/supabase-config.js';
+        import { auth, supabase, onAuthStateChanged } from '../../assets/js/supabase-config.js';
         import { initLayout } from '../../assets/js/layout.js';
 
         // ========== INIT LAYOUT ==========
@@ -292,21 +292,32 @@
                 const downloadURL = urlData.publicUrl;
                 console.log('✅ File uploaded:', downloadURL);
 
-                // 4. Sauvegarder dans la base de données (dans users/{uid}/courses)
-                const docRef = await addDoc(collection(db, "users", user.id, "courses"), {
-                    title: title,
-                    fileName: file.name,
-                    fileURL: downloadURL,  // courses.html utilise fileURL
-                    storagePath: uploadData.path,
-                    type: file.type,
-                    size: file.size,
-                    userId: user.id,
-                    userName: user.user_metadata?.full_name || user.email,
-                    folderId: null,  // Par défaut dans la racine
-                    createdAt: serverTimestamp()
-                });
+                // 4. Sauvegarder directement dans Supabase (table courses avec user_id)
+                const { data: courseData, error: dbError } = await supabase
+                    .from('courses')
+                    .insert({
+                        title: title,
+                        file_name: file.name,
+                        file_url: downloadURL,  // courses.html utilise fileURL (converti en camelCase)
+                        storage_path: uploadData.path,
+                        type: file.type,
+                        size: file.size,
+                        user_id: user.id,
+                        user_name: user.user_metadata?.full_name || user.email,
+                        folder_id: null,  // Par défaut dans la racine
+                        created_at: new Date().toISOString()
+                    })
+                    .select()
+                    .single();
 
-                console.log('✅ Document saved with ID:', docRef.id);
+                if (dbError) {
+                    console.error("❌ Database error:", dbError);
+                    showFeedback("❌ Erreur lors de la sauvegarde: " + dbError.message, "error");
+                    resetUI();
+                    return;
+                }
+
+                console.log('✅ Document saved with ID:', courseData.id);
 
                 // 5. Succès
                 showFeedback("✅ Document uploadé avec succès ! Redirection...", "success");
