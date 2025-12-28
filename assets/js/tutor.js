@@ -85,6 +85,14 @@ function setupEventListeners() {
     ui.messageInput.addEventListener('input', () => {
         ui.sendBtn.disabled = !ui.messageInput.value.trim();
     });
+
+    // ✅ MEMORY LEAK FIX: Cleanup realtime subscriptions before page unload
+    window.addEventListener('beforeunload', () => {
+        if (messagesUnsubscribe) {
+            messagesUnsubscribe();
+            messagesUnsubscribe = null;
+        }
+    });
 }
 
 function displaySuggestions() {

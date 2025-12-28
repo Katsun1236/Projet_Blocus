@@ -1,9 +1,39 @@
 import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
 import { initLayout } from './layout.js';
-import { showMessage, formatDate } from './utils.js';
+import { showMessage, formatDate, debounce } from './utils.js';
 
 // ✅ CONSTANTS: Éviter les magic numbers
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB en bytes
+
+// ✅ SECURITY: Types de fichiers autorisés pour uploads
+const ALLOWED_FILE_TYPES = [
+    // Documents
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    // Texte
+    'text/plain',
+    'text/csv',
+    'text/markdown',
+    // Images
+    'image/png',
+    'image/jpeg',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    // Archives
+    'application/zip',
+    'application/x-rar-compressed',
+    'application/x-7z-compressed'
+];
+
+const ALLOWED_EXTENSIONS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+                            '.txt', '.md', '.csv', '.png', '.jpg', '.jpeg', '.gif',
+                            '.webp', '.svg', '.zip', '.rar', '.7z'];
 
 let currentUserId = null;
 let currentFolder = 'root';
@@ -42,7 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    if(ui.searchInput) ui.searchInput.addEventListener('input', (e) => filterCourses(e.target.value));
+    // ✅ PERFORMANCE: Debounce search input pour éviter appels excessifs
+    if(ui.searchInput) {
+        const debouncedFilter = debounce((value) => filterCourses(value), 300);
+        ui.searchInput.addEventListener('input', (e) => debouncedFilter(e.target.value));
+    }
     if(ui.sortSelect) ui.sortSelect.addEventListener('change', () => filterCourses(ui.searchInput.value));
 
     if (ui.uploadArea) {
@@ -232,6 +266,7 @@ function renderGrid(items) {
 function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
+    // ✅ BUG FIX: Valider les fichiers avant upload
     handleFiles({ target: { files: files } });
 }
 
@@ -247,8 +282,16 @@ async function handleFiles(e) {
 
     // ✅ PERFORMANCE: Paralléliser les uploads au lieu de séquentiel (beaucoup plus rapide)
     const uploadPromises = Array.from(files).map(async (file) => {
+        // ✅ SECURITY: Validation taille fichier
         if (file.size > MAX_FILE_SIZE) {
             showMessage(`Fichier trop lourd (max ${MAX_FILE_SIZE / (1024 * 1024)}MB): ${file.name}`, "error");
+            return { success: false, file: file.name };
+        }
+
+        // ✅ SECURITY: Validation type de fichier
+        const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+        if (!ALLOWED_FILE_TYPES.includes(file.type) && !ALLOWED_EXTENSIONS.includes(fileExtension)) {
+            showMessage(`Type de fichier non autorisé: ${file.name}`, "error");
             return { success: false, file: file.name };
         }
 

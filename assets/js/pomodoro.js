@@ -152,6 +152,14 @@ function setupEventListeners() {
             ui.settingsModal.classList.add('hidden');
         }
     });
+
+    // ✅ MEMORY LEAK FIX: Cleanup timer avant fermeture page
+    window.addEventListener('beforeunload', () => {
+        if (timerInterval) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    });
 }
 
 function startTimer() {

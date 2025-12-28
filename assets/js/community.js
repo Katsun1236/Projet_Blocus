@@ -1,6 +1,6 @@
 import { auth, db, storage, getStorage } from './supabase-config.js';
 import { initLayout } from './layout.js';
-import { showMessage, formatDate } from './utils.js';
+import { showMessage, formatDate, debounce } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
 
 // ✅ CONSTANTS: Limites de fichiers et queries
@@ -789,8 +789,32 @@ function setupEventListeners() {
     if(ui.tabMembers) ui.tabMembers.onclick = () => switchTab('members');
 
     if(ui.filters) { ui.filters.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON') { ui.filters.querySelectorAll('button').forEach(b => { b.classList.remove('bg-gray-700', 'text-white'); b.classList.add('text-gray-400'); }); e.target.classList.add('bg-gray-700', 'text-white'); e.target.classList.remove('text-gray-400'); subscribeToPosts(e.target.dataset.filter); } }); }
-    if(ui.groupSearchInput) { ui.groupSearchInput.addEventListener('input', filterGroups); }
+    // ✅ PERFORMANCE: Debounce search input pour éviter appels excessifs
+    if(ui.groupSearchInput) {
+        const debouncedFilterGroups = debounce(filterGroups, 300);
+        ui.groupSearchInput.addEventListener('input', debouncedFilterGroups);
+    }
     if(ui.groupFilters) { ui.groupFilters.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON') { const allBtn = ui.groupFilters.querySelector('[data-filter="all"]'); const myBtn = ui.groupFilters.querySelector('[data-filter="my"]'); if(e.target.dataset.filter === 'all') { allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors"; myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors"; } else { myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors"; allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors"; } filterGroups(); } }); }
+
+    // ✅ MEMORY LEAK FIX: Cleanup realtime subscriptions before page unload
+    window.addEventListener('beforeunload', () => {
+        if (postsUnsubscribe) {
+            postsUnsubscribe();
+            postsUnsubscribe = null;
+        }
+        if (groupsUnsubscribe) {
+            groupsUnsubscribe();
+            groupsUnsubscribe = null;
+        }
+        if (groupChatUnsubscribe) {
+            groupChatUnsubscribe();
+            groupChatUnsubscribe = null;
+        }
+        if (groupFilesUnsubscribe) {
+            groupFilesUnsubscribe();
+            groupFilesUnsubscribe = null;
+        }
+    });
 
     window.togglePostModal = togglePostModal;
     window.toggleCreateGroupModal = toggleCreateGroupModal;

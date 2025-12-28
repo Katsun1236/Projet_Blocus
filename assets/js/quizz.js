@@ -124,25 +124,26 @@ async function loadUserCourses() {
     }
 }
 
-async function generateQuiz() {
-    if (isGenerating) return;
-
-    const source = document.querySelector('input[name="quiz-source"]:checked').value;
-    let title = ui.quizTitleInput.value.trim();
-    const count = parseInt(ui.questionCountInput.value);
-    const type = ui.quizTypeInput.value;
-
+// ✅ REFACTORING: Extract source data logic to reduce nesting
+function extractQuizSourceData(source) {
     let topic = "";
     let dataContext = "";
+    let title = ui.quizTitleInput.value.trim();
 
     if (source === 'topic') {
         topic = ui.topicInput.value.trim();
-        if (!topic) return showMessage("Veuillez décrire le sujet.", "error");
+        if (!topic) {
+            showMessage("Veuillez décrire le sujet.", "error");
+            return null;
+        }
         if (!title) title = topic.substring(0, 30) + "...";
     }
     else if (source === 'synthesis') {
         const synthId = ui.synthesisSelect.value;
-        if (!synthId) return showMessage("Veuillez sélectionner une synthèse.", "error");
+        if (!synthId) {
+            showMessage("Veuillez sélectionner une synthèse.", "error");
+            return null;
+        }
         const synth = userSyntheses.find(s => s.id === synthId);
         if (synth) {
             topic = `Synthèse : ${synth.title}`;
@@ -152,7 +153,10 @@ async function generateQuiz() {
     }
     else if (source === 'course') {
         const fileId = ui.courseSelect.value;
-        if (!fileId) return showMessage("Veuillez sélectionner un cours.", "error");
+        if (!fileId) {
+            showMessage("Veuillez sélectionner un cours.", "error");
+            return null;
+        }
         const file = userCourses.find(f => f.id === fileId);
         if (file) {
             topic = `Cours : ${file.name}`;
@@ -161,18 +165,39 @@ async function generateQuiz() {
         }
     }
 
+    return { topic, dataContext, title };
+}
+
+// ✅ REFACTORING: Extract UI state management
+function setGeneratingState(isGenerating) {
+    ui.generateBtn.disabled = isGenerating;
+    ui.generateBtn.innerHTML = isGenerating
+        ? `<i class="fas fa-spinner fa-spin"></i> Génération...`
+        : `<i class="fas fa-bolt mr-2"></i> Générer`;
+    ui.loadingContainer.classList.toggle('hidden', !isGenerating);
+}
+
+async function generateQuiz() {
+    if (isGenerating) return;
+
+    const source = document.querySelector('input[name="quiz-source"]:checked').value;
+    const count = parseInt(ui.questionCountInput.value);
+    const type = ui.quizTypeInput.value;
+
+    // Extract and validate source data
+    const sourceData = extractQuizSourceData(source);
+    if (!sourceData) return; // Validation failed, error already shown
+
     isGenerating = true;
-    ui.generateBtn.disabled = true;
-    ui.generateBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Génération...`;
-    ui.loadingContainer.classList.remove('hidden');
+    setGeneratingState(true);
 
     try {
         const generateContent = httpsCallable(functions, 'generateContent');
         const result = await generateContent({
             mode: 'quiz',
-            topic: topic,
-            data: dataContext,
-            options: { count: count, type: type }
+            topic: sourceData.topic,
+            data: sourceData.dataContext,
+            options: { count, type }
         });
 
         const quizData = result.data;
@@ -181,7 +206,7 @@ async function generateQuiz() {
             throw new Error("L'IA n'a pas renvoyé de questions valides.");
         }
 
-        quizData.title = title;
+        quizData.title = sourceData.title;
 
         showMessage("Quiz prêt !", "success");
         startQuiz(quizData);
@@ -192,9 +217,7 @@ async function generateQuiz() {
         showMessage("Erreur IA : " + (error.message || "Réessayez plus tard."), "error");
     } finally {
         isGenerating = false;
-        ui.generateBtn.disabled = false;
-        ui.generateBtn.innerHTML = `<i class="fas fa-bolt mr-2"></i> Générer`;
-        ui.loadingContainer.classList.add('hidden');
+        setGeneratingState(false);
     }
 }
 

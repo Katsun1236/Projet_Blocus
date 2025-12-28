@@ -282,4 +282,12 @@ function setupEventListeners() {
     ui.modal.addEventListener('click', (e) => {
         if (e.target === ui.modal) closeModal();
     });
+
+    // ✅ MEMORY LEAK FIX: Cleanup realtime subscriptions before page unload
+    window.addEventListener('beforeunload', () => {
+        if (unsubscribeEvents) {
+            unsubscribeEvents();
+            unsubscribeEvents = null;
+        }
+    });
 }

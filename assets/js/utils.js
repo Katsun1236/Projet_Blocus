@@ -53,3 +53,29 @@ export function formatDate(dateObj) {
         minute: '2-digit'
     }).format(date);
 }
+
+// ✅ PERFORMANCE: Debounce function pour search inputs
+export function debounce(func, delay = 300) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
+
+// ✅ CODE DUPLICATION: Centralize button loading state
+export function setButtonLoading(button, isLoading, loadingText = 'Chargement...', defaultContent = null) {
+    if (!button) return;
+
+    if (isLoading) {
+        button.disabled = true;
+        button.dataset.originalContent = button.innerHTML;
+        button.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${loadingText}`;
+    } else {
+        button.disabled = false;
+        button.innerHTML = defaultContent || button.dataset.originalContent || '';
+        delete button.dataset.originalContent;
+    }
+}
