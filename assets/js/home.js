@@ -1,4 +1,8 @@
 import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
+import { initSpeedInsights } from './speed-insights.js';
+
+// Initialize Speed Insights for performance monitoring
+initSpeedInsights();
 
 const dom = {
     navLoggedOut: document.getElementById('nav-logged-out'),

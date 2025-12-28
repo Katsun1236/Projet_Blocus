@@ -2,6 +2,10 @@ import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, 
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
+import { initSpeedInsights } from './speed-insights.js';
+
+// Initialize Speed Insights for performance monitoring
+initSpeedInsights();
 
 let currentUserId = null;
 let currentUserData = null;

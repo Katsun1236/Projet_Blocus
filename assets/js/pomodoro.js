@@ -1,6 +1,10 @@
 import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
+import { initSpeedInsights } from './speed-insights.js';
+
+// Initialize Speed Insights for performance monitoring
+initSpeedInsights();
 
 // ✅ CONSTANTS: Configuration par défaut du Pomodoro
 const DEFAULT_WORK_DURATION = 25;

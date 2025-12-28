@@ -234,6 +234,10 @@
         import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from '../../assets/js/supabase-config.js';
         import { initLayout } from '../../assets/js/layout.js';
         import { onboarding } from '../../assets/js/onboarding.js';
+        import { initSpeedInsights } from '../../assets/js/speed-insights.js';
+
+        // Initialize Speed Insights for performance monitoring
+        initSpeedInsights();
 
         // --- DOM Elements ---
         const ui = {

@@ -2,6 +2,10 @@ import { auth, db, storage, getStorage } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate, debounce } from './utils.js';
 import { sanitizeHTML, sanitizeText } from './sanitizer.js';
+import { initSpeedInsights } from './speed-insights.js';
+
+// Initialize Speed Insights for performance monitoring
+initSpeedInsights();
 
 // ✅ CONSTANTS: Limites de fichiers et queries
 const MAX_GROUP_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
