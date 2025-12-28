@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserId = user.id;
+            currentUserId = user.uid;
             await loadProfileData();
             await loadUserStats();
             loadRecentActivity();
@@ -98,7 +98,7 @@ function renderProfile(data) {
     const avatarUrl = data.photoURL || `https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random&color=fff`;
     ui.avatar.src = avatarUrl;
     ui.name.textContent = `${data.firstName || ''} ${data.lastName || ''}`;
-    ui.email.textContent = auth.currentUser?.email || '';
+    ui.email.textContent = data.email || '';
     ui.points.textContent = data.points || 0;
 
     if (data.bio && data.bio.trim() !== "") {

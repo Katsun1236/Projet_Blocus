@@ -31,15 +31,15 @@ const ui = {
 document.addEventListener('DOMContentLoaded', () => {
     initLayout('planning');
 
-    onAuthStateChanged(async (user) => {
+    onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserId = user.id;
+            currentUserId = user.uid;
 
             // Charger les données utilisateur depuis Supabase
             const { data, error } = await supabase
                 .from('users')
                 .select('first_name, photo_url')
-                .eq('id', user.id)
+                .eq('id', user.uid)
                 .single();
 
             if (data && !error) {
