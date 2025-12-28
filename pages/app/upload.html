@@ -300,12 +300,9 @@
                         file_name: file.name,
                         file_url: downloadURL,  // courses.html utilise fileURL (converti en camelCase)
                         storage_path: uploadData.path,
-                        type: file.type,
-                        size: file.size,
                         user_id: user.id,
-                        user_name: user.user_metadata?.full_name || user.email,
-                        folder_id: null,  // Par défaut dans la racine
-                        created_at: new Date().toISOString()
+                        folder_id: null  // Par défaut dans la racine
+                        // created_at sera automatiquement rempli par Supabase
                     })
                     .select()
                     .single();
