@@ -141,8 +141,15 @@
                         <div class="col-span-3 sm:col-span-2 text-right">ACTIONS</div>
                     </div>
                     <div id="files-list" class="divide-y divide-gray-800">
-                        <div class="p-12 text-center text-gray-500 flex flex-col items-center justify-center">
-                            <i class="fas fa-spinner fa-spin text-2xl mb-4"></i> Chargement...
+                        <!-- État vide par défaut -->
+                        <div class="p-12 text-center flex flex-col items-center justify-center">
+                            <i class="fas fa-folder-open text-5xl mb-4 text-gray-600"></i>
+                            <p class="text-gray-400 font-medium text-lg mb-2">Aucun fichier pour le moment</p>
+                            <p class="text-sm text-gray-500 mb-6">Commence par uploader ton premier cours !</p>
+                            <a href="upload.html" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg transition-all transform hover:scale-105">
+                                <i class="fas fa-upload"></i>
+                                <span>Uploader un cours</span>
+                            </a>
                         </div>
                     </div>
                 </div>

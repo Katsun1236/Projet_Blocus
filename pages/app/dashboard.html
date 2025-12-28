@@ -148,14 +148,11 @@
                     <a href="courses.html" class="text-sm text-indigo-400 hover:text-indigo-300">Tout voir</a>
                 </div>
                 <div id="folders-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    
-                    <div class="content-glass p-4 rounded-xl h-32 animate-pulse flex flex-col justify-between">
-                        <div class="w-8 h-8 bg-gray-700 rounded"></div>
-                        <div class="w-2/3 h-4 bg-gray-700 rounded"></div>
-                    </div>
-                    <div class="content-glass p-4 rounded-xl h-32 animate-pulse flex flex-col justify-between hidden sm:flex">
-                        <div class="w-8 h-8 bg-gray-700 rounded"></div>
-                        <div class="w-2/3 h-4 bg-gray-700 rounded"></div>
+                    <!-- Bouton "Nouveau Dossier" - sera ajouté par JS -->
+                    <div class="col-span-full p-8 text-center text-gray-500 text-sm">
+                        <i class="fas fa-folder text-2xl mb-2 opacity-50"></i>
+                        <p>Aucun dossier pour le moment.</p>
+                        <p class="text-xs mt-2">Crée ton premier dossier pour organiser tes cours !</p>
                     </div>
                 </div>
             </div>
@@ -168,11 +165,15 @@
                 </div>
                 
                 <div id="courses-list" class="divide-y divide-gray-800">
-
-                    <div class="p-8 text-center text-gray-500 text-sm">
-                        <i class="fas fa-file-pdf text-2xl mb-2 opacity-50"></i>
-                        <p>Aucun fichier récent.</p>
-                        <p class="text-xs mt-2">Upload ton premier cours pour commencer !</p>
+                    <!-- État vide par défaut -->
+                    <div class="p-8 text-center">
+                        <i class="fas fa-file-pdf text-4xl mb-3 text-gray-600"></i>
+                        <p class="text-gray-400 font-medium mb-2">Aucun fichier récent</p>
+                        <p class="text-xs text-gray-500 mb-4">Upload ton premier cours pour commencer !</p>
+                        <a href="upload.html" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-lg transition-colors">
+                            <i class="fas fa-upload"></i>
+                            <span>Uploader un cours</span>
+                        </a>
                     </div>
                 </div>
             </div>
