@@ -291,7 +291,7 @@
         // --- DOSSIERS ---
         async function loadFolders() {
             try {
-                const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('createdAt', 'desc'));
+                const q = query(collection(db, 'users', currentUserId, 'folders'), orderBy('created_at', 'desc'));
                 const snapshot = await getDocs(q);
                 ui.foldersGrid.innerHTML = '';
 
@@ -332,13 +332,26 @@
             try {
                 let q;
                 if (currentFolderId) {
-                    q = query(collection(db, 'users', currentUserId, 'courses'), where('folderId', '==', currentFolderId), orderBy('createdAt', 'desc'));
+                    q = query(collection(db, 'users', currentUserId, 'courses'), where('folderId', '==', currentFolderId), orderBy('created_at', 'desc'));
                 } else {
-                    q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
+                    q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('created_at', 'desc'));
                 }
                 const snapshot = await getDocs(q);
                 renderFilesList(snapshot.docs);
-            } catch (error) { console.error("Erreur fichiers:", error); }
+            } catch (error) {
+                console.error("Erreur fichiers:", error);
+                // Afficher l'état vide si erreur
+                ui.filesList.innerHTML = `
+                    <div class="p-12 text-center flex flex-col items-center justify-center">
+                        <i class="fas fa-folder-open text-5xl mb-4 text-gray-600"></i>
+                        <p class="text-gray-400 font-medium text-lg mb-2">Aucun fichier pour le moment</p>
+                        <p class="text-sm text-gray-500 mb-6">Commence par uploader ton premier cours !</p>
+                        <a href="upload.html" class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg transition-all transform hover:scale-105">
+                            <i class="fas fa-upload"></i>
+                            <span>Uploader un cours</span>
+                        </a>
+                    </div>`;
+            }
         }
 
         function renderFilesList(docs) {
@@ -355,12 +368,15 @@
             }
 
             files.forEach(file => {
-                const dateStr = formatDate(file.createdAt);
-                const sizeStr = file.size ? (file.size / 1024 / 1024).toFixed(2) + ' MB' : '--';
-                let icon = 'fa-file';
-                let color = 'text-gray-400';
-                if (file.type?.includes('pdf')) { icon = 'fa-file-pdf'; color = 'text-red-400'; }
-                else if (file.type?.includes('image')) { icon = 'fa-file-image'; color = 'text-purple-400'; }
+                const dateStr = formatDate(file.createdAt || file.created_at);
+                const sizeStr = '--'; // Colonne size n'existe plus dans le schéma
+                let icon = 'fa-file-pdf';  // Par défaut PDF
+                let color = 'text-red-400';
+                // On peut déduire le type du nom de fichier si nécessaire
+                if (file.fileName?.toLowerCase().endsWith('.png') || file.fileName?.toLowerCase().endsWith('.jpg')) {
+                    icon = 'fa-file-image';
+                    color = 'text-purple-400';
+                }
 
                 const row = document.createElement('div');
                 row.className = 'grid grid-cols-12 gap-4 p-4 items-center hover:bg-white/5 transition-colors group cursor-pointer';
@@ -484,11 +500,32 @@
             const name = ui.newFolderName.value.trim();
             if (!name) return;
             try {
-                await addDoc(collection(db, 'users', currentUserId, 'folders'), { name: name, createdAt: serverTimestamp(), courseCount: 0 });
-                ui.folderModal.classList.add('hidden'); ui.newFolderName.value = '';
-                showMessage('Dossier créé !', 'success'); loadFolders();
-            } catch (error) { showMessage('Erreur création dossier', 'error'); }
+                // Utiliser directement l'API Supabase au lieu des wrappers Firebase
+                const { data, error } = await supabase
+                    .from('folders')
+                    .insert({
+                        name: name,
+                        user_id: currentUserId,
+                        course_count: 0
+                        // created_at sera auto-généré par Supabase
+                    })
+                    .select()
+                    .single();
+
+                if (error) throw error;
+
+                ui.folderModal.classList.add('hidden');
+                ui.newFolderName.value = '';
+                showMessage('Dossier créé !', 'success');
+                loadFolders();
+            } catch (error) {
+                console.error('Erreur création dossier:', error);
+                showMessage('Erreur création dossier', 'error');
+            }
         });
     </script>
+
+    <!-- Message Box pour les notifications -->
+    <div id="message-box" class="fixed top-4 right-4 z-50 transform transition-all duration-300"></div>
 </body>
 </html>
