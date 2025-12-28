@@ -1,6 +1,6 @@
 import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
 import { initLayout } from './layout.js';
-import { showMessage, formatDate } from './utils.js';
+import { showMessage, formatDate, debounce } from './utils.js';
 
 // ✅ CONSTANTS: Éviter les magic numbers
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20 MB en bytes
@@ -72,7 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
-    if(ui.searchInput) ui.searchInput.addEventListener('input', (e) => filterCourses(e.target.value));
+    // ✅ PERFORMANCE: Debounce search input pour éviter appels excessifs
+    if(ui.searchInput) {
+        const debouncedFilter = debounce((value) => filterCourses(value), 300);
+        ui.searchInput.addEventListener('input', (e) => debouncedFilter(e.target.value));
+    }
     if(ui.sortSelect) ui.sortSelect.addEventListener('change', () => filterCourses(ui.searchInput.value));
 
     if (ui.uploadArea) {

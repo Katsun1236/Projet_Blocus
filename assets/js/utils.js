@@ -53,3 +53,14 @@ export function formatDate(dateObj) {
         minute: '2-digit'
     }).format(date);
 }
+
+// ✅ PERFORMANCE: Debounce function pour search inputs
+export function debounce(func, delay = 300) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            func.apply(this, args);
+        }, delay);
+    };
+}
