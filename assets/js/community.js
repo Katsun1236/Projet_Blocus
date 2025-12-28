@@ -792,6 +792,26 @@ function setupEventListeners() {
     if(ui.groupSearchInput) { ui.groupSearchInput.addEventListener('input', filterGroups); }
     if(ui.groupFilters) { ui.groupFilters.addEventListener('click', (e) => { if(e.target.tagName === 'BUTTON') { const allBtn = ui.groupFilters.querySelector('[data-filter="all"]'); const myBtn = ui.groupFilters.querySelector('[data-filter="my"]'); if(e.target.dataset.filter === 'all') { allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors"; myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors"; } else { myBtn.className = "flex-1 py-1 text-[10px] font-bold bg-blue-900/50 text-blue-200 border border-blue-800 rounded hover:bg-blue-800 transition-colors"; allBtn.className = "flex-1 py-1 text-[10px] font-bold bg-gray-800 text-gray-400 border border-gray-700 rounded hover:bg-gray-700 transition-colors"; } filterGroups(); } }); }
 
+    // ✅ MEMORY LEAK FIX: Cleanup realtime subscriptions before page unload
+    window.addEventListener('beforeunload', () => {
+        if (postsUnsubscribe) {
+            postsUnsubscribe();
+            postsUnsubscribe = null;
+        }
+        if (groupsUnsubscribe) {
+            groupsUnsubscribe();
+            groupsUnsubscribe = null;
+        }
+        if (groupChatUnsubscribe) {
+            groupChatUnsubscribe();
+            groupChatUnsubscribe = null;
+        }
+        if (groupFilesUnsubscribe) {
+            groupFilesUnsubscribe();
+            groupFilesUnsubscribe = null;
+        }
+    });
+
     window.togglePostModal = togglePostModal;
     window.toggleCreateGroupModal = toggleCreateGroupModal;
 }

@@ -19,9 +19,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // =================================================================
 // UTILITAIRES - Conversion camelCase <-> snake_case
 // =================================================================
- claude/refactor-and-optimize-FZ2kb
 
- main
 function toCamelCase(str) {
     return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
 }
@@ -30,8 +28,6 @@ function toSnakeCase(str) {
     return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
 }
 
- claude/refactor-and-optimize-FZ2kb
- main
 function mapKeysToCamelCase(obj) {
     if (!obj || typeof obj !== 'object') return obj
     if (Array.isArray(obj)) return obj.map(mapKeysToCamelCase)
@@ -60,7 +56,6 @@ function mapKeysToSnakeCase(obj) {
     return result
 }
 
-claude/refactor-and-optimize-FZ2kb
 // Helpers spécifiques pour users (rétro-compatibilité)
 function mapUserFields(userData) {
     if (!userData) return null
@@ -95,7 +90,6 @@ function unmapUserFields(userData) {
     return mapped
 }
 
- main
 // Export des helpers de conversion
 export { mapKeysToCamelCase, mapKeysToSnakeCase, toCamelCase, toSnakeCase }
 
@@ -743,14 +737,65 @@ export function writeBatch(dbRef) {
             operations.push({ type: 'delete', docRef })
         },
         async commit() {
-            for (const op of operations) {
-                if (op.type === 'update') {
-                    await op.docRef.update(op.data)
-                } else if (op.type === 'set') {
-                    await op.docRef.set(op.data)
-                } else if (op.type === 'delete') {
-                    await op.docRef.delete()
+            // ✅ BUG FIX: Add rollback logic for failed batch operations
+            const originalStates = []
+            let successCount = 0
+
+            try {
+                // Execute operations sequentially and track state
+                for (let i = 0; i < operations.length; i++) {
+                    const op = operations[i]
+
+                    // Save original state before modification (for rollback)
+                    if (op.type === 'update' || op.type === 'delete') {
+                        try {
+                            const original = await op.docRef.get()
+                            originalStates.push({
+                                index: i,
+                                docRef: op.docRef,
+                                existed: original.exists(),
+                                data: original.exists() ? original.data() : null
+                            })
+                        } catch (e) {
+                            // Document doesn't exist yet, skip state saving
+                            originalStates.push({ index: i, docRef: op.docRef, existed: false, data: null })
+                        }
+                    }
+
+                    // Execute operation
+                    if (op.type === 'update') {
+                        await op.docRef.update(op.data)
+                    } else if (op.type === 'set') {
+                        await op.docRef.set(op.data)
+                    } else if (op.type === 'delete') {
+                        await op.docRef.delete()
+                    }
+
+                    successCount++
                 }
+            } catch (error) {
+                console.error(`❌ Batch operation failed at ${successCount}/${operations.length}:`, error)
+
+                // ✅ ROLLBACK: Attempt to restore original states
+                if (originalStates.length > 0) {
+                    console.warn('🔄 Attempting rollback of successful operations...')
+
+                    for (const state of originalStates.reverse()) {
+                        try {
+                            if (state.existed && state.data) {
+                                // Restore original data
+                                await state.docRef.set(state.data)
+                            } else if (!state.existed && operations[state.index].type !== 'delete') {
+                                // Delete newly created document
+                                await state.docRef.delete().catch(() => {}) // Ignore if already deleted
+                            }
+                        } catch (rollbackError) {
+                            console.error(`⚠️ Rollback failed for operation ${state.index}:`, rollbackError)
+                        }
+                    }
+                }
+
+                throw new Error(`Batch commit failed at operation ${successCount}/${operations.length}: ${error.message}. Rollback attempted.`)
             }
         }
     }
@@ -843,17 +888,9 @@ export async function getDownloadURL(storageRef) {
 // =================================================================
 export { supabase as default }
 
-claude/refactor-and-optimize-FZ2kb
 // Initialiser auth.currentUser automatiquement au démarrage
 auth.init().catch(err => console.warn('Auth init failed:', err))
 
 // ✅ LOW: Removed console.log for production (dev: décommenter si besoin)
 // console.log('✅ Supabase initialisé avec wrappers Firebase')
 // console.log('📍 URL:', SUPABASE_URL)
-// Initialiser auth.currentUser automatiquement
-auth.init().catch(err => console.warn('Auth init failed:', err))
-
-// Pour debug
-console.log('✅ Supabase initialisé avec wrappers Firebase')
-console.log('📍 URL:', SUPABASE_URL)
-main
