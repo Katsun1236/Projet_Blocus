@@ -77,4 +77,6 @@ export default defineConfig({
   define: {
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
+
+  // Force Vercel rebuild - 2025-12-28
 });
