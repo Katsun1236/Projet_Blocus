@@ -196,9 +196,10 @@ function extractQuizSourceData(source) {
         }
         const file = userCourses.find(f => f.id === fileId);
         if (file) {
-            topic = `Cours : ${file.name}`;
-            dataContext = `Document: ${file.name}. URL: ${file.url}. Génère des questions pertinentes basées sur ce type de document.`;
-            if (!title) title = file.name;
+            const fileName = file.file_name || file.title || "Fichier";
+            topic = `Cours : ${fileName}`;
+            dataContext = `Document: ${fileName}. Génère des questions pertinentes basées sur ce type de matière.`;
+            if (!title) title = fileName;
         }
     }
 
@@ -212,6 +213,52 @@ function setGeneratingState(isGenerating) {
         ? `<i class="fas fa-spinner fa-spin"></i> Génération...`
         : `<i class="fas fa-bolt mr-2"></i> Générer`;
     ui.loadingContainer.classList.toggle('hidden', !isGenerating);
+}
+
+// Helper function to call Gemini API directly
+async function callGeminiAPI(prompt) {
+    const GEMINI_API_KEY = 'AIzaSyBMOeGiwowO0YuBXwmKlCZa1LFaX0XzXH8';
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+
+    try {
+        console.log('🤖 Calling Gemini API...');
+
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: prompt
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 2048,
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Gemini API error: ${errorData.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('✅ Gemini API response received');
+
+        if (!data.candidates || data.candidates.length === 0) {
+            throw new Error('No response from Gemini API');
+        }
+
+        const text = data.candidates[0].content.parts[0].text;
+        return text;
+    } catch (error) {
+        console.error('❌ Gemini API error:', error);
+        throw error;
+    }
 }
 
 async function generateQuiz() {
@@ -232,15 +279,52 @@ async function generateQuiz() {
     setGeneratingState(true);
 
     try {
-        const generateContent = httpsCallable(functions, 'generateContent');
-        const result = await generateContent({
-            mode: 'quiz',
-            topic: sourceData.topic,
-            data: sourceData.dataContext,
-            options: { count, type }
-        });
+        console.log('🎯 Generating quiz:', { topic: sourceData.topic, count, type });
 
-        const quizData = result.data;
+        // Créer le prompt pour Gemini
+        const prompt = `Tu es un générateur de quiz éducatif. Génère un quiz au format JSON strict.
+
+Sujet: ${sourceData.topic}
+${sourceData.dataContext ? `Contexte: ${sourceData.dataContext}` : ''}
+
+Nombre de questions: ${count}
+Type de questions: ${type === 'qcm' ? 'QCM (choix multiples)' : 'Vrai/Faux'}
+
+IMPORTANT: Réponds UNIQUEMENT avec un objet JSON valide au format suivant, sans texte avant ou après:
+
+{
+  "questions": [
+    {
+      "question": "Quelle est la question ?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": 0
+    }
+  ]
+}
+
+Pour ${type === 'qcm' ? 'QCM' : 'Vrai/Faux'}:
+${type === 'qcm' ? '- Fournis 4 options par question' : '- Fournis exactement 2 options: ["Vrai", "Faux"]'}
+- correctAnswer est l'index (0, 1, 2 ou 3) de la bonne réponse
+- Les questions doivent être pertinentes et éducatives
+- Varie la difficulté des questions
+
+Génère exactement ${count} question${count > 1 ? 's' : ''}.`;
+
+        const aiResponse = await callGeminiAPI(prompt);
+        console.log('📝 Raw AI response:', aiResponse);
+
+        // Nettoyer la réponse pour extraire le JSON
+        let jsonText = aiResponse.trim();
+
+        // Enlever les balises markdown si présentes
+        if (jsonText.startsWith('```json')) {
+            jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+        } else if (jsonText.startsWith('```')) {
+            jsonText = jsonText.replace(/```\n?/g, '');
+        }
+
+        // Parser le JSON
+        const quizData = JSON.parse(jsonText);
 
         if (!quizData || !quizData.questions || quizData.questions.length === 0) {
             throw new Error("L'IA n'a pas renvoyé de questions valides.");
@@ -248,12 +332,13 @@ async function generateQuiz() {
 
         quizData.title = sourceData.title;
 
+        console.log('✅ Quiz generated:', quizData);
         showMessage("Quiz prêt !", "success");
         startQuiz(quizData);
-        closeModal();
+        ui.modal.classList.add('hidden');
 
     } catch (error) {
-        console.error("Erreur Génération:", error);
+        console.error("❌ Erreur Génération:", error);
         showMessage("Erreur IA : " + (error.message || "Réessayez plus tard."), "error");
     } finally {
         isGenerating = false;
