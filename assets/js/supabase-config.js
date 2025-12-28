@@ -19,8 +19,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 // =================================================================
 // UTILITAIRES - Conversion camelCase <-> snake_case
 // =================================================================
+ claude/refactor-and-optimize-FZ2kb
 
-// Conversion de chaînes individuelles
+ main
 function toCamelCase(str) {
     return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
 }
@@ -29,7 +30,8 @@ function toSnakeCase(str) {
     return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
 }
 
-// Conversion récursive d'objets
+ claude/refactor-and-optimize-FZ2kb
+ main
 function mapKeysToCamelCase(obj) {
     if (!obj || typeof obj !== 'object') return obj
     if (Array.isArray(obj)) return obj.map(mapKeysToCamelCase)
@@ -58,6 +60,7 @@ function mapKeysToSnakeCase(obj) {
     return result
 }
 
+claude/refactor-and-optimize-FZ2kb
 // Helpers spécifiques pour users (rétro-compatibilité)
 function mapUserFields(userData) {
     if (!userData) return null
@@ -92,6 +95,7 @@ function unmapUserFields(userData) {
     return mapped
 }
 
+ main
 // Export des helpers de conversion
 export { mapKeysToCamelCase, mapKeysToSnakeCase, toCamelCase, toSnakeCase }
 
@@ -168,17 +172,19 @@ export const auth = {
     onAuthStateChanged(callback) {
         // Récupérer l'utilisateur actuel au démarrage
         supabase.auth.getUser().then(({ data }) => {
-            this.currentUser = data.user
+            const user = data.user ? mapKeysToCamelCase(data.user) : null
+            this.currentUser = user
             if (callback && typeof callback === 'function') {
-                callback(data.user)
+                callback(user)
             }
         })
 
         // Écouter les changements
         const { data } = supabase.auth.onAuthStateChange((event, session) => {
-            this.currentUser = session?.user ?? null
+            const user = session?.user ? mapKeysToCamelCase(session.user) : null
+            this.currentUser = user
             if (callback && typeof callback === 'function') {
-                callback(session?.user ?? null)
+                callback(user)
             }
         })
 
@@ -837,9 +843,17 @@ export async function getDownloadURL(storageRef) {
 // =================================================================
 export { supabase as default }
 
+claude/refactor-and-optimize-FZ2kb
 // Initialiser auth.currentUser automatiquement au démarrage
 auth.init().catch(err => console.warn('Auth init failed:', err))
 
 // ✅ LOW: Removed console.log for production (dev: décommenter si besoin)
 // console.log('✅ Supabase initialisé avec wrappers Firebase')
 // console.log('📍 URL:', SUPABASE_URL)
+// Initialiser auth.currentUser automatiquement
+auth.init().catch(err => console.warn('Auth init failed:', err))
+
+// Pour debug
+console.log('✅ Supabase initialisé avec wrappers Firebase')
+console.log('📍 URL:', SUPABASE_URL)
+main
