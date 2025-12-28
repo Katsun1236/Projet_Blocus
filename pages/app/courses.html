@@ -332,6 +332,27 @@
 
                 if (error) throw error;
 
+                // Charger tous les cours pour compter par dossier
+                const { data: allCourses, error: coursesError } = await supabase
+                    .from('courses')
+                    .select('folder_id')
+                    .eq('user_id', currentUserId);
+
+                if (coursesError) {
+                    console.error('❌ Erreur chargement cours pour count:', coursesError);
+                }
+
+                // Compter le nombre de cours par dossier
+                const courseCounts = {};
+                if (allCourses) {
+                    allCourses.forEach(course => {
+                        const folderId = course.folder_id;
+                        if (folderId) {
+                            courseCounts[folderId] = (courseCounts[folderId] || 0) + 1;
+                        }
+                    });
+                }
+
                 ui.foldersGrid.innerHTML = '';
 
                 if (!folders || folders.length === 0) {
@@ -340,6 +361,7 @@
                 }
 
                 folders.forEach(folder => {
+                    const courseCount = courseCounts[folder.id] || 0;
                     const el = document.createElement('div');
                     el.className = 'folder-card content-glass p-4 rounded-xl cursor-pointer transition-all group relative';
                     el.innerHTML = `
@@ -350,7 +372,7 @@
                             </button>
                         </div>
                         <h3 class="font-bold text-white text-sm truncate" title="${folder.name}">${folder.name}</h3>
-                        <p class="text-xs text-gray-500 mt-1">${folder.course_count || 0} éléments</p>
+                        <p class="text-xs text-gray-500 mt-1">${courseCount} élément${courseCount !== 1 ? 's' : ''}</p>
                     `;
                     el.addEventListener('click', (e) => { if (!e.target.closest('.delete-folder-btn')) window.location.href = `courses.html?folder=${folder.id}`; });
                     el.querySelector('.delete-folder-btn').addEventListener('click', async (e) => {
@@ -620,27 +642,32 @@
             const name = ui.newFolderName.value.trim();
             if (!name) return;
             try {
+                console.log('📁 Création dossier:', name);
+
                 // Utiliser directement l'API Supabase au lieu des wrappers Firebase
                 const { data, error } = await supabase
                     .from('folders')
                     .insert({
                         name: name,
-                        user_id: currentUserId,
-                        course_count: 0
+                        user_id: currentUserId
                         // created_at sera auto-généré par Supabase
                     })
                     .select()
                     .single();
 
-                if (error) throw error;
+                if (error) {
+                    console.error('❌ Erreur Supabase:', error);
+                    throw error;
+                }
 
+                console.log('✅ Dossier créé:', data);
                 ui.folderModal.classList.add('hidden');
                 ui.newFolderName.value = '';
                 showMessage('Dossier créé !', 'success');
                 loadFolders();
             } catch (error) {
-                console.error('Erreur création dossier:', error);
-                showMessage('Erreur création dossier', 'error');
+                console.error('❌ Erreur création dossier:', error);
+                showMessage('Erreur création dossier: ' + (error.message || 'Erreur inconnue'), 'error');
             }
         });
 
