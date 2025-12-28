@@ -37,11 +37,30 @@
 
                 if (error) {
                     console.error('Erreur session:', error);
+
+                    // Si c'est une popup, fermer et retourner à la fenêtre parente
+                    if (window.opener) {
+                        window.close();
+                        return;
+                    }
+
                     window.location.href = '/pages/auth/login.html?error=auth_failed';
                     return;
                 }
 
                 if (session) {
+                    // Si c'est une popup, envoyer un message à la fenêtre parente
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'supabase-auth-success',
+                            session: session
+                        }, window.location.origin);
+
+                        // La popup sera fermée par la fenêtre parente
+                        return;
+                    }
+
+                    // Si ce n'est pas une popup, comportement normal
                     // Vérifier si l'utilisateur existe dans la table users
                     const { data: userData, error: userError } = await supabase
                         .from('users')
@@ -68,10 +87,24 @@
                     window.location.href = '/pages/app/dashboard.html';
                 } else {
                     console.log('Pas de session, retour au login');
+
+                    // Si c'est une popup, fermer
+                    if (window.opener) {
+                        window.close();
+                        return;
+                    }
+
                     window.location.href = '/pages/auth/login.html';
                 }
             } catch (err) {
                 console.error('Erreur callback:', err);
+
+                // Si c'est une popup, fermer
+                if (window.opener) {
+                    window.close();
+                    return;
+                }
+
                 window.location.href = '/pages/auth/login.html?error=unexpected';
             }
         }
