@@ -7,31 +7,29 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         try {
-            // Utiliser Supabase OAuth
+            showMessage('Redirection vers Google...', 'info');
+
+            // Utiliser Supabase OAuth avec sélection de compte Google
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/pages/app/dashboard.html`
+                    redirectTo: `${window.location.origin}/pages/auth/callback.html`,
+                    // Force Google à afficher le sélecteur de compte à chaque fois
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'select_account'
+                    }
                 }
             });
 
             if (error) throw error;
 
-            // Supabase gère la redirection automatiquement
-            showMessage('Redirection vers Google...', 'success');
-
-            // Note: La redirection sera gérée automatiquement par Supabase OAuth
-            // après que l'utilisateur se soit authentifié
+            // La redirection vers Google se fait automatiquement
+            // Le retour sera géré par callback.html
 
         } catch (error) {
             console.error("Erreur Auth Google:", error);
-            if (error.code === 'auth/popup-closed-by-user') {
-                showMessage("Connexion annulée.", 'error');
-            } else if (error.code === 'auth/popup-blocked') {
-                showMessage("Popup bloqué. Autorisez les popups pour ce site.", 'error');
-            } else {
-                showMessage(`Erreur Google: ${error.message}`, 'error');
-            }
+            showMessage(`Erreur de connexion: ${error.message}`, 'error');
         }
     };
 

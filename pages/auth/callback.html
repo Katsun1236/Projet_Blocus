@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion en cours...</title>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <style>
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #6366f1;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-[#050505] text-white min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <div class="loader mx-auto mb-6"></div>
+        <h2 class="text-2xl font-bold mb-2">Connexion en cours...</h2>
+        <p class="text-gray-400">Vous allez être redirigé dans un instant</p>
+    </div>
+
+    <script type="module">
+        import { supabase } from '../../assets/js/supabase-config.js';
+
+        async function handleAuthCallback() {
+            try {
+                // Récupérer la session après le retour de Google OAuth
+                const { data: { session }, error } = await supabase.auth.getSession();
+
+                if (error) {
+                    console.error('Erreur session:', error);
+                    window.location.href = '/pages/auth/login.html?error=auth_failed';
+                    return;
+                }
+
+                if (session) {
+                    // Vérifier si l'utilisateur existe dans la table users
+                    const { data: userData, error: userError } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    // Si l'utilisateur n'existe pas encore, le créer
+                    if (userError && userError.code === 'PGRST116') {
+                        const { error: insertError } = await supabase
+                            .from('users')
+                            .insert({
+                                id: session.user.id,
+                                email: session.user.email,
+                                first_name: session.user.user_metadata.full_name?.split(' ')[0] || 'Utilisateur',
+                                last_name: session.user.user_metadata.full_name?.split(' ').slice(1).join(' ') || '',
+                                photo_url: session.user.user_metadata.avatar_url || null,
+                                created_at: new Date().toISOString()
+                            });
+
+                        if (insertError) {
+                            console.error('Erreur création utilisateur:', insertError);
+                        }
+                    }
+
+                    // Redirection vers le dashboard
+                    console.log('Session valide, redirection...');
+                    window.location.href = '/pages/app/dashboard.html';
+                } else {
+                    console.log('Pas de session, retour au login');
+                    window.location.href = '/pages/auth/login.html';
+                }
+            } catch (err) {
+                console.error('Erreur callback:', err);
+                window.location.href = '/pages/auth/login.html?error=unexpected';
+            }
+        }
+
+        // Attendre un peu pour laisser Supabase traiter le hash OAuth
+        setTimeout(handleAuthCallback, 500);
+    </script>
+</body>
+</html>
