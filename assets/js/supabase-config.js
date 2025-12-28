@@ -642,7 +642,8 @@ export function onSnapshot(queryOrDoc, callback, errorCallback) {
                 )
                 .subscribe((status) => {
                     if (status === 'SUBSCRIBED') {
-                        console.log(`✅ Realtime activé pour ${tableName}`)
+                        // ✅ LOW: Removed console.log for production
+                        // console.log(`✅ Realtime activé pour ${tableName}`)
                     } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
                         console.warn(`⚠️ Realtime échoué pour ${tableName}, fallback polling`)
                         useRealtime = false
@@ -657,7 +658,8 @@ export function onSnapshot(queryOrDoc, callback, errorCallback) {
     // Fallback polling si Realtime pas disponible
     let intervalId = null
     if (!useRealtime) {
-        console.log(`⏱️ Polling activé pour ${tableName} (refresh 5s)`)
+        // ✅ LOW: Removed console.log for production
+        // console.log(`⏱️ Polling activé pour ${tableName} (refresh 5s)`)
         intervalId = setInterval(loadAndCallback, 5000) // 5 secondes
     }
 
@@ -786,6 +788,6 @@ export async function getDownloadURL(storageRef) {
 // =================================================================
 export { supabase as default }
 
-// Pour debug
-console.log('✅ Supabase initialisé avec wrappers Firebase')
-console.log('📍 URL:', SUPABASE_URL)
+// ✅ LOW: Removed console.log for production
+// console.log('✅ Supabase initialisé avec wrappers Firebase')
+// console.log('📍 URL:', SUPABASE_URL)

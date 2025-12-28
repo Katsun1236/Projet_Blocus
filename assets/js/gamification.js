@@ -424,4 +424,5 @@ export function getXPForNextLevel(currentXP) {
     };
 }
 
-console.log('✅ Gamification system loaded');
+// ✅ LOW: Removed console.log for production
+// console.log('✅ Gamification system loaded');

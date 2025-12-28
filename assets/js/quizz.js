@@ -92,13 +92,15 @@ async function loadUserSyntheses() {
 
 async function loadUserCourses() {
     try {
-        console.log("Chargement des cours pour:", auth.currentUser.id);
+        // ✅ LOW: Removed debug console.log
+        // console.log("Chargement des cours pour:", auth.currentUser.id);
         const coursesRef = collection(db, 'users', auth.currentUser.id, 'courses');
         const snapshot = await getDocs(coursesRef);
         userCourses = [];
         ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
 
-        console.log("Cours trouvés:", snapshot.size);
+        // ✅ LOW: Removed debug console.log
+        // console.log("Cours trouvés:", snapshot.size);
 
         if (snapshot.empty) {
             ui.courseSelect.innerHTML = '<option value="">Aucun fichier trouvé. Uploadez des cours !</option>';
