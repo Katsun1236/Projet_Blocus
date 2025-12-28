@@ -23,8 +23,8 @@ const getEnvVar = (key, fallback) => {
     return fallback;
 };
 
-const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL', 'https://vhtzudbcfyxnwmpyjyqw.supabase.co');
-const SUPABASE_ANON_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY', 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX');
+const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL', "sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX');
+const SUPABASE_ANON_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU');
 
 // Créer le client Supabase avec persistence de session
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
