@@ -389,30 +389,50 @@
 
         // --- Stats & Data Loading ---
         async function loadDashboardData(userId) {
-            // 1. Stats Counts (Snapshot unique pour perf)
-            const coursesSnap = await getDocs(collection(db, 'users', userId, 'courses'));
-            const quizSnap = await getDocs(collection(db, 'users', userId, 'quizzes')); // Assure-toi que la collection s'appelle 'quizzes'
-            const foldersSnap = await getDocs(collection(db, 'users', userId, 'folders'));
+            try {
+                // 1. Stats Counts - Utiliser l'API Supabase directe
+                const { data: courses, error: coursesError } = await supabase
+                    .from('courses')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', userId);
 
-            ui.statsCourses.textContent = coursesSnap.size;
-            ui.statsQuiz.textContent = quizSnap.size;
-            ui.statsFolders.textContent = `${foldersSnap.size} dossiers`;
+                const { data: quizzes, error: quizError } = await supabase
+                    .from('quiz_results')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', userId);
 
-            // 2. Dossiers Récents (Limit 5)
-            const foldersList = foldersSnap.docs
-                .map(doc => ({id: doc.id, ...doc.data()}))
-                .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                .slice(0, 5);
+                const { data: folders, error: foldersError } = await supabase
+                    .from('folders')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', userId);
 
-            renderFolders(foldersList);
+                // Afficher les stats (count est dans la réponse)
+                ui.statsCourses.textContent = courses?.length || 0;
+                ui.statsQuiz.textContent = quizzes?.length || 0;
+                ui.statsFolders.textContent = `${folders?.length || 0} dossiers`;
 
-            // 3. Fichiers Récents (Limit 5)
-            const coursesList = coursesSnap.docs
-                .map(doc => ({id: doc.id, ...doc.data()}))
-                .sort((a,b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))
-                .slice(0, 5);
+                // 2. Dossiers Récents (Limit 5)
+                const { data: recentFolders } = await supabase
+                    .from('folders')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
 
-            renderCourses(coursesList);
+                renderFolders(recentFolders || []);
+
+                // 3. Fichiers Récents (Limit 5)
+                const { data: recentCourses } = await supabase
+                    .from('courses')
+                    .select('*')
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                renderCourses(recentCourses || []);
+            } catch (error) {
+                console.error('Erreur chargement dashboard:', error);
+            }
         }
 
         function renderFolders(folders) {
@@ -433,7 +453,7 @@
                     <div class="text-indigo-400 group-hover:text-white transition-colors"><i class="fas fa-folder text-3xl"></i></div>
                     <div>
                         <h4 class="font-bold text-white truncate text-sm">${f.name}</h4>
-                        <p class="text-xs text-gray-500">${f.courseCount || 0} fichiers</p>
+                        <p class="text-xs text-gray-500">${f.course_count || 0} fichiers</p>
                     </div>
                 `;
                 ui.foldersGrid.appendChild(el);
@@ -454,21 +474,21 @@
             courses.forEach(c => {
                 let icon = 'fa-file-alt';
                 let color = 'text-gray-400';
-                if (c.fileName?.endsWith('.pdf')) { icon = 'fa-file-pdf'; color = 'text-red-400'; }
-                
-                const dateStr = c.createdAt ? new Date(c.createdAt.seconds * 1000).toLocaleDateString('fr-FR') : '';
+                if (c.file_name?.endsWith('.pdf')) { icon = 'fa-file-pdf'; color = 'text-red-400'; }
+
+                const dateStr = c.created_at ? new Date(c.created_at).toLocaleDateString('fr-FR') : '';
 
                 const el = document.createElement('div');
                 el.className = 'p-4 flex items-center justify-between hover:bg-gray-800/50 transition-colors cursor-pointer group';
-                el.onclick = () => window.open(c.fileURL || c.url, '_blank');
+                el.onclick = () => window.open(c.file_url, '_blank');
                 el.innerHTML = `
                     <div class="flex items-center gap-4 overflow-hidden">
                         <div class="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center ${color} text-lg flex-shrink-0">
                             <i class="fas ${icon}"></i>
                         </div>
                         <div class="min-w-0">
-                            <h4 class="font-medium text-white truncate group-hover:text-indigo-400 transition-colors">${c.title || c.fileName}</h4>
-                            <p class="text-xs text-gray-500">${dateStr} • ${(c.size / 1024 / 1024).toFixed(1)} MB</p>
+                            <h4 class="font-medium text-white truncate group-hover:text-indigo-400 transition-colors">${c.title || c.file_name}</h4>
+                            <p class="text-xs text-gray-500">${dateStr}</p>
                         </div>
                     </div>
                     <button class="p-2 text-gray-500 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity"><i class="fas fa-download"></i></button>
