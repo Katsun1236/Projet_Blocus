@@ -271,7 +271,7 @@
             el.innerHTML = `
                 <div class="flex items-start gap-4">
                     <a href="view-profile.html?id=${discussion.authorId}" class="flex-shrink-0">
-                        <img src="${discussion.authorPhotoURL || 'https://ui-avatars.com/api/?background=random'}" alt="Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-gray-700 hover:border-indigo-500 transition-colors">
+                        <img loading="lazy" src="${discussion.authorPhotoURL || 'https://ui-avatars.com/api/?background=random'}" alt="Avatar" class="w-12 h-12 rounded-full object-cover border-2 border-gray-700 hover:border-indigo-500 transition-colors">
                     </a>
                     <div class="flex-grow min-w-0">
                         <div class="flex justify-between items-start">

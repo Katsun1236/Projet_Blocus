@@ -79,3 +79,94 @@ export function setButtonLoading(button, isLoading, loadingText = 'Chargement...
         delete button.dataset.originalContent;
     }
 }
+
+// ✅ CODE DUPLICATION: Modal management utility
+export function createModalManager(modalElement) {
+    return {
+        show() {
+            if (modalElement) modalElement.classList.remove('hidden');
+        },
+        hide() {
+            if (modalElement) modalElement.classList.add('hidden');
+        },
+        toggle() {
+            if (modalElement) modalElement.classList.toggle('hidden');
+        },
+        onClickOutside(callback) {
+            if (modalElement) {
+                modalElement.addEventListener('click', (e) => {
+                    if (e.target === modalElement) {
+                        callback();
+                    }
+                });
+            }
+        }
+    };
+}
+
+// ✅ CODE DUPLICATION: Time utilities
+export const TimeUtils = {
+    /**
+     * Convert minutes to milliseconds
+     */
+    minutesToMs(minutes) {
+        return minutes * 60 * 1000;
+    },
+
+    /**
+     * Convert milliseconds to minutes
+     */
+    msToMinutes(ms) {
+        return Math.floor(ms / 60000);
+    },
+
+    /**
+     * Format seconds to MM:SS
+     */
+    formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    },
+
+    /**
+     * Get end of day timestamp
+     */
+    getEndOfDay(date = new Date()) {
+        const d = new Date(date);
+        d.setHours(23, 59, 59, 999);
+        return d;
+    },
+
+    /**
+     * Get start of day timestamp
+     */
+    getStartOfDay(date = new Date()) {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    }
+};
+
+// ✅ CODE DUPLICATION: Empty state HTML generator
+export function createEmptyState(icon, title, message) {
+    return `
+        <div class="text-center py-12 text-gray-400">
+            <i class="fas ${icon} text-5xl mb-4 opacity-50"></i>
+            <h3 class="text-xl font-semibold mb-2">${title}</h3>
+            <p class="text-sm">${message}</p>
+        </div>
+    `;
+}
+
+// ✅ CODE DUPLICATION: Prevent default helper
+export function handleFormSubmit(formElement, callback) {
+    if (!formElement) return;
+
+    formElement.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (callback && typeof callback === 'function') {
+            callback(e);
+        }
+    });
+}

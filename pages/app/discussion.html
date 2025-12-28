@@ -156,7 +156,7 @@
                         <div class="flex items-start justify-between mb-6 relative z-10">
                             <div class="flex items-center gap-4">
                                 <a id="post-author-link" href="#" onclick="event.stopPropagation()">
-                                    <img id="post-author-avatar" src="" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 bg-gray-800">
+                                    <img loading="lazy" id="post-author-avatar" src="" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 bg-gray-800">
                                 </a>
                                 <div>
                                     <h1 id="post-title" class="text-2xl md:text-3xl font-display font-bold text-white leading-tight">Chargement...</h1>
@@ -200,7 +200,7 @@
                         
                         
                         <form id="reply-form" class="flex gap-4 items-start">
-                            <img id="current-user-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-700 hidden md:block bg-gray-800">
+                            <img loading="lazy" id="current-user-avatar" src="" class="w-10 h-10 rounded-full object-cover border border-gray-700 hidden md:block bg-gray-800">
                             <div class="flex-grow relative">
                                 <textarea id="reply-input" rows="3" class="w-full bg-gray-800/50 border border-gray-700 rounded-xl p-4 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all resize-none" placeholder="Ajouter une réponse..."></textarea>
                                 <button type="submit" id="submit-reply-btn" class="absolute bottom-3 right-3 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition-colors shadow-lg">
@@ -377,7 +377,7 @@
             
             el.innerHTML = `
                 <a href="view-profile.html?id=${reply.authorId}">
-                    <img src="${reply.authorPhotoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-10 h-10 rounded-full object-cover border border-gray-700 flex-shrink-0 bg-gray-800">
+                    <img loading="lazy" src="${reply.authorPhotoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-10 h-10 rounded-full object-cover border border-gray-700 flex-shrink-0 bg-gray-800">
                 </a>
                 <div class="flex-grow">
                     <div class="bg-gray-800/50 border border-gray-700 rounded-xl p-4 reply-card-style">
