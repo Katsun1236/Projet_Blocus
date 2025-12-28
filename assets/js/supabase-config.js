@@ -9,12 +9,33 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// Configuration depuis variables d'environnement
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://vhtzudbcfyxnwmpyjyqw.supabase.co'
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX'
+// ✅ Configuration depuis variables d'environnement avec fallback sécurisé
+// Fonctionne avec ou sans Vite dev server
+const getEnvVar = (key, fallback) => {
+    try {
+        // Vérifier si import.meta.env existe (contexte Vite)
+        if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+            return import.meta.env[key];
+        }
+    } catch (e) {
+        // import.meta n'existe pas, utiliser fallback
+    }
+    return fallback;
+};
 
-// Créer le client Supabase
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+const SUPABASE_URL = getEnvVar('VITE_SUPABASE_URL', 'https://vhtzudbcfyxnwmpyjyqw.supabase.co');
+const SUPABASE_ANON_KEY = getEnvVar('VITE_SUPABASE_ANON_KEY', 'sb_publishable_05DXIBdO1dVAZK02foL-bA_SzobNKZX');
+
+// Créer le client Supabase avec persistence de session
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        // ✅ PERSISTENCE: Reste connecté même après fermeture du navigateur
+        persistSession: true,
+        storage: window.localStorage,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+    }
+})
 
 // =================================================================
 // UTILITAIRES - Conversion camelCase <-> snake_case
