@@ -558,7 +558,9 @@ export async function collection(dbRef, tableName, ...args) {
         const SUBCOLLECTION_MAP = {
             'courses': 'courses',
             'syntheses': 'syntheses',
+            'quizzes': 'quiz_results', // quizzes → quiz_results
             'quiz_results': 'quiz_results',
+            'folders': 'folders',
             'tutor_messages': 'tutor_messages',
             'review_cards': 'review_cards',
             'planning': 'planning_events', // planning → planning_events
