@@ -49,15 +49,46 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (event.data.type === 'supabase-auth-success') {
                     window.removeEventListener('message', handleAuthMessage);
-                    popup.close();
 
-                    showMessage('Connexion réussie !', 'success');
+                    // Fermer immédiatement la popup
+                    if (popup && !popup.closed) {
+                        popup.close();
+                    }
 
-                    // Petit délai pour laisser la session se propager
-                    setTimeout(() => {
-                        // Vérifier où rediriger (callback.html le fera)
+                    showMessage('Connexion réussie ! Chargement...', 'success');
+
+                    // Vérifier si l'utilisateur existe dans la base de données
+                    try {
+                        // Petit délai pour laisser la session se synchroniser
+                        await new Promise(resolve => setTimeout(resolve, 300));
+
+                        const { data: { session } } = await supabase.auth.getSession();
+
+                        if (session) {
+                            const { data: userData, error: userError } = await supabase
+                                .from('users')
+                                .select('*')
+                                .eq('id', session.user.id)
+                                .single();
+
+                            // Nouveau utilisateur ou profil incomplet → Onboarding
+                            if ((userError && userError.code === 'PGRST116') || (userData && !userData.first_name)) {
+                                console.log('Nouvel utilisateur → Onboarding');
+                                window.location.href = '/pages/auth/onboarding.html';
+                            } else {
+                                // Utilisateur existant → Dashboard
+                                console.log('Utilisateur existant → Dashboard');
+                                window.location.href = '/pages/app/dashboard.html';
+                            }
+                        } else {
+                            // Pas de session, fallback callback
+                            window.location.href = '/pages/auth/callback.html';
+                        }
+                    } catch (err) {
+                        console.error('Erreur vérification user:', err);
+                        // Fallback: rediriger vers callback qui gérera
                         window.location.href = '/pages/auth/callback.html';
-                    }, 500);
+                    }
                 }
             };
 
