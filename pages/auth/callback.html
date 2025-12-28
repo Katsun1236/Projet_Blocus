@@ -49,26 +49,22 @@
                         .eq('id', session.user.id)
                         .single();
 
-                    // Si l'utilisateur n'existe pas encore, le créer
+                    // Si l'utilisateur n'existe pas encore, redirection vers onboarding
                     if (userError && userError.code === 'PGRST116') {
-                        const { error: insertError } = await supabase
-                            .from('users')
-                            .insert({
-                                id: session.user.id,
-                                email: session.user.email,
-                                first_name: session.user.user_metadata.full_name?.split(' ')[0] || 'Utilisateur',
-                                last_name: session.user.user_metadata.full_name?.split(' ').slice(1).join(' ') || '',
-                                photo_url: session.user.user_metadata.avatar_url || null,
-                                created_at: new Date().toISOString()
-                            });
-
-                        if (insertError) {
-                            console.error('Erreur création utilisateur:', insertError);
-                        }
+                        console.log('Nouvel utilisateur détecté, redirection vers onboarding...');
+                        window.location.href = '/pages/auth/onboarding.html';
+                        return;
                     }
 
-                    // Redirection vers le dashboard
-                    console.log('Session valide, redirection...');
+                    // Si l'utilisateur existe mais n'a pas de firstName (profil incomplet)
+                    if (userData && !userData.first_name) {
+                        console.log('Profil incomplet, redirection vers onboarding...');
+                        window.location.href = '/pages/auth/onboarding.html';
+                        return;
+                    }
+
+                    // Utilisateur existant avec profil complet → Dashboard
+                    console.log('Utilisateur existant, redirection vers dashboard...');
                     window.location.href = '/pages/app/dashboard.html';
                 } else {
                     console.log('Pas de session, retour au login');
