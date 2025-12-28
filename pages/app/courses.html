@@ -247,29 +247,48 @@
         });
 
         async function initPage(user) {
+            console.log('📋 initPage called with user:', user);
             try {
-                const userDoc = await getDoc(doc(db, 'users', currentUserId));
-                if (userDoc.exists()) {
-                    const data = userDoc.data();
-                    ui.userName.textContent = data.firstName || user.displayName;
-                    ui.userAvatar.src = data.photoURL || user.photoURL || 'https://ui-avatars.com/api/?background=random';
+                // Charger les infos utilisateur depuis Supabase
+                const { data: userData } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', currentUserId)
+                    .single();
+
+                if (userData) {
+                    ui.userName.textContent = userData.first_name || user.user_metadata?.full_name || user.email;
+                    ui.userAvatar.src = userData.photo_url || user.user_metadata?.avatar_url || 'https://ui-avatars.com/api/?background=random';
                 }
-            } catch (e) { console.log("Info user chargement background", e); }
+            } catch (e) {
+                console.log("Info user chargement background", e);
+            }
 
             if (currentFolderId) {
                 try {
-                    const folderDoc = await getDoc(doc(db, 'users', currentUserId, 'folders', currentFolderId));
-                    if (folderDoc.exists()) {
-                        const folderData = folderDoc.data();
+                    // Charger les infos du dossier depuis Supabase
+                    const { data: folderData } = await supabase
+                        .from('folders')
+                        .select('*')
+                        .eq('id', currentFolderId)
+                        .eq('user_id', currentUserId)
+                        .single();
+
+                    if (folderData) {
                         ui.breadcrumbName.textContent = folderData.name;
                         ui.breadcrumbName.classList.remove('hidden');
                         ui.breadcrumbSep.classList.remove('hidden');
                         ui.foldersSection.classList.add('hidden');
                     }
-                } catch (e) { console.error("Erreur chargement dossier", e); }
+                } catch (e) {
+                    console.error("Erreur chargement dossier", e);
+                }
             } else {
+                console.log('📁 Loading folders...');
                 loadFolders();
             }
+
+            console.log('📄 Loading files...');
             loadFiles();
         }
 
