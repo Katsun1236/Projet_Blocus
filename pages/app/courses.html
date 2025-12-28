@@ -186,9 +186,15 @@
     </div>
 
     <script type="module">
+        console.log('🚀🚀🚀 COURSES.HTML SCRIPT LOADED 🚀🚀🚀');
+
         import { auth, supabase, onAuthStateChanged } from '../../assets/js/supabase-config.js';
         import { initLayout } from '../../assets/js/layout.js';
         import { showMessage, formatDate } from '../../assets/js/utils.js';
+
+        console.log('✅ Imports successful!');
+        console.log('auth:', auth);
+        console.log('supabase:', supabase);
 
         // --- STATE ---
         let currentUserId = null;
