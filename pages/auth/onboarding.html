@@ -111,7 +111,7 @@
 
     
     <script type="module">
-        import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from '../../assets/js/supabase-config.js';
+        import { supabase } from '../../assets/js/supabase-config.js';
 
         let currentUserId;
         // Emojis pour avatar par défaut
@@ -122,9 +122,9 @@
             const box = document.getElementById('message-box');
             const text = document.getElementById('message-text');
             const icon = document.getElementById('message-icon');
-            
+
             text.textContent = message;
-            
+
             if (type === 'error') {
                 icon.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
                 box.className = "fixed bottom-6 right-6 bg-gray-900 border border-red-500/30 text-white p-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-fade-in-up";
@@ -145,39 +145,45 @@
             document.getElementById('profile-picture-preview').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(randomEmoji)}&background=1f2937&color=fff&size=256&font-size=0.5`;
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             setRandomAvatar();
 
-            onAuthStateChanged(auth, async (user) => {
-                if (user && !user.isAnonymous) {
-                    currentUserId = user.uid;
-                    
-                    // 1. Check si le profil existe déjà -> Redirect Dashboard
-                    try {
-                        const userRef = doc(db, 'users', user.uid);
-                        const docSnap = await getDoc(userRef);
-                        if (docSnap.exists()) {
-                            window.location.href = '../app/dashboard.html';
-                            return;
-                        }
+            // Vérifier l'authentification avec Supabase
+            const { data: { user } } = await supabase.auth.getUser();
 
-                        // 2. Pré-remplissage si auth Google
-                        if (user.displayName) {
-                            const nameParts = user.displayName.split(' ');
-                            document.getElementById('firstName').value = nameParts[0] || '';
-                            document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
-                        }
-                        if (user.photoURL) {
-                            document.getElementById('profile-picture-preview').src = user.photoURL;
-                        }
-                    } catch (error) {
-                        console.error("Erreur vérification profil:", error);
+            if (user) {
+                currentUserId = user.id;
+
+                // 1. Check si le profil existe déjà -> Redirect Dashboard
+                try {
+                    const { data: userData, error } = await supabase
+                        .from('users')
+                        .select('*')
+                        .eq('id', user.id)
+                        .single();
+
+                    if (!error && userData && userData.first_name) {
+                        // Profil complet, redirection dashboard
+                        window.location.href = '../app/dashboard.html';
+                        return;
                     }
-                } else {
-                    // Pas connecté ? Retour login
-                    window.location.href = 'login.html';
+
+                    // 2. Pré-remplissage si auth Google
+                    if (user.user_metadata?.full_name) {
+                        const nameParts = user.user_metadata.full_name.split(' ');
+                        document.getElementById('firstName').value = nameParts[0] || '';
+                        document.getElementById('lastName').value = nameParts.slice(1).join(' ') || '';
+                    }
+                    if (user.user_metadata?.avatar_url) {
+                        document.getElementById('profile-picture-preview').src = user.user_metadata.avatar_url;
+                    }
+                } catch (error) {
+                    console.error("Erreur vérification profil:", error);
                 }
-            });
+            } else {
+                // Pas connecté ? Retour login
+                window.location.href = 'login.html';
+            }
 
             // Gestion du clic sur l'image pour upload
             document.getElementById('profile-picture-container').addEventListener('click', () => {
@@ -197,7 +203,7 @@
             // Soumission du formulaire
             document.getElementById('onboarding-form').addEventListener('submit', async function(event) {
                 event.preventDefault();
-                
+
                 if (!currentUserId) {
                     showMessage("Erreur d'authentification.", 'error');
                     return;
@@ -208,9 +214,9 @@
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Configuration...';
 
-                const firstName = document.getElementById('firstName').value;
-                const lastName = document.getElementById('lastName').value;
-                const school = document.getElementById('school').value;
+                const firstName = document.getElementById('firstName').value.trim();
+                const lastName = document.getElementById('lastName').value.trim();
+                const school = document.getElementById('school').value.trim();
                 const fileInput = document.getElementById('profilePicture');
                 let photoURL = document.getElementById('profile-picture-preview').src;
 
@@ -218,27 +224,44 @@
                     // 1. Upload Image si changée et fichier présent
                     if (fileInput.files.length > 0) {
                         const file = fileInput.files[0];
-                        const storageRef = ref(storage, `users/${currentUserId}/profile.jpg`);
-                        const snapshot = await uploadBytes(storageRef, file);
-                        photoURL = await getDownloadURL(snapshot.ref);
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${currentUserId}/profile.${fileExt}`;
+
+                        const { data: uploadData, error: uploadError } = await supabase.storage
+                            .from('avatars')
+                            .upload(fileName, file, { upsert: true });
+
+                        if (uploadError) throw uploadError;
+
+                        const { data: publicUrlData } = supabase.storage
+                            .from('avatars')
+                            .getPublicUrl(fileName);
+
+                        photoURL = publicUrlData.publicUrl;
                     }
 
-                    // 2. Sauvegarde Firestore
-                    const userProfile = {
-                        firstName,
-                        lastName,
-                        school,
-                        photoURL,
-                        email: auth.currentUser.email,
-                        createdAt: new Date().toISOString(), // ISO String standard
-                        role: 'student' // Role par défaut
-                    };
-                    
-                    await setDoc(doc(db, 'users', currentUserId), userProfile);
+                    // 2. Sauvegarde Supabase (snake_case pour la DB)
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    const { error: upsertError } = await supabase
+                        .from('users')
+                        .upsert({
+                            id: currentUserId,
+                            first_name: firstName,
+                            last_name: lastName,
+                            school: school,
+                            photo_url: photoURL,
+                            email: user.email,
+                            created_at: new Date().toISOString(),
+                            role: 'student',
+                            has_completed_onboarding: false // Le tutoriel se lancera après
+                        });
+
+                    if (upsertError) throw upsertError;
 
                     showMessage("Profil configuré avec succès !", 'success');
-                    
-                    // 3. Redirection
+
+                    // 3. Redirection vers dashboard (le tutoriel se lancera là-bas)
                     setTimeout(() => {
                         window.location.href = '../app/dashboard.html';
                     }, 1500);

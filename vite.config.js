@@ -24,6 +24,7 @@ export default defineConfig({
         login: resolve(__dirname, 'pages/auth/login.html'),
         register: resolve(__dirname, 'pages/auth/register.html'),
         callback: resolve(__dirname, 'pages/auth/callback.html'),
+        onboarding: resolve(__dirname, 'pages/auth/onboarding.html'),
 
         // App pages
         dashboard: resolve(__dirname, 'pages/app/dashboard.html'),
