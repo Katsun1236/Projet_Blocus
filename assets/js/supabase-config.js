@@ -17,10 +17,48 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'sb_publisha
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 // =================================================================
-// HELPERS - Mapping snake_case ↔ camelCase
+// UTILITAIRES - Conversion camelCase <-> snake_case
 // =================================================================
 
-// Mapper les champs users: snake_case (DB) → camelCase (JS)
+// Conversion de chaînes individuelles
+function toCamelCase(str) {
+    return str.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
+}
+
+function toSnakeCase(str) {
+    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+}
+
+// Conversion récursive d'objets
+function mapKeysToCamelCase(obj) {
+    if (!obj || typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(mapKeysToCamelCase)
+
+    const result = {}
+    for (const [key, value] of Object.entries(obj)) {
+        const camelKey = toCamelCase(key)
+        result[camelKey] = typeof value === 'object' && value !== null
+            ? mapKeysToCamelCase(value)
+            : value
+    }
+    return result
+}
+
+function mapKeysToSnakeCase(obj) {
+    if (!obj || typeof obj !== 'object') return obj
+    if (Array.isArray(obj)) return obj.map(mapKeysToSnakeCase)
+
+    const result = {}
+    for (const [key, value] of Object.entries(obj)) {
+        const snakeKey = toSnakeCase(key)
+        result[snakeKey] = typeof value === 'object' && value !== null
+            ? mapKeysToSnakeCase(value)
+            : value
+    }
+    return result
+}
+
+// Helpers spécifiques pour users (rétro-compatibilité)
 function mapUserFields(userData) {
     if (!userData) return null
     return {
@@ -28,19 +66,16 @@ function mapUserFields(userData) {
         firstName: userData.first_name || userData.firstName,
         lastName: userData.last_name || userData.lastName,
         photoURL: userData.photo_url || userData.photoURL,
-        // Garder aussi les versions snake_case pour compatibilité
         first_name: userData.first_name,
         last_name: userData.last_name,
         photo_url: userData.photo_url
     }
 }
 
-// Mapper camelCase (JS) → snake_case (DB) pour updates
 function unmapUserFields(userData) {
     if (!userData) return null
     const mapped = { ...userData }
 
-    // Convertir camelCase → snake_case si présent
     if (mapped.firstName) {
         mapped.first_name = mapped.firstName
         delete mapped.firstName
@@ -57,11 +92,25 @@ function unmapUserFields(userData) {
     return mapped
 }
 
+// Export des helpers de conversion
+export { mapKeysToCamelCase, mapKeysToSnakeCase, toCamelCase, toSnakeCase }
+
 // =================================================================
 // AUTH - Compatible avec Firebase Auth
 // =================================================================
 export const auth = {
     currentUser: null,
+    _initialized: false,
+
+    // Initialiser auth.currentUser au démarrage
+    async init() {
+        if (this._initialized) return this.currentUser
+
+        const { data } = await supabase.auth.getUser()
+        this.currentUser = data.user ? mapKeysToCamelCase(data.user) : null
+        this._initialized = true
+        return this.currentUser
+    },
 
     // Sign in avec email/password
     async signInWithEmailAndPassword(email, password) {
@@ -788,6 +837,9 @@ export async function getDownloadURL(storageRef) {
 // =================================================================
 export { supabase as default }
 
-// ✅ LOW: Removed console.log for production
+// Initialiser auth.currentUser automatiquement au démarrage
+auth.init().catch(err => console.warn('Auth init failed:', err))
+
+// ✅ LOW: Removed console.log for production (dev: décommenter si besoin)
 // console.log('✅ Supabase initialisé avec wrappers Firebase')
 // console.log('📍 URL:', SUPABASE_URL)
