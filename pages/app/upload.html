@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upload - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/animations.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -177,7 +178,7 @@
         // ========== HANDLE FILE ==========
         function handleFileSelect() {
             const file = fileInput.files[0];
-            
+
             if (!file) {
                 fileNameDisplay.classList.add('hidden');
                 return;
@@ -198,6 +199,14 @@
                 fileInput.value = '';
                 fileNameDisplay.classList.add('hidden');
                 return;
+            }
+
+            // Auto-fill title from filename if empty
+            const titleInput = document.getElementById('docTitle');
+            if (!titleInput.value.trim()) {
+                // Remove extension and use filename as default title
+                const filenameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+                titleInput.value = filenameWithoutExt;
             }
 
             // Afficher le fichier
@@ -221,7 +230,10 @@
                 return;
             }
 
-            if (!auth.currentUser) {
+            // Get current user from Supabase
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
                 showFeedback("❌ Vous devez être connecté", "error");
                 setTimeout(() => window.location.href = '../auth/login.html', 2000);
                 return;
@@ -238,8 +250,8 @@
                 // 1. Préparer le stockage
                 const timestamp = Date.now();
                 const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-                const storagePath = `users/${auth.currentUser.uid}/${timestamp}_${sanitizedFileName}`;
-                
+                const storagePath = `users/${user.id}/${timestamp}_${sanitizedFileName}`;
+
                 console.log('📤 Starting upload to:', storagePath);
                 
                 // 2. Upload Firebase Storage
@@ -277,15 +289,15 @@
                             console.log('✅ File uploaded:', downloadURL);
 
                             // 4. Sauvegarder dans Firestore (dans users/{uid}/courses)
-                            const docRef = await addDoc(collection(db, "users", auth.currentUser.uid, "courses"), {
+                            const docRef = await addDoc(collection(db, "users", user.id, "courses"), {
                                 title: title,
                                 fileName: file.name,
                                 fileURL: downloadURL,  // courses.html utilise fileURL
                                 storagePath: storagePath,
                                 type: file.type,
                                 size: file.size,
-                                userId: auth.currentUser.uid,
-                                userName: auth.currentUser.displayName || auth.currentUser.email,
+                                userId: user.id,
+                                userName: user.user_metadata?.full_name || user.email,
                                 folderId: null,  // Par défaut dans la racine
                                 createdAt: serverTimestamp()
                             });
