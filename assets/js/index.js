@@ -42,17 +42,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Écouter le message de la popup quand l'auth est terminée
-            const handleAuthMessage = async (event) => {
-                // Vérifier l'origine pour la sécurité
-                if (event.origin !== window.location.origin) return;
+            // Utiliser localStorage au lieu de postMessage pour éviter les problèmes COOP
+            // Marquer qu'on attend une authentification
+            localStorage.setItem('auth_popup_open', 'true');
 
-                if (event.data.type === 'supabase-auth-success') {
-                    window.removeEventListener('message', handleAuthMessage);
+            // Écouter les changements dans localStorage (communication cross-tab)
+            const handleStorageChange = async (event) => {
+                if (event.key === 'supabase_auth_success' && event.newValue === 'true') {
+                    // Nettoyer
+                    window.removeEventListener('storage', handleStorageChange);
+                    localStorage.removeItem('auth_popup_open');
+                    localStorage.removeItem('supabase_auth_success');
 
-                    // Fermer immédiatement la popup
-                    if (popup && !popup.closed) {
-                        popup.close();
+                    // Fermer la popup si elle est encore ouverte
+                    try {
+                        if (popup) popup.close();
+                    } catch (e) {
+                        // Ignore les erreurs COOP
                     }
 
                     showMessage('Connexion réussie ! Chargement...', 'success');
@@ -60,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Vérifier si l'utilisateur existe dans la base de données
                     try {
                         // Petit délai pour laisser la session se synchroniser
-                        await new Promise(resolve => setTimeout(resolve, 300));
+                        await new Promise(resolve => setTimeout(resolve, 500));
 
                         const { data: { session } } = await supabase.auth.getSession();
 
@@ -92,15 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             };
 
-            window.addEventListener('message', handleAuthMessage);
-
-            // Vérifier si la popup est fermée manuellement
-            const checkPopup = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(checkPopup);
-                    window.removeEventListener('message', handleAuthMessage);
-                }
-            }, 500);
+            window.addEventListener('storage', handleStorageChange);
 
         } catch (error) {
             console.error("Erreur Auth Google:", error);

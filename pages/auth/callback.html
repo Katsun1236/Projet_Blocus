@@ -49,14 +49,18 @@
                 }
 
                 if (session) {
-                    // Si c'est une popup, envoyer un message à la fenêtre parente
-                    if (window.opener) {
-                        window.opener.postMessage({
-                            type: 'supabase-auth-success',
-                            session: session
-                        }, window.location.origin);
+                    // Si c'est une popup, utiliser localStorage pour communiquer (évite COOP)
+                    const isPopup = window.opener || localStorage.getItem('auth_popup_open') === 'true';
 
-                        // La popup sera fermée par la fenêtre parente
+                    if (isPopup) {
+                        // Signaler à la fenêtre parente via localStorage
+                        localStorage.setItem('supabase_auth_success', 'true');
+
+                        // Fermer la popup après un court délai
+                        setTimeout(() => {
+                            window.close();
+                        }, 500);
+
                         return;
                     }
 
