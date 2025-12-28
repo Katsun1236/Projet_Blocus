@@ -246,7 +246,7 @@
                     const el = document.createElement('div');
                     el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:bg-gray-800/50 transition-all flex flex-col items-center text-center';
                     el.innerHTML = `
-                        <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700 mb-3">
+                        <img loading="lazy" src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-16 h-16 rounded-full object-cover border-2 border-gray-700 mb-3">
                         <h3 class="font-bold text-white text-lg mb-1 truncate w-full">${profile.firstName} ${profile.lastName}</h3>
                         <p class="text-xs text-gray-400 mb-4">${profile.school || 'École inconnue'}</p>
                         <div class="flex gap-2 w-full">
@@ -277,7 +277,7 @@
                     el.className = 'content-glass p-5 rounded-2xl border border-gray-800 hover:border-indigo-500/30 transition-all group flex items-center gap-4';
                     el.innerHTML = `
                         <div class="relative">
-                            <img src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 group-hover:border-indigo-500 transition-colors">
+                            <img loading="lazy" src="${profile.photoURL || 'https://ui-avatars.com/api/?background=random'}" class="w-14 h-14 rounded-full object-cover border-2 border-gray-700 group-hover:border-indigo-500 transition-colors">
                             <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></div>
                         </div>
                         <div class="flex-grow min-w-0">
