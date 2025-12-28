@@ -240,16 +240,26 @@
             ui.dateDisplay.textContent = new Date().toLocaleDateString('fr-FR', options);
         }
 
-        console.log('🔐 Setting up onAuthStateChanged...');
-        onAuthStateChanged(auth, async (user) => {
-            console.log('👤 onAuthStateChanged triggered, user:', user);
-            if (user) {
-                currentUserId = user.id;  // Supabase uses .id not .uid
-                console.log('✅ currentUserId set to:', currentUserId);
-                await initPage(user);
-                setupNotifications(currentUserId);
-            } else {
-                console.log('❌ No user, redirecting to login');
+        console.log('🔐 Checking authentication...');
+
+        // Use Supabase API directly instead of onAuthStateChanged wrapper
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        console.log('👤 getUser result:', { user, authError });
+
+        if (user) {
+            currentUserId = user.id;
+            console.log('✅ currentUserId set to:', currentUserId);
+            await initPage(user);
+            setupNotifications(currentUserId);
+        } else {
+            console.log('❌ No user, redirecting to login');
+            window.location.href = '../auth/login.html';
+        }
+
+        // Also listen for auth changes
+        supabase.auth.onAuthStateChange((event, session) => {
+            console.log('🔄 Auth state changed:', event, session);
+            if (event === 'SIGNED_OUT') {
                 window.location.href = '../auth/login.html';
             }
         });
