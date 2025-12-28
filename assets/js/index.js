@@ -7,9 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         try {
-            showMessage('Ouverture de Google...', 'info');
+            showMessage('Redirection vers Google...', 'info');
 
-            // Créer l'URL d'authentification OAuth
+            // SIMPLE: Redirection complète (pas de popup)
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
@@ -17,118 +17,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'select_account'
-                    },
-                    skipBrowserRedirect: true // On gère la redirection nous-mêmes
+                    }
+                    // skipBrowserRedirect: false (défaut) = redirection normale
                 }
             });
 
             if (error) throw error;
 
-            // Ouvrir une popup au lieu d'une redirection complète
-            const authUrl = data.url;
-            const width = 500;
-            const height = 600;
-            const left = (window.screen.width - width) / 2;
-            const top = (window.screen.height - height) / 2;
-
-            const popup = window.open(
-                authUrl,
-                'Google Sign In',
-                `width=${width},height=${height},left=${left},top=${top},toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0`
-            );
-
-            if (!popup) {
-                showMessage('Popup bloquée. Autorise les popups pour ce site.', 'error');
-                return;
-            }
-
-            // Utiliser localStorage au lieu de postMessage pour éviter les problèmes COOP
-            // Marquer qu'on attend une authentification
-            localStorage.setItem('auth_popup_open', 'true');
-            console.log('🚀 Popup ouverte, flag auth_popup_open défini');
-
-            // Écouter les changements dans localStorage (communication cross-tab)
-            const handleStorageChange = async (event) => {
-                console.log('📢 Storage event reçu:', {
-                    key: event.key,
-                    newValue: event.newValue,
-                    oldValue: event.oldValue
-                });
-
-                if (event.key === 'supabase_auth_success' && event.newValue === 'true') {
-                    console.log('✅ Signal auth success détecté !');
-
-                    // Nettoyer
-                    window.removeEventListener('storage', handleStorageChange);
-                    localStorage.removeItem('auth_popup_open');
-                    localStorage.removeItem('supabase_auth_success');
-                    console.log('🧹 Nettoyage localStorage effectué');
-
-                    // Fermer la popup si elle est encore ouverte
-                    try {
-                        if (popup) popup.close();
-                        console.log('🔒 Popup fermée');
-                    } catch (e) {
-                        console.log('⚠️ Erreur fermeture popup (normal si COOP):', e.message);
-                    }
-
-                    showMessage('Connexion réussie ! Chargement...', 'success');
-
-                    // Vérifier si l'utilisateur existe dans la base de données
-                    try {
-                        // Petit délai pour laisser la session se synchroniser
-                        await new Promise(resolve => setTimeout(resolve, 500));
-
-                        const { data: { session } } = await supabase.auth.getSession();
-
-                        if (session) {
-                            const { data: userData, error: userError } = await supabase
-                                .from('users')
-                                .select('*')
-                                .eq('id', session.user.id)
-                                .single();
-
-                            // Nouveau utilisateur ou profil incomplet → Onboarding
-                            if ((userError && userError.code === 'PGRST116') || (userData && !userData.first_name)) {
-                                console.log('Nouvel utilisateur → Onboarding');
-                                window.location.href = '/pages/auth/onboarding.html';
-                            } else {
-                                // Utilisateur existant → Dashboard
-                                console.log('Utilisateur existant → Dashboard');
-                                window.location.href = '/pages/app/dashboard.html';
-                            }
-                        } else {
-                            // Pas de session, fallback callback
-                            window.location.href = '/pages/auth/callback.html';
-                        }
-                    } catch (err) {
-                        console.error('Erreur vérification user:', err);
-                        // Fallback: rediriger vers callback qui gérera
-                        window.location.href = '/pages/auth/callback.html';
-                    }
-                }
-            };
-
-            window.addEventListener('storage', handleStorageChange);
-
-            // FALLBACK: Polling car storage event ne se déclenche pas toujours
-            // (l'event storage ne se déclenche que sur les AUTRES onglets, pas celui qui modifie)
-            console.log('🔄 Démarrage polling localStorage (fallback)');
-            const pollingInterval = setInterval(() => {
-                const authSuccess = localStorage.getItem('supabase_auth_success');
-                if (authSuccess === 'true') {
-                    console.log('✅ Polling détecté auth success !');
-                    clearInterval(pollingInterval);
-                    // Déclencher manuellement le handler
-                    handleStorageChange({ key: 'supabase_auth_success', newValue: 'true', oldValue: null });
-                }
-            }, 200); // Check every 200ms
-
-            // Nettoyer le polling après 2 minutes max
-            setTimeout(() => {
-                clearInterval(pollingInterval);
-                console.log('⏰ Polling timeout (2min)');
-            }, 120000);
+            // La redirection se fait automatiquement
+            // Le callback gère le reste
 
         } catch (error) {
             console.error("Erreur Auth Google:", error);

@@ -37,46 +37,13 @@
 
                 if (error) {
                     console.error('Erreur session:', error);
-
-                    // Si c'est une popup, fermer et retourner à la fenêtre parente
-                    if (window.opener) {
-                        window.close();
-                        return;
-                    }
-
                     window.location.href = '/pages/auth/login.html?error=auth_failed';
                     return;
                 }
 
                 if (session) {
-                    // Si c'est une popup, utiliser localStorage pour communiquer (évite COOP)
-                    const isPopup = window.opener || localStorage.getItem('auth_popup_open') === 'true';
+                    console.log('✅ Session valide:', session.user.id);
 
-                    console.log('🔍 Callback Debug:', {
-                        hasOpener: !!window.opener,
-                        authPopupOpen: localStorage.getItem('auth_popup_open'),
-                        isPopup: isPopup,
-                        sessionUserId: session.user.id
-                    });
-
-                    if (isPopup) {
-                        console.log('✅ Mode popup détecté - Envoi signal localStorage');
-                        // Signaler à la fenêtre parente via localStorage
-                        localStorage.setItem('supabase_auth_success', 'true');
-                        console.log('✅ Signal envoyé, fermeture popup dans 500ms');
-
-                        // Fermer la popup après un court délai
-                        setTimeout(() => {
-                            console.log('🔒 Fermeture popup...');
-                            window.close();
-                        }, 500);
-
-                        return;
-                    }
-
-                    console.log('ℹ️ Pas de mode popup, comportement normal');
-
-                    // Si ce n'est pas une popup, comportement normal
                     // Vérifier si l'utilisateur existe dans la table users
                     const { data: userData, error: userError } = await supabase
                         .from('users')
@@ -103,24 +70,10 @@
                     window.location.href = '/pages/app/dashboard.html';
                 } else {
                     console.log('Pas de session, retour au login');
-
-                    // Si c'est une popup, fermer
-                    if (window.opener) {
-                        window.close();
-                        return;
-                    }
-
                     window.location.href = '/pages/auth/login.html';
                 }
             } catch (err) {
                 console.error('Erreur callback:', err);
-
-                // Si c'est une popup, fermer
-                if (window.opener) {
-                    window.close();
-                    return;
-                }
-
                 window.location.href = '/pages/auth/login.html?error=unexpected';
             }
         }
