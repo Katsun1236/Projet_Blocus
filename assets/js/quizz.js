@@ -218,18 +218,9 @@ function setGeneratingState(isGenerating) {
 // ✅ PRODUCTION SÉCURISÉE: Call Supabase Edge Function avec authentification
 async function callGenerateQuizFunction(topic, dataContext, count, type) {
     try {
-        console.log('🤖 Calling generate-quiz Edge Function (authenticated)...');
+        console.log('🤖 TEST: Calling generate-quiz Edge Function (NO AUTH)...');
 
-        // Récupérer la session de l'utilisateur connecté
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError || !session) {
-            throw new Error('Vous devez être connecté pour générer un quiz');
-        }
-
-        console.log('🔐 User authenticated, calling function...');
-
-        // Appel sécurisé avec le JWT de l'utilisateur
+        // TEST SANS AUTH - juste pour vérifier que la fonction existe
         const { data, error } = await supabase.functions.invoke('generate-quiz', {
             body: {
                 mode: 'quiz',
@@ -239,10 +230,8 @@ async function callGenerateQuizFunction(topic, dataContext, count, type) {
                     count: count,
                     type: type
                 }
-            },
-            headers: {
-                Authorization: `Bearer ${session.access_token}`
             }
+            // PAS d'Authorization header pour le test
         });
 
         if (error) {
