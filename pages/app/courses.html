@@ -236,11 +236,14 @@
             ui.dateDisplay.textContent = new Date().toLocaleDateString('fr-FR', options);
 
             onAuthStateChanged(auth, async (user) => {
+                console.log('👤 onAuthStateChanged triggered, user:', user);
                 if (user) {
-                    currentUserId = user.uid;
+                    currentUserId = user.id;  // Supabase uses .id not .uid
+                    console.log('✅ currentUserId set to:', currentUserId);
                     await initPage(user);
                     setupNotifications(currentUserId);
                 } else {
+                    console.log('❌ No user, redirecting to login');
                     window.location.href = '../auth/login.html';
                 }
             });
