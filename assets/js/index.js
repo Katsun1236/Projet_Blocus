@@ -45,20 +45,31 @@ document.addEventListener('DOMContentLoaded', () => {
             // Utiliser localStorage au lieu de postMessage pour éviter les problèmes COOP
             // Marquer qu'on attend une authentification
             localStorage.setItem('auth_popup_open', 'true');
+            console.log('🚀 Popup ouverte, flag auth_popup_open défini');
 
             // Écouter les changements dans localStorage (communication cross-tab)
             const handleStorageChange = async (event) => {
+                console.log('📢 Storage event reçu:', {
+                    key: event.key,
+                    newValue: event.newValue,
+                    oldValue: event.oldValue
+                });
+
                 if (event.key === 'supabase_auth_success' && event.newValue === 'true') {
+                    console.log('✅ Signal auth success détecté !');
+
                     // Nettoyer
                     window.removeEventListener('storage', handleStorageChange);
                     localStorage.removeItem('auth_popup_open');
                     localStorage.removeItem('supabase_auth_success');
+                    console.log('🧹 Nettoyage localStorage effectué');
 
                     // Fermer la popup si elle est encore ouverte
                     try {
                         if (popup) popup.close();
+                        console.log('🔒 Popup fermée');
                     } catch (e) {
-                        // Ignore les erreurs COOP
+                        console.log('⚠️ Erreur fermeture popup (normal si COOP):', e.message);
                     }
 
                     showMessage('Connexion réussie ! Chargement...', 'success');
