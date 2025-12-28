@@ -7,25 +7,69 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         try {
-            showMessage('Redirection vers Google...', 'info');
+            showMessage('Ouverture de Google...', 'info');
 
-            // Utiliser Supabase OAuth avec sélection de compte Google
+            // Créer l'URL d'authentification OAuth
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: `${window.location.origin}/pages/auth/callback.html`,
-                    // Force Google à afficher le sélecteur de compte à chaque fois
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'select_account'
-                    }
+                    },
+                    skipBrowserRedirect: true // On gère la redirection nous-mêmes
                 }
             });
 
             if (error) throw error;
 
-            // La redirection vers Google se fait automatiquement
-            // Le retour sera géré par callback.html
+            // Ouvrir une popup au lieu d'une redirection complète
+            const authUrl = data.url;
+            const width = 500;
+            const height = 600;
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+
+            const popup = window.open(
+                authUrl,
+                'Google Sign In',
+                `width=${width},height=${height},left=${left},top=${top},toolbar=0,scrollbars=1,status=1,resizable=1,location=1,menuBar=0`
+            );
+
+            if (!popup) {
+                showMessage('Popup bloquée. Autorise les popups pour ce site.', 'error');
+                return;
+            }
+
+            // Écouter le message de la popup quand l'auth est terminée
+            const handleAuthMessage = async (event) => {
+                // Vérifier l'origine pour la sécurité
+                if (event.origin !== window.location.origin) return;
+
+                if (event.data.type === 'supabase-auth-success') {
+                    window.removeEventListener('message', handleAuthMessage);
+                    popup.close();
+
+                    showMessage('Connexion réussie !', 'success');
+
+                    // Petit délai pour laisser la session se propager
+                    setTimeout(() => {
+                        // Vérifier où rediriger (callback.html le fera)
+                        window.location.href = '/pages/auth/callback.html';
+                    }, 500);
+                }
+            };
+
+            window.addEventListener('message', handleAuthMessage);
+
+            // Vérifier si la popup est fermée manuellement
+            const checkPopup = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(checkPopup);
+                    window.removeEventListener('message', handleAuthMessage);
+                }
+            }, 500);
 
         } catch (error) {
             console.error("Erreur Auth Google:", error);
