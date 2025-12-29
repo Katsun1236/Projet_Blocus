@@ -1,0 +1,13 @@
+# Historique des commits - Projet Blocus
+# Format: [HH:MM:SS] Message du commit
+
+[11:02:41] refactor: Remove all Firestore wrappers and migrate to pure Supabase API
+[10:49:28] docs: Remove TEST_SYNCHRO.txt
+[10:47:23] docs: Remove outdated configuration and setup documentation files
+[10:20:18] fix: Complete Supabase migration for profile, planning & synthesize pages
+[22:51:04] fix: Correct Supabase auth in profile, planning & synthesize pages
+[22:46:33] test: Create simple Edge Function test version without auth for debugging 401 error
+[22:38:32] fix: Migrate from deprecated gemini-pro to gemini-1.5-flash model
+[22:30:26] feat: Switch to authenticated Edge Function calls with JWT
+[22:29:24] fix: Use direct fetch call to bypass JWT verification for Edge Function
+[22:25:15] feat: Add authenticated version of Edge Function
