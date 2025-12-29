@@ -1,6 +1,7 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[11:24:06] docs: Update commit log with synthesis and tutor removal
 [11:15:23] feat: Add generate-synthesis Edge Function and enable synthesis generation
 [11:14:12] feat: Remove tutor page from navigation and delete unused files
 [11:10:52] docs: Add commit log system documentation
