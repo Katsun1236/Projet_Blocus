@@ -249,12 +249,7 @@ if (ui.btnGenerate) {
         ui.loadingBar.classList.remove('hidden');
 
         try {
-            // ⚠️ TODO: Migrer vers Supabase Edge Function pour la génération de synthèses
-            // Pour l'instant, génération temporairement désactivée
-            showMessage("⚠️ La génération automatique de synthèses est temporairement désactivée. Migration en cours vers Supabase Edge Functions.", "error");
-
-            // Code commenté - à restaurer après création de l'Edge Function
-            /*
+            // ✅ Appeler l'Edge Function Supabase pour générer la synthèse
             const { data, error } = await supabase.functions.invoke('generate-synthesis', {
                 body: {
                     mode: 'synthesis',
@@ -269,7 +264,8 @@ if (ui.btnGenerate) {
 
             if (error) throw new Error(error.message);
 
-            await supabase.from('syntheses').insert([{
+            // Sauvegarder la synthèse dans la base de données
+            const { error: insertError } = await supabase.from('syntheses').insert([{
                 user_id: currentUserId,
                 title: title,
                 source_type: source,
@@ -279,11 +275,12 @@ if (ui.btnGenerate) {
                 content: data.content
             }]);
 
+            if (insertError) throw insertError;
+
             toggleModal(false);
             ui.titleInput.value = "";
-            showMessage("Synthèse générée !", "success");
+            showMessage("Synthèse générée avec succès !", "success");
             loadSyntheses();
-            */
 
         } catch (e) {
             console.error(e);
