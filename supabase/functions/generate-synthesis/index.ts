@@ -24,24 +24,52 @@ serve(async (req) => {
   try {
     // ✅ VÉRIFICATION JWT : S'assurer que l'utilisateur est authentifié
     const authHeader = req.headers.get('Authorization')
+    console.log('🔍 Auth header received:', authHeader ? 'Present (length: ' + authHeader.length + ')' : 'Missing')
+
     if (!authHeader) {
+      console.error('❌ Missing authorization header')
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    // Créer le client Supabase avec les variables d'environnement correctes
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY')
+
+    console.log('🔍 Supabase URL:', supabaseUrl)
+    console.log('🔍 Supabase Key present:', !!supabaseKey)
+
     const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
+      supabaseUrl!,
+      supabaseKey!,
+      {
+        global: {
+          headers: { Authorization: authHeader }
+        },
+        auth: {
+          persistSession: false
+        }
+      }
     )
 
+    console.log('🔍 Calling getUser()...')
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+    console.log('🔍 getUser() result:', { user: !!user, authError })
 
-    if (authError || !user) {
+    if (authError) {
+      console.error('❌ Auth error:', authError)
       return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
+        JSON.stringify({ error: 'Invalid authentication: ' + authError.message }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!user) {
+      console.error('❌ No user found')
+      return new Response(
+        JSON.stringify({ error: 'No user found' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
