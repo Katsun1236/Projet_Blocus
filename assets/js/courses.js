@@ -1,4 +1,5 @@
-import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
+// ✅ PURE SUPABASE - Pas de wrappers Firestore
+import { supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate, debounce } from './utils.js';
 import { initSpeedInsights } from './speed-insights.js';
@@ -60,17 +61,18 @@ const ui = {
     btnCancelFolder: document.getElementById('btn-cancel-folder')
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initLayout('courses');
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            currentUserId = user.id;
-            loadCourses();
-        } else {
-            window.location.href = '../auth/login.html';
-        }
-    });
+    // ✅ PURE SUPABASE: Récupérer la session directement
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (session?.user) {
+        currentUserId = session.user.id;
+        await loadCourses();
+    } else {
+        window.location.href = '../auth/login.html';
+    }
 
     setupEventListeners();
 });
@@ -114,12 +116,16 @@ function setupEventListeners() {
         btn.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Création...`;
 
         try {
-            await addDoc(collection(db, 'users', currentUserId, 'courses'), {
+            // ✅ PURE SUPABASE: Insert directe
+            const { error } = await supabase.from('courses').insert([{
+                user_id: currentUserId,
                 type: 'folder',
                 name: name,
-                parentId: currentFolder,
-                createdAt: serverTimestamp()
-            });
+                parent_id: currentFolder
+            }]);
+
+            if (error) throw error;
+
             ui.folderInput.value = "";
             toggleFolderModal(false);
             showMessage("Dossier créé avec succès", "success");
@@ -147,19 +153,18 @@ async function loadCourses() {
     ui.emptyState.classList.add('hidden');
 
     try {
-        const q = query(
-            collection(db, 'users', currentUserId, 'courses'),
-            where('parentId', '==', currentFolder),
-            orderBy('createdAt', 'desc'),
-            limit(100)
-        );
+        // ✅ PURE SUPABASE: Query directe
+        const { data: courses, error } = await supabase
+            .from('courses')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .eq('parent_id', currentFolder)
+            .order('created_at', { ascending: false })
+            .limit(100);
 
-        const snapshot = await getDocs(q);
-        coursesData = [];
+        if (error) throw error;
 
-        snapshot.forEach(doc => {
-            coursesData.push({ id: doc.id, ...doc.data() });
-        });
+        coursesData = courses || [];
 
         updateBreadcrumbs();
         filterCourses(ui.searchInput ? ui.searchInput.value : '');
@@ -178,7 +183,7 @@ function filterCourses(searchTerm) {
     const sortType = ui.sortSelect ? ui.sortSelect.value : 'date-desc';
 
     let filtered = coursesData.filter(item => {
-        const name = (item.title || item.name || item.fileName || "").toLowerCase();
+        const name = (item.title || item.name || item.file_name || "").toLowerCase();
         return name.includes(term);
     });
 
@@ -186,8 +191,9 @@ function filterCourses(searchTerm) {
         if (a.type === 'folder' && b.type !== 'folder') return -1;
         if (a.type !== 'folder' && b.type === 'folder') return 1;
 
-        const dateA = a.createdAt ? a.createdAt.seconds : 0;
-        const dateB = b.createdAt ? b.createdAt.seconds : 0;
+        // ✅ PURE SUPABASE: Les timestamps sont des strings ISO
+        const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
         const nameA = (a.title || a.name || "").toLowerCase();
         const nameB = (b.title || b.name || "").toLowerCase();
 
@@ -227,8 +233,8 @@ function renderGrid(items) {
 
         const isFolder = item.type === 'folder';
         const icon = isFolder ? 'fa-folder text-yellow-400' : 'fa-file-pdf text-red-400';
-        const title = escapeHtml(item.title || item.name || item.fileName || "Sans titre");
-        const date = formatDate(item.createdAt);
+        const title = escapeHtml(item.title || item.name || item.file_name || "Sans titre");
+        const date = formatDate(item.created_at);
         const size = item.size ? (item.size / 1024 / 1024).toFixed(2) + ' MB' : '';
 
         el.innerHTML = `
@@ -300,20 +306,39 @@ async function handleFiles(e) {
         }
 
         try {
-            const storageRef = ref(storage, `users/${currentUserId}/courses/${Date.now()}_${file.name}`);
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
+            // ✅ PURE SUPABASE: Upload vers Supabase Storage
+            const fileName = `${Date.now()}_${file.name}`;
+            const filePath = `${currentUserId}/courses/${fileName}`;
 
-            await addDoc(collection(db, 'users', currentUserId, 'courses'), {
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('courses')
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (uploadError) throw uploadError;
+
+            // Récupérer l'URL publique
+            const { data: urlData } = supabase.storage
+                .from('courses')
+                .getPublicUrl(filePath);
+
+            const downloadURL = urlData.publicUrl;
+
+            // Sauvegarder dans la base de données
+            const { error: insertError } = await supabase.from('courses').insert([{
+                user_id: currentUserId,
                 type: 'file',
                 title: file.name,
-                fileName: file.name,
+                file_name: file.name,
                 url: downloadURL,
-                storagePath: snapshot.ref.fullPath,
+                storage_path: filePath,
                 size: file.size,
-                parentId: currentFolder,
-                createdAt: serverTimestamp()
-            });
+                parent_id: currentFolder
+            }]);
+
+            if (insertError) throw insertError;
 
             return { success: true, file: file.name };
         } catch (error) {
@@ -351,10 +376,22 @@ async function deleteItem(item) {
     showMessage(`Suppression de "${itemName}"...`, "info");
 
     try {
-        if (item.type === 'file' && item.storagePath) {
-            await deleteObject(ref(storage, item.storagePath));
+        // ✅ PURE SUPABASE: Suppression du fichier storage si nécessaire
+        if (item.type === 'file' && item.storage_path) {
+            const { error: storageError } = await supabase.storage
+                .from('courses')
+                .remove([item.storage_path]);
+
+            if (storageError) console.error("Erreur suppression storage:", storageError);
         }
-        await deleteDoc(doc(db, 'users', currentUserId, 'courses', item.id));
+
+        // ✅ PURE SUPABASE: Suppression de la base de données
+        const { error } = await supabase
+            .from('courses')
+            .delete()
+            .eq('id', item.id);
+
+        if (error) throw error;
 
         showMessage(`"${itemName}" supprimé avec succès`, "success");
         loadCourses();
@@ -382,11 +419,17 @@ async function goUpLevel() {
     if (currentFolder === 'root') return;
 
     try {
-        const docRef = doc(db, 'users', currentUserId, 'courses', currentFolder);
-        const docSnap = await getDoc(docRef);
+        // ✅ PURE SUPABASE: Récupérer le parent_id
+        const { data, error } = await supabase
+            .from('courses')
+            .select('parent_id')
+            .eq('id', currentFolder)
+            .single();
 
-        if (docSnap.exists()) {
-            currentFolder = docSnap.data().parentId || 'root';
+        if (error) throw error;
+
+        if (data) {
+            currentFolder = data.parent_id || 'root';
         } else {
             currentFolder = 'root';
         }
