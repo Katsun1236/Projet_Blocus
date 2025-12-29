@@ -1,6 +1,7 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[14:15:10] fix: Use legacy gemini-pro model name for better API key compatibility
 [14:05:33] fix: Switch to Gemini 1.5 Pro to avoid quota limits on experimental models
 [13:40:22] fix: Switch to Gemini 2.0 Flash Experimental model
 [13:25:15] fix: Revert to v1beta API with standard gemini-1.5-flash model name
