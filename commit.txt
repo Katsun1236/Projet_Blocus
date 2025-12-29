@@ -1,6 +1,7 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[12:30:45] fix: Re-enable JWT Authorization header for Edge Function authentication
 [12:20:15] fix: Revert both Edge Functions to v1beta API for gemini-1.5-flash compatibility
 [12:12:02] feat: Add JWT authentication verification to Edge Functions
 [11:47:25] fix: Change Gemini API from v1beta to v1 for gemini-1.5-flash support
