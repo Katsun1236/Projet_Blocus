@@ -1,4 +1,5 @@
-import { auth, db, storage, supabase, getStorage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
+// ✅ PURE SUPABASE - Pas de wrappers Firestore
+import { supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { initSpeedInsights } from './speed-insights.js';
@@ -58,34 +59,41 @@ const ui = {
     btnCancel: document.getElementById('btn-cancel-edit')
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initLayout('');
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUserId = user.id;
-            await loadProfileData();
-            await loadUserStats();
-            loadRecentActivity();
-            renderAchievements();
-            initCharts();
-        } else {
-            window.location.href = '../auth/login.html';
-        }
-    });
+    // ✅ PURE SUPABASE: Récupérer la session directement
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (session?.user) {
+        currentUserId = session.user.id;
+        await loadProfileData();
+        await loadUserStats();
+        loadRecentActivity();
+        renderAchievements();
+        initCharts();
+    } else {
+        window.location.href = '../auth/login.html';
+    }
 
     setupEventListeners();
 });
 
 async function loadProfileData() {
     try {
-        const docRef = doc(db, 'users', currentUserId);
-        const docSnap = await getDoc(docRef);
+        // ✅ PURE SUPABASE: Récupérer user directement
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', currentUserId)
+            .single();
 
-        if (docSnap.exists()) {
-            currentUserData = docSnap.data();
-            userStats.points = currentUserData.points || 0;
-            renderProfile(currentUserData);
+        if (error) throw error;
+
+        if (data) {
+            currentUserData = data;
+            userStats.points = data.points || 0;
+            renderProfile(data);
         } else {
             console.error("Aucun document user trouvé !");
         }
@@ -95,9 +103,10 @@ async function loadProfileData() {
 }
 
 function renderProfile(data) {
-    const avatarUrl = data.photoURL || `https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random&color=fff`;
+    // ✅ PURE SUPABASE: Utiliser les noms de colonnes snake_case
+    const avatarUrl = data.photo_url || `https://ui-avatars.com/api/?name=${data.first_name}+${data.last_name}&background=random&color=fff`;
     ui.avatar.src = avatarUrl;
-    ui.name.textContent = `${data.firstName || ''} ${data.lastName || ''}`;
+    ui.name.textContent = `${data.first_name || ''} ${data.last_name || ''}`;
     ui.email.textContent = data.email || '';
     ui.points.textContent = data.points || 0;
 
@@ -109,8 +118,8 @@ function renderProfile(data) {
         ui.bio.classList.add('italic');
     }
 
-    ui.editFirstname.value = data.firstName || "";
-    ui.editLastname.value = data.lastName || "";
+    ui.editFirstname.value = data.first_name || "";
+    ui.editLastname.value = data.last_name || "";
     ui.editBio.value = data.bio || "";
 }
 
@@ -152,26 +161,31 @@ async function loadUserStats() {
 async function loadRecentActivity() {
     ui.activityList.innerHTML = '';
     try {
-        // ✅ FIX: Utiliser 'user_id' au lieu de 'authorId' + 'created_at' au lieu de 'createdAt'
-        const q = query(collection(db, 'community_posts'), where('user_id', '==', currentUserId), orderBy('created_at', 'desc'), limit(5));
-        const snapshot = await getDocs(q);
+        // ✅ PURE SUPABASE: Query directe sans wrapper
+        const { data: posts, error } = await supabase
+            .from('community_posts')
+            .select('*')
+            .eq('user_id', currentUserId)
+            .order('created_at', { ascending: false })
+            .limit(5);
 
-        if (snapshot.empty) {
+        if (error) throw error;
+
+        if (!posts || posts.length === 0) {
             ui.activityList.innerHTML = `<div class="text-center py-6 text-gray-500 text-xs italic pl-6">Aucune activité récente.</div>`;
             return;
         }
 
-        snapshot.forEach(doc => {
-            const data = doc.data();
+        posts.forEach(post => {
             const div = document.createElement('div');
             div.className = "relative pl-6 pb-2";
             div.innerHTML = `
                 <div class="absolute left-0 top-1 w-4 h-4 rounded-full bg-gray-900 border-2 border-indigo-500"></div>
                 <div class="bg-gray-800/50 p-3 rounded-xl border border-gray-700/50 hover:bg-gray-800 transition-colors cursor-pointer">
-                    <p class="text-sm text-gray-200 font-medium truncate">${data.title}</p>
+                    <p class="text-sm text-gray-200 font-medium truncate">${post.title}</p>
                     <div class="flex justify-between items-center mt-1">
-                        <span class="text-xs text-indigo-400 font-bold bg-indigo-500/10 px-2 py-0.5 rounded">${data.type === 'question' ? 'Question' : 'Post'}</span>
-                        <span class="text-[10px] text-gray-500">${data.created_at ? formatDate(new Date(data.created_at)) : ''}</span>
+                        <span class="text-xs text-indigo-400 font-bold bg-indigo-500/10 px-2 py-0.5 rounded">${post.type === 'question' ? 'Question' : 'Post'}</span>
+                        <span class="text-[10px] text-gray-500">${post.created_at ? formatDate(new Date(post.created_at)) : ''}</span>
                     </div>
                 </div>
             `;
@@ -314,16 +328,21 @@ async function saveProfile() {
     ui.btnSave.disabled = true;
 
     try {
-        const userRef = doc(db, 'users', currentUserId);
-        await updateDoc(userRef, {
-            firstName: firstName,
-            lastName: lastName,
-            bio: bio
-        });
+        // ✅ PURE SUPABASE: Update directe avec snake_case
+        const { error } = await supabase
+            .from('users')
+            .update({
+                first_name: firstName,
+                last_name: lastName,
+                bio: bio
+            })
+            .eq('id', currentUserId);
+
+        if (error) throw error;
 
         showMessage("Profil mis à jour !", "success");
-        currentUserData.firstName = firstName;
-        currentUserData.lastName = lastName;
+        currentUserData.first_name = firstName;
+        currentUserData.last_name = lastName;
         currentUserData.bio = bio;
         renderProfile(currentUserData);
         toggleEditMode(false);
@@ -340,11 +359,34 @@ async function saveProfile() {
 async function uploadAvatar(file) {
     showMessage("Upload de l'avatar...", "info");
     try {
-        const storageRef = ref(storage, `users/${currentUserId}/avatar_${Date.now()}`);
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        const userRef = doc(db, 'users', currentUserId);
-        await updateDoc(userRef, { photoURL: downloadURL });
+        // ✅ PURE SUPABASE: Upload vers Supabase Storage
+        const fileName = `avatar_${Date.now()}.${file.name.split('.').pop()}`;
+        const filePath = `${currentUserId}/${fileName}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, file, {
+                cacheControl: '3600',
+                upsert: false
+            });
+
+        if (uploadError) throw uploadError;
+
+        // Récupérer l'URL publique
+        const { data: urlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+
+        const downloadURL = urlData.publicUrl;
+
+        // Mettre à jour le profil avec la nouvelle photo
+        const { error: updateError } = await supabase
+            .from('users')
+            .update({ photo_url: downloadURL })
+            .eq('id', currentUserId);
+
+        if (updateError) throw updateError;
+
         ui.avatar.src = downloadURL;
         showMessage("Avatar mis à jour !", "success");
     } catch (e) {
@@ -354,7 +396,13 @@ async function uploadAvatar(file) {
 }
 
 async function handleLogout() {
-    try { await signOut(auth); window.location.href = '../auth/login.html'; } catch (e) { console.error(e); }
+    try {
+        // ✅ PURE SUPABASE: Déconnexion avec Supabase Auth
+        await supabase.auth.signOut();
+        window.location.href = '../auth/login.html';
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 function toggleEditMode(show) {

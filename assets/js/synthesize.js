@@ -1,4 +1,5 @@
-import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
+// ✅ PURE SUPABASE - Pas de wrappers Firestore
+import { supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { initSpeedInsights } from './speed-insights.js';
@@ -47,33 +48,41 @@ const ui = {
     notifList: document.getElementById('notifications-list')
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initLayout('synthesize');
 
     document.querySelectorAll('select').forEach(s => {
         s.addEventListener('change', () => s.value ? s.classList.add('has-value') : s.classList.remove('has-value'));
     });
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUserId = user.id;
-            await initPage();
-            loadSyntheses();
-            loadFiles();
-            setupNotifications(currentUserId);
-        } else {
-            window.location.href = '../auth/login.html';
-        }
-    });
+    // ✅ PURE SUPABASE: Récupérer la session directement
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (session?.user) {
+        currentUserId = session.user.id;
+        await initPage();
+        loadSyntheses();
+        loadFiles();
+        setupNotifications(currentUserId);
+    } else {
+        window.location.href = '../auth/login.html';
+    }
 });
 
 async function initPage() {
     try {
-        const userDoc = await getDoc(doc(db, 'users', currentUserId));
-        if (userDoc.exists()) {
-            const data = userDoc.data();
-            if(ui.userName) ui.userName.textContent = data.firstName || "Étudiant";
-            if(ui.userAvatar) ui.userAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+        // ✅ PURE SUPABASE: Récupérer user directement avec snake_case
+        const { data, error } = await supabase
+            .from('users')
+            .select('first_name, photo_url')
+            .eq('id', currentUserId)
+            .single();
+
+        if (error) throw error;
+
+        if (data) {
+            if(ui.userName) ui.userName.textContent = data.first_name || "Étudiant";
+            if(ui.userAvatar) ui.userAvatar.src = data.photo_url || 'https://ui-avatars.com/api/?background=random';
         }
     } catch(e) {
         // ✅ ERROR HANDLING: Log l'erreur (non bloquant pour l'UI)
@@ -82,18 +91,27 @@ async function initPage() {
 }
 
 async function loadSyntheses() {
-    const q = query(collection(db, 'users', currentUserId, 'syntheses'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
+    // ✅ PURE SUPABASE: Query directe sans wrapper
+    const { data: syntheses, error } = await supabase
+        .from('syntheses')
+        .select('*')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Erreur chargement synthèses:', error);
+        ui.grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 opacity-50"><p>Erreur de chargement</p></div>`;
+        return;
+    }
 
     ui.grid.innerHTML = '';
-    if (snapshot.empty) {
+    if (!syntheses || syntheses.length === 0) {
         ui.grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 opacity-50"><p>Aucune synthèse pour l'instant.</p></div>`;
         return;
     }
 
-    snapshot.forEach(docSnap => {
-        const synth = docSnap.data();
-        const dateStr = formatDate(synth.createdAt);
+    syntheses.forEach(synth => {
+        const dateStr = formatDate(synth.created_at);
 
         const card = document.createElement('div');
         card.className = 'synth-card content-glass rounded-2xl p-6 flex flex-col justify-between h-full relative group cursor-pointer border border-gray-800 hover:border-pink-500/30 transition-all';
@@ -103,33 +121,45 @@ async function loadSyntheses() {
                     <div class="w-10 h-10 rounded-lg bg-pink-600/20 flex items-center justify-center text-pink-400">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    <span class="px-2 py-1 rounded bg-gray-800 text-xs text-gray-400 border border-gray-700">${synth.formatLabel || 'Résumé'}</span>
+                    <span class="px-2 py-1 rounded bg-gray-800 text-xs text-gray-400 border border-gray-700">${synth.format_label || 'Résumé'}</span>
                 </div>
                 <h3 class="font-bold text-white text-lg mb-2 line-clamp-2">${synth.title}</h3>
                 <p class="text-xs text-gray-400 mb-1"><i class="far fa-clock mr-1"></i> ${dateStr}</p>
-                <p class="text-xs text-gray-500 truncate">Source: ${synth.sourceType}</p>
+                <p class="text-xs text-gray-500 truncate">Source: ${synth.source_type}</p>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center text-xs text-pink-400 font-bold group-hover:text-pink-300">
                 <span>Lire la fiche</span>
                 <i class="fas fa-arrow-right"></i>
             </div>
         `;
-        card.onclick = () => openViewer(docSnap.id, synth);
+        card.onclick = () => openViewer(synth.id, synth);
         ui.grid.appendChild(card);
     });
 }
 
 async function loadFiles() {
-    const q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
+    // ✅ PURE SUPABASE: Query directe
+    const { data: courses, error } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false });
+
     ui.fileSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
-    snapshot.forEach(doc => {
-        const f = doc.data();
-        const opt = document.createElement('option');
-        opt.value = doc.id;
-        opt.text = f.title || f.fileName;
-        ui.fileSelect.appendChild(opt);
-    });
+
+    if (error) {
+        console.error('Erreur chargement fichiers:', error);
+        return;
+    }
+
+    if (courses) {
+        courses.forEach(course => {
+            const opt = document.createElement('option');
+            opt.value = course.id;
+            opt.text = course.title || course.file_name;
+            ui.fileSelect.appendChild(opt);
+        });
+    }
 }
 
 function openViewer(id, synth) {
@@ -137,9 +167,10 @@ function openViewer(id, synth) {
     ui.dashboard.classList.add('hidden');
     ui.viewer.classList.remove('hidden');
 
+    // ✅ PURE SUPABASE: Utiliser snake_case
     ui.viewTitle.textContent = synth.title;
-    ui.viewBadge.textContent = (synth.formatLabel || 'RÉSUMÉ').toUpperCase();
-    ui.viewMeta.textContent = `Généré le ${formatDate(synth.createdAt)} • Source: ${synth.sourceName || 'Inconnue'}`;
+    ui.viewBadge.textContent = (synth.format_label || 'RÉSUMÉ').toUpperCase();
+    ui.viewMeta.textContent = `Généré le ${formatDate(synth.created_at)} • Source: ${synth.source_name || 'Inconnue'}`;
 
     // ✅ SÉCURISÉ: Utiliser textContent au lieu de innerHTML pour éviter XSS
     // Si le contenu contient du HTML formaté de Gemini, on utilise DOMPurify
@@ -164,7 +195,18 @@ ui.btnPrint.onclick = () => window.print();
 
 ui.btnDelete.onclick = async () => {
     if(confirm("Supprimer cette synthèse ?")) {
-        await deleteDoc(doc(db, 'users', currentUserId, 'syntheses', currentSynthId));
+        // ✅ PURE SUPABASE: Suppression directe
+        const { error } = await supabase
+            .from('syntheses')
+            .delete()
+            .eq('id', currentSynthId);
+
+        if (error) {
+            console.error('Erreur suppression:', error);
+            showMessage("Erreur lors de la suppression", "error");
+            return;
+        }
+
         ui.viewer.classList.add('hidden');
         ui.dashboard.classList.remove('hidden');
         loadSyntheses();
@@ -227,15 +269,15 @@ if (ui.btnGenerate) {
 
             if (error) throw new Error(error.message);
 
-            await addDoc(collection(db, 'users', currentUserId, 'syntheses'), {
+            await supabase.from('syntheses').insert([{
+                user_id: currentUserId,
                 title: title,
-                sourceType: source,
-                sourceName: sourceName,
+                source_type: source,
+                source_name: sourceName,
                 format: format,
-                formatLabel: ui.formatSelect.options[ui.formatSelect.selectedIndex].text,
-                content: data.content,
-                createdAt: serverTimestamp()
-            });
+                format_label: ui.formatSelect.options[ui.formatSelect.selectedIndex].text,
+                content: data.content
+            }]);
 
             toggleModal(false);
             ui.titleInput.value = "";
@@ -267,17 +309,43 @@ ui.sourceRadios.forEach(radio => {
     });
 });
 
-function setupNotifications(userId) {
-    const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(5));
-    onSnapshot(q, (snapshot) => {
-        const notifs = snapshot.docs.map(d => d.data());
-        if (notifs.length > 0) {
-            ui.notifBadge.classList.remove('hidden');
-            ui.notifList.innerHTML = notifs.map(n => `<div class="p-3 border-b border-gray-800 text-left text-sm text-gray-300">${n.message}</div>`).join('');
-        } else {
-            ui.notifBadge.classList.add('hidden');
-        }
-    });
+async function setupNotifications(userId) {
+    // ✅ PURE SUPABASE: Query directe sans wrapper
+    const { data: notifications, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    if (error) {
+        console.error('Erreur chargement notifications:', error);
+        return;
+    }
+
+    if (notifications && notifications.length > 0) {
+        ui.notifBadge.classList.remove('hidden');
+        ui.notifList.innerHTML = notifications.map(n => `<div class="p-3 border-b border-gray-800 text-left text-sm text-gray-300">${n.message}</div>`).join('');
+    } else {
+        ui.notifBadge.classList.add('hidden');
+    }
+
+    // ✅ S'abonner aux changements en temps réel
+    supabase
+        .channel('notifications_changes')
+        .on('postgres_changes',
+            {
+                event: '*',
+                schema: 'public',
+                table: 'notifications',
+                filter: `user_id=eq.${userId}`
+            },
+            (payload) => {
+                console.log('Notification changed:', payload);
+                setupNotifications(userId); // Recharger
+            }
+        )
+        .subscribe();
 }
 if(ui.notifBtn) ui.notifBtn.onclick = (e) => { e.stopPropagation(); ui.notifDropdown.classList.toggle('hidden'); };
 window.onclick = (e) => { if(!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) ui.notifDropdown.classList.add('hidden'); };
