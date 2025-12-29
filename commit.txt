@@ -1,6 +1,7 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[15:45:18] feat: Add Quizlet-style flip cards for flashcards
 [15:10:25] feat: Improve flashcard generation and visual presentation
 [14:50:12] fix: Remove non-existent 'format' column from syntheses table insert
 [14:35:45] fix: Use full model name with 'models/' prefix - gemini-2.5-flash
