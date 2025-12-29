@@ -1,6 +1,9 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[11:27:48] fix: Add JWT authentication to synthesis Edge Function call
+[11:27:24] fix: Remove tutor.html from Vite build config
+[11:25:29] chore: Sync commit log
 [11:25:12] chore: Update log
 [11:25:02] docs: Final sync
 [11:24:51] docs: Sync commit.txt
