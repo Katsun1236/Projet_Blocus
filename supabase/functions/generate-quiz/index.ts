@@ -91,9 +91,9 @@ ${type === 'qcm' ? '- Fournis 4 options par question' : '- Fournis exactement 2 
 
 Génère exactement ${count} question${count > 1 ? 's' : ''}.`
 
-    // Appeler l'API Gemini (modèle 1.5-pro : stable avec quota gratuit)
-    // ✅ FIX: Utiliser gemini-1.5-pro (modèle stable, non expérimental)
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}`
+    // Appeler l'API Gemini (modèle pro : ancien nom stable)
+    // ✅ FIX: Utiliser gemini-pro (ancien nom, devrait être disponible)
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`
 
     const response = await fetch(API_URL, {
       method: 'POST',
