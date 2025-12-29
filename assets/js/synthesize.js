@@ -12,50 +12,80 @@ initSpeedInsights();
 // ===================================================================
 
 /**
- * Formate les flashcards Q:/R: en cartes visuelles
+ * Formate les flashcards Q:/R: en cartes retournables style Quizlet
  */
 function formatFlashcards(content) {
     const lines = content.split('\n');
-    let html = '<div class="flashcards-container space-y-4">';
-    let currentCard = null;
+    let html = '<div class="flashcards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">';
+    let currentQuestion = null;
 
     for (const line of lines) {
         const trimmed = line.trim();
 
         if (trimmed.startsWith('Q:')) {
-            // Nouvelle question
-            if (currentCard) html += '</div>'; // Fermer la carte précédente
-            const question = trimmed.substring(2).trim();
-            html += `
-                <div class="flashcard bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-purple-500 transition-colors">
-                    <div class="question mb-4">
-                        <div class="text-purple-400 font-semibold mb-2 flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span>Question</span>
-                        </div>
-                        <p class="text-gray-100 text-lg">${escapeHtml(question)}</p>
-                    </div>`;
-            currentCard = 'open';
-        } else if (trimmed.startsWith('R:')) {
-            // Réponse
+            currentQuestion = trimmed.substring(2).trim();
+        } else if (trimmed.startsWith('R:') && currentQuestion) {
             const answer = trimmed.substring(2).trim();
             html += `
-                    <div class="answer">
-                        <div class="text-green-400 font-semibold mb-2 flex items-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span>Réponse</span>
+                <div class="flashcard-wrapper perspective-1000">
+                    <div class="flashcard-container relative w-full h-64 cursor-pointer transition-transform duration-500 transform-style-3d hover:scale-105" onclick="this.classList.toggle('flipped')">
+                        <!-- Face avant (Question) -->
+                        <div class="flashcard-face flashcard-front absolute w-full h-full bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden">
+                            <div class="text-center">
+                                <div class="text-sm text-purple-200 mb-3 font-semibold uppercase tracking-wide">Question</div>
+                                <p class="text-white text-xl font-medium leading-relaxed">${escapeHtml(currentQuestion)}</p>
+                                <div class="mt-4 text-purple-300 text-sm">
+                                    <svg class="w-6 h-6 mx-auto animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                    Cliquez pour révéler
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-gray-300">${escapeHtml(answer)}</p>
-                    </div>`;
+                        <!-- Face arrière (Réponse) -->
+                        <div class="flashcard-face flashcard-back absolute w-full h-full bg-gradient-to-br from-green-600 to-green-800 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden rotate-y-180">
+                            <div class="text-center">
+                                <div class="text-sm text-green-200 mb-3 font-semibold uppercase tracking-wide">Réponse</div>
+                                <p class="text-white text-lg leading-relaxed">${escapeHtml(answer)}</p>
+                                <div class="mt-4 text-green-300 text-sm">
+                                    <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            currentQuestion = null;
         }
     }
 
-    if (currentCard) html += '</div>'; // Fermer la dernière carte
     html += '</div>';
+
+    // Ajouter les styles CSS pour l'animation de retournement
+    html += `
+    <style>
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .flashcard-container.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-container {
+            transition: transform 0.6s;
+        }
+    </style>`;
+
     return html;
 }
 
