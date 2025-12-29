@@ -1,6 +1,7 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[11:35:41] refactor: Migrate courses.js from Firestore to pure Supabase API
 [11:27:48] fix: Add JWT authentication to synthesis Edge Function call
 [11:27:24] fix: Remove tutor.html from Vite build config
 [11:25:29] chore: Sync commit log
