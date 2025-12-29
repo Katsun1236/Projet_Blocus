@@ -112,8 +112,8 @@ IMPORTANT:
 Génère maintenant la synthèse:`
 
     // Appeler l'API Gemini (modèle 1.5-flash : rapide et gratuit)
-    // ✅ FIX: Utiliser v1 au lieu de v1beta (gemini-1.5-flash n'existe que dans v1)
-    const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
+    // ✅ FIX: Utiliser v1beta (gemini-1.5-flash est disponible dans v1beta)
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
     const response = await fetch(API_URL, {
       method: 'POST',
