@@ -98,7 +98,7 @@ function renderProfile(data) {
     const avatarUrl = data.photoURL || `https://ui-avatars.com/api/?name=${data.firstName}+${data.lastName}&background=random&color=fff`;
     ui.avatar.src = avatarUrl;
     ui.name.textContent = `${data.firstName || ''} ${data.lastName || ''}`;
-    ui.email.textContent = auth.currentUser?.email || '';
+    ui.email.textContent = data.email || '';
     ui.points.textContent = data.points || 0;
 
     if (data.bio && data.bio.trim() !== "") {
@@ -122,10 +122,9 @@ async function loadUserStats() {
             supabase.from('courses').select('*', { count: 'exact', head: true }).eq('user_id', currentUserId),
             // Count quiz results
             supabase.from('quiz_results').select('*', { count: 'exact', head: true }).eq('user_id', currentUserId),
-            // Count groups (nécessite array contains - fallback à getDocs pour compatibilité)
-            getDocs(query(collection(db, 'community_groups'))).then(snap =>
-                snap.filter(doc => doc.data().members?.includes(currentUserId)).length
-            ),
+            // Count groups - ⚠️ TODO: community_groups n'a pas de colonne 'members'
+            // Besoin d'une table community_members avec group_id + user_id
+            Promise.resolve(0),  // Temporairement hardcodé à 0
             // Count posts
             supabase.from('community_posts').select('*', { count: 'exact', head: true }).eq('user_id', currentUserId)
         ]);
@@ -153,7 +152,8 @@ async function loadUserStats() {
 async function loadRecentActivity() {
     ui.activityList.innerHTML = '';
     try {
-        const q = query(collection(db, 'community_posts'), where('authorId', '==', currentUserId), orderBy('createdAt', 'desc'), limit(5));
+        // ✅ FIX: Utiliser 'user_id' au lieu de 'authorId' + 'created_at' au lieu de 'createdAt'
+        const q = query(collection(db, 'community_posts'), where('user_id', '==', currentUserId), orderBy('created_at', 'desc'), limit(5));
         const snapshot = await getDocs(q);
 
         if (snapshot.empty) {
@@ -171,7 +171,7 @@ async function loadRecentActivity() {
                     <p class="text-sm text-gray-200 font-medium truncate">${data.title}</p>
                     <div class="flex justify-between items-center mt-1">
                         <span class="text-xs text-indigo-400 font-bold bg-indigo-500/10 px-2 py-0.5 rounded">${data.type === 'question' ? 'Question' : 'Post'}</span>
-                        <span class="text-[10px] text-gray-500">${data.createdAt ? formatDate(data.createdAt.toDate()) : ''}</span>
+                        <span class="text-[10px] text-gray-500">${data.created_at ? formatDate(new Date(data.created_at)) : ''}</span>
                     </div>
                 </div>
             `;

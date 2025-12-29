@@ -1,10 +1,12 @@
-import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
+import { auth, supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
-import { initSpeedInsights } from './speed-insights.js';
+// import { initSpeedInsights } from './speed-insights.js';
 
 // Initialize Speed Insights for performance monitoring
-initSpeedInsights();
+// initSpeedInsights(); // Disabled for now
+
+console.log('🚀🚀🚀 QUIZZ.JS SCRIPT LOADED 🚀🚀🚀');
 
 let currentQuiz = null;
 let currentQuestionIndex = 0;
@@ -52,81 +54,110 @@ const ui = {
     btnBack: document.getElementById('back-to-dashboard-btn')
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-    initLayout('quiz');
+// Initialisation immédiate (pas de DOMContentLoaded pour les modules)
+initLayout('quiz');
+setupEventListeners();
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            loadRecentQuiz();
-            loadUserSyntheses();
-            loadUserCourses();
-        } else {
-            window.location.href = '../auth/login.html';
-        }
-    });
+// Auth et chargement initial
+let currentUserId = null;
 
-    setupEventListeners();
-});
+(async function initQuiz() {
+    console.log('🔐 Checking authentication...');
 
-async function loadUserSyntheses() {
-    if (!auth.currentUser) return;
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+        console.error('❌ Not authenticated, redirecting to login');
+        window.location.href = '../auth/login.html';
+        return;
+    }
+
+    currentUserId = user.id;
+    console.log('✅ Authenticated as:', currentUserId);
+
+    // Charger les données
+    loadRecentQuiz(currentUserId);
+    loadUserSyntheses(currentUserId);
+    loadUserCourses(currentUserId);
+})();
+
+async function loadUserSyntheses(userId) {
+    if (!userId) return;
     try {
-        const synthesisRef = collection(db, 'users', auth.currentUser.id, 'syntheses');
-        const snapshot = await getDocs(synthesisRef);
-        userSyntheses = [];
-        ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
+        console.log('📚 Loading syntheses for user:', userId);
 
-        snapshot.forEach(doc => {
-            const d = doc.data();
-            const s = { id: doc.id, ...d };
-            userSyntheses.push(s);
-            const opt = document.createElement('option');
-            opt.value = s.id;
-            opt.textContent = s.title || `Synthèse du ${new Date(s.createdAt?.toDate ? s.createdAt.toDate() : Date.now()).toLocaleDateString()}`;
-            ui.synthesisSelect.appendChild(opt);
-        });
+        const { data: syntheses, error } = await supabase
+            .from('syntheses')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('❌ Error loading syntheses:', error);
+            ui.synthesisSelect.innerHTML = '<option value="">Erreur chargement</option>';
+            return;
+        }
+
+        userSyntheses = syntheses || [];
+        ui.synthesisSelect.innerHTML = '<option value="">-- Choisir une synthèse --</option>';
 
         if (userSyntheses.length === 0) {
             ui.synthesisSelect.innerHTML = '<option value="">Aucune synthèse trouvée</option>';
+            console.log('⚠️ No syntheses found');
+            return;
         }
+
+        userSyntheses.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id;
+            opt.textContent = s.title || `Synthèse du ${new Date(s.created_at).toLocaleDateString('fr-FR')}`;
+            ui.synthesisSelect.appendChild(opt);
+        });
+
+        console.log(`✅ Loaded ${userSyntheses.length} syntheses`);
     } catch (e) {
-        console.warn("Erreur chargement synthèses:", e);
+        console.error("❌ Error loading syntheses:", e);
         ui.synthesisSelect.innerHTML = '<option value="">Erreur (Voir Console)</option>';
     }
 }
 
-async function loadUserCourses() {
-    if (!auth.currentUser) return;
+async function loadUserCourses(userId) {
+    if (!userId) return;
     try {
-        // ✅ LOW: Removed debug console.log
-        // console.log("Chargement des cours pour:", auth.currentUser.id);
-        const coursesRef = collection(db, 'users', auth.currentUser.id, 'courses');
-        const snapshot = await getDocs(coursesRef);
-        userCourses = [];
-        ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
+        console.log('📄 Loading courses for user:', userId);
 
-        // ✅ LOW: Removed debug console.log
-        // console.log("Cours trouvés:", snapshot.size);
+        const { data: courses, error } = await supabase
+            .from('courses')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false });
 
-        if (snapshot.empty) {
-            ui.courseSelect.innerHTML = '<option value="">Aucun fichier trouvé. Uploadez des cours !</option>';
+        if (error) {
+            console.error('❌ Error loading courses:', error);
+            ui.courseSelect.innerHTML = `<option value="">Erreur: ${error.message}</option>`;
             return;
         }
 
-        snapshot.forEach(doc => {
-            const d = doc.data();
-            const f = { id: doc.id, ...d };
-            userCourses.push(f);
+        userCourses = courses || [];
+        ui.courseSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
 
+        if (userCourses.length === 0) {
+            ui.courseSelect.innerHTML = '<option value="">Aucun fichier trouvé. Uploadez des cours !</option>';
+            console.log('⚠️ No courses found');
+            return;
+        }
+
+        userCourses.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f.id;
-            opt.textContent = f.name || f.title || "Fichier sans nom";
+            opt.textContent = f.file_name || f.title || "Fichier sans nom";
             ui.courseSelect.appendChild(opt);
         });
 
+        console.log(`✅ Loaded ${userCourses.length} courses`);
     } catch (e) {
-        console.error("Erreur chargement cours:", e);
-        ui.courseSelect.innerHTML = `<option value="">Erreur: ${e.code || e.message}</option>`;
+        console.error("❌ Error loading courses:", e);
+        ui.courseSelect.innerHTML = `<option value="">Erreur: ${e.message}</option>`;
     }
 }
 
@@ -165,9 +196,10 @@ function extractQuizSourceData(source) {
         }
         const file = userCourses.find(f => f.id === fileId);
         if (file) {
-            topic = `Cours : ${file.name}`;
-            dataContext = `Document: ${file.name}. URL: ${file.url}. Génère des questions pertinentes basées sur ce type de document.`;
-            if (!title) title = file.name;
+            const fileName = file.file_name || file.title || "Fichier";
+            topic = `Cours : ${fileName}`;
+            dataContext = `Document: ${fileName}. Génère des questions pertinentes basées sur ce type de matière.`;
+            if (!title) title = fileName;
         }
     }
 
@@ -181,6 +213,39 @@ function setGeneratingState(isGenerating) {
         ? `<i class="fas fa-spinner fa-spin"></i> Génération...`
         : `<i class="fas fa-bolt mr-2"></i> Générer`;
     ui.loadingContainer.classList.toggle('hidden', !isGenerating);
+}
+
+// ✅ PRODUCTION SÉCURISÉE: Call Supabase Edge Function avec authentification
+async function callGenerateQuizFunction(topic, dataContext, count, type) {
+    try {
+        console.log('🤖 TEST: Calling generate-quiz Edge Function (NO AUTH)...');
+
+        // TEST SANS AUTH - juste pour vérifier que la fonction existe
+        const { data, error } = await supabase.functions.invoke('generate-quiz', {
+            body: {
+                mode: 'quiz',
+                topic: topic,
+                data: dataContext,
+                options: {
+                    count: count,
+                    type: type
+                }
+            }
+            // PAS d'Authorization header pour le test
+        });
+
+        if (error) {
+            console.error('❌ Edge Function error:', error);
+            throw new Error(error.message || 'Erreur lors de la génération du quiz');
+        }
+
+        console.log('✅ Quiz generated successfully');
+        return data;
+
+    } catch (error) {
+        console.error('❌ Generate quiz error:', error);
+        throw error;
+    }
 }
 
 async function generateQuiz() {
@@ -201,15 +266,15 @@ async function generateQuiz() {
     setGeneratingState(true);
 
     try {
-        const generateContent = httpsCallable(functions, 'generateContent');
-        const result = await generateContent({
-            mode: 'quiz',
-            topic: sourceData.topic,
-            data: sourceData.dataContext,
-            options: { count, type }
-        });
+        console.log('🎯 Generating quiz:', { topic: sourceData.topic, count, type });
 
-        const quizData = result.data;
+        // ✅ PRODUCTION: Appeler la Supabase Edge Function (sécurisé)
+        const quizData = await callGenerateQuizFunction(
+            sourceData.topic,
+            sourceData.dataContext,
+            count,
+            type
+        );
 
         if (!quizData || !quizData.questions || quizData.questions.length === 0) {
             throw new Error("L'IA n'a pas renvoyé de questions valides.");
@@ -217,12 +282,13 @@ async function generateQuiz() {
 
         quizData.title = sourceData.title;
 
+        console.log('✅ Quiz generated:', quizData);
         showMessage("Quiz prêt !", "success");
         startQuiz(quizData);
-        closeModal();
+        ui.modal.classList.add('hidden');
 
     } catch (error) {
-        console.error("Erreur Génération:", error);
+        console.error("❌ Erreur Génération:", error);
         showMessage("Erreur IA : " + (error.message || "Réessayez plus tard."), "error");
     } finally {
         isGenerating = false;
@@ -345,17 +411,28 @@ async function finishQuiz() {
         });
     }
 
-    if (auth.currentUser) {
+    if (currentUserId) {
         try {
-            await addDoc(collection(db, 'quiz_results'), {
-                userId: auth.currentUser.id,
-                topic: currentQuiz.title,
-                score: score,
-                total: currentQuiz.questions.length,
-                percentage: percentage,
-                createdAt: serverTimestamp()
-            });
-        } catch (e) { console.error("Erreur sauvegarde:", e); }
+            console.log('💾 Saving quiz result...');
+            const { data, error } = await supabase
+                .from('quiz_results')
+                .insert({
+                    user_id: currentUserId,
+                    topic: currentQuiz.title,
+                    score: score,
+                    total: currentQuiz.questions.length,
+                    percentage: percentage
+                    // created_at sera auto-généré par Supabase
+                });
+
+            if (error) {
+                console.error("❌ Error saving quiz result:", error);
+            } else {
+                console.log("✅ Quiz result saved");
+            }
+        } catch (e) {
+            console.error("❌ Error saving quiz result:", e);
+        }
     }
 }
 
@@ -368,32 +445,69 @@ function exitQuiz() {
     }
 }
 
-async function loadRecentQuiz() {
-    if(!ui.quizGrid) return;
-    if (!auth.currentUser) {
+async function loadRecentQuiz(userId = currentUserId) {
+    if (!ui.quizGrid) return;
+    if (!userId) {
         ui.quizGrid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500">Connectez-vous pour voir vos quiz.</div>';
         return;
     }
+
     ui.quizGrid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500"><i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i><p>Chargement...</p></div>';
+
     try {
-        const q = query(collection(db, 'quiz_results'), where('userId', '==', auth.currentUser.id), orderBy('createdAt', 'desc'), limit(8));
-        const snapshot = await getDocs(q);
-        ui.quizGrid.innerHTML = '';
-        if (snapshot.empty) {
-            ui.quizGrid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500">Aucun quiz récent.</div>';
+        console.log('🎯 Loading recent quiz for user:', userId);
+
+        const { data: quizResults, error } = await supabase
+            .from('quiz_results')
+            .select('*')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(8);
+
+        if (error) {
+            console.error('❌ Error loading quiz results:', error);
+            ui.quizGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-xs">Erreur chargement historique.</div>';
             return;
         }
-        snapshot.forEach(doc => {
-            const data = doc.data();
+
+        ui.quizGrid.innerHTML = '';
+
+        if (!quizResults || quizResults.length === 0) {
+            ui.quizGrid.innerHTML = '<div class="col-span-full py-8 text-center text-gray-500">Aucun quiz récent.</div>';
+            console.log('⚠️ No quiz results found');
+            return;
+        }
+
+        quizResults.forEach(data => {
             const div = document.createElement('div');
             div.className = "content-glass p-5 rounded-2xl flex flex-col gap-3 group hover:bg-gray-800 transition-colors";
+
             let colorClass = "text-red-400";
             if (data.percentage >= 50) colorClass = "text-orange-400";
             if (data.percentage >= 80) colorClass = "text-green-400";
-            div.innerHTML = `<div class="flex justify-between items-start"><div class="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg"><i class="fas fa-brain"></i></div><span class="text-lg font-bold ${colorClass}">${data.percentage}%</span></div><div><h4 class="font-bold text-white truncate">${data.topic || 'Quiz sans titre'}</h4><p class="text-xs text-gray-500">${data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : 'Date inconnue'}</p></div>`;
+
+            const dateStr = data.created_at ? new Date(data.created_at).toLocaleDateString('fr-FR') : 'Date inconnue';
+
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-lg">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <span class="text-lg font-bold ${colorClass}">${data.percentage}%</span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-white truncate">${data.topic || 'Quiz sans titre'}</h4>
+                    <p class="text-xs text-gray-500">${dateStr}</p>
+                </div>
+            `;
             ui.quizGrid.appendChild(div);
         });
-    } catch (e) { console.error("Erreur historique:", e); ui.quizGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-xs">Historique indisponible.</div>'; }
+
+        console.log(`✅ Loaded ${quizResults.length} quiz results`);
+    } catch (e) {
+        console.error("❌ Error loading quiz history:", e);
+        ui.quizGrid.innerHTML = '<div class="col-span-full text-center text-gray-500 text-xs">Historique indisponible.</div>';
+    }
 }
 
 function setupEventListeners() {

@@ -207,19 +207,25 @@ if (ui.btnGenerate) {
         ui.loadingBar.classList.remove('hidden');
 
         try {
-            const generateContent = httpsCallable(functions, 'generateContent');
+            // ⚠️ TODO: Migrer vers Supabase Edge Function pour la génération de synthèses
+            // Pour l'instant, génération temporairement désactivée
+            showMessage("⚠️ La génération automatique de synthèses est temporairement désactivée. Migration en cours vers Supabase Edge Functions.", "error");
 
-            const response = await generateContent({
-                mode: 'synthesis',
-                topic: sourceName,
-                data: context,
-                options: {
-                    format: format,
-                    length: length
+            // Code commenté - à restaurer après création de l'Edge Function
+            /*
+            const { data, error } = await supabase.functions.invoke('generate-synthesis', {
+                body: {
+                    mode: 'synthesis',
+                    topic: sourceName,
+                    data: context,
+                    options: {
+                        format: format,
+                        length: length
+                    }
                 }
             });
 
-            const content = response.data.content;
+            if (error) throw new Error(error.message);
 
             await addDoc(collection(db, 'users', currentUserId, 'syntheses'), {
                 title: title,
@@ -227,7 +233,7 @@ if (ui.btnGenerate) {
                 sourceName: sourceName,
                 format: format,
                 formatLabel: ui.formatSelect.options[ui.formatSelect.selectedIndex].text,
-                content: content,
+                content: data.content,
                 createdAt: serverTimestamp()
             });
 
@@ -235,10 +241,11 @@ if (ui.btnGenerate) {
             ui.titleInput.value = "";
             showMessage("Synthèse générée !", "success");
             loadSyntheses();
+            */
 
         } catch (e) {
             console.error(e);
-            showMessage("Erreur IA : " + (e.message || "Une erreur est survenue"), "error");
+            showMessage("Erreur : " + (e.message || "Une erreur est survenue"), "error");
         } finally {
             btn.disabled = false;
             btn.innerHTML = originalHtml;
