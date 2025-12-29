@@ -283,13 +283,15 @@ if (ui.btnGenerate) {
             console.log('📤 Request body:', requestBody);
             console.log('📤 Authorization header:', `Bearer ${session.access_token.substring(0, 20)}...`);
 
-            // ✅ DEBUGGING: Utiliser fetch direct pour voir les erreurs complètes
+            // ✅ TEST: Essayer SANS JWT pour voir si c'est ça le problème
             const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
+            console.log('🧪 Testing WITHOUT JWT header...');
             const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-synthesis`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
+                    'Content-Type': 'application/json'
+                    // ❌ TEMPORAIREMENT RETIRÉ pour tester
+                    // 'Authorization': `Bearer ${session.access_token}`
                 },
                 body: JSON.stringify(requestBody)
             });
