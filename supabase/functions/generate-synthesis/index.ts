@@ -52,15 +52,23 @@ serve(async (req) => {
 - Une conclusion synthétisant l'essentiel`
         break
       case 'flashcards':
-        formatInstructions = `Génère des flashcards au format Question/Réponse.
-Format strict à respecter:
-Q: [Question]
-R: [Réponse]
+        formatInstructions = `IMPORTANT: Tu DOIS générer UNIQUEMENT des flashcards au format Question/Réponse strict.
 
-Q: [Question]
-R: [Réponse]
+Format OBLIGATOIRE (ne génère RIEN d'autre que ce format):
 
-Crée entre 10 et 15 flashcards pertinentes.`
+Q: [Question concise et claire]
+R: [Réponse précise et complète]
+
+Q: [Autre question]
+R: [Autre réponse]
+
+RÈGLES STRICTES:
+- Chaque ligne commence par "Q:" ou "R:"
+- Une ligne vide entre chaque flashcard
+- 10 à 15 flashcards maximum
+- Questions variées (définitions, concepts, applications)
+- Réponses courtes mais complètes
+- PAS de numérotation, PAS de tirets, JUSTE Q: et R:`
         break
       case 'mindmap':
         formatInstructions = `Crée une mind map textuelle avec:

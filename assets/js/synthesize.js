@@ -7,6 +7,97 @@ import { initSpeedInsights } from './speed-insights.js';
 // Initialize Speed Insights for performance monitoring
 initSpeedInsights();
 
+// ===================================================================
+// FONCTIONS DE FORMATAGE
+// ===================================================================
+
+/**
+ * Formate les flashcards Q:/R: en cartes visuelles
+ */
+function formatFlashcards(content) {
+    const lines = content.split('\n');
+    let html = '<div class="flashcards-container space-y-4">';
+    let currentCard = null;
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith('Q:')) {
+            // Nouvelle question
+            if (currentCard) html += '</div>'; // Fermer la carte précédente
+            const question = trimmed.substring(2).trim();
+            html += `
+                <div class="flashcard bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-purple-500 transition-colors">
+                    <div class="question mb-4">
+                        <div class="text-purple-400 font-semibold mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Question</span>
+                        </div>
+                        <p class="text-gray-100 text-lg">${escapeHtml(question)}</p>
+                    </div>`;
+            currentCard = 'open';
+        } else if (trimmed.startsWith('R:')) {
+            // Réponse
+            const answer = trimmed.substring(2).trim();
+            html += `
+                    <div class="answer">
+                        <div class="text-green-400 font-semibold mb-2 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>Réponse</span>
+                        </div>
+                        <p class="text-gray-300">${escapeHtml(answer)}</p>
+                    </div>`;
+        }
+    }
+
+    if (currentCard) html += '</div>'; // Fermer la dernière carte
+    html += '</div>';
+    return html;
+}
+
+/**
+ * Formate le markdown basique en HTML
+ */
+function formatMarkdown(content) {
+    let html = content;
+
+    // Titres
+    html = html.replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-purple-400 mt-6 mb-3">$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-purple-400 mt-8 mb-4">$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-purple-400 mt-10 mb-6">$1</h1>');
+
+    // Gras et italique
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em class="text-gray-300 italic">$1</em>');
+
+    // Listes à puces
+    html = html.replace(/^- (.+)$/gm, '<li class="ml-6 text-gray-300">• $1</li>');
+
+    // Paragraphes
+    html = html.replace(/\n\n/g, '</p><p class="text-gray-300 leading-relaxed mb-4">');
+    html = '<p class="text-gray-300 leading-relaxed mb-4">' + html + '</p>';
+
+    return `<div class="formatted-content prose prose-invert max-w-none">${html}</div>`;
+}
+
+/**
+ * Échappe les caractères HTML pour éviter XSS
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
 let currentUserId = null;
 let currentSynthId = null;
 
@@ -172,17 +263,21 @@ function openViewer(id, synth) {
     ui.viewBadge.textContent = (synth.format_label || 'RÉSUMÉ').toUpperCase();
     ui.viewMeta.textContent = `Généré le ${formatDate(synth.created_at)} • Source: ${synth.source_name || 'Inconnue'}`;
 
-    // ✅ SÉCURISÉ: Utiliser textContent au lieu de innerHTML pour éviter XSS
-    // Si le contenu contient du HTML formaté de Gemini, on utilise DOMPurify
-    if (synth.content?.includes('<')) {
-        // Fallback: sanitize si DOMPurify disponible, sinon textContent
+    // ✅ Formatter le contenu selon le type de synthèse
+    const formatLabel = synth.format_label || '';
+    if (formatLabel.toLowerCase().includes('flashcard')) {
+        // Format flashcards Q:/R: en cartes visuelles
+        ui.viewContent.innerHTML = formatFlashcards(synth.content || '');
+    } else if (synth.content?.includes('<')) {
+        // HTML formaté - sanitize
         if (typeof DOMPurify !== 'undefined') {
             ui.viewContent.innerHTML = DOMPurify.sanitize(synth.content);
         } else {
             ui.viewContent.textContent = synth.content;
         }
     } else {
-        ui.viewContent.textContent = synth.content || '';
+        // Texte brut avec formatage markdown basique
+        ui.viewContent.innerHTML = formatMarkdown(synth.content || '');
     }
 }
 
