@@ -250,11 +250,38 @@ if (ui.btnGenerate) {
 
         try {
             // ✅ Récupérer le token JWT pour l'authentification
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+            console.log('🔍 === DEBUGGING JWT ===');
+            console.log('📦 Session exists:', !!session);
+            console.log('📦 Session error:', sessionError);
+
+            if (session) {
+                console.log('👤 User ID:', session.user?.id);
+                console.log('📧 User email:', session.user?.email);
+                console.log('🔑 Access token (first 20 chars):', session.access_token?.substring(0, 20) + '...');
+                console.log('🔑 Token length:', session.access_token?.length);
+                console.log('⏰ Token expires at:', new Date(session.expires_at * 1000).toLocaleString());
+                console.log('⏰ Current time:', new Date().toLocaleString());
+                console.log('⚠️ Token expired?', session.expires_at * 1000 < Date.now());
+            }
 
             if (!session) {
                 throw new Error('Non authentifié. Veuillez vous reconnecter.');
             }
+
+            const requestBody = {
+                mode: 'synthesis',
+                topic: sourceName,
+                data: context,
+                options: {
+                    format: format,
+                    length: length
+                }
+            };
+
+            console.log('📤 Request body:', requestBody);
+            console.log('📤 Authorization header:', `Bearer ${session.access_token.substring(0, 20)}...`);
 
             // ✅ DEBUGGING: Utiliser fetch direct pour voir les erreurs complètes
             const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
@@ -264,18 +291,14 @@ if (ui.btnGenerate) {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.access_token}`
                 },
-                body: JSON.stringify({
-                    mode: 'synthesis',
-                    topic: sourceName,
-                    data: context,
-                    options: {
-                        format: format,
-                        length: length
-                    }
-                })
+                body: JSON.stringify(requestBody)
             });
 
+            console.log('📥 Response status:', response.status);
+            console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+
             const responseData = await response.json();
+            console.log('📥 Response data:', responseData);
 
             if (!response.ok) {
                 console.error('🔴 Edge Function HTTP Error:', response.status, response.statusText);
