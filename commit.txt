@@ -1,6 +1,7 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[11:47:25] fix: Change Gemini API from v1beta to v1 for gemini-1.5-flash support
 [11:45:13] debug: Use direct fetch to Edge Function for detailed error messages
 [11:40:46] debug: Add detailed error logging for synthesis Edge Function
 [11:35:41] refactor: Migrate courses.js from Firestore to pure Supabase API
