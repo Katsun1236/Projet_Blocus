@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserId = user.uid;
+            currentUserId = user.id;
             await initPage();
             loadSyntheses();
             loadFiles();

@@ -33,13 +33,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            currentUserId = user.uid;
+            currentUserId = user.id;
 
             // Charger les données utilisateur depuis Supabase
             const { data, error } = await supabase
                 .from('users')
                 .select('first_name, photo_url')
-                .eq('id', user.uid)
+                .eq('id', user.id)
                 .single();
 
             if (data && !error) {
@@ -104,14 +104,16 @@ function subscribeToEvents() {
         const events = [];
         snapshot.forEach(docSnap => {
             const data = docSnap.data();
+            // ✅ FIX: Utiliser start_date/end_date au lieu de start/end
             events.push({
                 id: docSnap.id,
                 title: data.title,
-                start: data.start,
-                end: data.end,
+                start: data.start_date,
+                end: data.end_date,
                 extendedProps: {
                     description: data.description,
-                    type: data.type
+                    // ⚠️ TODO: Ajouter colonne 'type' à planning_events dans Supabase
+                    type: data.type || 'other'
                 }
             });
         });
@@ -134,11 +136,13 @@ async function saveEvent() {
     if (!typeElement) return showMessage("Sélectionnez un type d'événement", "error");
     const type = typeElement.value;
 
+    // ✅ FIX: Utiliser start_date/end_date pour correspondre au schéma Supabase
     const eventData = {
         title,
-        start,
-        end: end || null,
+        start_date: start,
+        end_date: end || null,
         description: desc,
+        // ⚠️ TODO: Ajouter colonne 'type' à planning_events dans Supabase
         type
     };
 
@@ -186,9 +190,10 @@ async function deleteEvent() {
 async function handleEventDrop(info) {
     const event = info.event;
     try {
+        // ✅ FIX: Utiliser start_date/end_date
         await updateDoc(doc(db, 'users', currentUserId, 'planning', event.id), {
-            start: event.start.toISOString(),
-            end: event.end ? event.end.toISOString() : null
+            start_date: event.start.toISOString(),
+            end_date: event.end ? event.end.toISOString() : null
         });
         showMessage("Événement déplacé avec succès", "success");
     } catch (e) {
@@ -201,8 +206,9 @@ async function handleEventDrop(info) {
 async function handleEventResize(info) {
     const event = info.event;
     try {
+        // ✅ FIX: Utiliser end_date
         await updateDoc(doc(db, 'users', currentUserId, 'planning', event.id), {
-            end: event.end ? event.end.toISOString() : null
+            end_date: event.end ? event.end.toISOString() : null
         });
         showMessage("Durée modifiée", "success");
     } catch (e) {
