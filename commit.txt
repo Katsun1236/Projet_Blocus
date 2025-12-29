@@ -1,6 +1,7 @@
 # Historique des commits - Projet Blocus
 # Format: [HH:MM:SS] Message du commit
 
+[11:07:26] docs: Update commit log and add auto-update script
 [11:06:15] docs: Add commit history log file
 [11:02:41] refactor: Remove all Firestore wrappers and migrate to pure Supabase API
 [10:49:28] docs: Remove TEST_SYNCHRO.txt
