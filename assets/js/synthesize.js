@@ -281,32 +281,20 @@ if (ui.btnGenerate) {
             };
 
             console.log('📤 Request body:', requestBody);
-            console.log('📤 Authorization header:', `Bearer ${session.access_token.substring(0, 20)}...`);
 
-            // ✅ Appel à l'Edge Function avec JWT automatiquement validé par Supabase
-            const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
-            const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-synthesis`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.access_token}`
-                },
-                body: JSON.stringify(requestBody)
+            // ✅ Utiliser supabase.functions.invoke() pour que le SDK gère automatiquement l'authentification
+            console.log('🚀 Calling Edge Function via SDK...');
+            const { data, error } = await supabase.functions.invoke('generate-synthesis', {
+                body: requestBody
             });
 
-            console.log('📥 Response status:', response.status);
-            console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+            console.log('📥 Response data:', data);
+            console.log('📥 Response error:', error);
 
-            const responseData = await response.json();
-            console.log('📥 Response data:', responseData);
-
-            if (!response.ok) {
-                console.error('🔴 Edge Function HTTP Error:', response.status, response.statusText);
-                console.error('🔴 Response body:', responseData);
-                throw new Error(responseData.error || 'Erreur lors de la génération de la synthèse');
+            if (error) {
+                console.error('🔴 Edge Function Error:', error);
+                throw new Error(error.message || 'Erreur lors de la génération de la synthèse');
             }
-
-            const data = responseData;
 
             // Sauvegarder la synthèse dans la base de données
             const { error: insertError } = await supabase.from('syntheses').insert([{
