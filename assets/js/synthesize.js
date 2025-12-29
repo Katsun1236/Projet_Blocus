@@ -249,8 +249,18 @@ if (ui.btnGenerate) {
         ui.loadingBar.classList.remove('hidden');
 
         try {
+            // ✅ Récupérer le token JWT pour l'authentification
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (!session) {
+                throw new Error('Non authentifié. Veuillez vous reconnecter.');
+            }
+
             // ✅ Appeler l'Edge Function Supabase pour générer la synthèse
             const { data, error } = await supabase.functions.invoke('generate-synthesis', {
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                },
                 body: {
                     mode: 'synthesis',
                     topic: sourceName,
