@@ -282,17 +282,17 @@ if (ui.btnGenerate) {
 
             console.log('📤 Request body:', requestBody);
 
-            // ✅ TEST: Appel direct avec apikey + Authorization headers
+            // ✅ TEST: Utiliser ANON_KEY pour voir si le problème vient du user JWT
             const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
 
-            console.log('🚀 Calling Edge Function with apikey header...');
+            console.log('🧪 TEST: Calling Edge Function with ANON_KEY (not user JWT)...');
             const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-synthesis`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'apikey': SUPABASE_ANON_KEY,
-                    'Authorization': `Bearer ${session.access_token}`
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
                 },
                 body: JSON.stringify(requestBody)
             });
