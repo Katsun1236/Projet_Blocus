@@ -272,7 +272,22 @@ if (ui.btnGenerate) {
                 }
             });
 
-            if (error) throw new Error(error.message);
+            // ✅ DEBUGGING: Afficher l'erreur complète si elle existe
+            if (error) {
+                console.error('🔴 Edge Function Error (full object):', error);
+                console.error('🔴 Error stringified:', JSON.stringify(error, null, 2));
+
+                // L'erreur peut être dans error.context.body.error ou error.message
+                let errorMsg = 'Erreur inconnue lors de la génération';
+
+                if (error.context?.body?.error) {
+                    errorMsg = error.context.body.error;
+                } else if (error.message) {
+                    errorMsg = error.message;
+                }
+
+                throw new Error(errorMsg);
+            }
 
             // Sauvegarder la synthèse dans la base de données
             const { error: insertError } = await supabase.from('syntheses').insert([{
