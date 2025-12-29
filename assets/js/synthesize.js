@@ -256,12 +256,15 @@ if (ui.btnGenerate) {
                 throw new Error('Non authentifié. Veuillez vous reconnecter.');
             }
 
-            // ✅ Appeler l'Edge Function Supabase pour générer la synthèse
-            const { data, error } = await supabase.functions.invoke('generate-synthesis', {
+            // ✅ DEBUGGING: Utiliser fetch direct pour voir les erreurs complètes
+            const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-synthesis`, {
+                method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${session.access_token}`
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
                 },
-                body: {
+                body: JSON.stringify({
                     mode: 'synthesis',
                     topic: sourceName,
                     data: context,
@@ -269,25 +272,18 @@ if (ui.btnGenerate) {
                         format: format,
                         length: length
                     }
-                }
+                })
             });
 
-            // ✅ DEBUGGING: Afficher l'erreur complète si elle existe
-            if (error) {
-                console.error('🔴 Edge Function Error (full object):', error);
-                console.error('🔴 Error stringified:', JSON.stringify(error, null, 2));
+            const responseData = await response.json();
 
-                // L'erreur peut être dans error.context.body.error ou error.message
-                let errorMsg = 'Erreur inconnue lors de la génération';
-
-                if (error.context?.body?.error) {
-                    errorMsg = error.context.body.error;
-                } else if (error.message) {
-                    errorMsg = error.message;
-                }
-
-                throw new Error(errorMsg);
+            if (!response.ok) {
+                console.error('🔴 Edge Function HTTP Error:', response.status, response.statusText);
+                console.error('🔴 Response body:', responseData);
+                throw new Error(responseData.error || 'Erreur lors de la génération de la synthèse');
             }
+
+            const data = responseData;
 
             // Sauvegarder la synthèse dans la base de données
             const { error: insertError } = await supabase.from('syntheses').insert([{
