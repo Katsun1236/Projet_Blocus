@@ -111,9 +111,9 @@ IMPORTANT:
 
 Génère maintenant la synthèse:`
 
-    // Appeler l'API Gemini (modèle pro : ancien nom stable)
-    // ✅ FIX: Utiliser gemini-pro (ancien nom, devrait être disponible)
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`
+    // Appeler l'API Gemini (modèle 2.5-flash : le plus récent et performant)
+    // ✅ FIX: Utiliser le nom COMPLET avec préfixe "models/"
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
     const response = await fetch(API_URL, {
       method: 'POST',
