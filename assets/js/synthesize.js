@@ -1,10 +1,132 @@
-import { auth, db, storage, supabase, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, serverTimestamp, increment, deleteField, ref, uploadBytesResumable, getDownloadURL } from './supabase-config.js';
+// ✅ PURE SUPABASE - Pas de wrappers Firestore
+import { supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate } from './utils.js';
 import { initSpeedInsights } from './speed-insights.js';
 
 // Initialize Speed Insights for performance monitoring
 initSpeedInsights();
+
+// ===================================================================
+// FONCTIONS DE FORMATAGE
+// ===================================================================
+
+/**
+ * Formate les flashcards Q:/R: en cartes retournables style Quizlet
+ */
+function formatFlashcards(content) {
+    const lines = content.split('\n');
+    let html = '<div class="flashcards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">';
+    let currentQuestion = null;
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+
+        if (trimmed.startsWith('Q:')) {
+            currentQuestion = trimmed.substring(2).trim();
+        } else if (trimmed.startsWith('R:') && currentQuestion) {
+            const answer = trimmed.substring(2).trim();
+            html += `
+                <div class="flashcard-wrapper perspective-1000">
+                    <div class="flashcard-container relative w-full h-64 cursor-pointer transition-transform duration-500 transform-style-3d hover:scale-105" onclick="this.classList.toggle('flipped')">
+                        <!-- Face avant (Question) -->
+                        <div class="flashcard-face flashcard-front absolute w-full h-full bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden">
+                            <div class="text-center">
+                                <div class="text-sm text-purple-200 mb-3 font-semibold uppercase tracking-wide">Question</div>
+                                <p class="text-white text-xl font-medium leading-relaxed">${escapeHtml(currentQuestion)}</p>
+                                <div class="mt-4 text-purple-300 text-sm">
+                                    <svg class="w-6 h-6 mx-auto animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                    Cliquez pour révéler
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Face arrière (Réponse) -->
+                        <div class="flashcard-face flashcard-back absolute w-full h-full bg-gradient-to-br from-green-600 to-green-800 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden rotate-y-180">
+                            <div class="text-center">
+                                <div class="text-sm text-green-200 mb-3 font-semibold uppercase tracking-wide">Réponse</div>
+                                <p class="text-white text-lg leading-relaxed">${escapeHtml(answer)}</p>
+                                <div class="mt-4 text-green-300 text-sm">
+                                    <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            currentQuestion = null;
+        }
+    }
+
+    html += '</div>';
+
+    // Ajouter les styles CSS pour l'animation de retournement
+    html += `
+    <style>
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .flashcard-container.flipped {
+            transform: rotateY(180deg);
+        }
+        .flashcard-container {
+            transition: transform 0.6s;
+        }
+    </style>`;
+
+    return html;
+}
+
+/**
+ * Formate le markdown basique en HTML
+ */
+function formatMarkdown(content) {
+    let html = content;
+
+    // Titres
+    html = html.replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-purple-400 mt-6 mb-3">$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-purple-400 mt-8 mb-4">$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-purple-400 mt-10 mb-6">$1</h1>');
+
+    // Gras et italique
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em class="text-gray-300 italic">$1</em>');
+
+    // Listes à puces
+    html = html.replace(/^- (.+)$/gm, '<li class="ml-6 text-gray-300">• $1</li>');
+
+    // Paragraphes
+    html = html.replace(/\n\n/g, '</p><p class="text-gray-300 leading-relaxed mb-4">');
+    html = '<p class="text-gray-300 leading-relaxed mb-4">' + html + '</p>';
+
+    return `<div class="formatted-content prose prose-invert max-w-none">${html}</div>`;
+}
+
+/**
+ * Échappe les caractères HTML pour éviter XSS
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
 
 let currentUserId = null;
 let currentSynthId = null;
@@ -47,33 +169,41 @@ const ui = {
     notifList: document.getElementById('notifications-list')
 };
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     initLayout('synthesize');
 
     document.querySelectorAll('select').forEach(s => {
         s.addEventListener('change', () => s.value ? s.classList.add('has-value') : s.classList.remove('has-value'));
     });
 
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUserId = user.id;
-            await initPage();
-            loadSyntheses();
-            loadFiles();
-            setupNotifications(currentUserId);
-        } else {
-            window.location.href = '../auth/login.html';
-        }
-    });
+    // ✅ PURE SUPABASE: Récupérer la session directement
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+    if (session?.user) {
+        currentUserId = session.user.id;
+        await initPage();
+        loadSyntheses();
+        loadFiles();
+        setupNotifications(currentUserId);
+    } else {
+        window.location.href = '../auth/login.html';
+    }
 });
 
 async function initPage() {
     try {
-        const userDoc = await getDoc(doc(db, 'users', currentUserId));
-        if (userDoc.exists()) {
-            const data = userDoc.data();
-            if(ui.userName) ui.userName.textContent = data.firstName || "Étudiant";
-            if(ui.userAvatar) ui.userAvatar.src = data.photoURL || 'https://ui-avatars.com/api/?background=random';
+        // ✅ PURE SUPABASE: Récupérer user directement avec snake_case
+        const { data, error } = await supabase
+            .from('users')
+            .select('first_name, photo_url')
+            .eq('id', currentUserId)
+            .single();
+
+        if (error) throw error;
+
+        if (data) {
+            if(ui.userName) ui.userName.textContent = data.first_name || "Étudiant";
+            if(ui.userAvatar) ui.userAvatar.src = data.photo_url || 'https://ui-avatars.com/api/?background=random';
         }
     } catch(e) {
         // ✅ ERROR HANDLING: Log l'erreur (non bloquant pour l'UI)
@@ -82,18 +212,27 @@ async function initPage() {
 }
 
 async function loadSyntheses() {
-    const q = query(collection(db, 'users', currentUserId, 'syntheses'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
+    // ✅ PURE SUPABASE: Query directe sans wrapper
+    const { data: syntheses, error } = await supabase
+        .from('syntheses')
+        .select('*')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Erreur chargement synthèses:', error);
+        ui.grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 opacity-50"><p>Erreur de chargement</p></div>`;
+        return;
+    }
 
     ui.grid.innerHTML = '';
-    if (snapshot.empty) {
+    if (!syntheses || syntheses.length === 0) {
         ui.grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-500 opacity-50"><p>Aucune synthèse pour l'instant.</p></div>`;
         return;
     }
 
-    snapshot.forEach(docSnap => {
-        const synth = docSnap.data();
-        const dateStr = formatDate(synth.createdAt);
+    syntheses.forEach(synth => {
+        const dateStr = formatDate(synth.created_at);
 
         const card = document.createElement('div');
         card.className = 'synth-card content-glass rounded-2xl p-6 flex flex-col justify-between h-full relative group cursor-pointer border border-gray-800 hover:border-pink-500/30 transition-all';
@@ -103,33 +242,45 @@ async function loadSyntheses() {
                     <div class="w-10 h-10 rounded-lg bg-pink-600/20 flex items-center justify-center text-pink-400">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    <span class="px-2 py-1 rounded bg-gray-800 text-xs text-gray-400 border border-gray-700">${synth.formatLabel || 'Résumé'}</span>
+                    <span class="px-2 py-1 rounded bg-gray-800 text-xs text-gray-400 border border-gray-700">${synth.format_label || 'Résumé'}</span>
                 </div>
                 <h3 class="font-bold text-white text-lg mb-2 line-clamp-2">${synth.title}</h3>
                 <p class="text-xs text-gray-400 mb-1"><i class="far fa-clock mr-1"></i> ${dateStr}</p>
-                <p class="text-xs text-gray-500 truncate">Source: ${synth.sourceType}</p>
+                <p class="text-xs text-gray-500 truncate">Source: ${synth.source_type}</p>
             </div>
             <div class="mt-4 pt-4 border-t border-gray-800 flex justify-between items-center text-xs text-pink-400 font-bold group-hover:text-pink-300">
                 <span>Lire la fiche</span>
                 <i class="fas fa-arrow-right"></i>
             </div>
         `;
-        card.onclick = () => openViewer(docSnap.id, synth);
+        card.onclick = () => openViewer(synth.id, synth);
         ui.grid.appendChild(card);
     });
 }
 
 async function loadFiles() {
-    const q = query(collection(db, 'users', currentUserId, 'courses'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
+    // ✅ PURE SUPABASE: Query directe
+    const { data: courses, error } = await supabase
+        .from('courses')
+        .select('*')
+        .eq('user_id', currentUserId)
+        .order('created_at', { ascending: false });
+
     ui.fileSelect.innerHTML = '<option value="">-- Choisir un fichier --</option>';
-    snapshot.forEach(doc => {
-        const f = doc.data();
-        const opt = document.createElement('option');
-        opt.value = doc.id;
-        opt.text = f.title || f.fileName;
-        ui.fileSelect.appendChild(opt);
-    });
+
+    if (error) {
+        console.error('Erreur chargement fichiers:', error);
+        return;
+    }
+
+    if (courses) {
+        courses.forEach(course => {
+            const opt = document.createElement('option');
+            opt.value = course.id;
+            opt.text = course.title || course.file_name;
+            ui.fileSelect.appendChild(opt);
+        });
+    }
 }
 
 function openViewer(id, synth) {
@@ -137,21 +288,26 @@ function openViewer(id, synth) {
     ui.dashboard.classList.add('hidden');
     ui.viewer.classList.remove('hidden');
 
+    // ✅ PURE SUPABASE: Utiliser snake_case
     ui.viewTitle.textContent = synth.title;
-    ui.viewBadge.textContent = (synth.formatLabel || 'RÉSUMÉ').toUpperCase();
-    ui.viewMeta.textContent = `Généré le ${formatDate(synth.createdAt)} • Source: ${synth.sourceName || 'Inconnue'}`;
+    ui.viewBadge.textContent = (synth.format_label || 'RÉSUMÉ').toUpperCase();
+    ui.viewMeta.textContent = `Généré le ${formatDate(synth.created_at)} • Source: ${synth.source_name || 'Inconnue'}`;
 
-    // ✅ SÉCURISÉ: Utiliser textContent au lieu de innerHTML pour éviter XSS
-    // Si le contenu contient du HTML formaté de Gemini, on utilise DOMPurify
-    if (synth.content?.includes('<')) {
-        // Fallback: sanitize si DOMPurify disponible, sinon textContent
+    // ✅ Formatter le contenu selon le type de synthèse
+    const formatLabel = synth.format_label || '';
+    if (formatLabel.toLowerCase().includes('flashcard')) {
+        // Format flashcards Q:/R: en cartes visuelles
+        ui.viewContent.innerHTML = formatFlashcards(synth.content || '');
+    } else if (synth.content?.includes('<')) {
+        // HTML formaté - sanitize
         if (typeof DOMPurify !== 'undefined') {
             ui.viewContent.innerHTML = DOMPurify.sanitize(synth.content);
         } else {
             ui.viewContent.textContent = synth.content;
         }
     } else {
-        ui.viewContent.textContent = synth.content || '';
+        // Texte brut avec formatage markdown basique
+        ui.viewContent.innerHTML = formatMarkdown(synth.content || '');
     }
 }
 
@@ -164,7 +320,18 @@ ui.btnPrint.onclick = () => window.print();
 
 ui.btnDelete.onclick = async () => {
     if(confirm("Supprimer cette synthèse ?")) {
-        await deleteDoc(doc(db, 'users', currentUserId, 'syntheses', currentSynthId));
+        // ✅ PURE SUPABASE: Suppression directe
+        const { error } = await supabase
+            .from('syntheses')
+            .delete()
+            .eq('id', currentSynthId);
+
+        if (error) {
+            console.error('Erreur suppression:', error);
+            showMessage("Erreur lors de la suppression", "error");
+            return;
+        }
+
         ui.viewer.classList.add('hidden');
         ui.dashboard.classList.remove('hidden');
         loadSyntheses();
@@ -207,41 +374,81 @@ if (ui.btnGenerate) {
         ui.loadingBar.classList.remove('hidden');
 
         try {
-            // ⚠️ TODO: Migrer vers Supabase Edge Function pour la génération de synthèses
-            // Pour l'instant, génération temporairement désactivée
-            showMessage("⚠️ La génération automatique de synthèses est temporairement désactivée. Migration en cours vers Supabase Edge Functions.", "error");
+            // ✅ Récupérer le token JWT pour l'authentification
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-            // Code commenté - à restaurer après création de l'Edge Function
-            /*
-            const { data, error } = await supabase.functions.invoke('generate-synthesis', {
-                body: {
-                    mode: 'synthesis',
-                    topic: sourceName,
-                    data: context,
-                    options: {
-                        format: format,
-                        length: length
-                    }
+            console.log('🔍 === DEBUGGING JWT ===');
+            console.log('📦 Session exists:', !!session);
+            console.log('📦 Session error:', sessionError);
+
+            if (session) {
+                console.log('👤 User ID:', session.user?.id);
+                console.log('📧 User email:', session.user?.email);
+                console.log('🔑 Access token (first 20 chars):', session.access_token?.substring(0, 20) + '...');
+                console.log('🔑 Token length:', session.access_token?.length);
+                console.log('⏰ Token expires at:', new Date(session.expires_at * 1000).toLocaleString());
+                console.log('⏰ Current time:', new Date().toLocaleString());
+                console.log('⚠️ Token expired?', session.expires_at * 1000 < Date.now());
+            }
+
+            if (!session) {
+                throw new Error('Non authentifié. Veuillez vous reconnecter.');
+            }
+
+            const requestBody = {
+                mode: 'synthesis',
+                topic: sourceName,
+                data: context,
+                options: {
+                    format: format,
+                    length: length
                 }
+            };
+
+            console.log('📤 Request body:', requestBody);
+
+            // ✅ TEST: Utiliser ANON_KEY pour voir si le problème vient du user JWT
+            const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
+
+            console.log('🧪 TEST: Calling Edge Function with ANON_KEY (not user JWT)...');
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-synthesis`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify(requestBody)
             });
 
-            if (error) throw new Error(error.message);
+            console.log('📥 Response status:', response.status);
 
-            await addDoc(collection(db, 'users', currentUserId, 'syntheses'), {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('🔴 Edge Function Error:', response.status, errorData);
+                throw new Error(errorData.error || errorData.message || 'Erreur lors de la génération de la synthèse');
+            }
+
+            const data = await response.json();
+            console.log('📥 Response data:', data);
+
+            // Sauvegarder la synthèse dans la base de données
+            const { error: insertError } = await supabase.from('syntheses').insert([{
+                user_id: currentUserId,
                 title: title,
-                sourceType: source,
-                sourceName: sourceName,
-                format: format,
-                formatLabel: ui.formatSelect.options[ui.formatSelect.selectedIndex].text,
-                content: data.content,
-                createdAt: serverTimestamp()
-            });
+                source_type: source,
+                source_name: sourceName,
+                format_label: ui.formatSelect.options[ui.formatSelect.selectedIndex].text,
+                content: data.content
+            }]);
+
+            if (insertError) throw insertError;
 
             toggleModal(false);
             ui.titleInput.value = "";
-            showMessage("Synthèse générée !", "success");
+            showMessage("Synthèse générée avec succès !", "success");
             loadSyntheses();
-            */
 
         } catch (e) {
             console.error(e);
@@ -267,17 +474,43 @@ ui.sourceRadios.forEach(radio => {
     });
 });
 
-function setupNotifications(userId) {
-    const q = query(collection(db, 'users', userId, 'notifications'), orderBy('createdAt', 'desc'), limit(5));
-    onSnapshot(q, (snapshot) => {
-        const notifs = snapshot.docs.map(d => d.data());
-        if (notifs.length > 0) {
-            ui.notifBadge.classList.remove('hidden');
-            ui.notifList.innerHTML = notifs.map(n => `<div class="p-3 border-b border-gray-800 text-left text-sm text-gray-300">${n.message}</div>`).join('');
-        } else {
-            ui.notifBadge.classList.add('hidden');
-        }
-    });
+async function setupNotifications(userId) {
+    // ✅ PURE SUPABASE: Query directe sans wrapper
+    const { data: notifications, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    if (error) {
+        console.error('Erreur chargement notifications:', error);
+        return;
+    }
+
+    if (notifications && notifications.length > 0) {
+        ui.notifBadge.classList.remove('hidden');
+        ui.notifList.innerHTML = notifications.map(n => `<div class="p-3 border-b border-gray-800 text-left text-sm text-gray-300">${n.message}</div>`).join('');
+    } else {
+        ui.notifBadge.classList.add('hidden');
+    }
+
+    // ✅ S'abonner aux changements en temps réel
+    supabase
+        .channel('notifications_changes')
+        .on('postgres_changes',
+            {
+                event: '*',
+                schema: 'public',
+                table: 'notifications',
+                filter: `user_id=eq.${userId}`
+            },
+            (payload) => {
+                console.log('Notification changed:', payload);
+                setupNotifications(userId); // Recharger
+            }
+        )
+        .subscribe();
 }
 if(ui.notifBtn) ui.notifBtn.onclick = (e) => { e.stopPropagation(); ui.notifDropdown.classList.toggle('hidden'); };
 window.onclick = (e) => { if(!ui.notifDropdown.contains(e.target) && !ui.notifBtn.contains(e.target)) ui.notifDropdown.classList.add('hidden'); };

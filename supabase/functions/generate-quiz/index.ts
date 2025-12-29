@@ -2,6 +2,7 @@
 // Ceci tourne côté serveur, la clé API n'est jamais exposée au client
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 interface QuizRequest {
@@ -21,6 +22,32 @@ serve(async (req) => {
   }
 
   try {
+    // ✅ VÉRIFICATION JWT : S'assurer que l'utilisateur est authentifié
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    console.log('✅ User authenticated:', user.id)
+
     // Récupérer la clé API depuis les secrets Supabase
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
 
@@ -64,8 +91,9 @@ ${type === 'qcm' ? '- Fournis 4 options par question' : '- Fournis exactement 2 
 
 Génère exactement ${count} question${count > 1 ? 's' : ''}.`
 
-    // Appeler l'API Gemini (modèle 1.5-flash : rapide et gratuit)
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`
+    // Appeler l'API Gemini (modèle 2.5-flash : le plus récent et performant)
+    // ✅ FIX: Utiliser le nom COMPLET avec préfixe "models/"
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
     const response = await fetch(API_URL, {
       method: 'POST',

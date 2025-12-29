@@ -32,7 +32,6 @@ export default defineConfig({
         upload: resolve(__dirname, 'pages/app/upload.html'),
         quiz: resolve(__dirname, 'pages/app/quiz.html'),
         synthesize: resolve(__dirname, 'pages/app/synthesize.html'),
-        tutor: resolve(__dirname, 'pages/app/tutor.html'),
         spacedRepetition: resolve(__dirname, 'pages/app/spaced-repetition.html'),
         pomodoro: resolve(__dirname, 'pages/app/pomodoro.html'),
         planning: resolve(__dirname, 'pages/app/planning.html'),
