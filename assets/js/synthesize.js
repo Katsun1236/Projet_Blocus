@@ -314,7 +314,6 @@ if (ui.btnGenerate) {
                 title: title,
                 source_type: source,
                 source_name: sourceName,
-                format: format,
                 format_label: ui.formatSelect.options[ui.formatSelect.selectedIndex].text,
                 content: data.content
             }]);
