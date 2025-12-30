@@ -7,6 +7,122 @@ import { initSpeedInsights } from './speed-insights.js';
 // Initialize Speed Insights for performance monitoring
 initSpeedInsights();
 
+// Afficher des tips d'étude pendant le chargement
+function showStudyTip() {
+    const tips = [
+        "💡 Astuce : Prenez des notes manuscrites pour mieux mémoriser",
+        "📚 Conseil : Révisez régulièrement plutôt qu'en une seule fois",
+        "🧠 Méthode : Expliquez le concept à quelqu'un d'autre pour valider votre compréhension",
+        "⏰ Technique : Utilisez la technique Pomodoro (25min travail, 5min pause)",
+        "🎯 Objectif : Fixez-vous des objectifs d'apprentissage spécifiques et mesurables",
+        "🔄 Répétition : Revoyez les informations après 1 jour, 3 jours, 1 semaine",
+        "📝 Organisation : Créez des fiches de révision avec des mots-clés",
+        "🎨 Visuel : Utilisez des schémas et couleurs pour mieux retenir",
+        "🔊 Auditif : Lisez vos notes à voix haute pour renforcer la mémorisation",
+        "🏃 Mouvement : Faites de courtes pauses pour marcher et oxygéner votre cerveau",
+        "🎮 Gamification : Transformez l'apprentissage en jeu pour plus de motivation",
+        "🤔 Questions : Testez-vous régulièrement avec des questions spontanées",
+        "📖 Contexte : Reliez les nouvelles informations à ce que vous connaissez déjà",
+        "⚡ Focus : Éliminez les distractions (téléphone, notifications) pendant l'étude",
+        "🌙 Sommeil : Une bonne nuit de sommeil améliore la consolidation de la mémoire"
+    ];
+    
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    
+    // Créer ou mettre à jour le conteneur de tips
+    let tipContainer = document.getElementById('study-tip-container');
+    if (!tipContainer) {
+        tipContainer = document.createElement('div');
+        tipContainer.id = 'study-tip-container';
+        tipContainer.className = 'mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-sm text-green-300';
+        const modalBody = document.querySelector('#new-synth-modal .p-6.overflow-y-auto');
+        if (modalBody) {
+            modalBody.appendChild(tipContainer);
+        }
+    }
+    
+    tipContainer.innerHTML = `
+        <div class="flex items-start gap-2">
+            <span class="text-green-400 mt-1">💡</span>
+            <div class="flex-1">
+                <div class="font-medium text-green-200 mb-1">Pendant que nous générons votre synthèse...</div>
+                <div class="mb-2">${randomTip}</div>
+                <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div id="synth-progress-bar" class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="text-xs text-green-400 mt-1">
+                    <span id="synth-progress-text">0%</span> • Analyse en cours...
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Démarrer la progression animée
+    startSynthProgress();
+}
+
+// Barre de progression progressive pour la synthèse
+function startSynthProgress() {
+    let progress = 0;
+    const progressBar = document.getElementById('synth-progress-bar');
+    const progressText = document.getElementById('synth-progress-text');
+    
+    if (!progressBar || !progressText) return;
+    
+    const steps = [
+        { progress: 15, text: "Analyse du sujet...", delay: 800 },
+        { progress: 30, text: "Collecte des informations...", delay: 1200 },
+        { progress: 45, text: "Structuration du contenu...", delay: 1500 },
+        { progress: 60, text: "Génération des points clés...", delay: 1800 },
+        { progress: 75, text: "Rédaction en cours...", delay: 2000 },
+        { progress: 85, text: "Mise en forme...", delay: 2200 },
+        { progress: 95, text: "Finalisation...", delay: 2500 }
+    ];
+    
+    let currentStep = 0;
+    
+    function updateProgress() {
+        if (currentStep < steps.length) {
+            const step = steps[currentStep];
+            progress = step.progress;
+            
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+            
+            // Mettre à jour le texte
+            const textContainer = progressText.parentElement;
+            if (textContainer) {
+                textContainer.innerHTML = `<span id="synth-progress-text">${progress}%</span> • ${step.text}`;
+            }
+            
+            currentStep++;
+            setTimeout(updateProgress, step.delay);
+        } else {
+            // Progression terminée, attendre la fin réelle
+            setTimeout(() => {
+                if (progressBar) {
+                    progressBar.style.width = '100%';
+                    progressText.textContent = '100%';
+                    const textContainer = progressText.parentElement;
+                    if (textContainer) {
+                        textContainer.innerHTML = `<span id="synth-progress-text">100%</span> • Terminé !`;
+                    }
+                }
+            }, 1000);
+        }
+    }
+    
+    updateProgress();
+}
+
+// Arrêter la progression et nettoyer
+function stopSynthProgress() {
+    const tipContainer = document.getElementById('study-tip-container');
+    if (tipContainer) {
+        tipContainer.remove();
+    }
+}
+
 // ===================================================================
 // FONCTIONS DE FORMATAGE
 // ===================================================================
@@ -616,51 +732,6 @@ function addInteractiveFunctions() {
     };
 
     // Exploration de sujet
-    // Afficher des tips d'étude pendant le chargement
-function showStudyTip() {
-    const tips = [
-        "💡 Astuce : Prenez des notes manuscrites pour mieux mémoriser",
-        "📚 Conseil : Révisez régulièrement plutôt qu'en une seule fois",
-        "🧠 Méthode : Expliquez le concept à quelqu'un d'autre pour valider votre compréhension",
-        "⏰ Technique : Utilisez la technique Pomodoro (25min travail, 5min pause)",
-        "🎯 Objectif : Fixez-vous des objectifs d'apprentissage spécifiques et mesurables",
-        "🔄 Répétition : Revoyez les informations après 1 jour, 3 jours, 1 semaine",
-        "📝 Organisation : Créez des fiches de révision avec des mots-clés",
-        "🎨 Visuel : Utilisez des schémas et couleurs pour mieux retenir",
-        "🔊 Auditif : Lisez vos notes à voix haute pour renforcer la mémorisation",
-        "🏃 Mouvement : Faites de courtes pauses pour marcher et oxygéner votre cerveau",
-        "🎮 Gamification : Transformez l'apprentissage en jeu pour plus de motivation",
-        "🤔 Questions : Testez-vous régulièrement avec des questions spontanées",
-        "📖 Contexte : Reliez les nouvelles informations à ce que vous connaissez déjà",
-        "⚡ Focus : Éliminez les distractions (téléphone, notifications) pendant l'étude",
-        "🌙 Sommeil : Une bonne nuit de sommeil améliore la consolidation de la mémoire"
-    ];
-    
-    const randomTip = tips[Math.floor(Math.random() * tips.length)];
-    
-    // Créer ou mettre à jour le conteneur de tips
-    let tipContainer = document.getElementById('study-tip-container');
-    if (!tipContainer) {
-        tipContainer = document.createElement('div');
-        tipContainer.id = 'study-tip-container';
-        tipContainer.className = 'mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-sm text-green-300';
-        const modalBody = document.querySelector('#new-synth-modal .p-6.overflow-y-auto');
-        if (modalBody) {
-            modalBody.appendChild(tipContainer);
-        }
-    }
-    
-    tipContainer.innerHTML = `
-        <div class="flex items-start gap-2">
-            <span class="text-green-400 mt-1">💡</span>
-            <div>
-                <div class="font-medium text-green-200 mb-1">Pendant que nous générons votre synthèse...</div>
-                <div>${randomTip}</div>
-            </div>
-        </div>
-    `;
-}
-
 window.exploreTopic = function(button) {
         const topic = button.parentElement.querySelector('.text-gray-300').textContent;
         button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Recherche...';
@@ -1004,6 +1075,15 @@ if (ui.btnGenerate) {
         // Afficher un tip d'étude aléatoire
         showStudyTip();
 
+        // Timeout de sécurité pour éviter le chargement infini
+        const safetyTimeout = setTimeout(() => {
+            stopSynthProgress();
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+            ui.loadingBar.classList.add('hidden');
+            showMessage("Le chargement a pris trop de temps. Veuillez réessayer.", "error");
+        }, 30000); // 30 secondes maximum
+
         try {
             // ✅ Récupérer le token JWT pour l'authentification
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -1086,6 +1166,8 @@ if (ui.btnGenerate) {
             console.error(e);
             showMessage("Erreur : " + (e.message || "Une erreur est survenue"), "error");
         } finally {
+            clearTimeout(safetyTimeout); // Annuler le timeout de sécurité
+            stopSynthProgress(); // Nettoyer la progression
             btn.disabled = false;
             btn.innerHTML = originalHtml;
             ui.loadingBar.classList.add('hidden');
