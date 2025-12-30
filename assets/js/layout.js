@@ -49,6 +49,13 @@ function setupMobileMenu() {
         // Nettoyer les anciens listeners si présents
         mobileMenuBtn.removeEventListener('click', handleClick);
         mobileMenuBtn.addEventListener('click', handleClick);
+
+        // Ajouter un écouteur pour fermer le menu en cliquant à l'extérieur
+        document.addEventListener('click', (e) => {
+            if (mobileMenu && !mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
     }
 
     if (closeMenuBtn && mobileMenu) {
