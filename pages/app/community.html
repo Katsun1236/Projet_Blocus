@@ -9,6 +9,7 @@
     
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/animations.css">
+    <link rel="stylesheet" href="../../assets/css/mobile.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -42,7 +43,7 @@
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
         
-        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30">
+        <header class="h-16 sm:h-20 border-b border-gray-800/50 flex items-center justify-between px-4 sm:px-8 bg-gray-900/30 backdrop-blur-sm z-30">
             <div class="flex items-center gap-4 md:hidden">
                 <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Communauté</span>
@@ -54,7 +55,7 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <button id="btn-new-post" class="hidden md:flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-emerald-900/20">
+                <button id="btn-new-post" class="hidden md:flex sm:hidden items-center gap-2 px-3 sm:px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-emerald-900/20">
                     <i class="fas fa-plus"></i>
                     <span>Nouveau Post</span>
                 </button>
@@ -71,10 +72,10 @@
         </header>
 
         
-        <main class="flex-grow p-6 sm:p-8 overflow-y-auto custom-scrollbar relative">
+        <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar relative">
             
             
-            <div class="relative rounded-3xl bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-500/20 p-8 mb-8 overflow-hidden group">
+            <div class="relative rounded-2xl sm:rounded-3xl bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-500/20 p-6 sm:p-8 mb-6 sm:mb-8 overflow-hidden group">
                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
                     <i class="fas fa-users text-[10rem] text-white transform -rotate-12 translate-x-10 -translate-y-10"></i>
                 </div>
@@ -84,14 +85,14 @@
                         <i class="fas fa-globe-europe"></i>
                         <span>En ligne : <span id="online-users-count">124</span> étudiants</span>
                     </div>
-                    <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-3">Rejoins le mouvement.</h2>
+                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white mb-3">Rejoins le mouvement.</h2>
                     <p class="text-gray-400 mb-8 text-sm md:text-base leading-relaxed">
                         Pose tes questions, partage tes fiches de synthèse ou trouve un groupe de travail. 
                         L'intelligence collective est ta meilleure arme.
                     </p>
                     
-                    <div class="flex gap-4">
-                        <button id="btn-create-group-hero" class="px-6 py-3 bg-white text-emerald-950 font-bold rounded-xl hover:bg-emerald-50 transition-all shadow-lg shadow-emerald-500/10 flex items-center gap-2 transform hover:-translate-y-1">
+                    <div class="flex gap-2 sm:gap-4">
+                        <button id="btn-create-group-hero" class="flex-1 px-4 sm:px-6 py-3 bg-white text-emerald-950 font-bold rounded-xl hover:bg-emerald-50 transition-all shadow-lg shadow-emerald-500/10 flex items-center justify-center gap-2 transform hover:-translate-y-1">
                             <i class="fas fa-plus-circle text-emerald-600"></i>
                             <span>Créer un groupe</span>
                         </button>

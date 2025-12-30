@@ -8,7 +8,7 @@
     
     
     <link rel="stylesheet" href="../../assets/css/style.css">
-    
+    <link rel="stylesheet" href="../../assets/css/mobile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="../../assets/css/style.css">
@@ -18,7 +18,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 2rem;
+            padding: 1rem 2rem;
         }
     </style>
 </head>
@@ -32,12 +32,12 @@
     <div class="glow-bg" style="bottom: -10%; left: -10%; background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);"></div>
 
     <div class="onboarding-container relative z-10">
-        <div class="w-full max-w-2xl bg-gray-900/80 backdrop-blur-2xl border border-gray-800 rounded-3xl p-8 md:p-12 shadow-2xl animate-float">
+        <div class="w-full max-w-2xl bg-gray-900/80 backdrop-blur-2xl border border-gray-800 rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl animate-float">
             
             
             <div class="text-center mb-10">
-                <h1 class="text-4xl font-display font-bold text-white mb-3">Bienvenue à bord ! 🚀</h1>
-                <p class="text-gray-400 text-lg">Quelques infos pour personnaliser ton espace.</p>
+                <h1 class="text-3xl sm:text-4xl font-display font-bold text-white mb-3">Bienvenue à bord ! 🚀</h1>
+                <p class="text-gray-400 text-base sm:text-lg">Quelques infos pour personnaliser ton espace.</p>
             </div>
 
             <form id="onboarding-form" class="space-y-8">
@@ -46,7 +46,7 @@
                 <div class="flex flex-col items-center">
                     <div class="relative group cursor-pointer" id="profile-picture-container">
                         
-                        <div class="w-32 h-32 rounded-full p-[3px] bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-400 transition-all">
+                        <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-full p-[3px] bg-gradient-to-br from-indigo-500 to-purple-600 group-hover:from-indigo-400 group-hover:to-purple-400 transition-all">
                             <div class="w-full h-full rounded-full overflow-hidden bg-gray-800 relative">
                                 <img id="profile-picture-preview" src="" alt="Avatar" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                                 
@@ -61,14 +61,14 @@
                 </div>
 
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div class="space-y-2">
                         <label for="firstName" class="text-sm font-medium text-gray-300 ml-1">Prénom</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
                                 <i class="fas fa-user"></i>
                             </div>
-                            <input type="text" id="firstName" class="w-full pl-11 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ton prénom" required>
+                            <input type="text" id="firstName" class="w-full pl-11 pr-4 py-3 sm:py-3.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600 text-base" placeholder="Ton prénom" required>
                         </div>
                     </div>
                     <div class="space-y-2">
@@ -77,7 +77,7 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
                                 <i class="fas fa-signature"></i>
                             </div>
-                            <input type="text" id="lastName" class="w-full pl-11 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ton nom" required>
+                            <input type="text" id="lastName" class="w-full pl-11 pr-4 py-3 sm:py-3.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600 text-base" placeholder="Ton nom" required>
                         </div>
                     </div>
                 </div>
@@ -89,12 +89,12 @@
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500">
                             <i class="fas fa-university"></i>
                         </div>
-                        <input type="text" id="school" class="w-full pl-11 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600" placeholder="Ex: UCLouvain, ULB..." required>
+                        <input type="text" id="school" class="w-full pl-11 pr-4 py-3 sm:py-3.5 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all placeholder-gray-600 text-base" placeholder="Ex: UCLouvain, ULB..." required>
                     </div>
                 </div>
 
                 
-                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-900/30 transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 text-lg mt-4">
+                <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 sm:py-4 px-6 rounded-xl shadow-lg shadow-indigo-900/30 transform transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 text-base sm:text-lg mt-4">
                     <span>C'est parti !</span>
                     <i class="fas fa-arrow-right"></i>
                 </button>

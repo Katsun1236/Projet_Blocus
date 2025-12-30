@@ -9,6 +9,7 @@
     
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/animations.css">
+    <link rel="stylesheet" href="../../assets/css/mobile.css">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -44,7 +45,7 @@
     <div class="flex-grow flex flex-col min-w-0 relative z-10 md:ml-64 transition-all duration-300">
         
         
-        <header class="h-20 border-b border-gray-800/50 flex items-center justify-between px-8 bg-gray-900/30 backdrop-blur-sm z-30">
+        <header class="h-16 sm:h-20 border-b border-gray-800/50 flex items-center justify-between px-4 sm:px-8 bg-gray-900/30 backdrop-blur-sm z-30">
             <div class="flex items-center gap-4 md:hidden">
                 <button id="mobile-menu-btn" class="relative z-50 text-gray-400 hover:text-white"><i class="fas fa-bars text-xl"></i></button>
                 <span class="font-bold text-lg text-white">Quiz IA</span>
@@ -57,7 +58,7 @@
 
             <div class="flex items-center gap-4">
                 
-                <button id="btn-new-quiz-header" class="hidden md:flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-indigo-900/20">
+                <button id="btn-new-quiz-header" class="hidden md:flex items-center gap-2 px-3 sm:px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-indigo-900/20">
                     <i class="fas fa-plus"></i>
                     <span>Nouveau Quiz</span>
                 </button>
@@ -74,13 +75,13 @@
         </header>
 
         
-        <main class="flex-grow p-6 sm:p-8 overflow-y-auto custom-scrollbar relative">
+        <main class="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto custom-scrollbar relative">
             
             
             <div id="quiz-dashboard" class="animate-fade-in">
                 
                 
-                <div class="relative rounded-3xl bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/20 p-8 mb-10 overflow-hidden group">
+                <div class="relative rounded-2xl sm:rounded-3xl bg-gradient-to-r from-indigo-900/40 to-purple-900/40 border border-indigo-500/20 p-6 sm:p-8 mb-8 sm:mb-10 overflow-hidden group">
                     <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-700">
                         <i class="fas fa-brain text-[10rem] text-white transform rotate-12 translate-x-10 -translate-y-10"></i>
                     </div>
@@ -91,13 +92,13 @@
                             <i class="fas fa-sparkles"></i>
                             <span>Boosté par l'IA</span>
                         </div>
-                        <h2 class="text-3xl md:text-4xl font-display font-bold text-white mb-3">Prêt à tester ton niveau ?</h2>
-                        <p class="text-gray-400 mb-8 text-sm md:text-base leading-relaxed">
+                        <h2 class="text-2xl sm:text-3xl md:text-4xl font-display font-bold text-white mb-3">Prêt à tester ton niveau ?</h2>
+                        <p class="text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base leading-relaxed">
                             Génère des quiz illimités basés sur tes fichiers de cours ou n'importe quel sujet. 
                             L'IA analyse tes lacunes pour t'aider à progresser plus vite.
                         </p>
                         
-                        <button id="btn-new-quiz-hero" class="px-8 py-3.5 bg-white text-indigo-950 font-bold rounded-xl hover:bg-indigo-50 transition-all shadow-lg shadow-indigo-500/10 flex items-center gap-3 transform hover:-translate-y-1">
+                        <button id="btn-new-quiz-hero" class="w-full sm:w-auto px-6 sm:px-8 py-3.5 bg-white text-indigo-950 font-bold rounded-xl hover:bg-indigo-50 transition-all shadow-lg shadow-indigo-500/10 flex items-center justify-center gap-3 transform hover:-translate-y-1">
                             <i class="fas fa-magic text-indigo-600"></i>
                             <span>Générer un Quiz maintenant</span>
                         </button>

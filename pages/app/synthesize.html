@@ -8,6 +8,7 @@
     
     <link rel="stylesheet" href="../../assets/css/style.css">
     <link rel="stylesheet" href="../../assets/css/animations.css">
+    <link rel="stylesheet" href="../../assets/css/mobile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -34,7 +35,8 @@
         .prose li { margin-bottom: 0.5em; }
         .prose strong { color: #818cf8; font-weight: 600; }
 
-        .flashcard-container { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .flashcard-container { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+        @media (min-width: 640px) { .flashcard-container { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); } }
         .flashcard { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 1rem; transition: all 0.3s; }
         .flashcard:hover { background: rgba(255,255,255,0.1); transform: translateY(-2px); }
         .flashcard-q { font-weight: bold; color: #a5b4fc; margin-bottom: 0.5rem; }
@@ -58,8 +60,15 @@
 
         /* Styles modernes pour le contenu */
         .modern-content-wrapper {
-            max-width: none;
+            max-width: 100%;
             margin: 0 auto;
+            padding: 0 1rem;
+        }
+        @media (min-width: 768px) {
+            .modern-content-wrapper {
+                max-width: none;
+                padding: 0;
+            }
         }
 
         /* Headers modernes */
