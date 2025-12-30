@@ -1,5 +1,7 @@
 import { auth, supabase } from './supabase-config.js';
 import { showMessage } from './utils.js';
+import './vercel-analytics.js';
+
 // Speed Insights disabled for local dev
 // import { initSpeedInsights } from './speed-insights.js';
 // initSpeedInsights();
