@@ -9,6 +9,7 @@ export default defineConfig({
     emptyOutDir: true,
     sourcemap: true,
     minify: 'terser',
+    target: 'esnext', // Supporter top-level await
     terserOptions: {
       compress: {
         drop_console: true,

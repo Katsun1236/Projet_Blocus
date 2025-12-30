@@ -1,7 +1,7 @@
 // Supabase Edge Function pour générer des synthèses avec Gemini AI
 // Ceci tourne côté serveur, la clé API n'est jamais exposée au client
 
-/// <reference types="https://deno.land/std@0.168.0/http/server.ts" />
+// @ts-ignore - Deno types disponibles dans Supabase Edge Functions
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -26,6 +26,7 @@ serve(async (req: Request) => {
     console.log('📥 Request received!')
 
     // Récupérer la clé API depuis les secrets Supabase
+    // @ts-ignore - Deno est disponible dans l'environnement Supabase Edge Functions
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
 
     if (!GEMINI_API_KEY) {
