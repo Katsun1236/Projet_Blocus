@@ -1,8 +1,13 @@
 import { auth, supabase } from './supabase-config.js';
 import { showMessage } from './utils.js';
+import { initWebAnalytics } from './web-analytics.js';
+
 // Speed Insights disabled for local dev
 // import { initSpeedInsights } from './speed-insights.js';
 // initSpeedInsights();
+
+// Initialize Vercel Web Analytics
+initWebAnalytics();
 
 document.addEventListener('DOMContentLoaded', () => {
 
