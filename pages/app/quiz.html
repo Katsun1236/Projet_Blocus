@@ -291,8 +291,12 @@
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Type</label>
                         <div class="relative">
                             <select id="quiz-type" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 appearance-none">
-                                <option value="qcm">QCM Classique</option>
-                                <option value="truefalse">Vrai / Faux</option>
+                                <option value="qcm">📝 QCM Classique</option>
+                                <option value="vrai-faux">✅ Vrai / Faux</option>
+                                <option value="remplissage">🔄 Remplissage à trous</option>
+                                <option value="chronologie">📅 Chronologique</option>
+                                <option value="association">🔗 Association</option>
+                                <option value="calcul">🧮 Calcul / Problème</option>
                             </select>
                             <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
                                 <i class="fas fa-chevron-down text-xs"></i>
@@ -301,18 +305,92 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Questions: <span id="quiz-length-val" class="text-indigo-400 font-mono">5</span></label>
-                        <input type="range" id="quiz-length" min="3" max="15" value="5" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
+                        <input type="range" id="quiz-length" min="1" max="30" value="5" class="w-full h-2 bg-gray-800 rounded-lg appearance-none cursor-pointer accent-indigo-500">
                     </div>
                 </div>
 
-                
-                <div id="loading-bar-container" class="hidden mt-4 bg-gray-800/50 p-4 rounded-xl border border-indigo-500/20">
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs text-indigo-400 font-bold">L'IA rédige vos questions...</span>
-                        <i class="fas fa-circle-notch fa-spin text-indigo-400 text-xs"></i>
+                <!-- Options Avancées -->
+                <div class="border-t border-gray-800 pt-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <label class="text-xs font-bold text-gray-500 uppercase">Options Avancées</label>
+                        <button id="toggle-advanced" class="text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                            <i class="fas fa-chevron-down mr-1"></i>Afficher
+                        </button>
                     </div>
-                    <div class="h-1.5 w-full bg-gray-800 rounded-full overflow-hidden">
-                        <div class="h-full bg-indigo-500 animate-loading-bar"></div>
+                    
+                    <div id="advanced-options" class="hidden space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Difficulté</label>
+                                <div class="relative">
+                                    <select id="quiz-difficulty" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 appearance-none">
+                                        <option value="debutant">🟢 Débutant</option>
+                                        <option value="intermediaire" selected>🟡 Intermédiaire</option>
+                                        <option value="avance">🔴 Avancé</option>
+                                        <option value="expert">🟣 Expert</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Thème</label>
+                                <div class="relative">
+                                    <select id="quiz-theme" class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-indigo-500 appearance-none">
+                                        <option value="general">📚 Général</option>
+                                        <option value="examen">📝 Examen</option>
+                                        <option value="revision">🔄 Révision</option>
+                                        <option value="jeu">🎮 Jeu</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-500">
+                                        <i class="fas fa-chevron-down text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Focus sur</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" id="focus-concepts" class="peer hidden" checked>
+                                    <div class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all text-xs font-bold text-gray-300 peer-checked:text-indigo-300">
+                                        Concepts
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" id="focus-applications" class="peer hidden">
+                                    <div class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all text-xs font-bold text-gray-300 peer-checked:text-indigo-300">
+                                        Applications
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" id="focus-definitions" class="peer hidden">
+                                    <div class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all text-xs font-bold text-gray-300 peer-checked:text-indigo-300">
+                                        Définitions
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Format des réponses</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="answer-format" value="short" class="peer hidden" checked>
+                                    <div class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all text-xs font-bold text-gray-300 peer-checked:text-indigo-300">
+                                        Courtes
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="answer-format" value="detailed" class="peer hidden">
+                                    <div class="px-3 py-2 rounded-lg bg-gray-800 border border-gray-700 peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 text-center transition-all text-xs font-bold text-gray-300 peer-checked:text-indigo-300">
+                                        Détaillées
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

@@ -616,7 +616,52 @@ function addInteractiveFunctions() {
     };
 
     // Exploration de sujet
-    window.exploreTopic = function(button) {
+    // Afficher des tips d'étude pendant le chargement
+function showStudyTip() {
+    const tips = [
+        "💡 Astuce : Prenez des notes manuscrites pour mieux mémoriser",
+        "📚 Conseil : Révisez régulièrement plutôt qu'en une seule fois",
+        "🧠 Méthode : Expliquez le concept à quelqu'un d'autre pour valider votre compréhension",
+        "⏰ Technique : Utilisez la technique Pomodoro (25min travail, 5min pause)",
+        "🎯 Objectif : Fixez-vous des objectifs d'apprentissage spécifiques et mesurables",
+        "🔄 Répétition : Revoyez les informations après 1 jour, 3 jours, 1 semaine",
+        "📝 Organisation : Créez des fiches de révision avec des mots-clés",
+        "🎨 Visuel : Utilisez des schémas et couleurs pour mieux retenir",
+        "🔊 Auditif : Lisez vos notes à voix haute pour renforcer la mémorisation",
+        "🏃 Mouvement : Faites de courtes pauses pour marcher et oxygéner votre cerveau",
+        "🎮 Gamification : Transformez l'apprentissage en jeu pour plus de motivation",
+        "🤔 Questions : Testez-vous régulièrement avec des questions spontanées",
+        "📖 Contexte : Reliez les nouvelles informations à ce que vous connaissez déjà",
+        "⚡ Focus : Éliminez les distractions (téléphone, notifications) pendant l'étude",
+        "🌙 Sommeil : Une bonne nuit de sommeil améliore la consolidation de la mémoire"
+    ];
+    
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    
+    // Créer ou mettre à jour le conteneur de tips
+    let tipContainer = document.getElementById('study-tip-container');
+    if (!tipContainer) {
+        tipContainer = document.createElement('div');
+        tipContainer.id = 'study-tip-container';
+        tipContainer.className = 'mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-sm text-green-300';
+        const modalBody = document.querySelector('#new-synth-modal .p-6.overflow-y-auto');
+        if (modalBody) {
+            modalBody.appendChild(tipContainer);
+        }
+    }
+    
+    tipContainer.innerHTML = `
+        <div class="flex items-start gap-2">
+            <span class="text-green-400 mt-1">💡</span>
+            <div>
+                <div class="font-medium text-green-200 mb-1">Pendant que nous générons votre synthèse...</div>
+                <div>${randomTip}</div>
+            </div>
+        </div>
+    `;
+}
+
+window.exploreTopic = function(button) {
         const topic = button.parentElement.querySelector('.text-gray-300').textContent;
         button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Recherche...';
         button.disabled = true;
@@ -955,6 +1000,9 @@ if (ui.btnGenerate) {
         btn.disabled = true;
         btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Rédaction...`;
         ui.loadingBar.classList.remove('hidden');
+        
+        // Afficher un tip d'étude aléatoire
+        showStudyTip();
 
         try {
             // ✅ Récupérer le token JWT pour l'authentification

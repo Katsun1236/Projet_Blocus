@@ -1,8 +1,5 @@
 // Supabase Edge Function pour générer des quiz avec Gemini AI
-// Ceci tourne côté serveur, la clé API n'est jamais exposée au client
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 interface QuizRequest {
@@ -11,7 +8,13 @@ interface QuizRequest {
   data?: string;
   options: {
     count: number;
-    type: 'qcm' | 'vrai-faux';
+    type: 'qcm' | 'vrai-faux' | 'remplissage' | 'chronologie' | 'association' | 'calcul';
+    difficulty?: string;
+    theme?: string;
+    answerFormat?: string;
+    focusConcepts?: boolean;
+    focusApplications?: boolean;
+    focusDefinitions?: boolean;
   };
 }
 
@@ -31,7 +34,7 @@ serve(async (req) => {
       throw new Error('GEMINI_API_KEY not configured in Supabase secrets')
     }
 
-    // Parser et valider la requête
+    // Parser la requête
     const request: QuizRequest = await req.json()
     const { topic, data, options } = request
     const { count, type } = options
@@ -46,65 +49,110 @@ serve(async (req) => {
       )
     }
 
-    if (!count || count < 1 || count > 20) {
+    if (!count || count < 1 || count > 30) {
       return new Response(
-        JSON.stringify({ error: 'Count must be between 1 and 20' }),
+        JSON.stringify({ error: 'Count must be between 1 and 30' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    if (!type || !['qcm', 'vrai-faux'].includes(type)) {
+    if (!type || !['qcm', 'vrai-faux', 'remplissage', 'chronologie', 'association', 'calcul'].includes(type)) {
       return new Response(
-        JSON.stringify({ error: 'Type must be "qcm" or "vrai-faux"' }),
+        JSON.stringify({ error: 'Type must be "qcm", "vrai-faux", "remplissage", "chronologie", "association", or "calcul"' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    console.log('🎯 Generating quiz:', { topic, count, type })
-
-    // Créer le prompt pour Gemini avec instructions améliorées
-    const prompt = `Tu es un professeur expert et générateur de quiz éducatif. Ta mission : créer des quiz pertinents et adaptés au niveau de l'étudiant.
+    // Créer le prompt pour Gemini
+    const prompt = `Tu es un générateur de quiz éducatif. Génère un quiz au format JSON strict.
 
 Sujet: ${topic}
 ${data ? `Contexte: ${data}` : ''}
 
 Nombre de questions: ${count}
-Type de questions: ${type === 'qcm' ? 'QCM (choix multiples)' : 'Vrai/Faux'}
+Type de questions: ${getTypeDescription(type)}
+${options.difficulty ? `Difficulté: ${options.difficulty}` : ''}
+${options.theme ? `Thème: ${options.theme}` : ''}
+${options.answerFormat ? `Format des réponses: ${options.answerFormat}` : ''}
 
-🎯 PRINCIPES PÉDAGOGIQUES :
-- Questions claires et sans ambiguïté
-- Options plausibles mais une seule correcte
-- Difficulté progressive si possible
-- Vocabulaire adapté au niveau étudiant
-- Questions testant la compréhension réelle
-
-📝 FORMAT OBLIGATOIRE :
-Réponds UNIQUEMENT avec un objet JSON valide, sans aucun texte avant ou après :
+IMPORTANT: Réponds UNIQUEMENT avec un objet JSON valide au format suivant, sans texte avant ou après:
 
 {
   "questions": [
     {
-      "question": "Texte de la question claire et précise",
+      "question": "Quelle est la question ?",
       "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctAnswer": 0,
-      "explanation": "Explication brève de la bonne réponse"
+      "correctAnswer": 0
     }
   ]
 }
 
-📋 SPÉCIFICATIONS :
-${type === 'qcm' ? `- Fournis exactement 4 options par question
-- Les options doivent être plausibles et de même longueur si possible
-- Une seule bonne réponse (index 0, 1, 2 ou 3)` : `- Fournis exactement 2 options: ["Vrai", "Faux"]
-- correctAnswer: 0 pour Vrai, 1 pour Faux`}
-- Ajoute un champ "explanation" avec une explication concise
-- Varie la complexité : questions de définition, d'application, d'analyse
-- Évite les questions pièges ou trop spécifiques
+${getTypeInstructions(type)}
 
-Génère exactement ${count} question${count > 1 ? 's' : ''} de haute qualité pédagogique.`
+Génère exactement ${count} question${count > 1 ? 's' : ''}.`
 
-    // Appeler l'API Gemini (modèle 2.5-flash : le plus récent et performant)
-    // ✅ FIX: Utiliser le nom COMPLET avec préfixe "models/"
+    // Fonctions pour gérer les types de quiz
+    function getTypeDescription(type: string): string {
+      switch(type) {
+        case 'qcm': return 'QCM (choix multiples)';
+        case 'vrai-faux': return 'Vrai/Faux';
+        case 'remplissage': return 'Remplissage à trous';
+        case 'chronologie': return 'Chronologique';
+        case 'association': return 'Association';
+        case 'calcul': return 'Calcul / Problème';
+        default: return 'QCM';
+      }
+    }
+
+    function getTypeInstructions(type: string): string {
+      switch(type) {
+        case 'qcm':
+          return `Pour QCM:
+- Fournis 4 options par question
+- correctAnswer est l'index (0, 1, 2 ou 3) de la bonne réponse
+- Les questions doivent être pertinentes et éducatives`;
+        
+        case 'vrai-faux':
+          return `Pour Vrai/Faux:
+- Fournis exactement 2 options: ["Vrai", "Faux"]
+- correctAnswer est 0 pour "Vrai" ou 1 pour "Faux"
+- Les questions doivent être claires et non ambiguës`;
+        
+        case 'remplissage':
+          return `Pour Remplissage à trous:
+- Fournis 4 options par question avec 1 seule bonne réponse
+- La question doit contenir un trou représenté par ___
+- Les options doivent être des mots ou phrases pour compléter le trou
+- correctAnswer est l'index de la bonne réponse`;
+        
+        case 'chronologie':
+          return `Pour Chronologique:
+- Fournis 4 options par question avec des dates ou événements
+- Les questions doivent demander de classer chronologiquement
+- correctAnswer est l'index du bon ordre
+- Format: "Quel est l'ordre chronologique correct de..."`;
+        
+        case 'association':
+          return `Pour Association:
+- Fournis 4 options par question avec des paires à associer
+- Les questions doivent demander d'associer des éléments
+- correctAnswer est l'index de la bonne association
+- Format: "Quel élément correspond à..."`;
+        
+        case 'calcul':
+          return `Pour Calcul / Problème:
+- Fournis 4 options par question avec des résultats numériques
+- Les questions doivent être des problèmes de calcul
+- correctAnswer est l'index du bon résultat
+- Inclut des problèmes adaptés au niveau`;
+        
+        default:
+          return `- Fournis 4 options par question
+- correctAnswer est l'index de la bonne réponse`;
+      }
+    }
+
+    // Appeler l'API Gemini
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`
 
     const response = await fetch(API_URL, {
@@ -138,9 +186,8 @@ Génère exactement ${count} question${count > 1 ? 's' : ''} de haute qualité p
 
     const aiText = data_response.candidates[0].content.parts[0].text
 
-    // Nettoyer et parser le JSON de la réponse avec gestion d'erreurs
+    // Nettoyer le JSON de la réponse
     let jsonText = aiText.trim()
-    console.log('📝 Raw AI response:', jsonText.substring(0, 200) + '...')
 
     // Enlever les balises markdown si présentes
     if (jsonText.startsWith('```json')) {
@@ -149,56 +196,10 @@ Génère exactement ${count} question${count > 1 ? 's' : ''} de haute qualité p
       jsonText = jsonText.replace(/```\n?/g, '')
     }
 
-    // Trouver le début et la fin du JSON
-    const jsonStart = jsonText.indexOf('{')
-    const jsonEnd = jsonText.lastIndexOf('}')
-    
-    if (jsonStart === -1 || jsonEnd === -1 || jsonStart >= jsonEnd) {
-      throw new Error('Invalid JSON format in AI response')
-    }
+    // Parser et retourner le quiz
+    const quizData = JSON.parse(jsonText)
 
-    jsonText = jsonText.substring(jsonStart, jsonEnd + 1)
-
-    let quizData
-    try {
-      quizData = JSON.parse(jsonText)
-    } catch (parseError) {
-      console.error('❌ JSON Parse Error:', parseError)
-      console.error('❌ Invalid JSON:', jsonText)
-      throw new Error('Failed to parse AI response as JSON')
-    }
-
-    // Valider la structure du quiz
-    if (!quizData.questions || !Array.isArray(quizData.questions)) {
-      throw new Error('Invalid quiz structure: missing questions array')
-    }
-
-    if (quizData.questions.length !== count) {
-      console.warn(`⚠️ Expected ${count} questions, got ${quizData.questions.length}`)
-    }
-
-    // Valider chaque question
-    for (let i = 0; i < quizData.questions.length; i++) {
-      const question = quizData.questions[i]
-      if (!question.question || !question.options || !Array.isArray(question.options) || 
-          typeof question.correctAnswer !== 'number') {
-        throw new Error(`Invalid question structure at index ${i}`)
-      }
-
-      if (type === 'qcm' && question.options.length !== 4) {
-        throw new Error(`QCM question at index ${i} must have exactly 4 options`)
-      }
-
-      if (type === 'vrai-faux' && question.options.length !== 2) {
-        throw new Error(`True/False question at index ${i} must have exactly 2 options`)
-      }
-
-      if (question.correctAnswer < 0 || question.correctAnswer >= question.options.length) {
-        throw new Error(`Invalid correctAnswer index at question ${i}`)
-      }
-    }
-
-    console.log('✅ Quiz generated and validated successfully')
+    console.log('✅ Quiz generated successfully')
 
     return new Response(
       JSON.stringify(quizData),

@@ -1,11 +1,6 @@
-import { auth, db, storage, getStorage } from './supabase-config.js';
+import { auth, supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage, formatDate, debounce } from './utils.js';
-import { sanitizeHTML, sanitizeText } from './sanitizer.js';
-import { initSpeedInsights } from './speed-insights.js';
-
-// Initialize Speed Insights for performance monitoring
-initSpeedInsights();
 
 // ✅ CONSTANTS: Limites de fichiers et queries
 const MAX_GROUP_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -14,6 +9,30 @@ const POSTS_LIMIT = 20;
 const TOP_CONTRIBUTORS_LIMIT = 5;
 const GROUPS_LIMIT = 50;
 const MESSAGES_LIMIT = 50;
+
+// Fonctions de nettoyage simples
+function sanitizeText(text) {
+    if (!text) return '';
+    return text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function sanitizeHTML(html) {
+    if (!html) return '';
+    return html.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Fonctions utilitaires pour les tableaux
+function arrayUnion(arr) {
+    return [...new Set([...arr])];
+}
+
+function arrayRemove(arr, item) {
+    return arr.filter(x => x !== item);
+}
+
+function serverTimestamp() {
+    return new Date().toISOString();
+}
 
 let currentUserId = null;
 let currentUserData = null;
@@ -136,18 +155,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadUserProfile() {
     try {
-        const userDoc = await getDoc(doc(db, 'users', currentUserId));
-        if (userDoc.exists()) {
-            currentUserData = userDoc.data();
-            if(ui.userName) ui.userName.textContent = currentUserData.firstName || "Étudiant";
-            const avatarUrl = currentUserData.photoURL || `https://ui-avatars.com/api/?name=${currentUserData.firstName || 'User'}&background=random`;
-            if(ui.userAvatar) ui.userAvatar.src = avatarUrl;
-            if(ui.currentUserAvatarComment) ui.currentUserAvatarComment.src = avatarUrl;
-        } else {
-            currentUserData = { firstName: "Étudiant", photoURL: null };
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', currentUserId)
+            .single();
+            
+        if (error) {
+            console.error('Erreur chargement profil:', error);
+            return;
         }
-    } catch(e) {
-        console.error("Erreur profil:", e);
+        
+        if (data) {
+            currentUserData = data;
+            if(ui.userName) ui.userName.textContent = currentUserData.first_name || "Étudiant";
+            if(ui.userAvatar) ui.userAvatar.src = currentUserData.photo_url || `https://ui-avatars.com/api/?name=${currentUserData.first_name}&background=random&color=fff`;
+            if(ui.currentUserAvatarComment) ui.currentUserAvatarComment.src = currentUserData.photo_url || `https://ui-avatars.com/api/?name=${currentUserData.first_name}&background=random&color=fff`;
+        }
+    } catch (e) {
+        console.error('Erreur profil:', e);
         currentUserData = { firstName: "Étudiant", photoURL: null };
     }
 }

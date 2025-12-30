@@ -1,6 +1,7 @@
 // Supabase Edge Function pour générer des synthèses avec Gemini AI
 // Ceci tourne côté serveur, la clé API n'est jamais exposée au client
 
+/// <reference types="https://deno.land/std@0.168.0/http/server.ts" />
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../_shared/cors.ts'
 
@@ -15,7 +16,7 @@ interface SynthesisRequest {
   };
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -307,12 +308,13 @@ Génère maintenant cette synthèse pédagogique exceptionnelle :`
       }
     )
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('❌ Error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
 
     return new Response(
       JSON.stringify({
-        error: error.message || 'Internal server error'
+        error: errorMessage
       }),
       {
         status: 500,
