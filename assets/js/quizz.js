@@ -8,6 +8,114 @@ import { showMessage } from './utils.js';
 
 console.log('🚀🚀🚀 QUIZZ.JS SCRIPT LOADED 🚀🚀🚀');
 
+// Barre de progression pour la génération de quiz
+function showQuizProgress() {
+    const tips = [
+        "🧠 Astuce : Les quiz actifs renforcent mieux la mémoire que la lecture passive",
+        "⏰ Conseil : Prenez une pause toutes les 20 minutes pour maintenir votre concentration",
+        "🎯 Objectif : Visez 80% de bonnes réponses avant de passer au niveau suivant",
+        "📝 Méthode : Éliminez les mauvaises réponses d'abord pour augmenter vos chances",
+        "🔄 Répétition : Revoyez les questions où vous avez fait des erreurs",
+        "🎮 Gamification : Challengez-vous avec des temps limites pour plus d'engagement",
+        "🤔 Réflexion : Lisez attentivement chaque question avant de répondre",
+        "📊 Progression : Notez vos améliorations pour rester motivé",
+        "🏆 Récompense : Célébrez vos succès même les plus petits",
+        "🌙 Sommeil : Une bonne nuit de sommeil améliore les performances aux quiz"
+    ];
+    
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    
+    // Créer ou mettre à jour le conteneur de progression
+    let progressContainer = document.getElementById('quiz-progress-container');
+    if (!progressContainer) {
+        progressContainer = document.createElement('div');
+        progressContainer.id = 'quiz-progress-container';
+        progressContainer.className = 'mt-4 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg text-sm text-blue-300';
+        const modalBody = document.querySelector('#new-quiz-modal .p-6.overflow-y-auto');
+        if (modalBody) {
+            modalBody.appendChild(progressContainer);
+        }
+    }
+    
+    progressContainer.innerHTML = `
+        <div class="flex items-start gap-2">
+            <span class="text-blue-400 mt-1">🧠</span>
+            <div class="flex-1">
+                <div class="font-medium text-blue-200 mb-1">Pendant que nous générons votre quiz...</div>
+                <div class="mb-2">${randomTip}</div>
+                <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                    <div id="quiz-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                </div>
+                <div class="text-xs text-blue-400 mt-1">
+                    <span id="quiz-progress-text">0%</span> • Analyse du sujet...
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Démarrer la progression animée
+    startQuizProgress();
+}
+
+function startQuizProgress() {
+    let progress = 0;
+    const progressBar = document.getElementById('quiz-progress-bar');
+    const progressText = document.getElementById('quiz-progress-text');
+    
+    if (!progressBar || !progressText) return;
+    
+    const steps = [
+        { progress: 15, text: "Analyse du sujet...", delay: 600 },
+        { progress: 30, text: "Génération des questions...", delay: 1000 },
+        { progress: 50, text: "Création des réponses...", delay: 1400 },
+        { progress: 70, text: "Vérification des questions...", delay: 1800 },
+        { progress: 85, text: "Mise en forme du quiz...", delay: 2200 },
+        { progress: 95, text: "Finalisation...", delay: 2600 }
+    ];
+    
+    let currentStep = 0;
+    
+    function updateProgress() {
+        if (currentStep < steps.length) {
+            const step = steps[currentStep];
+            progress = step.progress;
+            
+            progressBar.style.width = `${progress}%`;
+            progressText.textContent = `${progress}%`;
+            
+            // Mettre à jour le texte
+            const textContainer = progressText.parentElement;
+            if (textContainer) {
+                textContainer.innerHTML = `<span id="quiz-progress-text">${progress}%</span> • ${step.text}`;
+            }
+            
+            currentStep++;
+            setTimeout(updateProgress, step.delay);
+        } else {
+            // Progression terminée, attendre la fin réelle
+            setTimeout(() => {
+                if (progressBar) {
+                    progressBar.style.width = '100%';
+                    progressText.textContent = '100%';
+                    const textContainer = progressText.parentElement;
+                    if (textContainer) {
+                        textContainer.innerHTML = `<span id="quiz-progress-text">100%</span> • Quiz prêt !`;
+                    }
+                }
+            }, 800);
+        }
+    }
+    
+    updateProgress();
+}
+
+function stopQuizProgress() {
+    const progressContainer = document.getElementById('quiz-progress-container');
+    if (progressContainer) {
+        progressContainer.remove();
+    }
+}
+
 let currentQuiz = null;
 let currentQuestionIndex = 0;
 let userAnswers = [];
@@ -268,50 +376,105 @@ function showStudyTip() {
 
 // ✅ PRODUCTION SÉCURISÉE: Call Supabase Edge Function avec authentification
 async function callGenerateQuizFunction(topic, dataContext, count, type, options = {}) {
-    try {
-        console.log('🤖 Calling generate-quiz Edge Function (like syntheses)...');
+    const MAX_RETRIES = 3;
+    const BASE_DELAY = 12000; // 12 secondes de base
+    
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+            console.log(`🤖 Calling generate-quiz Edge Function (attempt ${attempt}/${MAX_RETRIES})...`);
 
-        // Utiliser l'ANON_KEY comme pour les synthèses (pas le JWT utilisateur)
-        const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
-        
-        const requestBody = {
-            mode: 'quiz',
-            topic: topic,
-            data: dataContext,
-            options: {
-                count: count,
-                type: type,
-                ...options
+            // Utiliser l'ANON_KEY comme pour les synthèses (pas le JWT utilisateur)
+            const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
+            const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
+            
+            // Échapper les données pour éviter les erreurs JSON
+            const safeDataContext = dataContext ? dataContext.replace(/[\u0000-\u001F\u007F-\u009F]/g, '') : '';
+            
+            const requestBody = {
+                mode: 'quiz',
+                topic: topic,
+                data: safeDataContext,
+                options: {
+                    count: count,
+                    type: type,
+                    ...options
+                }
+            };
+
+            console.log('📤 Request body:', requestBody);
+
+            const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-quiz`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            console.log('📥 Response status:', response.status);
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('🔴 Edge Function Error:', response.status, errorData);
+                
+                // Vérifier si c'est une erreur de quota
+                if (errorData.error && errorData.error.includes('quota')) {
+                    const waitTime = extractWaitTime(errorData.error) || (BASE_DELAY * attempt);
+                    console.log(`⏰ Quota exceeded, waiting ${waitTime/1000}s before retry ${attempt}/${MAX_RETRIES}`);
+                    
+                    if (attempt < MAX_RETRIES) {
+                        // Mettre à jour la barre de progression avec message d'attente
+                        updateQuizProgressWait(waitTime/1000, attempt);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        continue; // Réessayer
+                    }
+                }
+                
+                throw new Error(errorData.error || errorData.message || 'Erreur lors de la génération du quiz');
             }
-        };
 
-        console.log('📤 Request body:', requestBody);
+            const data = await response.json();
+            console.log('📥 Response data:', data);
+            return data;
 
-        const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-quiz`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        console.log('📥 Response status:', response.status);
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('❌ Edge Function error:', errorData);
-            throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+        } catch (error) {
+            console.error(`❌ Attempt ${attempt} failed:`, error);
+            
+            if (attempt === MAX_RETRIES) {
+                throw error; // Relancer l'erreur après le dernier essai
+            }
+            
+            // Attendre avant de réessayer (avec backoff exponentiel)
+            const waitTime = BASE_DELAY * Math.pow(2, attempt - 1);
+            console.log(`⏰ Waiting ${waitTime/1000}s before retry ${attempt + 1}/${MAX_RETRIES}`);
+            updateQuizProgressWait(waitTime/1000, attempt);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
         }
+    }
+}
 
-        const data = await response.json();
-        console.log('✅ Quiz generated successfully');
-        return data;
+// Extraire le temps d'attente depuis le message d'erreur
+function extractWaitTime(errorMessage) {
+    const match = errorMessage.match(/Please retry in ([\d.]+)s/);
+    return match ? parseFloat(match[1]) * 1000 : null;
+}
 
-    } catch (error) {
-        console.error('❌ Generate quiz error:', error);
-        throw error;
+// Mettre à jour la barre de progression pendant l'attente
+function updateQuizProgressWait(seconds, attempt) {
+    const progressText = document.getElementById('quiz-progress-text');
+    const progressBar = document.getElementById('quiz-progress-bar');
+    
+    if (progressText && progressBar) {
+        const textContainer = progressText.parentElement;
+        if (textContainer) {
+            textContainer.innerHTML = `<span id="quiz-progress-text">⏳ Attente quota...</span> • ${seconds}s (essai ${attempt}/3)`;
+        }
+        
+        // Animation de pulse pendant l'attente
+        progressBar.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444, #f59e0b)';
+        progressBar.style.backgroundSize = '200% 100%';
+        progressBar.style.animation = 'pulse 2s infinite';
     }
 }
 
@@ -383,6 +546,17 @@ async function generateQuiz() {
 
     isGenerating = true;
     setGeneratingState(true);
+    
+    // Afficher la barre de chargement progressive
+    showQuizProgress();
+
+    // Timeout de sécurité pour éviter le chargement infini
+    const safetyTimeout = setTimeout(() => {
+        stopQuizProgress();
+        isGenerating = false;
+        setGeneratingState(false);
+        showMessage("Le chargement a pris trop de temps. Veuillez réessayer.", "error");
+    }, 30000); // 30 secondes maximum
 
     try {
         console.log('🎯 Generating quiz:', { 
@@ -432,6 +606,8 @@ async function generateQuiz() {
         console.error("❌ Erreur Génération:", error);
         showMessage("Erreur IA : " + (error.message || "Réessayez plus tard."), "error");
     } finally {
+        clearTimeout(safetyTimeout); // Annuler le timeout de sécurité
+        stopQuizProgress(); // Nettoyer la progression
         isGenerating = false;
         setGeneratingState(false);
     }
