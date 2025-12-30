@@ -25,6 +25,7 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/mobile.css">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -106,12 +107,13 @@
         </div>
 
         
-        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-gray-900 border-b border-gray-800 p-6 shadow-2xl animate-slide-down" role="menu">
+        <div id="mobile-menu" class="hidden md:hidden absolute top-20 left-0 w-full bg-gray-900/95 backdrop-blur-lg border-b border-gray-800 p-6 shadow-2xl animate-slide-down" role="menu">
             <div class="flex flex-col gap-4">
-                <a href="#features" class="text-gray-300 hover:text-white py-2">Concept</a>
+                <a href="#features" class="text-gray-300 hover:text-white py-3 px-4 rounded-lg hover:bg-gray-800/50 transition-all">Concept</a>
+                <a href="#community" class="text-gray-300 hover:text-white py-3 px-4 rounded-lg hover:bg-gray-800/50 transition-all">Communauté</a>
                 <div class="h-px bg-gray-800 my-2"></div>
-                <a href="pages/auth/login.html" class="text-gray-300 hover:text-white py-2">Connexion</a>
-                <a href="pages/auth/register.html" class="bg-indigo-600 text-center text-white font-bold py-3 rounded-xl">Commencer</a>
+                <a href="pages/auth/login.html" class="text-gray-300 hover:text-white py-3 px-4 rounded-lg hover:bg-gray-800/50 transition-all">Connexion</a>
+                <a href="pages/auth/register.html" class="bg-indigo-600 text-center text-white font-bold py-4 rounded-xl hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20">Commencer</a>
             </div>
         </div>
     </nav>
@@ -130,12 +132,12 @@
                     <span class="text-xs font-mono text-indigo-300 font-bold tracking-wider">SYSTEME V2.0 ONLINE</span>
                 </div>
                 
-                <h1 class="text-5xl sm:text-7xl font-display font-bold leading-[0.95] mb-8 text-white">
+                <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold leading-[0.95] mb-8 text-white">
                     Le meilleur moyen de<br>
                     <span class="reveal-text bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">réussir!</span>
                 </h1>
                 
-                <p class="text-lg text-gray-400 max-w-lg mx-auto lg:mx-0 mb-10 leading-relaxed">
+                <p class="text-base sm:text-lg text-gray-400 max-w-lg mx-auto lg:mx-0 mb-10 leading-relaxed">
                     L'outil ultime qui transforme le chaos de tes notes en une machine à réussir. 
                     <span class="text-gray-200 font-medium">Synthèses IA, Quiz instantanés, Communauté active.</span>
                 </p>
@@ -144,10 +146,10 @@
                 <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                     
                     <div id="hero-logged-out" class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
-                        <a href="pages/auth/register.html" class="px-8 py-4 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-[0_0_30px_-10px_rgba(255,255,255,0.3)]">
+                        <a href="pages/auth/register.html" class="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-white text-black font-bold rounded-xl hover:bg-gray-200 transition-all transform hover:-translate-y-1 shadow-[0_0_30px_-10px_rgba(255,255,255,0.3)] text-center">
                             Commencer maintenant
                         </a>
-                        <a href="#features" class="px-8 py-4 bg-transparent border border-gray-700 text-white font-medium rounded-xl hover:bg-gray-900/50 transition-all">
+                        <a href="#features" class="w-full sm:w-auto px-6 sm:px-8 py-3.5 sm:py-4 bg-transparent border border-gray-700 text-white font-medium rounded-xl hover:bg-gray-900/50 transition-all text-center">
                             Comment ça marche ?
                         </a>
                     </div>
