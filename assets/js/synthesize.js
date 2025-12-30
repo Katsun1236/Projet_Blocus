@@ -12,46 +12,160 @@ initSpeedInsights();
 // ===================================================================
 
 /**
- * Formate les flashcards Q:/R: en cartes retournables style Quizlet
+ * Formate les flashcards avec design moderne et animations avancées
  */
 function formatFlashcards(content) {
     const lines = content.split('\n');
-    let html = '<div class="flashcards-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">';
+    let html = '<div class="flashcards-modern-container">';
+    let currentLevel = null;
     let currentQuestion = null;
+    let cardIndex = 0;
 
     for (const line of lines) {
         const trimmed = line.trim();
 
-        if (trimmed.startsWith('Q:')) {
+        // Gérer les niveaux de difficulté
+        if (trimmed.startsWith('[🟢 FACILE]') || trimmed.startsWith('[🟡 MOYEN]') || trimmed.startsWith('[🔴 DIFFICILE]')) {
+            currentLevel = trimmed;
+            continue;
+        }
+
+        if (trimmed.startsWith('Q:') && currentQuestion === null) {
             currentQuestion = trimmed.substring(2).trim();
-        } else if (trimmed.startsWith('R:') && currentQuestion) {
+        } else if (trimmed.startsWith('R:') && currentQuestion !== null) {
             const answer = trimmed.substring(2).trim();
+            cardIndex++;
+            
+            // Déterminer le thème visuel selon le niveau
+            let theme = {
+                easy: {
+                    bgFront: 'from-emerald-400 via-teal-500 to-cyan-600',
+                    bgBack: 'from-emerald-500 via-teal-600 to-cyan-700',
+                    glowColor: 'emerald',
+                    levelColor: 'text-emerald-400',
+                    levelBg: 'bg-emerald-500/20',
+                    borderColor: 'border-emerald-400/30',
+                    icon: '🟢',
+                    levelText: 'FACILE',
+                    particleColor: '#10b981'
+                },
+                medium: {
+                    bgFront: 'from-amber-400 via-orange-500 to-yellow-600',
+                    bgBack: 'from-amber-500 via-orange-600 to-yellow-700',
+                    glowColor: 'amber',
+                    levelColor: 'text-amber-400',
+                    levelBg: 'bg-amber-500/20',
+                    borderColor: 'border-amber-400/30',
+                    icon: '🟡',
+                    levelText: 'MOYEN',
+                    particleColor: '#f59e0b'
+                },
+                hard: {
+                    bgFront: 'from-rose-400 via-pink-500 to-red-600',
+                    bgBack: 'from-rose-500 via-pink-600 to-red-700',
+                    glowColor: 'rose',
+                    levelColor: 'text-rose-400',
+                    levelBg: 'bg-rose-500/20',
+                    borderColor: 'border-rose-400/30',
+                    icon: '🔴',
+                    levelText: 'DIFFICILE',
+                    particleColor: '#f43f5e'
+                }
+            };
+
+            let selectedTheme = theme.easy;
+            if (currentLevel?.includes('🟡')) selectedTheme = theme.medium;
+            else if (currentLevel?.includes('🔴')) selectedTheme = theme.hard;
+
             html += `
-                <div class="flashcard-wrapper perspective-1000">
-                    <div class="flashcard-container relative w-full h-64 cursor-pointer transition-transform duration-500 transform-style-3d hover:scale-105" onclick="this.classList.toggle('flipped')">
-                        <!-- Face avant (Question) -->
-                        <div class="flashcard-face flashcard-front absolute w-full h-full bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden">
-                            <div class="text-center">
-                                <div class="text-sm text-purple-200 mb-3 font-semibold uppercase tracking-wide">Question</div>
-                                <p class="text-white text-xl font-medium leading-relaxed">${escapeHtml(currentQuestion)}</p>
-                                <div class="mt-4 text-purple-300 text-sm">
-                                    <svg class="w-6 h-6 mx-auto animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                    </svg>
-                                    Cliquez pour révéler
-                                </div>
+                <div class="modern-flashcard-wrapper mb-8">
+                    <!-- Niveau de difficulté -->
+                    <div class="difficulty-badge ${selectedTheme.levelBg} ${selectedTheme.borderColor} border rounded-full px-4 py-2 inline-flex items-center gap-2 mb-4 backdrop-blur-sm">
+                        <span class="text-lg">${selectedTheme.icon}</span>
+                        <span class="${selectedTheme.levelColor} font-bold text-sm">${selectedTheme.levelText}</span>
+                        <div class="w-2 h-2 ${selectedTheme.levelColor} rounded-full animate-pulse"></div>
+                    </div>
+                    
+                    <!-- Flashcard 3D -->
+                    <div class="flashcard-3d-container" style="--card-index: ${cardIndex}; --glow-color: ${selectedTheme.particleColor};">
+                        <div class="flashcard-3d-card" onclick="flipCard(this)">
+                            <!-- Particules flottantes -->
+                            <div class="floating-particles">
+                                ${[...Array(6)].map((_, i) => `
+                                    <div class="particle" style="--delay: ${i * 0.2}s; --duration: ${3 + i}s; --size: ${2 + i * 0.5}px;"></div>
+                                `).join('')}
                             </div>
-                        </div>
-                        <!-- Face arrière (Réponse) -->
-                        <div class="flashcard-face flashcard-back absolute w-full h-full bg-gradient-to-br from-green-600 to-green-800 rounded-xl shadow-lg flex items-center justify-center p-6 backface-hidden rotate-y-180">
-                            <div class="text-center">
-                                <div class="text-sm text-green-200 mb-3 font-semibold uppercase tracking-wide">Réponse</div>
-                                <p class="text-white text-lg leading-relaxed">${escapeHtml(answer)}</p>
-                                <div class="mt-4 text-green-300 text-sm">
-                                    <svg class="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
+                            
+                            <!-- Face avant (Question) -->
+                            <div class="card-face card-front bg-gradient-to-br ${selectedTheme.bgFront}">
+                                <div class="card-content">
+                                    <div class="card-header">
+                                        <div class="card-icon-wrapper">
+                                            <div class="card-icon">
+                                                <svg class="w-8 h-8 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="glow-ring"></div>
+                                        </div>
+                                        <div class="card-label">QUESTION</div>
+                                    </div>
+                                    
+                                    <div class="card-question">
+                                        <p class="text-white text-xl font-medium leading-relaxed">${escapeHtml(currentQuestion)}</p>
+                                    </div>
+                                    
+                                    <div class="card-hint">
+                                        <div class="hint-content">
+                                            <svg class="w-6 h-6 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                                            </svg>
+                                            <span class="text-sm">Cliquez pour retourner</span>
+                                        </div>
+                                    </div>
                                 </div>
+                                
+                                <!-- Effet de brillance -->
+                                <div class="card-shine"></div>
+                            </div>
+                            
+                            <!-- Face arrière (Réponse) -->
+                            <div class="card-face card-back bg-gradient-to-br ${selectedTheme.bgBack}">
+                                <div class="card-content">
+                                    <div class="card-header">
+                                        <div class="card-icon-wrapper">
+                                            <div class="card-icon">
+                                                <svg class="w-8 h-8 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </div>
+                                            <div class="glow-ring"></div>
+                                        </div>
+                                        <div class="card-label">RÉPONSE</div>
+                                    </div>
+                                    
+                                    <div class="card-answer">
+                                        <p class="text-white text-lg leading-relaxed">${escapeHtml(answer)}</p>
+                                    </div>
+                                    
+                                    <div class="card-actions">
+                                        <button class="action-btn" onclick="event.stopPropagation(); markAsKnown(this)">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span>Maîtrisé</span>
+                                        </button>
+                                        <button class="action-btn" onclick="event.stopPropagation(); markAsDifficult(this)">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            <span>À revoir</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Effet de brillance -->
+                                <div class="card-shine"></div>
                             </div>
                         </div>
                     </div>
@@ -62,27 +176,244 @@ function formatFlashcards(content) {
 
     html += '</div>';
 
-    // Ajouter les styles CSS pour l'animation de retournement
+    // Ajouter les styles CSS avancés
     html += `
     <style>
-        .perspective-1000 {
-            perspective: 1000px;
+        .modern-flashcard-container {
+            max-width: 100%;
+            margin: 0 auto;
         }
-        .transform-style-3d {
+        
+        .flashcard-3d-container {
+            perspective: 2000px;
+            margin: 20px 0;
+        }
+        
+        .flashcard-3d-card {
+            position: relative;
+            width: 100%;
+            height: 320px;
+            cursor: pointer;
             transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+            border-radius: 24px;
         }
-        .backface-hidden {
+        
+        .flashcard-3d-card.flipped {
+            transform: rotateY(180deg);
+        }
+        
+        .flashcard-3d-card:hover {
+            transform: translateY(-8px) rotateY(var(--rotation, 0deg));
+        }
+        
+        .flashcard-3d-card.flipped:hover {
+            transform: translateY(-8px) rotateY(calc(180deg + var(--rotation, 0deg)));
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
             backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+            border-radius: 24px;
+            padding: 2px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            box-shadow: 
+                0 20px 40px rgba(0,0,0,0.3),
+                0 0 60px rgba(var(--glow-color), 0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            overflow: hidden;
         }
-        .rotate-y-180 {
+        
+        .card-back {
             transform: rotateY(180deg);
         }
-        .flashcard-container.flipped {
-            transform: rotateY(180deg);
+        
+        .card-content {
+            position: relative;
+            height: 100%;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.2);
+            border-radius: 22px;
+            backdrop-filter: blur(10px);
         }
-        .flashcard-container {
-            transition: transform 0.6s;
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .card-icon-wrapper {
+            position: relative;
+            width: 56px;
+            height: 56px;
+        }
+        
+        .card-icon {
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.15);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .glow-ring {
+            position: absolute;
+            inset: -4px;
+            background: linear-gradient(45deg, var(--glow-color), transparent, var(--glow-color));
+            border-radius: 20px;
+            opacity: 0.6;
+            animation: rotate 3s linear infinite;
+            z-index: -1;
+        }
+        
+        .card-label {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .card-question, .card-answer {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+        }
+        
+        .card-question p, .card-answer p {
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .card-hint {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .hint-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 12px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .action-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+        
+        .card-shine {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 30%,
+                rgba(255,255,255,0.1) 50%,
+                transparent 70%
+            );
+            transform: rotate(45deg);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+        
+        .flashcard-3d-card:hover .card-shine {
+            animation: shine 0.6s ease-in-out;
+        }
+        
+        .floating-particles {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            background: var(--glow-color);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float var(--duration) ease-in-out infinite;
+            animation-delay: var(--delay);
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); opacity: 0; }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); }
+            25% { transform: translateY(-20px) translateX(10px); }
+            50% { transform: translateY(10px) translateX(-10px); }
+            75% { transform: translateY(-10px) translateX(20px); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .flashcard-3d-card {
+                height: 280px;
+            }
+            
+            .card-content {
+                padding: 24px;
+            }
+            
+            .card-question p, .card-answer p {
+                font-size: 16px;
+            }
+            
+            .card-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>`;
 
@@ -90,28 +421,259 @@ function formatFlashcards(content) {
 }
 
 /**
- * Formate le markdown basique en HTML
+ * Formate le markdown avec design moderne et animations avancées
  */
 function formatMarkdown(content) {
     let html = content;
 
-    // Titres
-    html = html.replace(/^### (.+)$/gm, '<h3 class="text-xl font-bold text-purple-400 mt-6 mb-3">$1</h3>');
-    html = html.replace(/^## (.+)$/gm, '<h2 class="text-2xl font-bold text-purple-400 mt-8 mb-4">$1</h2>');
-    html = html.replace(/^# (.+)$/gm, '<h1 class="text-3xl font-bold text-purple-400 mt-10 mb-6">$1</h1>');
+    // Titres avec design moderne
+    html = html.replace(/^### (.+)$/gm, 
+        '<div class="modern-header level-3">' +
+        '<div class="header-decoration"></div>' +
+        '<h3 class="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mt-8 mb-4">$1</h3>' +
+        '</div>');
+    
+    html = html.replace(/^## (.+)$/gm, 
+        '<div class="modern-header level-2">' +
+        '<div class="header-decoration"></div>' +
+        '<h2 class="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent mt-10 mb-6">$1</h2>' +
+        '</div>');
+    
+    html = html.replace(/^# (.+)$/gm, 
+        '<div class="modern-header level-1">' +
+        '<div class="header-decoration"></div>' +
+        '<h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mt-12 mb-8">$1</h1>' +
+        '</div>');
 
-    // Gras et italique
-    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold">$1</strong>');
-    html = html.replace(/\*(.+?)\*/g, '<em class="text-gray-300 italic">$1</em>');
+    // Gras et italique avec style moderne
+    html = html.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-semibold bg-gradient-to-r from-yellow-400/20 to-orange-400/20 px-2 py-1 rounded-lg border border-yellow-400/30">$1</strong>');
+    html = html.replace(/\*(.+?)\*/g, '<em class="text-gray-300 italic bg-gradient-to-r from-blue-400/10 to-purple-400/10 px-1 py-0.5 rounded border-l-2 border-blue-400/30">$1</em>');
 
-    // Listes à puces
-    html = html.replace(/^- (.+)$/gm, '<li class="ml-6 text-gray-300">• $1</li>');
+    // Points d'approfondissement avec design moderne
+    html = html.replace(/❓\*\*Question de compréhension\*\* : (.+)/g, 
+        '<div class="modern-interactive-block comprehension-block">' +
+        '<div class="block-header">' +
+        '<div class="block-icon-wrapper bg-blue-500/20 border border-blue-400/30">' +
+        '<svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>' +
+        '</svg>' +
+        '</div>' +
+        '<div class="block-title">Question de compréhension</div>' +
+        '</div>' +
+        '<div class="block-content">' +
+        '<p class="text-gray-200 mb-4">$1</p>' +
+        '<button class="modern-action-btn primary" onclick="toggleAnswer(this)">' +
+        '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
+        '</svg>' +
+        '<span>Voir l\'explication</span>' +
+        '</button>' +
+        '<div class="answer-content hidden">' +
+        '<div class="loading-spinner">' +
+        '<svg class="w-6 h-6 animate-spin text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>' +
+        '</svg>' +
+        '<span>Génération de l\'explication...</span>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '</div>');
 
-    // Paragraphes
-    html = html.replace(/\n\n/g, '</p><p class="text-gray-300 leading-relaxed mb-4">');
-    html = '<p class="text-gray-300 leading-relaxed mb-4">' + html + '</p>';
+    // Suggestions d'approfondissement
+    html = html.replace(/💡\*\*Pour approfondir\*\* : (.+)/g,
+        '<div class="modern-interactive-block deepen-block">' +
+        '<div class="block-header">' +
+        '<div class="block-icon-wrapper bg-green-500/20 border border-green-400/30">' +
+        '<svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>' +
+        '</svg>' +
+        '</div>' +
+        '<div class="block-title">Pour approfondir</div>' +
+        '</div>' +
+        '<div class="block-content">' +
+        '<p class="text-gray-200 mb-4">$1</p>' +
+        '<button class="modern-action-btn secondary" onclick="exploreTopic(this)">' +
+        '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>' +
+        '</svg>' +
+        '<span>Explorer ce sujet</span>' +
+        '</button>' +
+        '</div>' +
+        '</div>');
 
-    return `<div class="formatted-content prose prose-invert max-w-none">${html}</div>`;
+    // Exercices pratiques
+    html = html.replace(/🎯\*\*Exercice pratique\*\* : (.+)/g,
+        '<div class="modern-interactive-block exercise-block">' +
+        '<div class="block-header">' +
+        '<div class="block-icon-wrapper bg-orange-500/20 border border-orange-400/30">' +
+        '<svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>' +
+        '</svg>' +
+        '</div>' +
+        '<div class="block-title">Exercice pratique</div>' +
+        '</div>' +
+        '<div class="block-content">' +
+        '<p class="text-gray-200 mb-4">$1</p>' +
+        '<button class="modern-action-btn accent" onclick="showSolution(this)">' +
+        '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>' +
+        '</svg>' +
+        '<span>Voir la solution</span>' +
+        '</button>' +
+        '<div class="solution-content hidden"></div>' +
+        '</div>' +
+        '</div>');
+
+    // Auto-évaluation moderne
+    html = html.replace(/🔄\*\*AUTO-ÉVALUATION\*\*([\s\S]*?)(?=❓|💡|🎯|$)/g,
+        '<div class="modern-evaluation-block">' +
+        '<div class="evaluation-header">' +
+        '<div class="evaluation-icon-wrapper">' +
+        '<svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>' +
+        '</svg>' +
+        '</div>' +
+        '<div class="evaluation-title">Auto-évaluation</div>' +
+        '<div class="progress-indicator">' +
+        '<div class="progress-bar-bg">' +
+        '<div class="progress-bar-fill" style="width: 0%"></div>' +
+        '</div>' +
+        '<span class="progress-text">0%</span>' +
+        '</div>' +
+        '</div>' +
+        '<div class="evaluation-content">$1</div>' +
+        '</div>');
+
+    // Checkboxes d'auto-évaluation modernes
+    html = html.replace(/- ✅ (.+)/g,
+        '<label class="modern-checkbox-label">' +
+        '<div class="checkbox-wrapper">' +
+        '<input type="checkbox" class="modern-checkbox" onchange="updateProgress()">' +
+        '<div class="checkbox-custom">' +
+        '<svg class="checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+        '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>' +
+        '</svg>' +
+        '</div>' +
+        '</div>' +
+        '<span class="checkbox-text">$1</span>' +
+        '</label>');
+
+    // Listes à puces modernes
+    html = html.replace(/^- (.+)$/gm, 
+        '<div class="modern-list-item">' +
+        '<div class="list-marker">' +
+        '<div class="marker-dot"></div>' +
+        '</div>' +
+        '<span class="list-text">$1</span>' +
+        '</div>');
+
+    // Lignes avec émojis spéciaux
+    html = html.replace(/^📍 (.+)$/gm, 
+        '<div class="special-point location-point">' +
+        '<div class="point-icon">📍</div>' +
+        '<div class="point-text bg-purple-500/10 border-l-4 border-purple-400 pl-4 py-2">$1</div>' +
+        '</div>');
+    
+    html = html.replace(/^• (.+)$/gm, 
+        '<div class="special-point bullet-point">' +
+        '<div class="point-icon">•</div>' +
+        '<div class="point-text bg-gray-700/30 rounded-lg px-4 py-2">$1</div>' +
+        '</div>');
+    
+    html = html.replace(/^🌟 (.+)$/gm, 
+        '<div class="special-point star-point">' +
+        '<div class="point-icon">🌟</div>' +
+        '<div class="point-text bg-yellow-500/10 border border-yellow-400/30 rounded-lg px-4 py-2">$1</div>' +
+        '</div>');
+
+    // Paragraphes modernes
+    html = html.replace(/\n\n/g, '</p><p class="modern-paragraph text-gray-300 leading-relaxed mb-6">');
+    html = '<p class="modern-paragraph text-gray-300 leading-relaxed mb-6">' + html + '</p>';
+
+    return `<div class="modern-content-wrapper">${html}</div>`;
+}
+
+// Ajouter les fonctions interactives pour les points d'approfondissement
+function addInteractiveFunctions() {
+    if (window.toggleAnswer && window.exploreTopic && window.showSolution) return; // Déjà ajouté
+
+    // Toggle pour les réponses aux questions
+    window.toggleAnswer = function(element) {
+        const answer = element.querySelector('.answer');
+        if (answer.classList.contains('hidden')) {
+            answer.classList.remove('hidden');
+            answer.innerHTML = '<i class="fas fa-spinner fa-spin text-yellow-400 mr-2"></i>Génération de l\'explication...';
+            
+            // Simuler une génération d'explication (remplacer par vrai appel IA)
+            setTimeout(() => {
+                answer.innerHTML = '<i class="fas fa-lightbulb text-yellow-400 mr-2"></i>Voici une explication détaillée pour vous aider à mieux comprendre ce concept. [Cette fonctionnalité sera bientôt connectée à l\'IA pour des explications personnalisées]';
+            }, 1500);
+        } else {
+            answer.classList.add('hidden');
+        }
+    };
+
+    // Exploration de sujet
+    window.exploreTopic = function(button) {
+        const topic = button.parentElement.querySelector('.text-gray-300').textContent;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Recherche...';
+        button.disabled = true;
+        
+        // Simuler une recherche (remplacer par vraie fonctionnalité)
+        setTimeout(() => {
+            button.innerHTML = '✓ Exploré';
+            button.classList.add('bg-green-600');
+            showMessage(`Suggestion enregistrée pour : "${topic}"`, 'success');
+        }, 1000);
+    };
+
+    // Afficher les solutions
+    window.showSolution = function(button) {
+        const solutionDiv = button.nextElementSibling;
+        if (solutionDiv.classList.contains('hidden')) {
+            solutionDiv.classList.remove('hidden');
+            solutionDiv.innerHTML = '<i class="fas fa-key text-orange-400 mr-2"></i>Solution détaillée : [Cette fonctionnalité sera bientôt connectée à l\'IA pour des solutions personnalisées]';
+            button.innerHTML = 'Masquer la solution <i class="fas fa-eye-slash ml-1"></i>';
+        } else {
+            solutionDiv.classList.add('hidden');
+            button.innerHTML = 'Voir la solution <i class="fas fa-eye ml-1"></i>';
+        }
+    };
+
+    // Mise à jour du progrès
+    window.updateProgress = function() {
+        const checkboxes = document.querySelectorAll('.self-evaluation input[type="checkbox"]');
+        const checked = document.querySelectorAll('.self-evaluation input[type="checkbox"]:checked');
+        const progress = checkboxes.length > 0 ? Math.round((checked.length / checkboxes.length) * 100) : 0;
+        
+        // Mettre à jour une barre de progression si elle existe
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            progressBar.style.width = `${progress}%`;
+            progressBar.textContent = `${progress}%`;
+        }
+        
+        if (progress === 100 && checkboxes.length > 0) {
+            showMessage('🎉 Félicitations ! Vous avez maîtrisé tous les points de ce chapitre !', 'success');
+        }
+    };
+}
+
+// Rendre les fonctions globales pour les flashcards
+window.flipCard = function(card) {
+    card.classList.toggle('flipped');
+}
+
+window.markAsKnown = function(btn) {
+    btn.style.background = 'rgba(34, 197, 94, 0.3)';
+    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg><span>Maîtrisé ✓</span>';
+}
+
+window.markAsDifficult = function(btn) {
+    btn.style.background = 'rgba(239, 68, 68, 0.3)';
+    btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>À revoir ⚠️</span>';
 }
 
 /**
@@ -151,6 +713,7 @@ const ui = {
     textInput: document.getElementById('synth-text-input'),
     topicInput: document.getElementById('synth-topic-input'),
     formatSelect: document.getElementById('synth-format'),
+    levelSelect: document.getElementById('synth-level'),
     lengthSelect: document.getElementById('synth-length'),
     loadingBar: document.getElementById('loading-bar-container'),
     btnOpenHero: document.getElementById('btn-new-synth-hero'),
@@ -296,7 +859,7 @@ function openViewer(id, synth) {
     // ✅ Formatter le contenu selon le type de synthèse
     const formatLabel = synth.format_label || '';
     if (formatLabel.toLowerCase().includes('flashcard')) {
-        // Format flashcards Q:/R: en cartes visuelles
+        // Format flashcards Q:/R: en cartes visuelles avec niveaux
         ui.viewContent.innerHTML = formatFlashcards(synth.content || '');
     } else if (synth.content?.includes('<')) {
         // HTML formaté - sanitize
@@ -306,8 +869,27 @@ function openViewer(id, synth) {
             ui.viewContent.textContent = synth.content;
         }
     } else {
-        // Texte brut avec formatage markdown basique
+        // Texte brut avec formatage markdown avancé et interactif
         ui.viewContent.innerHTML = formatMarkdown(synth.content || '');
+        
+        // Ajouter les fonctionnalités interactives
+        addInteractiveFunctions();
+    }
+
+    // Ajouter une barre de progression pour l'auto-évaluation si présente
+    if (synth.content?.includes('AUTO-ÉVALUATION')) {
+        const progressHtml = `
+            <div class="progress-container mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm text-gray-400">Progrès de maîtrise</span>
+                    <span class="progress-bar text-xs text-purple-400 font-bold">0%</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div class="progress-bar bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        `;
+        ui.viewContent.insertAdjacentHTML('afterbegin', progressHtml);
     }
 }
 
@@ -349,6 +931,7 @@ if (ui.btnGenerate) {
         if (!sourceElement) return showMessage("Sélectionnez une source", "error");
         const source = sourceElement.value;
         const format = ui.formatSelect.value;
+        const level = ui.levelSelect.value;
         const length = ui.lengthSelect.value;
 
         let context = "";
@@ -401,6 +984,7 @@ if (ui.btnGenerate) {
                 data: context,
                 options: {
                     format: format,
+                    level: level,
                     length: length
                 }
             };

@@ -218,27 +218,42 @@ function setGeneratingState(isGenerating) {
 // ✅ PRODUCTION SÉCURISÉE: Call Supabase Edge Function avec authentification
 async function callGenerateQuizFunction(topic, dataContext, count, type) {
     try {
-        console.log('🤖 TEST: Calling generate-quiz Edge Function (NO AUTH)...');
+        console.log('🤖 Calling generate-quiz Edge Function (like syntheses)...');
 
-        // TEST SANS AUTH - juste pour vérifier que la fonction existe
-        const { data, error } = await supabase.functions.invoke('generate-quiz', {
-            body: {
-                mode: 'quiz',
-                topic: topic,
-                data: dataContext,
-                options: {
-                    count: count,
-                    type: type
-                }
+        // Utiliser l'ANON_KEY comme pour les synthèses (pas le JWT utilisateur)
+        const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
+        
+        const requestBody = {
+            mode: 'quiz',
+            topic: topic,
+            data: dataContext,
+            options: {
+                count: count,
+                type: type
             }
-            // PAS d'Authorization header pour le test
+        };
+
+        console.log('📤 Request body:', requestBody);
+
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/generate-quiz`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
         });
 
-        if (error) {
-            console.error('❌ Edge Function error:', error);
-            throw new Error(error.message || 'Erreur lors de la génération du quiz');
+        console.log('📥 Response status:', response.status);
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Edge Function error:', errorData);
+            throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
         }
 
+        const data = await response.json();
         console.log('✅ Quiz generated successfully');
         return data;
 

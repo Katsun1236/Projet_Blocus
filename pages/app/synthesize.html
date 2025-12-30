@@ -55,6 +55,411 @@
             animation: progress-indeterminate 1.5s infinite ease-in-out;
             border-radius: 9999px;
         }
+
+        /* Styles modernes pour le contenu */
+        .modern-content-wrapper {
+            max-width: none;
+            margin: 0 auto;
+        }
+
+        /* Headers modernes */
+        .modern-header {
+            position: relative;
+            margin: 2rem 0;
+        }
+        
+        .header-decoration {
+            position: absolute;
+            top: 50%;
+            left: -20px;
+            width: 4px;
+            height: 60%;
+            background: linear-gradient(to bottom, transparent, currentColor, transparent);
+            border-radius: 2px;
+            opacity: 0.3;
+        }
+
+        .modern-header.level-1 .header-decoration {
+            background: linear-gradient(to bottom, #818cf8, #c084fc, #f472b6);
+            height: 80%;
+        }
+
+        .modern-header.level-2 .header-decoration {
+            background: linear-gradient(to bottom, #60a5fa, #a78bfa);
+            height: 70%;
+        }
+
+        .modern-header.level-3 .header-decoration {
+            background: linear-gradient(to bottom, #c084fc, #f472b6);
+            height: 60%;
+        }
+
+        /* Blocks interactifs modernes */
+        .modern-interactive-block {
+            background: linear-gradient(135deg, rgba(30, 30, 40, 0.8), rgba(20, 20, 30, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 24px;
+            margin: 24px 0;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modern-interactive-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, currentColor, transparent);
+            opacity: 0.5;
+        }
+
+        .comprehension-block::before { background: linear-gradient(90deg, transparent, #60a5fa, transparent); }
+        .deepen-block::before { background: linear-gradient(90deg, transparent, #34d399, transparent); }
+        .exercise-block::before { background: linear-gradient(90deg, transparent, #fb923c, transparent); }
+
+        .modern-interactive-block:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .block-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .block-icon-wrapper {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+
+        .block-icon-wrapper::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 14px;
+            padding: 2px;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            -webkit-mask-composite: xor;
+        }
+
+        .block-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: white;
+            letter-spacing: 0.5px;
+        }
+
+        .modern-action-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modern-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .modern-action-btn:hover::before {
+            left: 100%;
+        }
+
+        .modern-action-btn.primary {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            color: white;
+        }
+
+        .modern-action-btn.secondary {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+        }
+
+        .modern-action-btn.accent {
+            background: linear-gradient(135deg, #f59e0b, #fb923c);
+            color: white;
+        }
+
+        .modern-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Auto-évaluation moderne */
+        .modern-evaluation-block {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(167, 139, 250, 0.1));
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            border-radius: 20px;
+            padding: 24px;
+            margin: 24px 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .evaluation-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .evaluation-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        .evaluation-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .progress-indicator {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar-bg {
+            width: 120px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #a78bfa, #c084fc);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #a78bfa;
+        }
+
+        /* Checkboxes modernes */
+        .modern-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            margin: 12px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modern-checkbox-label:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(4px);
+        }
+
+        .checkbox-wrapper {
+            position: relative;
+        }
+
+        .modern-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .checkbox-custom {
+            width: 24px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modern-checkbox:checked ~ .checkbox-custom {
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            border-color: #8b5cf6;
+        }
+
+        .checkmark {
+            stroke: white;
+            stroke-width: 3;
+            width: 16px;
+            height: 16px;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+
+        .modern-checkbox:checked ~ .checkbox-custom .checkmark {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .checkbox-text {
+            color: #e5e7eb;
+            font-size: 16px;
+        }
+
+        /* Listes modernes */
+        .modern-list-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .list-marker {
+            position: relative;
+        }
+
+        .marker-dot {
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        .list-text {
+            color: #d1d5db;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Points spéciaux */
+        .special-point {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .point-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .point-text {
+            flex: 1;
+            color: #d1d5db;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #60a5fa;
+            font-size: 14px;
+        }
+
+        .answer-content, .solution-content {
+            margin-top: 16px;
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border-left: 4px solid currentColor;
+        }
+
+        .answer-content {
+            color: #60a5fa;
+            border-left-color: #60a5fa;
+        }
+
+        .solution-content {
+            color: #fb923c;
+            border-left-color: #fb923c;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modern-interactive-block {
+                padding: 20px;
+                margin: 20px 0;
+            }
+
+            .block-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+
+            .evaluation-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 12px;
+            }
+
+            .progress-indicator {
+                margin-left: 0;
+                margin-top: 12px;
+            }
+
+            .modern-checkbox-label {
+                padding: 12px;
+            }
+
+            .checkbox-text {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 
@@ -237,23 +642,34 @@
                     <input type="text" id="synth-topic-input" placeholder="Ex: La Seconde Guerre Mondiale..." class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-white focus:border-pink-500 outline-none">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="space-y-2">
                         <label class="text-sm text-gray-400">Format</label>
                         <select id="synth-format" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-gray-400 focus:border-pink-500 outline-none transition-colors">
-                            <option value="summary">Résumé structuré</option>
-                            <option value="revision">Fiche de révision (Points clés)</option>
-                            <option value="flashcards">Flashcards (Questions/Réponses)</option>
-                            <option value="glossary">Glossaire / Définitions</option>
-                            <option value="plan">Plan détaillé</option>
+                            <option value="resume"> Résumé structuré</option>
+                            <option value="fiche"> Fiche de révision ultra-pédagogique</option>
+                            <option value="flashcards"> Flashcards (3 niveaux)</option>
+                            <option value="mindmap"> Mind Map hiérarchique</option>
+                            <option value="pedagogique"> Synthèse progressive (débutant→expert)</option>
+                            <option value="explicatif"> Explication avec analogies</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Niveau</label>
+                        <select id="synth-level" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-gray-400 focus:border-pink-500 outline-none transition-colors">
+                            <option value="debutant"> Débutant (vocabulaire simple)</option>
+                            <option value="intermediaire" selected> Intermédiaire (terminologie standard)</option>
+                            <option value="avance"> Avancé (concepts complexes)</option>
+                            <option value="expert"> Expert (jargon technique)</option>
                         </select>
                     </div>
                     <div class="space-y-2">
                         <label class="text-sm text-gray-400">Longueur</label>
                         <select id="synth-length" class="w-full bg-black/20 border border-gray-700 rounded-xl px-4 py-3 text-gray-400 focus:border-pink-500 outline-none transition-colors">
-                            <option value="short">Concis (L'essentiel)</option>
-                            <option value="medium" selected>Normal</option>
-                            <option value="long">Détaillé (Tout inclure)</option>
+                            <option value="short"> Concis (150 mots)</option>
+                            <option value="medium" selected> Normal (300 mots)</option>
+                            <option value="long"> Détaillé (500 mots)</option>
+                            <option value="complet"> Complet (800 mots)</option>
                         </select>
                     </div>
                 </div>

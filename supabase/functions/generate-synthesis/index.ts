@@ -10,6 +10,7 @@ interface SynthesisRequest {
   data?: string;
   options: {
     format: string;
+    level: string;
     length: string;
   };
 }
@@ -33,91 +34,231 @@ serve(async (req) => {
     // Parser la requête
     const request: SynthesisRequest = await req.json()
     const { topic, data, options } = request
-    const { format, length } = options
+    const { format, level, length } = options
 
-    console.log('📝 Generating synthesis:', { topic, format, length })
+    console.log('📝 Generating synthesis:', { topic, format, level, length })
 
     // Définir le nombre de mots en fonction de la longueur
     let wordCount = 300
-    if (length === 'court') wordCount = 150
+    if (length === 'short') wordCount = 150
+    else if (length === 'medium') wordCount = 300
     else if (length === 'long') wordCount = 500
+    else if (length === 'complet') wordCount = 800
+
+    // Adapter le prompt en fonction du niveau
+    let levelInstructions = ''
+    switch (level) {
+      case 'debutant':
+        levelInstructions = `Niveau DÉBUTANT : Utilise un vocabulaire simple et accessible. Évite le jargon technique. Explique les concepts comme si tu parlais à quelqu'un qui découvre le sujet pour la première fois. Utilise des analogies simples et des exemples de la vie quotidienne.`
+        break
+      case 'intermediaire':
+        levelInstructions = `Niveau INTERMÉDIAIRE : Utilise une terminologie standard que les étudiants connaissent. Explique les concepts avec une précision raisonnable. Tu peux utiliser du jargon courant mais explique les termes plus techniques si nécessaire.`
+        break
+      case 'avance':
+        levelInstructions = `Niveau AVANCÉ : Utilise une terminologie précise et des concepts complexes. Suppose que le lecteur a déjà des connaissances de base. N'hésite pas à entrer dans les détails techniques et les nuances.`
+        break
+      case 'expert':
+        levelInstructions = `Niveau EXPERT : Utilise le jargon technique et les concepts les plus avancés. Suppose que le lecteur est un professionnel ou un chercheur dans le domaine. Tu peux utiliser des acronymes et des termes très spécifiques sans les expliquer.`
+        break
+      default:
+        levelInstructions = 'Niveau intermédiaire : Utilise une terminologie standard.'
+    }
 
     // Adapter le prompt en fonction du format
     let formatInstructions = ''
     switch (format) {
       case 'resume':
         formatInstructions = `Rédige un résumé clair et structuré avec :
-- Une introduction présentant le sujet
-- Les points clés organisés en paragraphes
-- Une conclusion synthétisant l'essentiel`
+📌 **INTRODUCTION** : Présentation du sujet et enjeux
+🔑 **POINTS CLÉS** : 3-5 idées essentielles avec explications
+💡 **DÉFINITIONS** : Termes importants expliqués simplement
+⚠️ **PIÈGES À ÉVITER** : Erreurs communes à connaître
+🎯 **CONCLUSION** : Synthèse finale et applications pratiques
+
+Format : Utilise des émojis pour structurer, sois clair et pédagogique`
         break
       case 'flashcards':
-        formatInstructions = `IMPORTANT: Tu DOIS générer UNIQUEMENT des flashcards au format Question/Réponse strict.
+        formatInstructions = `IMPORTANT: Tu DOIS générer UNIQUEMENT des flashcards au format Question/Réponse strict avec niveaux de difficulté.
 
-Format OBLIGATOIRE (ne génère RIEN d'autre que ce format):
+Format OBLIGATOIRE:
+[🟢 FACILE]
+Q: [Question de base]
+R: [Réponse directe]
 
-Q: [Question concise et claire]
-R: [Réponse précise et complète]
+[🟡 MOYEN]
+Q: [Question nécessitant de la réflexion]
+R: [Réponse expliquée]
 
-Q: [Autre question]
-R: [Autre réponse]
+[🔴 DIFFICILE]
+Q: [Question complexe ou application]
+R: [Réponse détaillée avec exemples]
 
 RÈGLES STRICTES:
-- Chaque ligne commence par "Q:" ou "R:"
-- Une ligne vide entre chaque flashcard
-- 10 à 15 flashcards maximum
-- Questions variées (définitions, concepts, applications)
-- Réponses courtes mais complètes
-- PAS de numérotation, PAS de tirets, JUSTE Q: et R:`
+- 9-12 flashcards maximum (3 par niveau)
+- Indique clairement le niveau de difficulté
+- Questions variées (définitions, applications, comparaisons)
+- Réponses complètes mais concises
+- PAS de texte hors du format Q:/R:`
         break
       case 'mindmap':
-        formatInstructions = `Crée une mind map textuelle avec:
-# Titre Principal
-## Branche 1
-- Sous-point 1.1
-- Sous-point 1.2
-## Branche 2
-- Sous-point 2.1
-- Sous-point 2.2`
+        formatInstructions = `Crée une mind map hiérarchique avec approfondissement :
+
+🧠 **[SUJET PRINCIPAL]**
+├── 📚 **BRANCHE 1 : Concept Fondamental**
+│   ├── 📍 Sous-concept A
+│   │   └── 💡 Explication + Exemple
+│   └── 📍 Sous-concept B
+│       └── ⚠️ Piège commun à éviter
+├── 🎯 **BRANCHE 2 : Applications**
+│   ├── 📍 Application pratique A
+│   └── 📍 Application pratique B
+└── ❓ **BRANCHE 3 : Points d'approfondissement**
+    ├── 📍 Question complexe 1
+    └── 📍 Question complexe 2
+
+Utilise les symboles └── ├── pour la hiérarchie`
         break
       case 'fiche':
-        formatInstructions = `Crée une fiche de révision structurée avec:
-## Définitions
-- Terme 1: explication
-- Terme 2: explication
+        formatInstructions = `Crée une fiche de révision ultra-pédagogique :
 
-## Points Clés
-1. Point important 1
-2. Point important 2
+🎯 **OBJECTIF** : Ce que tu dois savoir absolument
 
-## À Retenir
-- Élément essentiel 1
-- Élément essentiel 2`
+📖 **DÉFINITIONS ESSENTIELLES**
+• **Terme 1** : Explication simple + Exemple concret
+• **Terme 2** : Explication simple + Exemple concret
+
+🔑 **3 POINTS CLÉS À RETENIR**
+1️⃣ **Point 1** : Explication + Pourquoi c'est important
+2️⃣ **Point 2** : Explication + Pourquoi c'est important  
+3️⃣ **Point 3** : Explication + Pourquoi c'est important
+
+💡 **MÉMO-TECHNIQUE** : Astuce pour mémoriser facilement
+
+⚠️ **ERREURS FRÉQUENTES**
+- ❌ Erreur 1 : Pourquoi c'est faux
+- ❌ Erreur 2 : Pourquoi c'est faux
+
+🎯 **APPLICATIONS** : Comment utiliser ce concept en pratique
+
+❓ **POUR ALLER PLUS LOIN** : Questions de réflexion
+
+Format : Utilise les émojis et structure claire`
+        break
+      case 'pedagogique':
+        formatInstructions = `Crée une synthèse pédagogique progressive avec points d'approfondissement :
+
+📚 **PARTIE 1 : LES BASES** (Niveau Débutant)
+📍 Concept fondamental expliqué simplement
+• Définition claire
+• Exemple de tous les jours
+• Pourquoi c'est important
+
+📈 **PARTIE 2 : APPROFONDISSEMENT** (Niveau Intermédiaire)  
+📍 Points clés à maîtriser
+• Mécanismes et principes
+• Liens entre les concepts
+• Applications pratiques
+
+🚀 **PARTIE 3 : MISE EN PRATIQUE** (Niveau Avancé)
+📍 Cas concrets et exercices
+• Problème type avec solution
+• Méthode de résolution
+• Astuces de pro
+
+💬 **POINTS D'APPROFONDISSEMENT INTERACTIFS**
+❓ **Question de compréhension** : [Question sur un point délicat]
+💡 **Pour approfondir** : [Suggestion de recherche/exploration]
+🎯 **Exercice pratique** : [Petit problème à résoudre]
+
+🔄 **AUTO-ÉVALUATION**
+- ✅ Je comprends le concept de base
+- ✅ Je peux expliquer à quelqu'un d'autre  
+- ✅ Je peux l'appliquer dans un exercice
+
+Format : Très visuel avec émojis, progression par étapes`
+        break
+      case 'explicatif':
+        formatInstructions = `Crée une explication détaillée avec analogies et exemples :
+
+🎯 **CE QU'IL FAUT SAVOIR EN 30 SECONDES**
+[Idée centrale résumée en une phrase]
+
+🧩 **ANALOGIE SIMPLE**
+Imagine que [concept] c'est comme [analogie concrète]...
+• Explication de l'analogie
+• Pourquoi ça aide à comprendre
+• Limites de l'analogie
+
+📖 **EXPLICATION DÉTAILLÉE**
+📍 **Le quoi** : Définition précise
+📍 **Le pourquoi** : Raisons et mécanismes  
+📍 **Le comment** : Fonctionnement étape par étape
+
+🌟 **EXEMPLES CONCRETS**
+🏠 **Exemple de tous les jours** : [Situation familière]
+🎓 **Exemple académique** : [Application dans les études]
+💼 **Exemple professionnel** : [Utilisation pratique]
+
+❓ **QUESTIONS QUE VOUS POUVEZ VOUS POSER**
+• "Mais pourquoi..." → [Réponse]
+• "Et si..." → [Réponse]  
+• "Comment faire quand..." → [Réponse]
+
+🎯 **POUR VÉRIFIER VOTRE COMPRÉHENSION**
+[Petit exercice d'auto-évaluation avec solution]
+
+Format : Très pédagogique, utilise des analogies, répond aux questions fréquentes`
         break
       default:
-        formatInstructions = 'Rédige un résumé clair et bien structuré.'
+        formatInstructions = 'Rédige un résumé clair et bien structuré avec exemples concrets.'
     }
 
     // Créer le prompt pour Gemini
-    const prompt = `Tu es un assistant pédagogique expert en création de synthèses éducatives.
+    const prompt = `Tu es un professeur passionné et pédagogue expert en création de contenus éducatifs adaptatifs. 
+Ta mission : rendre n'importe quel sujet compréhensible et mémorable pour des étudiants.
 
 Sujet: ${topic}
 ${data ? `Contexte/Contenu: ${data}` : ''}
 
 Format demandé: ${format}
+Niveau: ${level}
 Longueur: environ ${wordCount} mots
 
-Instructions:
+Instructions pédagogiques :
 ${formatInstructions}
 
-IMPORTANT:
-- Sois précis et pédagogique
-- Utilise un langage clair et accessible
-- Structure bien ton contenu avec des titres et sous-titres quand approprié
-- Si le contexte est insuffisant, base-toi sur le titre du sujet pour générer un contenu pertinent
-- N'ajoute pas de commentaires avant ou après le contenu, génère directement la synthèse
+${levelInstructions}
 
-Génère maintenant la synthèse:`
+🎯 PRINCIPES PÉDAGOGIQUES À RESPECTER :
+- Commencer par le simple pour aller vers le complexe
+- Utiliser des analogies et exemples concrets
+- Anticiper les questions et blocages des étudiants
+- Donner des astuces de mémorisation
+- Proposer différents niveaux de lecture
+- Inclure des points d'auto-évaluation
+- Rendre le contenu visuel et structuré
+
+💡 APPROFONDISSEMENT ADAPTATIF :
+Pour chaque concept important, inclure :
+- Une explication de base (niveau 1)
+- Un exemple concret (niveau 2)  
+- Une application pratique (niveau 3)
+- Une question de réflexion (approfondissement)
+
+❓ RÉPONDRE AUX QUESTIONS IMPLICITES :
+Les étudiants se demandent souvent :
+- "À quoi ça sert concrètement ?"
+- "Pourquoi c'est important ?"
+- "Comment je peux retenir ça ?"
+- "Quelles sont les erreurs à éviter ?"
+
+🎨 FORMAT VISUEL :
+- Utilise les émojis pour structurer et guider la lecture
+- Crée des repères visuels clairs
+- Varie les types de contenu (listes, paragraphes, questions)
+- Rends le contenu scannable rapidement
+
+Génère maintenant cette synthèse pédagogique exceptionnelle :`
 
     // Appeler l'API Gemini (modèle 2.5-flash : le plus récent et performant)
     // ✅ FIX: Utiliser le nom COMPLET avec préfixe "models/"
