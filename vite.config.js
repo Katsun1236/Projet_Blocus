@@ -45,6 +45,7 @@ export default defineConfig({
         chat: resolve(__dirname, 'pages/app/chat.html'),
         chatList: resolve(__dirname, 'pages/app/chat-list.html'),
         bugReport: resolve(__dirname, 'pages/app/bug-report.html'),
+        roadmap: resolve(__dirname, 'pages/app/roadmap.html'),
       },
       output: {
         manualChunks: {
