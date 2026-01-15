@@ -91,6 +91,9 @@
                             <a href="pages/app/profile.html" class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white flex items-center gap-3">
                                 <i class="fas fa-user w-4"></i> Profil
                             </a>
+                            <a href="pages/app/roadmap.html" class="block px-4 py-3 text-sm text-gray-300 hover:bg-gray-800 hover:text-white flex items-center gap-3">
+                                <i class="fas fa-route w-4"></i> Roadmap
+                            </a>
                             <div class="h-px bg-gray-800 my-1"></div>
                             <button id="logout-button" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-3 transition-colors">
                                 <i class="fas fa-sign-out-alt w-4"></i> Déconnexion
@@ -278,6 +281,14 @@
         </div>
         <p class="text-xs mt-4 opacity-30">Logo et marque déposés. Voir LICENSE pour plus d'informations.</p>
     </footer>
+
+    <!-- Roadmap Button (Discret) -->
+    <a href="pages/app/roadmap.html"
+       class="fixed bottom-6 right-6 w-12 h-12 bg-gray-800/50 hover:bg-indigo-600 backdrop-blur-sm border border-gray-700 hover:border-indigo-500 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 group z-40"
+       title="Voir la roadmap du projet"
+       aria-label="Roadmap">
+        <i class="fas fa-route text-lg group-hover:scale-110 transition-transform"></i>
+    </a>
 
     <!-- DOMPurify for XSS protection -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
