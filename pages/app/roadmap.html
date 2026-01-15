@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roadmap - Projet Blocus</title>
+    <link rel="icon" type="image/png" href="../../assets/images/locus-neon-favicon.png">
+
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <link rel="stylesheet" href="../../assets/css/animations.css">
+    <link rel="stylesheet" href="../../assets/css/mobile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .content-glass {
+            background: rgba(20, 20, 20, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .roadmap-card {
+            transition: all 0.3s ease;
+        }
+
+        .roadmap-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(99, 102, 241, 0.2);
+        }
+
+        .priority-critical { border-left: 4px solid #ef4444; }
+        .priority-high { border-left: 4px solid #f59e0b; }
+        .priority-medium { border-left: 4px solid #3b82f6; }
+        .priority-low { border-left: 4px solid #10b981; }
+
+        .task-item {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .task-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            padding-left: 1rem;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid rgba(99, 102, 241, 0.5);
+            transition: all 0.2s ease;
+        }
+
+        .task-checkbox:hover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #6366f1, #a855f7);
+            transition: width 0.5s ease;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
+        }
+    </style>
+</head>
+
+<body id="app-container" class="relative selection:bg-indigo-500 selection:text-white overflow-hidden h-screen flex bg-[#050505]">
+
+    <div class="noise-overlay"></div>
+    <div class="glow-bg" style="top: -20%; left: -10%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);"></div>
+    <div class="glow-bg" style="bottom: -20%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.1) 0%, transparent 70%);"></div>
+
+    <div id="sidebar-container"></div>
+
+    <main id="main-content" class="main-content-adjusted overflow-y-auto flex-1 p-4 md:p-8">
+
+        <!-- Header -->
+        <div class="max-w-7xl mx-auto mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h1 class="text-4xl font-bold text-white mb-2">
+                        <i class="fas fa-route mr-3 text-indigo-500"></i>Roadmap du Projet
+                    </h1>
+                    <p class="text-gray-400">Plan d'action pour améliorer Projet Blocus</p>
+                </div>
+                <div class="text-right">
+                    <div class="text-sm text-gray-400">Dernière mise à jour</div>
+                    <div class="text-white font-semibold" id="last-update">15 janvier 2026</div>
+                </div>
+            </div>
+
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="stat-card p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-400 text-sm">Total Tâches</div>
+                            <div class="text-2xl font-bold text-white" id="total-tasks">0</div>
+                        </div>
+                        <i class="fas fa-tasks text-3xl text-indigo-500"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-400 text-sm">Critiques</div>
+                            <div class="text-2xl font-bold text-red-500" id="critical-tasks">0</div>
+                        </div>
+                        <i class="fas fa-exclamation-triangle text-3xl text-red-500"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-400 text-sm">Complétées</div>
+                            <div class="text-2xl font-bold text-green-500" id="completed-tasks">0</div>
+                        </div>
+                        <i class="fas fa-check-circle text-3xl text-green-500"></i>
+                    </div>
+                </div>
+
+                <div class="stat-card p-4 rounded-xl">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-400 text-sm">Progression</div>
+                            <div class="text-2xl font-bold text-indigo-500" id="progress-percent">0%</div>
+                        </div>
+                        <i class="fas fa-chart-line text-3xl text-indigo-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Global Progress Bar -->
+            <div class="progress-bar mb-6">
+                <div class="progress-fill" id="global-progress" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Roadmap Sections -->
+        <div class="max-w-7xl mx-auto space-y-6">
+
+            <!-- IMMÉDIAT (24-48h) -->
+            <div class="roadmap-card content-glass rounded-2xl p-6 priority-critical">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-fire text-2xl text-red-500"></i>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Immédiat</h2>
+                            <p class="text-gray-400 text-sm">24-48 heures - Critiques</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        <span id="immediate-completed">0</span>/<span id="immediate-total">0</span> complété
+                    </div>
+                </div>
+
+                <div class="space-y-2" id="immediate-tasks">
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="immediate-1">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🔥 Régénérer toutes les clés API exposées</div>
+                            <div class="text-gray-400 text-sm">Supabase + Gemini AI - URGENT</div>
+                        </div>
+                        <span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs">Sécurité</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="immediate-2">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🔒 Retirer .env de Git et ajouter à .gitignore</div>
+                            <div class="text-gray-400 text-sm">Ne plus committer les secrets</div>
+                        </div>
+                        <span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs">Sécurité</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="immediate-3">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🚀 Déplacer appels Gemini AI vers Edge Functions</div>
+                            <div class="text-gray-400 text-sm">Clés API côté serveur uniquement</div>
+                        </div>
+                        <span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs">Sécurité</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="immediate-4">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🛡️ Sanitiser tous les usages de innerHTML</div>
+                            <div class="text-gray-400 text-sm">10+ occurrences à corriger (XSS)</div>
+                        </div>
+                        <span class="px-3 py-1 bg-red-500/20 text-red-400 rounded-full text-xs">Sécurité</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="immediate-5">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🐛 Corriger erreurs null reference critiques</div>
+                            <div class="text-gray-400 text-sm">courses.js:215, planning.js:235</div>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs">Bug</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="immediate-6">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🔧 Corriger bug génération quiz (JSON escaping)</div>
+                            <div class="text-gray-400 text-sm">Erreur "Unterminated string in JSON"</div>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs">Bug</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COURT TERME (1-2 semaines) -->
+            <div class="roadmap-card content-glass rounded-2xl p-6 priority-high">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-bolt text-2xl text-orange-500"></i>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Court Terme</h2>
+                            <p class="text-gray-400 text-sm">1-2 semaines - Haute priorité</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        <span id="short-completed">0</span>/<span id="short-total">0</span> complété
+                    </div>
+                </div>
+
+                <div class="space-y-2" id="short-tasks">
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="short-1">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🔄 Terminer migration Firebase → Supabase</div>
+                            <div class="text-gray-400 text-sm">Retirer toutes les références Firebase</div>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">Architecture</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="short-2">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">📦 Supprimer dépendances Firebase inutilisées</div>
+                            <div class="text-gray-400 text-sm">Réduire bundle de 2MB+</div>
+                        </div>
+                        <span class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">Performance</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="short-3">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">✨ Ajouter vérifications null (optional chaining)</div>
+                            <div class="text-gray-400 text-sm">Utiliser ?. partout où nécessaire</div>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs">Bug</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="short-4">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🔌 Corriger fuites mémoire (event listeners)</div>
+                            <div class="text-gray-400 text-sm">layout.js:37, pomodoro.js:150</div>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs">Bug</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="short-5">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🧪 Ajouter tests unitaires (objectif 50%)</div>
+                            <div class="text-gray-400 text-sm">Actuellement < 5% de couverture</div>
+                        </div>
+                        <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">Tests</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="short-6">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🚨 Implémenter error boundaries</div>
+                            <div class="text-gray-400 text-sm">Gestion globale des erreurs</div>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">Architecture</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="short-7">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">📊 Corriger 28 bugs haute priorité restants</div>
+                            <div class="text-gray-400 text-sm">Voir BUGS_FIXES_APPLIQUES.md</div>
+                        </div>
+                        <span class="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs">Bug</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOYEN TERME (1-2 mois) -->
+            <div class="roadmap-card content-glass rounded-2xl p-6 priority-medium">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-calendar-alt text-2xl text-blue-500"></i>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Moyen Terme</h2>
+                            <p class="text-gray-400 text-sm">1-2 mois - Priorité moyenne</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        <span id="medium-completed">0</span>/<span id="medium-total">0</span> complété
+                    </div>
+                </div>
+
+                <div class="space-y-2" id="medium-tasks">
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-1">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">📘 Migrer vers TypeScript</div>
+                            <div class="text-gray-400 text-sm">Type safety pour tout le frontend</div>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">Architecture</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-2">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">📴 Implémenter service worker (PWA)</div>
+                            <div class="text-gray-400 text-sm">Support offline complet</div>
+                        </div>
+                        <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-xs">Feature</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-3">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🎭 Ajouter tests E2E (Cypress/Playwright)</div>
+                            <div class="text-gray-400 text-sm">Tests utilisateur complets</div>
+                        </div>
+                        <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">Tests</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-4">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">♻️ Refactoriser gros fichiers</div>
+                            <div class="text-gray-400 text-sm">supabase-config.js (949 lignes), quizz.js</div>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">Architecture</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-5">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">⚡ Optimiser requêtes SQL (éliminer N+1)</div>
+                            <div class="text-gray-400 text-sm">profile.js:116-133</div>
+                        </div>
+                        <span class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">Performance</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-6">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">👥 Terminer fonctionnalités groupes communauté</div>
+                            <div class="text-gray-400 text-sm">Chat, partage fichiers, événements</div>
+                        </div>
+                        <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-xs">Feature</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-7">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🔄 Implémenter pipeline CI/CD</div>
+                            <div class="text-gray-400 text-sm">GitHub Actions + tests automatiques</div>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">DevOps</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="medium-8">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🗑️ Supprimer 178+ console.log en production</div>
+                            <div class="text-gray-400 text-sm">Nettoyer le code</div>
+                        </div>
+                        <span class="px-3 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs">Qualité</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LONG TERME (3-6 mois) -->
+            <div class="roadmap-card content-glass rounded-2xl p-6 priority-low">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-star text-2xl text-green-500"></i>
+                        <div>
+                            <h2 class="text-2xl font-bold text-white">Long Terme</h2>
+                            <p class="text-gray-400 text-sm">3-6 mois - Améliorations</p>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-400">
+                        <span id="long-completed">0</span>/<span id="long-total">0</span> complété
+                    </div>
+                </div>
+
+                <div class="space-y-2" id="long-tasks">
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="long-1">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🌍 Ajouter support internationalization (i18n)</div>
+                            <div class="text-gray-400 text-sm">Multi-langues (EN, ES, etc.)</div>
+                        </div>
+                        <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-xs">Feature</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="long-2">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">📱 Améliorer responsive mobile</div>
+                            <div class="text-gray-400 text-sm">Navigation mobile-first</div>
+                        </div>
+                        <span class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">UX</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="long-3">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">💾 Implémenter stratégie de cache avancée</div>
+                            <div class="text-gray-400 text-sm">Service worker + localStorage</div>
+                        </div>
+                        <span class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">Performance</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="long-4">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">📊 Monitoring et analytics avancés</div>
+                            <div class="text-gray-400 text-sm">Sentry + Google Analytics</div>
+                        </div>
+                        <span class="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs">DevOps</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="long-5">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🎨 Optimisation bundle size</div>
+                            <div class="text-gray-400 text-sm">Code splitting + lazy loading</div>
+                        </div>
+                        <span class="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">Performance</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="long-6">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">♿ Audit et amélioration accessibilité (a11y)</div>
+                            <div class="text-gray-400 text-sm">WCAG 2.1 AA compliance</div>
+                        </div>
+                        <span class="px-3 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">Accessibilité</span>
+                    </div>
+
+                    <div class="task-item flex items-center gap-3 p-3 rounded-lg" data-task="long-7">
+                        <div class="task-checkbox"></div>
+                        <div class="flex-1">
+                            <div class="text-white font-medium">🔔 Push notifications natives</div>
+                            <div class="text-gray-400 text-sm">Capacitor + Service Worker</div>
+                        </div>
+                        <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-xs">Feature</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module" src="../../assets/js/supabase-config.js"></script>
+    <script type="module" src="../../assets/js/utils.js"></script>
+    <script type="module" src="../../assets/js/layout.js"></script>
+    <script type="module">
+        // Roadmap data management
+        const STORAGE_KEY = 'blocus_roadmap_progress';
+
+        // Load saved progress
+        function loadProgress() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            return saved ? JSON.parse(saved) : {};
+        }
+
+        // Save progress
+        function saveProgress(progress) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const progress = loadProgress();
+
+            // Setup task checkboxes
+            document.querySelectorAll('.task-item').forEach(task => {
+                const taskId = task.dataset.task;
+                const checkbox = task.querySelector('.task-checkbox');
+
+                // Restore state
+                if (progress[taskId]) {
+                    checkbox.innerHTML = '<i class="fas fa-check text-indigo-500"></i>';
+                    task.style.opacity = '0.6';
+                }
+
+                // Toggle on click
+                task.addEventListener('click', () => {
+                    const isCompleted = progress[taskId];
+
+                    if (isCompleted) {
+                        delete progress[taskId];
+                        checkbox.innerHTML = '';
+                        task.style.opacity = '1';
+                    } else {
+                        progress[taskId] = true;
+                        checkbox.innerHTML = '<i class="fas fa-check text-indigo-500"></i>';
+                        task.style.opacity = '0.6';
+                    }
+
+                    saveProgress(progress);
+                    updateStats();
+                });
+            });
+
+            updateStats();
+        });
+
+        // Update statistics
+        function updateStats() {
+            const progress = loadProgress();
+            const completedTasks = Object.keys(progress).length;
+
+            // Count tasks by category
+            const immediate = document.querySelectorAll('#immediate-tasks .task-item');
+            const short = document.querySelectorAll('#short-tasks .task-item');
+            const medium = document.querySelectorAll('#medium-tasks .task-item');
+            const long = document.querySelectorAll('#long-tasks .task-item');
+
+            const totalTasks = immediate.length + short.length + medium.length + long.length;
+
+            // Count completed by category
+            const immediateCompleted = Array.from(immediate).filter(t => progress[t.dataset.task]).length;
+            const shortCompleted = Array.from(short).filter(t => progress[t.dataset.task]).length;
+            const mediumCompleted = Array.from(medium).filter(t => progress[t.dataset.task]).length;
+            const longCompleted = Array.from(long).filter(t => progress[t.dataset.task]).length;
+
+            // Count critical tasks
+            const criticalTasks = immediate.length;
+            const criticalCompleted = immediateCompleted;
+
+            // Update stats
+            document.getElementById('total-tasks').textContent = totalTasks;
+            document.getElementById('critical-tasks').textContent = criticalTasks - criticalCompleted;
+            document.getElementById('completed-tasks').textContent = completedTasks;
+
+            const progressPercent = Math.round((completedTasks / totalTasks) * 100);
+            document.getElementById('progress-percent').textContent = progressPercent + '%';
+            document.getElementById('global-progress').style.width = progressPercent + '%';
+
+            // Update category stats
+            document.getElementById('immediate-completed').textContent = immediateCompleted;
+            document.getElementById('immediate-total').textContent = immediate.length;
+
+            document.getElementById('short-completed').textContent = shortCompleted;
+            document.getElementById('short-total').textContent = short.length;
+
+            document.getElementById('medium-completed').textContent = mediumCompleted;
+            document.getElementById('medium-total').textContent = medium.length;
+
+            document.getElementById('long-completed').textContent = longCompleted;
+            document.getElementById('long-total').textContent = long.length;
+        }
+    </script>
+</body>
+</html>

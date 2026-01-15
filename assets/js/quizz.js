@@ -387,16 +387,12 @@ async function callGenerateQuizFunction(topic, dataContext, count, type, options
             const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
             const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
             
-            // Échapper les données pour éviter les erreurs JSON
-            const safeDataContext = dataContext ? 
+            // Nettoyer les données (sans échapper manuellement - JSON.stringify le fera)
+            const safeDataContext = dataContext ?
                 dataContext
                     .substring(0, 8000) // Limiter à 8000 caractères
-                    .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Caractères de contrôle
-                    .replace(/\\/g, '\\\\') // Échapper les backslashes
-                    .replace(/"/g, '\\"') // Échapper les guillemets
-                    .replace(/\n/g, '\\n') // Échapper les retours à la ligne
-                    .replace(/\r/g, '\\r') // Échapper les retours chariot
-                    .replace(/\t/g, '\\t') // Échapper les tabulations
+                    .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ') // Remplacer caractères de contrôle par espace
+                    .trim()
                 : '';
             
             const requestBody = {
