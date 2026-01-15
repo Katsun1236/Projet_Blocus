@@ -49,8 +49,7 @@ export default defineConfig({
       },
       output: {
         manualChunks: {
-          'firebase-core': ['firebase/app', 'firebase/auth'],
-          'firebase-data': ['firebase/firestore', 'firebase/storage', 'firebase/functions'],
+          'supabase': ['@supabase/supabase-js'],
         },
       },
     },
@@ -74,7 +73,7 @@ export default defineConfig({
   },
 
   optimizeDeps: {
-    include: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/functions'],
+    include: ['@supabase/supabase-js', 'dompurify'],
   },
 
   define: {

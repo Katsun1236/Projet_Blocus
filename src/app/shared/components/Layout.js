@@ -1,6 +1,4 @@
-import { auth, db } from '../../core/services/firebase/index.js';
-import { signOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth, db, doc, getDoc } from '../../../assets/js/supabase-config.js';
 
 export function initLayout(activePageId) {
     const sidebar = document.getElementById('sidebar-container');
@@ -12,7 +10,7 @@ export function initLayout(activePageId) {
 
     setupMobileMenu();
 
-    onAuthStateChanged(auth, async (user) => {
+    auth.onAuthStateChanged(async (user) => {
         if (user) {
             updateHeaderProfile(user);
         }
@@ -175,7 +173,7 @@ function injectSidebar(activePageId) {
 
     document.getElementById('sidebar-logout-btn')?.addEventListener('click', async () => {
         try {
-            await signOut(auth);
+            await auth.signOut();
             window.location.href = rootPath + 'pages/auth/login.html';
         } catch (e) {
             console.error("Logout error", e);
