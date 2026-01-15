@@ -136,6 +136,7 @@ function injectSidebar(activePageId) {
 
             <div class="p-4 border-t border-gray-800/50">
                 ${renderNavLink('profile', 'Mon Profil', 'fa-user-circle', basePath + 'profile.html', activePageId)}
+                ${renderNavLink('roadmap', 'Roadmap', 'fa-route', basePath + 'roadmap.html', activePageId)}
                 <button id="sidebar-logout-btn" class="w-full mt-2 flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-400 rounded-xl hover:bg-red-500/10 transition-colors">
                     <i class="fas fa-sign-out-alt w-5"></i>
                     <span>Déconnexion</span>
@@ -158,6 +159,7 @@ function injectSidebar(activePageId) {
                 <a href="${basePath}planning.html" class="block text-lg text-gray-300 hover:text-white">Planning</a>
                 <a href="${basePath}pomodoro.html" class="block text-lg text-gray-300 hover:text-white">🍅 Pomodoro</a>
                 <a href="${basePath}profile.html" class="block text-lg text-gray-300 hover:text-white">Profil</a>
+                <a href="${basePath}roadmap.html" class="block text-lg text-gray-300 hover:text-white">🗺️ Roadmap</a>
             </nav>
         </div>
     `;
