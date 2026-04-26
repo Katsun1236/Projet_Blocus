@@ -1,42 +1,42 @@
-/* Améliorations mobiles pour Projet Blocus */
 
-/* Améliorations générales */
+
+
 @media (max-width: 640px) {
-    /* Espacements et tailles de texte */
+    
     html {
         font-size: 14px;
     }
     
-    /* Navigation améliorée */
+    
     .glass-nav {
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
     }
     
-    /* Boutons mobiles plus grands */
+    
     button, .btn {
         min-height: 44px;
         min-width: 44px;
     }
     
-    /* Zones de touch optimisées */
+    
     .touch-target {
         min-height: 44px;
         min-width: 44px;
     }
     
-    /* Scroll horizontal caché */
+    
     .overflow-x-hidden {
         overflow-x: hidden;
     }
     
-    /* Images responsives */
+    
     img {
         max-width: 100%;
         height: auto;
     }
     
-    /* Tables responsives */
+    
     table {
         display: block;
         overflow-x: auto;
@@ -44,22 +44,22 @@
     }
 }
 
-/* Améliorations pour tablettes */
+
 @media (min-width: 641px) and (max-width: 1024px) {
     html {
         font-size: 15px;
     }
     
-    /* Grilles optimisées */
+    
     .grid-responsive {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
-/* Améliorations spécifiques aux formulaires */
+
 @media (max-width: 640px) {
     input, textarea, select {
-        font-size: 16px; /* Évite le zoom sur iOS */
+        font-size: 16px; 
         -webkit-appearance: none;
         appearance: none;
     }
@@ -74,7 +74,7 @@
     }
 }
 
-/* Animations optimisées pour mobile */
+
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
         animation-duration: 0.01ms !important;
@@ -83,7 +83,7 @@
     }
 }
 
-/* Navigation mobile améliorée */
+
 @media (max-width: 768px) {
     .mobile-menu {
         transform: translateX(-100%);
@@ -113,7 +113,7 @@
     }
 }
 
-/* Cartes et contenus mobiles */
+
 @media (max-width: 640px) {
     .card {
         margin-bottom: 1rem;
@@ -135,7 +135,7 @@
     }
 }
 
-/* Footer mobile */
+
 @media (max-width: 640px) {
     footer {
         padding: 2rem 1rem;
@@ -152,7 +152,7 @@
     }
 }
 
-/* Notifications mobiles */
+
 @media (max-width: 640px) {
     .notification {
         margin: 0.5rem;
@@ -170,7 +170,7 @@
     }
 }
 
-/* Modales mobiles */
+
 @media (max-width: 640px) {
     .modal {
         padding: 1rem;
@@ -195,7 +195,7 @@
     }
 }
 
-/* Dashboard mobile */
+
 @media (max-width: 640px) {
     .dashboard-stats {
         grid-template-columns: 1fr;
@@ -220,7 +220,7 @@
     }
 }
 
-/* Optimisations pour les écrans tactiles */
+
 @media (hover: none) and (pointer: coarse) {
     .hover-effect:hover {
         transform: none;
@@ -236,7 +236,7 @@
     }
 }
 
-/* Accessibilité mobile */
+
 @media (max-width: 640px) {
     .skip-link {
         position: absolute;
@@ -255,7 +255,7 @@
     }
 }
 
-/* Performance mobile */
+
 @media (max-width: 640px) {
     .heavy-animation {
         animation: none !important;
@@ -271,7 +271,7 @@
     }
 }
 
-/* Mode paysage mobile */
+
 @media (max-width: 640px) and (orientation: landscape) {
     .landscape-hidden {
         display: none;
@@ -287,7 +287,7 @@
     }
 }
 
-/* iPhone X et plus (notch) */
+
 @supports (padding: max(0px)) {
     .safe-area-inset {
         padding-left: max(1rem, env(safe-area-inset-left));

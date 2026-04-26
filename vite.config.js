@@ -48,9 +48,14 @@ export default defineConfig({
         roadmap: resolve(__dirname, 'pages/app/roadmap.html'),
       },
       output: {
-        manualChunks: {
-          'firebase-core': ['firebase/app', 'firebase/auth'],
-          'firebase-data': ['firebase/firestore', 'firebase/storage', 'firebase/functions'],
+        // Pas de code splitting Firebase - complètement supprimé
+        manualChunks: (id) => {
+          if (id.includes('supabase')) {
+            return 'vendors-supabase';
+          }
+          if (id.includes('node_modules')) {
+            return 'vendors';
+          }
         },
       },
     },
@@ -65,16 +70,12 @@ export default defineConfig({
 
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src/app'),
-      '@core': resolve(__dirname, 'src/app/core'),
-      '@features': resolve(__dirname, 'src/app/features'),
-      '@shared': resolve(__dirname, 'src/app/shared'),
-      '@assets': resolve(__dirname, 'src/assets'),
+      '@assets': resolve(__dirname, 'assets'),
     },
   },
 
   optimizeDeps: {
-    include: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage', 'firebase/functions'],
+    include: ['@supabase/supabase-js', 'dompurify'],
   },
 
   define: {

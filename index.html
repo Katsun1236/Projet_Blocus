@@ -10,24 +10,42 @@
 
     
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://projet-blocus-v2.web.app/">
+    <meta property="og:url" content="https://projet-blocus.vercel.app/">
     <meta property="og:title" content="Projet Blocus | Hack tes études avec l'IA">
     <meta property="og:description" content="Transforme tes notes en synthèses IA, quiz instantanés et fiches de révision. Révise plus efficacement.">
-    <meta property="og:image" content="https://projet-blocus-v2.web.app/assets/images/og-image.png">
+    <meta property="og:image" content="https://projet-blocus.vercel.app/assets/images/og-image.png">
 
     
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://projet-blocus-v2.web.app/">
+    <meta property="twitter:url" content="https://projet-blocus.vercel.app/">
     <meta property="twitter:title" content="Projet Blocus | Hack tes études avec l'IA">
     <meta property="twitter:description" content="Transforme tes notes en synthèses IA, quiz instantanés et fiches de révision.">
-    <meta property="twitter:image" content="https://projet-blocus-v2.web.app/assets/images/og-image.png">
+    <meta property="twitter:image" content="https://projet-blocus.vercel.app/assets/images/og-image.png">
 
 
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="assets/css/animations.css">
+    <link rel="stylesheet" href="assets/css/design-tokens.css">
     <link rel="stylesheet" href="assets/css/mobile.css">
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script type="module">
+      import { logger, createLogger } from './assets/js/logger.js';
+      import { theme, loadTheme } from './assets/js/design-system.js';
+      import { errorHandler } from './assets/js/error-boundary.js';
+
+      loadTheme();
+      logger.log('🚀 Projet Blocus v2.0.1 initialisé');
+
+      window.appError = (message, error) => {
+        errorHandler.handle(error || new Error(message), 'AppError');
+      };
+
+      window.app = { logger, theme, errorHandler, _createLogger: createLogger };
+    </script>
+
+
 
 </head>
 <body class="relative selection:bg-indigo-500 selection:text-white bg-[#050505] text-white">
@@ -141,11 +159,25 @@
                 </h1>
                 
                 <p class="text-base sm:text-lg text-gray-400 max-w-lg mx-auto lg:mx-0 mb-10 leading-relaxed">
-                    L'outil ultime qui transforme le chaos de tes notes en une machine à réussir. 
-                    <span class="text-gray-200 font-medium">Synthèses IA, Quiz instantanés, Communauté active.</span>
+                    L'outil ultime qui transforme le chaos de tes notes en une machine à réussir.
+                    <span class="text-indigo-300 font-medium" id="hero-rotator">Synthèses IA</span>
                 </p>
 
-                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-xl mx-auto lg:mx-0 mb-12 text-sm text-gray-400">
+                    <div class="rounded-3xl bg-white/5 border border-white/10 p-4">
+                        <p class="font-bold text-white">+1200</p>
+                        <p>Sessions de révision lancées</p>
+                    </div>
+                    <div class="rounded-3xl bg-white/5 border border-white/10 p-4">
+                        <p class="font-bold text-white">93%</p>
+                        <p>Étudiants disent gagner du temps</p>
+                    </div>
+                    <div class="rounded-3xl bg-white/5 border border-white/10 p-4">
+                        <p class="font-bold text-white">75</p>
+                        <p>Thématiques couvertes chaque mois</p>
+                    </div>
+                </div>
+
                 <div class="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start">
                     
                     <div id="hero-logged-out" class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -270,6 +302,26 @@
         </div>
     </section>
 
+    <section class="py-24 px-6 bg-[#07070d] border-t border-gray-900/60">
+        <div class="max-w-7xl mx-auto grid gap-6 lg:grid-cols-3">
+            <article class="rounded-[32px] border border-white/5 bg-white/5 p-8 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(99,102,241,0.45)] transition-all duration-500 hover:-translate-y-2 hover:border-indigo-500/30">
+                <p class="text-sm uppercase tracking-[0.32em] text-indigo-300 mb-4">Productivité</p>
+                <h3 class="text-2xl font-bold text-white mb-3">Revision intelligente</h3>
+                <p class="text-gray-400 leading-relaxed">Passe moins de temps à organiser et plus de temps à apprendre grâce à des fiches intelligentes et des quiz adaptés.</p>
+            </article>
+            <article class="rounded-[32px] border border-white/5 bg-white/5 p-8 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(168,85,247,0.35)] transition-all duration-500 hover:-translate-y-2 hover:border-purple-500/30">
+                <p class="text-sm uppercase tracking-[0.32em] text-purple-300 mb-4">Communauté</p>
+                <h3 class="text-2xl font-bold text-white mb-3">Aide en direct</h3>
+                <p class="text-gray-400 leading-relaxed">Rejoins un espace où chaque étudiant partage astuces, ressources et succès en temps réel.</p>
+            </article>
+            <article class="rounded-[32px] border border-white/5 bg-white/5 p-8 backdrop-blur-xl shadow-[0_20px_60px_-30px_rgba(16,185,129,0.28)] transition-all duration-500 hover:-translate-y-2 hover:border-emerald-500/30">
+                <p class="text-sm uppercase tracking-[0.32em] text-emerald-300 mb-4">Futuré</p>
+                <h3 class="text-2xl font-bold text-white mb-3">Interface sans friction</h3>
+                <p class="text-gray-400 leading-relaxed">Une expérience fluide, rapide et moderne conçue pour te faire gagner du concentration dès la première visite.</p>
+            </article>
+        </div>
+    </section>
+
     <footer class="py-12 text-center text-gray-600 border-t border-gray-900 bg-black">
         <p class="text-sm font-mono">&copy; 2025 PROJET BLOCUS. TOUS DROITS RÉSERVÉS.</p>
         <div class="flex justify-center gap-4 mt-4 text-xs uppercase tracking-widest opacity-50">
@@ -282,7 +334,6 @@
         <p class="text-xs mt-4 opacity-30">Logo et marque déposés. Voir LICENSE pour plus d'informations.</p>
     </footer>
 
-    <!-- Roadmap Button (Discret) -->
     <a href="pages/app/roadmap.html"
        class="fixed bottom-6 right-6 w-12 h-12 bg-gray-800/50 hover:bg-indigo-600 backdrop-blur-sm border border-gray-700 hover:border-indigo-500 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all duration-300 shadow-lg hover:shadow-indigo-500/50 group z-40"
        title="Voir la roadmap du projet"
@@ -290,7 +341,6 @@
         <i class="fas fa-route text-lg group-hover:scale-110 transition-transform"></i>
     </a>
 
-    <!-- DOMPurify for XSS protection -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.8/dist/purify.min.js"></script>
 
     <script type="module" src="assets/js/home.js"></script>

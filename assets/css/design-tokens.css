@@ -1,0 +1,263 @@
+
+
+:root {
+  
+  --color-primary: #6366f1;         
+  --color-primary-light: #818cf8;
+  --color-primary-dark: #4f46e5;
+
+  --color-accent: #a855f7;          
+  --color-accent-light: #c084fc;
+  --color-accent-dark: #9333ea;
+
+  --color-success: #10b981;         
+  --color-success-light: #6ee7b7;
+  --color-success-dark: #059669;
+
+  --color-warning: #f59e0b;         
+  --color-warning-light: #fcd34d;
+  --color-warning-dark: #d97706;
+
+  --color-error: #ef4444;           
+  --color-error-light: #fca5a5;
+  --color-error-dark: #dc2626;
+
+  --color-info: #0ea5e9;            
+  --color-info-light: #7dd3fc;
+  --color-info-dark: #0284c7;
+
+  
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  
+  --color-bg-dark: #050505;
+  --color-bg-alt: #0f1115;
+  --color-surface: #1e1f22;
+  --color-surface-alt: #2b2d31;
+  --color-border: #3f4147;
+  --color-text: #ffffff;
+  --color-text-muted: #9ca3af;
+
+  
+  --space-0: 0;
+  --space-0-5: 0.125rem;   
+  --space-1: 0.25rem;      
+  --space-1-5: 0.375rem;   
+  --space-2: 0.5rem;       
+  --space-2-5: 0.625rem;   
+  --space-3: 0.75rem;      
+  --space-3-5: 0.875rem;   
+  --space-4: 1rem;         
+  --space-5: 1.25rem;      
+  --space-6: 1.5rem;       
+  --space-7: 1.75rem;      
+  --space-8: 2rem;         
+  --space-9: 2.25rem;      
+  --space-10: 2.5rem;      
+  --space-12: 3rem;        
+  --space-16: 4rem;        
+  --space-20: 5rem;        
+
+  
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Fira Code', SFMono-Regular, Monaco, Consolas, monospace;
+  --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --fs-xs: 0.75rem;      
+  --fs-sm: 0.875rem;     
+  --fs-base: 1rem;       
+  --fs-lg: 1.125rem;     
+  --fs-xl: 1.25rem;      
+  --fs-2xl: 1.5rem;      
+  --fs-3xl: 1.875rem;    
+  --fs-4xl: 2.25rem;     
+  --fs-5xl: 3rem;        
+  --fs-6xl: 3.75rem;     
+
+  --lh-tight: 1.2;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.625;
+  --lh-loose: 2;
+
+  --fw-light: 300;
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-extrabold: 800;
+
+  
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.08);
+  --shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+  --shadow-glow-lg: 0 0 40px rgba(99, 102, 241, 0.5);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+
+  
+  --radius-none: 0;
+  --radius-sm: 0.125rem;  
+  --radius-base: 0.25rem; 
+  --radius-md: 0.375rem;  
+  --radius-lg: 0.5rem;    
+  --radius-xl: 0.75rem;   
+  --radius-2xl: 1rem;     
+  --radius-3xl: 1.5rem;   
+  --radius-full: 9999px;
+
+  
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-notification: 1080;
+
+  
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  
+  --gradient-primary: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  --gradient-secondary: linear-gradient(135deg, var(--color-info) 0%, #06b6d4 100%);
+  --gradient-danger: linear-gradient(135deg, var(--color-error) 0%, #f87171 100%);
+  --gradient-success: linear-gradient(135deg, var(--color-success) 0%, #34d399 100%);
+}
+
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-dark: var(--color-bg-dark);
+    --accent-primary: var(--color-primary);
+    --accent-secondary: var(--color-accent);
+    --text-primary: var(--color-text);
+    --text-secondary: var(--color-text-muted);
+  }
+}
+
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg-dark: #ffffff;
+    --color-bg-alt: #f9fafb;
+    --color-surface: #f3f4f6;
+    --color-surface-alt: #e5e7eb;
+    --color-border: #d1d5db;
+    --color-text: #111827;
+    --color-text-muted: #6b7280;
+  }
+}
+
+
+
+
+[class*="hover:bg-"],
+[class*="hover:text-"],
+[class*="hover:border-"],
+button,
+a {
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+
+.transition-all {
+  transition:  all var(--transition-base);
+}
+
+.transition-colors {
+  transition: background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.transition-opacity {
+  transition: opacity var(--transition-base);
+}
+
+.transition-transform {
+  transition: transform var(--transition-base);
+}
+
+
+.glow {
+  box-shadow: var(--shadow-glow);
+}
+
+.glow-lg {
+  box-shadow: var(--shadow-glow-lg);
+}
+
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--space-16);
+}
+
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+
+::selection {
+  background-color: var(--color-primary);
+  color: white;
+}
+
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-lg);
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
