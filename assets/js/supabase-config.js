@@ -7,7 +7,7 @@
  * 2. Remplace tous les imports de './config.js' par './supabase-config.js'
  */
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { createClient } from '@supabase/supabase-js'
 
 // ✅ Configuration Supabase - Chargée depuis variables d'environnement
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
