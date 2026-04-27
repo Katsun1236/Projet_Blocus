@@ -1,3 +1,7 @@
+import DOMPurify from 'https://cdn.jsdelivr.net/gh/cure53/DOMPurify@3.0.6/dist/purify.es.js';
+
+const isDev = import.meta.env.DEV;
+
 export function showToast(message, type = 'info', duration = 4000) {
     const existingToast = document.getElementById('global-toast');
     if (existingToast) existingToast.remove();
@@ -16,12 +20,15 @@ export function showToast(message, type = 'info', duration = 4000) {
     const config = configs[type] || configs.info;
     toast.classList.add(config.border);
 
+    // Sanitize message to prevent XSS
+    const safeMessage = DOMPurify.sanitize(message, { ALLOWED_TAGS: [] });
+
     toast.innerHTML = `
         <div class="${config.color} text-xl flex-shrink-0">
             <i class="fas ${config.icon}"></i>
         </div>
         <div class="flex-1">
-            <p class="text-white text-sm leading-relaxed">${message}</p>
+            <p class="text-white text-sm leading-relaxed">${safeMessage}</p>
         </div>
         <button class="text-gray-500 hover:text-white transition-colors ml-2" onclick="this.parentElement.remove()">
             <i class="fas fa-times"></i>
@@ -40,7 +47,10 @@ export function showToast(message, type = 'info', duration = 4000) {
 }
 
 export function handleFirebaseError(error, context = '') {
-    console.error(`[Firebase Error - ${context}]:`, error);
+    // Log details only in development
+    if (isDev) {
+        console.error(`[Error - ${context}]:`, error);
+    }
 
     const errorMessages = {
         'auth/email-already-in-use': 'Cette adresse email est déjà utilisée.',
@@ -52,7 +62,7 @@ export function handleFirebaseError(error, context = '') {
         'auth/wrong-password': 'Mot de passe incorrect.',
         'auth/too-many-requests': 'Trop de tentatives. Réessayez plus tard.',
         'auth/network-request-failed': 'Erreur réseau. Vérifiez votre connexion.',
-        'permission-denied': 'Permission refusée. Vérifiez vos droits d\'accès.',
+        'permission-denied': 'Permission refusée.',
         'not-found': 'Ressource introuvable.',
         'already-exists': 'Cette ressource existe déjà.',
         'resource-exhausted': 'Quota dépassé. Réessayez plus tard.',
@@ -61,7 +71,7 @@ export function handleFirebaseError(error, context = '') {
     };
 
     const errorCode = error.code || 'unknown';
-    const message = errorMessages[errorCode] || error.message || 'Une erreur est survenue.';
+    const message = errorMessages[errorCode] || 'Une erreur est survenue.';
 
     showToast(message, 'error', 5000);
 
@@ -72,24 +82,35 @@ function logError(error, context) {
     const logEntry = {
         timestamp: new Date().toISOString(),
         context,
-        code: error.code,
-        message: error.message,
-        stack: error.stack,
+        code: error.code || 'unknown',
+        message: error.message || 'Unknown error',
+        // Don't include full stack trace in production
+        ...(isDev && { stack: error.stack }),
         userAgent: navigator.userAgent
     };
 
-    console.error('[Error Log]:', logEntry);
+    // Dev: Log to console, Prod: Send to monitoring service
+    if (isDev) {
+        console.error('[Error Log]:', logEntry);
+    } else {
+        // TODO: Send to Sentry or similar monitoring service
+        // sendToMonitoring(logEntry);
+    }
 }
 
 window.addEventListener('unhandledrejection', (event) => {
-    console.error('Unhandled Promise Rejection:', event.reason);
-    logError(event.reason, 'unhandledrejection');
+    if (isDev) {
+        console.error('Unhandled Promise Rejection:', event.reason);
+    }
+    logError(event.reason || new Error('Unknown rejection'), 'unhandledrejection');
     event.preventDefault();
 });
 
 window.addEventListener('error', (event) => {
-    console.error('Global Error:', event.error);
-    logError(event.error, 'global');
+    if (isDev) {
+        console.error('Global Error:', event.error);
+    }
+    logError(event.error || new Error(event.message || 'Unknown error'), 'global');
 });
 
 export async function tryCatch(asyncFn, context = '', showError = true) {

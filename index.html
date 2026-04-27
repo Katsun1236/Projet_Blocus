@@ -8,6 +8,22 @@
     <meta name="keywords" content="révision, étudiant, IA, synthèse, quiz, blocus, étude, fiches, apprentissage">
     <link rel="icon" type="image/png" href="assets/images/locus-neon-favicon.png">
 
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' https://cdn.jsdelivr.net https://esm.sh https://kit.fontawesome.com https://vercel.live;
+        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://kit-free.fontawesome.com;
+        img-src 'self' https: data: blob:;
+        connect-src 'self' https://vhtzudbcfyxnwmpyjyqw.supabase.co https://vercel.live;
+        font-src 'self' https: data:;
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
     
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://projet-blocus.vercel.app/">

@@ -5,10 +5,40 @@ export const Validators = {
   },
 
   password: (value) => {
-    if (value.length < 8) return 'Minimum 8 caractères';
-    if (!/[A-Z]/.test(value)) return 'Au moins une majuscule';
-    if (!/[a-z]/.test(value)) return 'Au moins une minuscule';
-    if (!/[0-9]/.test(value)) return 'Au moins un chiffre';
+    if (!value || value.length < 12) {
+      return 'Minimum 12 caractères requis';
+    }
+    
+    if (!/[A-Z]/.test(value)) {
+      return 'Au moins une majuscule (A-Z) requise';
+    }
+    
+    if (!/[a-z]/.test(value)) {
+      return 'Au moins une minuscule (a-z) requise';
+    }
+    
+    if (!/[0-9]/.test(value)) {
+      return 'Au moins un chiffre (0-9) requis';
+    }
+    
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
+      return 'Au moins un caractère spécial requis (!@#$%^&*...)';
+    }
+    
+    // Check for common weak patterns
+    const commonPatterns = [
+      /^123.*|.*123$/i,
+      /^abc.*|.*abc$/i,
+      /^qwerty/i,
+      /^password/i,
+      /^12345/,
+      /^11111/,
+    ];
+    
+    if (commonPatterns.some(pattern => pattern.test(value))) {
+      return 'Mot de passe trop simple (pattern courant détecté)';
+    }
+    
     return null;
   },
 

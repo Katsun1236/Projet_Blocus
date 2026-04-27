@@ -9,17 +9,26 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-// ✅ Configuration Supabase avec fallback hardcodé
-// Les clés sont directement hardcodées pour éviter les problèmes de build Vite
-const SUPABASE_URL = 'https://vhtzudbcfyxnwmpyjyqw.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZodHp1ZGJjZnl4bndtcHlqeXF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY4NDY2NDgsImV4cCI6MjA4MjQyMjY0OH0.6tHA5qpktIqoLNh1RN620lSVhn6FRu3qtRI2O0j7mGU';
+// ✅ Configuration Supabase - Chargée depuis variables d'environnement
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Debug: Vérifier les valeurs
-console.log('🔑 Supabase Config:', {
-    url: SUPABASE_URL,
-    keyLength: SUPABASE_ANON_KEY?.length,
-    urlValid: SUPABASE_URL?.startsWith('https://')
-});
+// Validation stricte des variables d'environnement
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  throw new Error(
+    '[Supabase] Configuration incomplète. ' +
+    'Assurez-vous que VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY sont configurés ' +
+    'dans vos variables d\'environnement ou dans le fichier .env'
+  );
+}
+
+// Debug: Vérifier les valeurs (DEV ONLY)
+if (import.meta.env.DEV) {
+  console.log('[Supabase] Config loaded from environment variables', {
+    urlValid: SUPABASE_URL?.startsWith('https://'),
+    keyConfigured: !!SUPABASE_ANON_KEY
+  });
+}
 
 // Créer le client Supabase avec persistence de session
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {

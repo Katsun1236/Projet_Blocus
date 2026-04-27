@@ -64,7 +64,18 @@ export default defineConfig({
   server: {
     port: 8000,
     open: true,
-    cors: true,
+    cors: {
+      origin: [
+        'http://localhost:5173',
+        'http://localhost:8000',
+        'https://projet-blocus.vercel.app',
+        'https://projet-blocus-dev.vercel.app'
+      ],
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      maxAge: 86400,
+    },
     host: true,
   },
 

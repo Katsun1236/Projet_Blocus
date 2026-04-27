@@ -5,6 +5,7 @@
 
 import { theme, createClassName } from './design-system.js';
 import { logger } from './logger.js';
+import DOMPurify from 'https://cdn.jsdelivr.net/gh/cure53/DOMPurify@3.0.6/dist/purify.es.js';
 
 // ✨ Base component class
 export class Component {
@@ -55,7 +56,11 @@ export class Component {
   }
 
   setHTML(html) {
-    this.el.innerHTML = html;
+    const clean = DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'div', 'span', 'b', 'i', 'em', 'strong', 'br', 'a', 'ul', 'ol', 'li'],
+      ALLOWED_ATTR: ['class', 'id', 'href', 'target']
+    });
+    this.el.innerHTML = clean;
     return this;
   }
 

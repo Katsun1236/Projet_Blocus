@@ -1,6 +1,7 @@
 import { auth, supabase } from './supabase-config.js';
 import { initLayout } from './layout.js';
 import { showMessage } from './utils.js';
+import DOMPurify from 'https://cdn.jsdelivr.net/gh/cure53/DOMPurify@3.0.6/dist/purify.es.js';
 // import { initSpeedInsights } from './speed-insights.js';
 
 // Initialize Speed Insights for performance monitoring
@@ -37,12 +38,15 @@ function showQuizProgress() {
         }
     }
     
+    // Sanitize the tip to prevent XSS
+    const safeTip = DOMPurify.sanitize(randomTip, { ALLOWED_TAGS: [] });
+    
     progressContainer.innerHTML = `
         <div class="flex items-start gap-2">
             <span class="text-blue-400 mt-1">🧠</span>
             <div class="flex-1">
                 <div class="font-medium text-blue-200 mb-1">Pendant que nous générons votre quiz...</div>
-                <div class="mb-2">${randomTip}</div>
+                <div class="mb-2">${safeTip}</div>
                 <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
                     <div id="quiz-progress-bar" class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                 </div>
