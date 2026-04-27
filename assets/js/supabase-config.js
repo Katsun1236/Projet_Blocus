@@ -25,9 +25,9 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL === 'undefined') {
     document.body.innerHTML = `
       <div style="padding:40px; background:#111; color:white; font-family:sans-serif; text-align:center; height:100vh; display:flex; flex-direction:column; justify-content:center;">
         <h1 style="color:#ff0055;">Erreur de Configuration</h1>
-        <p>Les clÃ©s d'API Supabase sont manquantes.</p>
+        <p>Les clés d'API Supabase sont manquantes.</p>
         <p style="color:#a1a1aa; font-size:14px; max-width:600px; margin:20px auto;">
-          Si vous Ãªtes sur Netlify, allez dans <strong>Site settings > Environment variables</strong> et ajoutez <code>VITE_SUPABASE_URL</code> et <code>VITE_SUPABASE_ANON_KEY</code>, puis dÃ©clenchez un nouveau dÃ©ploiement (Clear cache and deploy site).
+          Si vous êtes sur Netlify, allez dans <strong>Site settings > Environment variables</strong> et ajoutez <code>VITE_SUPABASE_URL</code> et <code>VITE_SUPABASE_ANON_KEY</code>, puis déclenchez un nouveau déploiement (Clear cache and deploy site).
         </p>
       </div>
     `;

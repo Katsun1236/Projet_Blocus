@@ -46,6 +46,12 @@ export default defineConfig({
         chatList: resolve(__dirname, 'pages/app/chat-list.html'),
         bugReport: resolve(__dirname, 'pages/app/bug-report.html'),
         roadmap: resolve(__dirname, 'pages/app/roadmap.html'),
+
+        // Legal & Admin pages
+        cgu: resolve(__dirname, 'pages/legal/cgu.html'),
+        confidentialite: resolve(__dirname, 'pages/legal/confidentialite.html'),
+        contact: resolve(__dirname, 'pages/legal/contact.html'),
+        adminPanel: resolve(__dirname, 'pages/admin/panel.html'),
       },
       output: {
         // Pas de code splitting Firebase - complètement supprimé
