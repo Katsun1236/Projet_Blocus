@@ -14,12 +14,24 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Validation stricte des variables d'environnement
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error(
-    '[Supabase] Configuration incomplète. ' +
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_URL === 'undefined') {
+  console.error(
+    '[Supabase] ERREUR CRITIQUE: Configuration incomplète.\n' +
     'Assurez-vous que VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY sont configurés ' +
-    'dans vos variables d\'environnement ou dans le fichier .env'
+    'dans vos variables d\'environnement Netlify / Vercel ou dans le fichier .env en local.'
   );
+  // Afficher un message bloquant sur l'interface si possible
+  window.addEventListener('DOMContentLoaded', () => {
+    document.body.innerHTML = `
+      <div style="padding:40px; background:#111; color:white; font-family:sans-serif; text-align:center; height:100vh; display:flex; flex-direction:column; justify-content:center;">
+        <h1 style="color:#ff0055;">Erreur de Configuration</h1>
+        <p>Les clÃ©s d'API Supabase sont manquantes.</p>
+        <p style="color:#a1a1aa; font-size:14px; max-width:600px; margin:20px auto;">
+          Si vous Ãªtes sur Netlify, allez dans <strong>Site settings > Environment variables</strong> et ajoutez <code>VITE_SUPABASE_URL</code> et <code>VITE_SUPABASE_ANON_KEY</code>, puis dÃ©clenchez un nouveau dÃ©ploiement (Clear cache and deploy site).
+        </p>
+      </div>
+    `;
+  });
 }
 
 // Debug: Vérifier les valeurs (DEV ONLY)

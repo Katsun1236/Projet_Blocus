@@ -9,12 +9,15 @@
     <link rel="stylesheet" href="../../assets/css/mobile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-dark text-gray-100 font-sans antialiased selection:bg-indigo-500 selection:text-white overflow-hidden">
+<body class="bg-space-900 text-gray-100 font-sans antialiased selection:bg-neon-cyan selection:text-space-900 overflow-hidden">
 
-    
+    <!-- Nouveaux backgrounds futuristes -->
+    <div class="grid-bg" aria-hidden="true"></div>
+    <div class="noise-overlay" aria-hidden="true"></div>
+
     <div class="fixed inset-0 z-0">
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-slow"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow" style="animation-delay: 2s;"></div>
+        <div class="glow-bg bg-neon-cyan/20" style="top: -10%; left: -10%;"></div>
+        <div class="glow-bg bg-neon-pink/20" style="bottom: -10%; right: -10%; animation-delay: -3s;"></div>
     </div>
 
     
@@ -66,7 +69,7 @@
 
                     
                     <button type="submit" 
-                        class="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/20 transform hover:-translate-y-0.5 transition-all duration-200 focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-indigo-500">
+                        class="w-full py-3.5 px-4 btn-primary rounded-xl font-display text-lg tracking-wide">
                         Se connecter
                     </button>
                 </form>

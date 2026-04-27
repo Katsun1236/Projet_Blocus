@@ -9,16 +9,6 @@
     <link rel="icon" type="image/png" href="assets/images/locus-neon-favicon.png">
 
     <!-- Security Headers -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self' https://cdn.jsdelivr.net https://esm.sh https://kit.fontawesome.com https://vercel.live;
-        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://kit-free.fontawesome.com;
-        img-src 'self' https: data: blob:;
-        connect-src 'self' https://vhtzudbcfyxnwmpyjyqw.supabase.co https://vercel.live;
-        font-src 'self' https: data:;
-        frame-ancestors 'none';
-        base-uri 'self';
-        form-action 'self';">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
@@ -70,11 +60,14 @@
     <a href="#main-content" class="skip-to-main">Aller au contenu principal</a>
 
     
+    <!-- Nouveaux backgrounds futuristes -->
+    <div class="grid-bg" aria-hidden="true"></div>
     <div class="noise-overlay" aria-hidden="true"></div>
 
-    
-    <div class="glow-bg" style="top: -20%; left: -10%; background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 70%);"></div>
-    <div class="glow-bg" style="bottom: 10%; right: -10%; background: radial-gradient(circle, rgba(168,85,247,0.15) 0%, transparent 70%);"></div>
+    <!-- Glows modernisés cyan/purple/pink -->
+    <div class="glow-bg bg-neon-purple/20" style="top: -20%; left: -10%;"></div>
+    <div class="glow-bg bg-neon-cyan/20" style="bottom: 10%; right: -10%; animation-delay: -5s;"></div>
+    <div class="glow-bg bg-neon-pink/10" style="top: 40%; left: 50%; width: 400px; height: 400px; animation-delay: -2s;"></div>
 
     
     <nav class="fixed top-0 w-full z-50 glass-nav transition-all duration-300 border-b border-white/5" role="navigation" aria-label="Navigation principale">
@@ -93,7 +86,7 @@
                     <a href="#community" class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Communauté</a>
                     <div class="flex items-center gap-4 pl-4 border-l border-gray-800">
                         <a href="pages/auth/login.html" class="text-sm font-medium text-white hover:text-indigo-400 transition-colors">Connexion</a>
-                        <a href="pages/auth/register.html" class="group px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20">
+                        <a href="pages/auth/register.html" class="group px-5 py-2.5 rounded-lg btn-primary text-white text-sm font-bold transition-all flex items-center gap-2">
                             <span>S'inscrire</span>
                             <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform text-xs"></i>
                         </a>
@@ -150,7 +143,7 @@
                 <a href="#community" class="text-gray-300 hover:text-white py-3 px-4 rounded-lg hover:bg-gray-800/50 transition-all">Communauté</a>
                 <div class="h-px bg-gray-800 my-2"></div>
                 <a href="pages/auth/login.html" class="text-gray-300 hover:text-white py-3 px-4 rounded-lg hover:bg-gray-800/50 transition-all">Connexion</a>
-                <a href="pages/auth/register.html" class="bg-indigo-600 text-center text-white font-bold py-4 rounded-xl hover:bg-indigo-500 transition-all shadow-lg shadow-indigo-500/20">Commencer</a>
+                <a href="pages/auth/register.html" class="btn-primary text-center text-white font-bold py-4 rounded-xl transition-all">Commencer</a>
             </div>
         </div>
     </nav>
@@ -207,7 +200,7 @@
                     
                     
                     <div id="hero-logged-in" class="hidden w-full sm:w-auto">
-                        <a href="pages/app/dashboard.html" class="w-full sm:w-auto px-8 py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/40 transition-all flex items-center justify-center gap-3 transform hover:-translate-y-1">
+                        <a href="pages/app/dashboard.html" class="w-full sm:w-auto px-8 py-4 btn-primary text-white font-bold rounded-xl transition-all flex items-center justify-center gap-3">
                             <i class="fas fa-rocket"></i> Lancer la session
                         </a>
                     </div>
