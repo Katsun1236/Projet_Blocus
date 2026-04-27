@@ -166,7 +166,7 @@ async function loadCourses() {
 
         coursesData = courses || [];
 
-        updateBreadcrumbs();
+        // updateBreadcrumbs(); // This function is not defined anywhere, so we remove the call.
         filterCourses(ui.searchInput ? ui.searchInput.value : '');
 
     } catch (error) {

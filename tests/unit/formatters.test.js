@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { formatDate, formatFileSize, formatTimeAgo } from '../src/app/shared/utils/formatters.js';
+import { formatDate, formatFileSize, formatTimeAgo } from '../../src/app/shared/utils/formatters.js';
 
 describe('Formatters', () => {
   describe('formatFileSize', () => {

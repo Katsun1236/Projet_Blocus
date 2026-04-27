@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Validators } from '../src/app/shared/utils/validators.js';
+import { Validators } from '../../src/app/shared/utils/validators.js';
 
 describe('Validators', () => {
   describe('email', () => {
@@ -17,15 +17,15 @@ describe('Validators', () => {
 
   describe('password', () => {
     it('should validate strong passwords', () => {
-      expect(Validators.password('Password123')).toBeNull();
-      expect(Validators.password('MyP@ssw0rd')).toBeNull();
+      expect(Validators.password('ComplexP@ssw0rd!!')).toBeNull();
+      expect(Validators.password('Tr0ub4dor&32!!xX')).toBeNull();
     });
 
     it('should reject weak passwords', () => {
-      expect(Validators.password('short')).toBe('Minimum 8 caractères');
-      expect(Validators.password('noupperca$e1')).toBe('Au moins une majuscule');
-      expect(Validators.password('NOLOWERCASE1')).toBe('Au moins une minuscule');
-      expect(Validators.password('NoNumbers')).toBe('Au moins un chiffre');
+      expect(Validators.password('short')).toBe('Minimum 12 caract\u00E8res requis');
+      expect(Validators.password('noupperca$e1234')).toBe('Au moins une majuscule (A-Z) requise');
+      expect(Validators.password('NOLOWERCASE1234!')).toBe('Au moins une minuscule (a-z) requise');
+      expect(Validators.password('NoNumbersHere!!')).toBe('Au moins un chiffre (0-9) requis');
     });
   });
 

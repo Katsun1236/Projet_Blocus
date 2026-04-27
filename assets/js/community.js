@@ -1,5 +1,6 @@
-import { auth, supabase } from './supabase-config.js';
+import { auth, db, supabase, storage, onAuthStateChanged, signOut, doc, getDoc, setDoc, collection, addDoc, getDocs, query, where, orderBy, limit, onSnapshot, updateDoc, deleteDoc, writeBatch, increment, deleteField, ref, uploadBytes, getDownloadURL } from './supabase-config.js';
 import { initLayout } from './layout.js';
+import { toggleCreateGroupModal } from './components.js';
 import { showMessage, formatDate, debounce } from './utils.js';
 
 // ✅ CONSTANTS: Limites de fichiers et queries

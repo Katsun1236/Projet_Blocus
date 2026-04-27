@@ -54,7 +54,8 @@ async function checkAuth() {
     currentUserId = user.id;
     await loadUserProfile();
     await loadPosts();
-    await loadContributors();
+    // loadContributors n'est pas définie dans ce fichier, on la retire.
+    // await loadContributors();
     await loadGroups();
 }
 
