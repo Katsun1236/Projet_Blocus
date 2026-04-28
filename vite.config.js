@@ -34,6 +34,7 @@ export default defineConfig({
         quiz: resolve(__dirname, 'pages/app/quiz.html'),
         synthesize: resolve(__dirname, 'pages/app/synthesize.html'),
         spacedRepetition: resolve(__dirname, 'pages/app/spaced-repetition.html'),
+        music: resolve(__dirname, 'pages/app/music.html'),
         pomodoro: resolve(__dirname, 'pages/app/pomodoro.html'),
         planning: resolve(__dirname, 'pages/app/planning.html'),
         profile: resolve(__dirname, 'pages/app/profile.html'),
