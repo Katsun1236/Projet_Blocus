@@ -31,6 +31,45 @@ export function initLayout(activePageId) {
             }
         });
     }
+
+    injectMusicFAB();
+}
+
+function injectMusicFAB() {
+    // Ne pas injecter sur la page de musique elle-même
+    if (window.location.pathname.includes('music.html')) return;
+    
+    const inAppPages = window.location.pathname.includes('/pages/app/');
+    const basePath = inAppPages ? './' : './pages/app/';
+    
+    const fab = document.createElement('div');
+    fab.id = 'music-fab-container';
+    fab.className = 'fixed bottom-6 right-6 z-50 animate-fade-in';
+    fab.innerHTML = `
+        <button id="music-fab-btn" class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)] flex items-center justify-center text-white text-xl hover:scale-110 hover:shadow-[0_0_25px_rgba(99,102,241,0.7)] transition-all duration-300 group relative focus:outline-none">
+            <i class="fas fa-music"></i>
+            <span class="absolute -top-12 right-0 bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700 shadow-xl font-medium">
+                Lecteur de musique
+            </span>
+            <span class="absolute inset-0 rounded-full border border-indigo-400 opacity-0 group-hover:animate-ping pointer-events-none"></span>
+        </button>
+    `;
+    
+    document.body.appendChild(fab);
+
+    document.getElementById('music-fab-btn').addEventListener('click', () => {
+        // Ouvrir dans une mini-fenêtre pour que la musique continue pendant la navigation
+        const popup = window.open(
+            basePath + 'music.html',
+            'BlocusMusicPlayer',
+            'width=450,height=800,menubar=no,toolbar=no,location=no,status=no,scrollbars=yes,resizable=yes'
+        );
+        
+        // Fallback si les popups sont bloquées
+        if (!popup || popup.closed || typeof popup.closed === 'undefined') {
+            window.location.href = basePath + 'music.html';
+        }
+    });
 }
 
 function setupMobileMenu() {
